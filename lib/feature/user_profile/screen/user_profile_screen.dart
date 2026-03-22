@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/helpers/format_helper.dart';
 import '../../../core/widgets/app_avatar.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../../../route/route_names.dart';
 import '../controller/user_profile_controller.dart';
 
@@ -33,8 +34,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       animation: _controller,
       builder: (context, child) {
         final user = _controller.user;
-        if (user == null) {
+        if (_controller.state.isLoading) {
           return const Center(child: CircularProgressIndicator());
+        }
+        if (_controller.state.hasError) {
+          return ErrorStateView(
+            message: _controller.state.errorMessage ?? 'Unable to load profile',
+            onRetry: _controller.load,
+          );
+        }
+        if (user == null) {
+          return const Center(child: Text('Profile not available')); 
         }
         return ListView(
           padding: const EdgeInsets.all(16),
@@ -69,7 +79,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            const Text('Tabs: Posts • Reels • Saved • Tagged • About'),
+            Text('Tabs: ${_controller.roleSections().join(' • ')}'),
             const SizedBox(height: 16),
             const Card(
               child: ListTile(

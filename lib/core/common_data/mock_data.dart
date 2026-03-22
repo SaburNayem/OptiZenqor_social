@@ -34,6 +34,39 @@ class MockData {
       following: 91,
       verified: true,
     ),
+    const UserModel(
+      id: 'u3',
+      name: 'Rafi Ahmed',
+      username: 'rafiahmed',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500',
+      bio: 'Mobile engineer and coffee explorer.',
+      role: UserRole.user,
+      followers: 9780,
+      following: 640,
+      verified: false,
+    ),
+    const UserModel(
+      id: 'u4',
+      name: 'Luna Crafts',
+      username: 'luna.crafts',
+      avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=500',
+      bio: 'Handmade decor and cozy studio stories.',
+      role: UserRole.seller,
+      followers: 21400,
+      following: 220,
+      verified: true,
+    ),
+    const UserModel(
+      id: 'u5',
+      name: 'Arif Talent Hub',
+      username: 'arif.talent',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500',
+      bio: 'Hiring product and growth talent worldwide.',
+      role: UserRole.recruiter,
+      followers: 6400,
+      following: 105,
+      verified: false,
+    ),
   ];
 
   static final posts = <PostModel>[
@@ -48,6 +81,66 @@ class MockData {
       likes: 2341,
       comments: 302,
       createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+    ),
+    PostModel(
+      id: 'p2',
+      authorId: 'u2',
+      caption: 'Launch week visuals are live. Which card style looks best?',
+      tags: const ['#branding', '#productlaunch'],
+      media: const [
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200',
+      ],
+      likes: 1890,
+      comments: 224,
+      createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+    PostModel(
+      id: 'p3',
+      authorId: 'u3',
+      caption: 'Shipping a cleaner chat composer tonight. Tiny details matter.',
+      tags: const ['#flutter', '#devlog'],
+      media: const [
+        'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1200',
+      ],
+      likes: 954,
+      comments: 118,
+      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+    ),
+    PostModel(
+      id: 'p4',
+      authorId: 'u4',
+      caption: 'Weekend drop: new handcrafted lamp collection now in stock.',
+      tags: const ['#shop', '#handmade'],
+      media: const [
+        'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=1200',
+      ],
+      likes: 3210,
+      comments: 410,
+      createdAt: DateTime.now().subtract(const Duration(hours: 8)),
+    ),
+    PostModel(
+      id: 'p5',
+      authorId: 'u5',
+      caption: 'Open roles this month: Product Designer, Flutter Engineer, PMM.',
+      tags: const ['#jobs', '#hiring'],
+      media: const [
+        'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200',
+      ],
+      likes: 780,
+      comments: 96,
+      createdAt: DateTime.now().subtract(const Duration(hours: 10)),
+    ),
+    PostModel(
+      id: 'p6',
+      authorId: 'u1',
+      caption: 'Behind the scenes from our creator meetup in Dhaka.',
+      tags: const ['#community', '#creatorlife'],
+      media: const [
+        'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200',
+      ],
+      likes: 2760,
+      comments: 332,
+      createdAt: DateTime.now().subtract(const Duration(hours: 12)),
     ),
   ];
 
@@ -72,6 +165,34 @@ class MockData {
       media:
           'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800',
       seen: false,
+    ),
+    const StoryModel(
+      id: 's2',
+      userId: 'u2',
+      media:
+          'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=800',
+      seen: false,
+    ),
+    const StoryModel(
+      id: 's3',
+      userId: 'u3',
+      media:
+          'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800',
+      seen: true,
+    ),
+    const StoryModel(
+      id: 's4',
+      userId: 'u4',
+      media:
+          'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?w=800',
+      seen: false,
+    ),
+    const StoryModel(
+      id: 's5',
+      userId: 'u5',
+      media:
+          'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800',
+      seen: true,
     ),
   ];
 

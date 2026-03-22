@@ -54,6 +54,26 @@ class SettingsController {
       routeName: RouteNames.accessibilitySupport,
     ),
     SettingsItemModel(
+      title: 'Explore recommendations',
+      routeName: RouteNames.exploreRecommendation,
+    ),
+    SettingsItemModel(
+      title: 'Blocked and muted accounts',
+      routeName: RouteNames.blockedMutedAccounts,
+    ),
+    SettingsItemModel(
+      title: 'Invite and referral',
+      routeName: RouteNames.inviteReferral,
+    ),
+    SettingsItemModel(
+      title: 'Legal and compliance',
+      routeName: RouteNames.legalCompliance,
+    ),
+    SettingsItemModel(
+      title: 'Maintenance mode preview',
+      routeName: RouteNames.maintenanceMode,
+    ),
+    SettingsItemModel(
       title: 'App update flow',
       routeName: RouteNames.appUpdateFlow,
     ),

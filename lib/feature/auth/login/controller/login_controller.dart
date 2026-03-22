@@ -1,33 +1,54 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/common_models/form_state_model.dart';
 import '../../../../core/enums/user_role.dart';
-import '../../../../core/enums/view_state.dart';
-import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../route/route_names.dart';
+import '../../../auth/repository/auth_repository.dart';
 
 class LoginController extends ChangeNotifier {
-  LoginController({AuthService? authService})
-      : _authService = authService ?? AuthService();
+  LoginController({
+    AuthRepository? repository,
+    AnalyticsService? analytics,
+  })  : _repository = repository ?? AuthRepository(),
+        _analytics = analytics ?? AnalyticsService();
 
-  final AuthService _authService;
+  final AuthRepository _repository;
+  final AnalyticsService _analytics;
 
-  ViewState state = ViewState.idle;
-  String? error;
+  FormStateModel formState = const FormStateModel();
   UserRole selectedRole = UserRole.user;
 
   Future<void> login(BuildContext context) async {
-    state = ViewState.loading;
+    debugPrint('[Login] Start login with role=${selectedRole.name}');
+    formState = formState.copyWith(isSubmitting: true, errorMessage: null);
     notifyListeners();
     try {
-      await _authService.login(role: selectedRole);
-      state = ViewState.success;
+      debugPrint('[Login] Calling AuthRepository.login');
+      await _repository.login(selectedRole);
+      debugPrint('[Login] AuthRepository.login success');
+      debugPrint('[Login] Logging analytics event');
+      await _analytics.signupCompleted();
+      debugPrint('[Login] Analytics success');
+      formState = formState.copyWith(
+        isSubmitting: false,
+        successMessage: 'Login successful',
+      );
       notifyListeners();
       if (context.mounted) {
+        debugPrint('[Login] Navigating to shell route');
         Navigator.of(context).pushReplacementNamed(RouteNames.shell);
+      } else {
+        debugPrint('[Login] Context unmounted, navigation skipped');
       }
-    } catch (_) {
-      state = ViewState.error;
-      error = 'Unable to login. Please try again.';
+    } catch (e, st) {
+      debugPrint('[Login] Failed: $e');
+      debugPrint('$st');
+      formState = formState.copyWith(
+        isSubmitting: false,
+        isValid: false,
+        errorMessage: 'Unable to login. Please try again. Check console logs.',
+      );
       notifyListeners();
     }
   }

@@ -12,6 +12,7 @@ class RouteNames {
   static const searchDiscovery = '/search-discovery';
   static const communities = '/communities';
   static const marketplace = '/marketplace';
+  static const notifications = '/notifications';
   static const creatorDashboard = '/creator-dashboard';
   static const premium = '/premium';
   static const settings = '/settings';
@@ -33,4 +34,9 @@ class RouteNames {
   static const appUpdateFlow = '/app-update-flow';
   static const localizationSupport = '/localization-support';
   static const accessibilitySupport = '/accessibility-support';
+  static const exploreRecommendation = '/explore-recommendation';
+  static const blockedMutedAccounts = '/blocked-muted-accounts';
+  static const maintenanceMode = '/maintenance-mode';
+  static const inviteReferral = '/invite-referral';
+  static const legalCompliance = '/legal-compliance';
 }

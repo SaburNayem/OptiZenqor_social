@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import '../controller/settings_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.showAppBar = true});
+
+  final bool showAppBar;
 
   @override
   Widget build(BuildContext context) {
     final controller = SettingsController();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: showAppBar ? AppBar(title: const Text('Settings')) : null,
       body: ListView(
         children: [
           ...controller.items.map(

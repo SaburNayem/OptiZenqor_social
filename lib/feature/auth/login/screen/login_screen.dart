@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/enums/user_role.dart';
-import '../../../../core/enums/view_state.dart';
 import '../../../../core/validators/input_validators.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
@@ -61,9 +60,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     AppTextField(
                       hint: 'Password',
                       controller: _passwordController,
-                      validator: InputValidators.password,
+                      validator: InputValidators.loginPassword,
                       obscureText: true,
                       prefixIcon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Mock login: use any valid email and any non-empty password.',
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<UserRole>(
@@ -85,17 +89,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    if (_controller.state == ViewState.error)
+                    if (_controller.formState.errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
-                          _controller.error ?? 'Authentication failed.',
+                          _controller.formState.errorMessage!,
                           style: TextStyle(color: Theme.of(context).colorScheme.error),
                         ),
                       ),
                     AppButton(
-                      label: _controller.state == ViewState.loading ? 'Signing In...' : 'Login',
-                      onPressed: _controller.state == ViewState.loading
+                      label: _controller.formState.isSubmitting ? 'Signing In...' : 'Login',
+                      onPressed: _controller.formState.isSubmitting
                           ? null
                           : () {
                               if (_formKey.currentState?.validate() ?? false) {

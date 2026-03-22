@@ -13,11 +13,16 @@ import '../feature/communities/screen/communities_screen.dart';
 import '../feature/creator_tools/screen/creator_dashboard_screen.dart';
 import '../feature/deep_link_handler/screen/deep_link_handler_screen.dart';
 import '../feature/drafts_and_scheduling/screen/drafts_and_scheduling_screen.dart';
-import '../feature/home_feed/screen/main_shell_screen.dart';
+import '../feature/explore_recommendation/screen/explore_recommendation_screen.dart';
+import '../feature/invite_referral/screen/invite_referral_screen.dart';
+import '../feature/legal_compliance/screen/legal_compliance_screen.dart';
 import '../feature/localization_support/screen/localization_support_screen.dart';
+import '../feature/main_shell/screen/main_shell_screen.dart';
 import '../feature/marketplace/screen/marketplace_screen.dart';
+import '../feature/maintenance_mode/screen/maintenance_mode_screen.dart';
 import '../feature/media_viewer/screen/media_viewer_screen.dart';
 import '../feature/offline_sync/screen/offline_sync_screen.dart';
+import '../feature/notifications/screen/notifications_screen.dart';
 import '../feature/onboarding/screen/onboarding_screen.dart';
 import '../feature/personalization_onboarding/screen/personalization_onboarding_screen.dart';
 import '../feature/post_detail/screen/post_detail_screen.dart';
@@ -30,6 +35,7 @@ import '../feature/share_repost_system/screen/share_repost_system_screen.dart';
 import '../feature/splash/screen/splash_screen.dart';
 import '../feature/upload_manager/screen/upload_manager_screen.dart';
 import '../feature/verification_request/screen/verification_request_screen.dart';
+import '../feature/blocked_muted_accounts/screen/blocked_muted_accounts_screen.dart';
 import 'route_names.dart';
 
 class RouteGenerator {
@@ -52,13 +58,15 @@ class RouteGenerator {
       case RouteNames.resetPassword:
         return _buildRoute(const ResetPasswordScreen(), settings);
       case RouteNames.shell:
-        return _buildRoute(const MainShellScreen(), settings);
+        return _buildRoute(const AppMainShellScreen(), settings);
       case RouteNames.searchDiscovery:
         return _buildRoute(const SearchDiscoveryScreen(), settings);
       case RouteNames.communities:
         return _buildRoute(const CommunitiesScreen(), settings);
       case RouteNames.marketplace:
         return _buildRoute(const MarketplaceScreen(), settings);
+      case RouteNames.notifications:
+        return _buildRoute(const NotificationsScreen(), settings);
       case RouteNames.creatorDashboard:
         return _buildRoute(const CreatorDashboardScreen(), settings);
       case RouteNames.premium:
@@ -99,6 +107,16 @@ class RouteGenerator {
         return _buildRoute(const LocalizationSupportScreen(), settings);
       case RouteNames.accessibilitySupport:
         return _buildRoute(const AccessibilitySupportScreen(), settings);
+      case RouteNames.exploreRecommendation:
+        return _buildRoute(const ExploreRecommendationScreen(), settings);
+      case RouteNames.blockedMutedAccounts:
+        return _buildRoute(const BlockedMutedAccountsScreen(), settings);
+      case RouteNames.maintenanceMode:
+        return _buildRoute(const MaintenanceModeScreen(), settings);
+      case RouteNames.inviteReferral:
+        return _buildRoute(const InviteReferralScreen(), settings);
+      case RouteNames.legalCompliance:
+        return _buildRoute(const LegalComplianceScreen(), settings);
       default:
         return _buildRoute(
           Scaffold(

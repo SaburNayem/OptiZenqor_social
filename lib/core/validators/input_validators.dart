@@ -18,4 +18,11 @@ class InputValidators {
     }
     return null;
   }
+
+  static String? loginPassword(String value) {
+    if (value.trim().isEmpty) {
+      return 'Password is required';
+    }
+    return null;
+  }
 }
