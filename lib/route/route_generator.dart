@@ -1,0 +1,123 @@
+import 'package:flutter/material.dart';
+
+import '../feature/accessibility_support/screen/accessibility_support_screen.dart';
+import '../feature/account_switching/screen/account_switching_screen.dart';
+import '../feature/activity_sessions/screen/activity_sessions_screen.dart';
+import '../feature/advanced_privacy_controls/screen/advanced_privacy_controls_screen.dart';
+import '../feature/app_update_flow/screen/app_update_flow_screen.dart';
+import '../feature/auth/forgot_password/screen/forgot_password_screen.dart';
+import '../feature/auth/login/screen/login_screen.dart';
+import '../feature/auth/reset_password/screen/reset_password_screen.dart';
+import '../feature/auth/signup/screen/signup_screen.dart';
+import '../feature/communities/screen/communities_screen.dart';
+import '../feature/creator_tools/screen/creator_dashboard_screen.dart';
+import '../feature/deep_link_handler/screen/deep_link_handler_screen.dart';
+import '../feature/drafts_and_scheduling/screen/drafts_and_scheduling_screen.dart';
+import '../feature/home_feed/screen/main_shell_screen.dart';
+import '../feature/localization_support/screen/localization_support_screen.dart';
+import '../feature/marketplace/screen/marketplace_screen.dart';
+import '../feature/media_viewer/screen/media_viewer_screen.dart';
+import '../feature/offline_sync/screen/offline_sync_screen.dart';
+import '../feature/onboarding/screen/onboarding_screen.dart';
+import '../feature/personalization_onboarding/screen/personalization_onboarding_screen.dart';
+import '../feature/post_detail/screen/post_detail_screen.dart';
+import '../feature/premium_membership/screen/premium_membership_screen.dart';
+import '../feature/push_notification_preferences/screen/push_notification_preferences_screen.dart';
+import '../feature/report_center/screen/report_center_screen.dart';
+import '../feature/search_discovery/screen/search_discovery_screen.dart';
+import '../feature/settings/screen/settings_screen.dart';
+import '../feature/share_repost_system/screen/share_repost_system_screen.dart';
+import '../feature/splash/screen/splash_screen.dart';
+import '../feature/upload_manager/screen/upload_manager_screen.dart';
+import '../feature/verification_request/screen/verification_request_screen.dart';
+import 'route_names.dart';
+
+class RouteGenerator {
+  RouteGenerator._();
+
+  static const initialRoute = RouteNames.splash;
+
+  static Route<dynamic> generate(RouteSettings settings) {
+    switch (settings.name) {
+      case RouteNames.splash:
+        return _buildRoute(const SplashScreen(), settings);
+      case RouteNames.onboarding:
+        return _buildRoute(const OnboardingScreen(), settings);
+      case RouteNames.login:
+        return _buildRoute(const LoginScreen(), settings);
+      case RouteNames.signup:
+        return _buildRoute(const SignupScreen(), settings);
+      case RouteNames.forgotPassword:
+        return _buildRoute(const ForgotPasswordScreen(), settings);
+      case RouteNames.resetPassword:
+        return _buildRoute(const ResetPasswordScreen(), settings);
+      case RouteNames.shell:
+        return _buildRoute(const MainShellScreen(), settings);
+      case RouteNames.searchDiscovery:
+        return _buildRoute(const SearchDiscoveryScreen(), settings);
+      case RouteNames.communities:
+        return _buildRoute(const CommunitiesScreen(), settings);
+      case RouteNames.marketplace:
+        return _buildRoute(const MarketplaceScreen(), settings);
+      case RouteNames.creatorDashboard:
+        return _buildRoute(const CreatorDashboardScreen(), settings);
+      case RouteNames.premium:
+        return _buildRoute(const PremiumMembershipScreen(), settings);
+      case RouteNames.settings:
+        return _buildRoute(const SettingsScreen(), settings);
+      case RouteNames.draftsScheduling:
+        return _buildRoute(const DraftsAndSchedulingScreen(), settings);
+      case RouteNames.uploadManager:
+        return _buildRoute(const UploadManagerScreen(), settings);
+      case RouteNames.offlineSync:
+        return _buildRoute(const OfflineSyncScreen(), settings);
+      case RouteNames.verificationRequest:
+        return _buildRoute(const VerificationRequestScreen(), settings);
+      case RouteNames.personalizationOnboarding:
+        return _buildRoute(const PersonalizationOnboardingScreen(), settings);
+      case RouteNames.advancedPrivacyControls:
+        return _buildRoute(const AdvancedPrivacyControlsScreen(), settings);
+      case RouteNames.shareRepostSystem:
+        return _buildRoute(const ShareRepostSystemScreen(), settings);
+      case RouteNames.mediaViewer:
+        return _buildRoute(const MediaViewerScreen(), settings);
+      case RouteNames.postDetail:
+        return _buildRoute(const PostDetailScreen(), settings);
+      case RouteNames.accountSwitching:
+        return _buildRoute(const AccountSwitchingScreen(), settings);
+      case RouteNames.pushNotificationPreferences:
+        return _buildRoute(const PushNotificationPreferencesScreen(), settings);
+      case RouteNames.reportCenter:
+        return _buildRoute(const ReportCenterScreen(), settings);
+      case RouteNames.activitySessions:
+        return _buildRoute(const ActivitySessionsScreen(), settings);
+      case RouteNames.deepLinkHandler:
+        return _buildRoute(const DeepLinkHandlerScreen(), settings);
+      case RouteNames.appUpdateFlow:
+        return _buildRoute(const AppUpdateFlowScreen(), settings);
+      case RouteNames.localizationSupport:
+        return _buildRoute(const LocalizationSupportScreen(), settings);
+      case RouteNames.accessibilitySupport:
+        return _buildRoute(const AccessibilitySupportScreen(), settings);
+      default:
+        return _buildRoute(
+          Scaffold(
+            body: Center(
+              child: Text('No route found for ${settings.name}'),
+            ),
+          ),
+          settings,
+        );
+    }
+  }
+
+  static MaterialPageRoute<dynamic> _buildRoute(
+    Widget page,
+    RouteSettings settings,
+  ) {
+    return MaterialPageRoute<dynamic>(
+      builder: (_) => page,
+      settings: settings,
+    );
+  }
+}
