@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/account_switching_controller.dart';
 
-class AccountSwitchingScreen extends StatefulWidget {
-  const AccountSwitchingScreen({super.key});
+class AccountSwitchingScreen extends StatelessWidget {
+  AccountSwitchingScreen({super.key});
 
-  @override
-  State<AccountSwitchingScreen> createState() => _AccountSwitchingScreenState();
-}
-
-class _AccountSwitchingScreenState extends State<AccountSwitchingScreen> {
   final AccountSwitchingController _controller = AccountSwitchingController();
 
   @override

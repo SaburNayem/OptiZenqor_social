@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'core/theme/app_theme.dart';
-import 'route/route_generator.dart';
+import 'route/app_route.dart';
 
 class OptiZenqorApp extends StatelessWidget {
   const OptiZenqorApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'OptiZenqor Social',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      onGenerateRoute: RouteGenerator.generate,
-      initialRoute: RouteGenerator.initialRoute,
+      getPages: AppRoute.routes,
+      unknownRoute: AppRoute.unknownRoute,
+      initialRoute: AppRoute.initialRoute,
     );
   }
 }

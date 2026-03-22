@@ -2,15 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/drafts_and_scheduling_controller.dart';
 
-class DraftsAndSchedulingScreen extends StatefulWidget {
-  const DraftsAndSchedulingScreen({super.key});
+class DraftsAndSchedulingScreen extends StatelessWidget {
+  DraftsAndSchedulingScreen({super.key});
 
-  @override
-  State<DraftsAndSchedulingScreen> createState() =>
-      _DraftsAndSchedulingScreenState();
-}
-
-class _DraftsAndSchedulingScreenState extends State<DraftsAndSchedulingScreen> {
   final DraftsAndSchedulingController _controller =
       DraftsAndSchedulingController();
 

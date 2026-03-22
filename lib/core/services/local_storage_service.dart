@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalStorageService {
   SharedPreferences? _prefs;
   bool _initialized = false;
+  // Keep app interactions working while avoiding device persistence.
+  static const bool _persistDataOnDevice = false;
   bool _pluginAvailable = true;
   final Map<String, dynamic> _memoryStore = <String, dynamic>{};
 
@@ -14,6 +16,10 @@ class LocalStorageService {
       return;
     }
     _initialized = true;
+    if (!_persistDataOnDevice) {
+      _pluginAvailable = false;
+      return;
+    }
     try {
       _prefs ??= await SharedPreferences.getInstance();
     } on MissingPluginException {

@@ -12,6 +12,7 @@ class PostCard extends StatelessWidget {
     this.likeCount,
     this.isLiked = false,
     this.onTap,
+    this.onAuthorTap,
     this.onMoreTap,
     this.onLikeTap,
     this.onCommentTap,
@@ -24,6 +25,7 @@ class PostCard extends StatelessWidget {
   final int? likeCount;
   final bool isLiked;
   final VoidCallback? onTap;
+  final VoidCallback? onAuthorTap;
   final VoidCallback? onMoreTap;
   final VoidCallback? onLikeTap;
   final VoidCallback? onCommentTap;
@@ -48,12 +50,19 @@ class PostCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(author.name, style: Theme.of(context).textTheme.titleSmall),
-                        Text('@${author.username} • ${FormatHelper.timeAgo(post.createdAt)}'),
-                      ],
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: onAuthorTap,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(author.name, style: Theme.of(context).textTheme.titleSmall),
+                            Text('@${author.username} • ${FormatHelper.timeAgo(post.createdAt)}'),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   IconButton(onPressed: onMoreTap, icon: const Icon(Icons.more_horiz)),

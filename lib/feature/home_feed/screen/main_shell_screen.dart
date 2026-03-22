@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../route/route_names.dart';
 import '../../chat/screen/chat_screen.dart';
@@ -6,17 +7,13 @@ import '../../reels_short_video/screen/reels_screen.dart';
 import '../../settings/screen/settings_screen.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
 import '../controller/main_shell_controller.dart';
+import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
 
-class MainShellScreen extends StatefulWidget {
-  const MainShellScreen({super.key});
-
-  @override
-  State<MainShellScreen> createState() => _MainShellScreenState();
-}
-
-class _MainShellScreenState extends State<MainShellScreen> {
-  final MainShellController _controller = MainShellController();
+class MainShellScreen extends StatelessWidget {
+  MainShellScreen({super.key}) {
+    Get.put(MainShellController());
+  }
 
   static const List<String> _tabTitles = [
     'Home',
@@ -27,20 +24,19 @@ class _MainShellScreenState extends State<MainShellScreen> {
   ];
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
+    return GetBuilder<MainShellController>(
+      builder: (controller) {
         return Scaffold(
           appBar: AppBar(
-            title: Text('OptiZenqor • ${_tabTitles[_controller.index]}'),
+            title: Text('OptiZenqor • ${_tabTitles[controller.index]}'),
             actions: [
+              if (controller.index == 0)
+                IconButton(
+                  onPressed: () => _openCreateScreen(context),
+                  icon: const Icon(Icons.add_box_outlined),
+                  tooltip: 'Create',
+                ),
               IconButton(
                 onPressed: () => Navigator.of(context).pushNamed(RouteNames.searchDiscovery),
                 icon: const Icon(Icons.search_rounded),
@@ -95,19 +91,12 @@ class _MainShellScreenState extends State<MainShellScreen> {
             ),
           ),
           body: KeyedSubtree(
-            key: ValueKey<int>(_controller.index),
-            child: _buildCurrentTab(_controller.index),
+            key: ValueKey<int>(controller.index),
+            child: _buildCurrentTab(controller.index),
           ),
-          floatingActionButton: _controller.index == 0 || _controller.index == 1
-              ? FloatingActionButton.extended(
-                  onPressed: () => _showCreateSheet(context),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create'),
-                )
-              : null,
           bottomNavigationBar: NavigationBar(
-            selectedIndex: _controller.index,
-            onDestinationSelected: _controller.onTabChanged,
+            selectedIndex: controller.index,
+            onDestinationSelected: controller.onTabChanged,
             destinations: const [
               NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
               NavigationDestination(icon: Icon(Icons.play_circle_outline), label: 'Reels'),
@@ -121,70 +110,33 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 
-  void _showCreateSheet(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (_) {
-        return ListView(
-          shrinkWrap: true,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.article_outlined),
-              title: const Text('Text post'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushNamed(RouteNames.postDetail);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.image_outlined),
-              title: const Text('Image post'),
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushNamed(RouteNames.uploadManager);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam_outlined),
-              title: const Text('Reel upload'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _controller.onTabChanged(1);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.poll_outlined),
-              title: const Text('Poll'),
-              onTap: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    const SnackBar(content: Text('Poll composer opening soon')),
-                  );
-              },
-            ),
-          ],
-        );
-      },
+  Future<void> _openCreateScreen(BuildContext context) async {
+    final result = await Navigator.of(context).push<CreatePostResult>(
+      MaterialPageRoute<CreatePostResult>(
+        builder: (_) => CreatePostScreen(),
+      ),
     );
+    if (result != null && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Post created')));
+    }
   }
 
   Widget _buildCurrentTab(int index) {
     switch (index) {
       case 0:
-        return const HomeFeedScreen();
+        return HomeFeedScreen();
       case 1:
-        return const ReelsScreen();
+        return ReelsScreen();
       case 2:
-        return const ChatScreen();
+        return ChatScreen();
       case 3:
-        return const UserProfileScreen();
+        return UserProfileScreen();
       case 4:
         return const SettingsScreen(showAppBar: false);
       default:
-        return const HomeFeedScreen();
+        return HomeFeedScreen();
     }
   }
 }

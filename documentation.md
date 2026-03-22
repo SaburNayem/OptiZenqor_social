@@ -1,248 +1,294 @@
-# OptiZenqor Social - Full App Documentation
+# OptiZenqor Social - Complete Project Documentation
 
-## 1. Purpose and Scope
-OptiZenqor Social is a Flutter mobile social platform prototype with modular feature folders, route-driven navigation, reusable UI components, and mock-data-first flows.
+## 1. Project Overview
+OptiZenqor Social is a Flutter social platform prototype built with a modular architecture and mock-first data strategy. The app includes a full shell experience (Home, Reels, Chat, Profile, Settings), route-driven feature modules, and local interactive behavior intended to simulate a production social app without backend APIs.
 
-This document is a full status document for the current branch and includes:
-- what is implemented
-- what is partially implemented
-- what is intentionally placeholder
-- what folders exist but are not yet implemented
+This document is the single source of truth for the current branch and includes:
+- architecture and folder design
+- navigation and route map
+- feature-by-feature implementation status
+- data and runtime behavior
+- known limits and next implementation priorities
 
-## 2. Tech Stack and Runtime
+## 2. Technology Stack
 - Flutter (Material 3)
-- Dart (null safety)
+- Dart (null safety, SDK ^3.10.8)
 - State management: ChangeNotifier + AnimatedBuilder
-- Persistence: shared_preferences + in-memory fallback path in storage service
-- Data source: mock data from `lib/core/common_data/mock_data.dart`
+- Local storage package: shared_preferences (currently configured to run in in-memory mode)
 
-Dependency summary from `pubspec.yaml`:
+### 2.1 Dependencies in pubspec.yaml
+Core dependencies:
 - flutter
 - cupertino_icons
 - shared_preferences
 
-## 3. App Architecture
+Dev dependencies:
+- flutter_test
+- flutter_lints
 
-### 3.1 Layering
-- `lib/core`: shared models, services, constants, validators, widgets, helpers
-- `lib/route`: central route names and route generator
-- `lib/feature`: feature modules (screen/controller/model/repository where used)
+## 3. High-Level Architecture
 
-### 3.2 State Pattern
-- Controllers own feature state.
-- Screens listen through AnimatedBuilder.
-- New shared state models exist for load/form/pagination in `lib/core/common_models`.
+### 3.1 App Bootstrap
+Startup sequence:
+1. main.dart initializes bindings and runs OptiZenqorApp.
+2. app.dart creates MaterialApp with light/dark themes.
+3. route_generator.dart handles all named route resolution.
+4. initial route starts at splash.
 
-### 3.3 Data Strategy
-- Current read/write operations are mock-based or local fallback-based.
-- Repository scaffolding exists for major domains: auth, feed, chat, notifications, profile, marketplace, posts.
+### 3.2 Layered Structure
+- lib/core: shared models, services, constants, reusable widgets, helpers
+- lib/route: centralized route names and route generator
+- lib/feature: domain modules, each with screen/controller/model/repository where needed
 
-## 4. Roles
-User roles defined in `lib/core/enums/user_role.dart`:
-- guest
-- user
-- creator
-- business
-- seller
-- recruiter
+### 3.3 State and Data Flow Pattern
+Standard feature flow:
+1. UI screen creates controller instance.
+2. Controller fetches data from repository or mock source.
+3. UI listens to controller via AnimatedBuilder.
+4. User actions call controller methods.
+5. Controller mutates local state and triggers notifyListeners.
 
-## 5. Lifecycle and Navigation
+This is currently local-state-first and backend-independent.
 
-### 5.1 Boot Flow
+## 4. Runtime and Storage Behavior
+
+### 4.1 Storage Mode
+Current storage behavior is session-only in practice:
+- LocalStorageService has a _persistDataOnDevice flag set to false.
+- Data read/write operations use in-memory fallback map.
+- App interactions work normally, but data is not persisted across restarts.
+
+### 4.2 Data Sources
+Primary runtime data comes from MockData in core/common_data:
+- users
+- posts
+- reels
+- stories
+- messages
+- notifications
+- groups
+- products
+
+Controllers may append local runtime state (likes, hidden posts, created local posts, chat state toggles).
+
+## 5. Navigation and Shell
+
+### 5.1 Primary App Flow
 1. Splash
 2. Onboarding
 3. Login
-4. Shell
+4. Main shell
 
-### 5.2 Shell Layout
-Main shell tabs:
+### 5.2 Main Shell Tabs
 - Home
 - Reels
 - Chat
 - Profile
 - Settings
 
-Top actions:
-- Create (Home tab only)
+### 5.3 App Bar Actions
+- Home-only Create button (opens full Create Post screen)
 - Search
 - Notifications
 
-Drawer quick links:
+### 5.4 Drawer Shortcuts
 - Communities
 - Marketplace
 - Creator Dashboard
 - Premium Plans
-- Drafts & Scheduling
+- Drafts and Scheduling
 - Upload Manager
 
-## 6. Route Catalog and Status
+## 6. Route Catalog
 
-### 6.1 Auth and Entry
-- `/` splash: implemented
-- `/onboarding`: implemented
-- `/auth/login`: implemented
-- `/auth/signup`: scaffold screen
-- `/auth/forgot-password`: scaffold screen
-- `/auth/reset-password`: scaffold screen
-- `/shell`: implemented shell wrapper
+### 6.1 Entry Routes
+- / (splash)
+- /onboarding
+- /auth/login
+- /auth/signup
+- /auth/forgot-password
+- /auth/reset-password
+- /shell
 
-### 6.2 Main Product Routes
-- `/search-discovery`: implemented
-- `/communities`: implemented with join/leave interaction state
-- `/marketplace`: implemented with search + grid
-- `/notifications`: implemented with filters and payload-based route mapping
-- `/creator-dashboard`: scaffold implementation
-- `/premium`: scaffold implementation
-- `/settings`: implemented settings hub (all listed rows route-enabled)
+### 6.2 Core Product Routes
+- /search-discovery
+- /communities
+- /marketplace
+- /notifications
+- /creator-dashboard
+- /premium
+- /settings
+- /settings/account
+- /settings/password-security
+- /settings/devices-sessions
+- /settings/blocked-users
+- /settings/language-accessibility
 
-### 6.3 Advanced Routes
-- `/drafts-scheduling`: scaffold implementation
-- `/upload-manager`: scaffold implementation
-- `/offline-sync`: scaffold implementation
-- `/verification-request`: scaffold implementation
-- `/personalization-onboarding`: scaffold implementation
-- `/advanced-privacy-controls`: scaffold implementation
-- `/share-repost-system`: scaffold implementation
-- `/media-viewer`: scaffold implementation
-- `/post-detail`: implemented detail screen with local comments/replies
-- `/account-switching`: scaffold implementation
-- `/push-notification-preferences`: scaffold implementation
-- `/report-center`: scaffold implementation
-- `/activity-sessions`: scaffold implementation
-- `/deep-link-handler`: scaffold implementation
-- `/app-update-flow`: scaffold implementation
-- `/localization-support`: scaffold implementation
-- `/accessibility-support`: scaffold implementation
-- `/explore-recommendation`: scaffold implementation
-- `/blocked-muted-accounts`: scaffold implementation
-- `/maintenance-mode`: scaffold implementation
-- `/invite-referral`: scaffold implementation
-- `/legal-compliance`: scaffold implementation
+### 6.3 Extended Routes
+- /drafts-scheduling
+- /upload-manager
+- /offline-sync
+- /verification-request
+- /personalization-onboarding
+- /advanced-privacy-controls
+- /share-repost-system
+- /media-viewer
+- /post-detail
+- /account-switching
+- /push-notification-preferences
+- /report-center
+- /activity-sessions
+- /deep-link-handler
+- /app-update-flow
+- /localization-support
+- /accessibility-support
+- /explore-recommendation
+- /blocked-muted-accounts
+- /maintenance-mode
+- /invite-referral
+- /legal-compliance
 
-## 7. Feature-by-Feature Functional Status
+Note: Create Post currently uses MaterialPageRoute directly from Home and shell app bar, not a named route.
+
+## 7. Detailed Feature Status
 
 ### 7.1 Authentication
-Working:
-- Login form validation for email + non-empty password
-- Role selection
-- Login transition to shell
+Implemented:
+- login validation (email + password required)
+- role selection integration
+- navigation to shell on success
 
-Working with fallback:
-- Session persistence write uses shared_preferences if available, otherwise in-memory fallback
-
-Known limitations:
-- No real credential backend; login is mock success flow
-- Analytics event currently logs signup event from login path (naming mismatch)
+Current limitations:
+- mock auth only (no server credential validation)
+- analytics event naming still partially generic
 
 ### 7.2 Home Feed
-Working:
-- Initial load
-- Pull to refresh
-- Infinite load trigger on scroll
-- Feed tabs (For You/Following/Trending)
-- Stories row
-- Story tap opens story viewer
-- Post tap opens post detail
-- Author tap opens other profile
-- Like optimistic toggle
-- Not interested hides post
-- Home composer card present in feed
+Implemented:
+- initial load
+- pull-to-refresh
+- pagination trigger near list end
+- feed tabs (For You, Following, Trending)
+- stories section
+- post detail open
+- author profile open
+- optimistic like toggle and visible like count updates
+- not interested hide behavior
+- top composer row with reels icon (left), share prompt, photo/video icons (right)
+- full-screen create post flow
 
-Behavior update:
-- Create entry is exposed in Home top app bar only (not as cross-tab FAB)
+Current behavior notes:
+- suggestions strip after tabs has been removed
+- share/report actions currently feedback-based
 
-Partially working / placeholder:
-- Share/report from post menu only show feedback
-- Create action currently shows feedback for upcoming composer flow
+### 7.3 Create Post Flow
+Implemented in dedicated screen:
+- text input
+- media type selection (Photo or Video)
+- optional media URL
+- Post action returns result to Home
+- Home controller creates local post and inserts at top of feed
 
-### 7.3 Story Viewer
-Working:
-- Story open from ring list
-- Swipe through stories
-- Progress indicators
-- Zoom support via InteractiveViewer
+Current limitations:
+- no real file picker or camera integration
+- video rendering in list/detail is URL-pattern based placeholder behavior
 
-Limitations:
-- No auto-advance timer
-- No seen-state mutation persisted
+### 7.4 Post Card
+Implemented:
+- author row
+- caption rendering
+- image rendering for first media item
+- like/comment chips
+- bookmark action callback
 
-### 7.4 Reels
-Working:
-- Vertical pager and visual rendering
-- Like, comment, and share actions wired to controller-managed local counters and feedback
+### 7.5 Post Detail
+Implemented:
+- author block
+- caption rendering
+- media rendering support from post detail model
+- simple video preview placeholder for media URLs ending in video extensions
+- like toggle
+- comment list
+- reply mode on comment tap
+- add comment locally
+- related posts list
 
-### 7.5 Chat
-Working:
-- Inbox list
-- Open chat detail
-- Compose/send local message
-- Long-press chat actions (pin/archive/simulate failure)
-- Retry marker clearing
-- Header audio and video call buttons
-- Plus attachment sheet opens
-- Chat settings screen opens from chat detail app bar
-
-Partially working / placeholder:
-- Call buttons show feedback only; no RTC flow
-- Attachment options show feedback only; no picker integration
-- No backend send/read receipt sync
-
-### 7.6 Notifications
-Working:
-- Loading state handling
-- Category filters
-- Unread count
-- Notification taps route to mapped screens through typed payload fields
+### 7.6 Story Viewer
+Implemented:
+- open from story ring
+- swipe behavior
+- progress indicator visuals
+- zoom support
 
 Limitations:
-- Payload routes are local app route mappings (no server-issued deep-link parser yet)
+- no auto-advance timer
+- no persisted seen-state updates
 
-### 7.7 User Profile
-Working:
-- Profile load and render
-- Role-aware section labels
-- Profile tab in shell opens correctly
-- Own vs other profile action separation
-- Message action shown only for other profiles
-- Three-dot action menu for profile-level actions
-
-Recent change:
-- Settings button removed from profile header
-
-### 7.8 Settings
-Working:
-- Route-linked entries navigate, including:
-  - Account settings
-  - Password and security
-  - Blocked users
-  - Language and accessibility
-  - Devices and sessions
+### 7.7 Reels
+Implemented:
+- vertical pager rendering
+- like, comment, share actions
+- local count adjustments in controller
 
 Limitations:
-- Several settings destinations are functional scaffold screens with informational UI only
+- no backend persistence
+- no native media upload/record flow
 
-### 7.9 Marketplace
-Working:
-- Product list load
-- Search updates results
-- Error/loading states
+### 7.8 Chat
+Implemented:
+- inbox list
+- chat detail open
+- local send/compose
+- long-press actions (pin/archive/failure simulation)
+- retry clearing
+- attachments sheet (feedback-oriented)
+- chat settings screen with runtime toggles
 
 Limitations:
-- No item detail route
-- No cart/checkout
+- no real-time transport, no read-sync backend
+- call actions are UI feedback only
 
-### 7.10 Communities and Premium
-Working:
-- Screen render and list content
-- Communities join/leave button toggles state and shows feedback
-- Premium plan selection shows immediate feedback
+### 7.9 Notifications
+Implemented:
+- load + filter categories
+- unread count
+- typed payload-driven route mapping
 
-### 7.11 Advanced Module Buttons with Empty Handlers
-Status:
-- Previously empty callbacks were replaced with interaction handlers and user feedback flows.
-- Remaining gaps are mostly feature-depth gaps (backend/data integration), not blank UI callbacks.
+Limitations:
+- no server push integration
+- no remote deep-link parser layer
 
-## 8. Implemented Feature Modules (with Dart files)
+### 7.10 User Profile
+Implemented:
+- role-aware profile rendering
+- own vs other profile behavior
+- message action visible for other profiles
+- three-dot action menu
+
+### 7.11 Settings
+Implemented:
+- settings hub navigation entries wired
+- account/security/blocked/language/device routes available
+
+Limitations:
+- many destination screens are still scaffold/informational
+
+### 7.12 Marketplace
+Implemented:
+- list load
+- search filtering
+- loading/error state handling
+
+Limitations:
+- no item detail/purchase checkout flow
+
+### 7.13 Communities and Premium
+Implemented:
+- communities join/leave toggle + feedback
+- premium plan selection feedback
+
+## 8. Feature Module Inventory
+
+### 8.1 Feature Folders With Dart Implementation
 - accessibility_support
 - account_switching
 - activity_sessions
@@ -269,7 +315,7 @@ Status:
 - onboarding
 - personalization_onboarding
 - post_detail
-- posts (repository scaffold only)
+- posts
 - premium_membership
 - push_notification_preferences
 - recruiter_profile
@@ -285,7 +331,7 @@ Status:
 - user_profile
 - verification_request
 
-## 9. Feature Folders Present but Not Implemented (No Dart files)
+### 8.2 Feature Folders Present But Without Dart Files
 - analytics
 - bookmarks
 - business_profile
@@ -310,15 +356,15 @@ Status:
 - trending
 - wallet_payments
 
-## 10. Core Services Summary
-- `auth_service.dart`: mock login/logout role state
-- `local_storage_service.dart`: shared_preferences + memory fallback
-- `analytics_service.dart`: event logging stubs
-- `deep_link_service.dart`: incoming/open placeholders
-- `connectivity_service.dart`: basic connectivity stub behavior
+## 9. Core Services Summary
+- auth_service.dart: mock login/logout state
+- local_storage_service.dart: in-memory runtime storage mode with optional shared_preferences pathway
+- analytics_service.dart: event logging stubs
+- deep_link_service.dart: placeholders for deep link handling
+- connectivity_service.dart: baseline connectivity behavior stub
 
-## 11. UI Component Library
-Reusable widgets in `lib/core/widgets` include:
+## 10. Shared UI Components
+Reusable widgets in core/widgets include:
 - app_button
 - app_text_field
 - app_avatar
@@ -328,51 +374,38 @@ Reusable widgets in `lib/core/widgets` include:
 - section_header
 - post_card
 
-## 12. Data and Mock Content
-Mock datasets currently include:
-- users
-- posts
-- reels
-- stories
-- messages
-- notifications
-- groups
-- products
+## 11. Testing and Quality
+- analyzer workflow available via flutter analyze
+- current automated tests are minimal
+- widget_test.dart validates app bootstrap rendering baseline
+- integration coverage is not yet implemented for core user journeys
 
-Used for immediate UI behavior and demo flows.
+## 12. Current Functional Limitations
+- no backend integration for auth/feed/chat/reels/notifications
+- no durable persistence across app restarts in current configuration
+- no real media upload pipeline (camera/gallery/file service)
+- no production call stack (VoIP/WebRTC)
+- many advanced modules remain scaffold-level UI
 
-## 13. Quality and Testing
-- Current analyzer state: expected clean after recent fixes
-- Existing test coverage:
-  - `test/widget_test.dart`: verifies app bootstraps to splash brand text
-- No integration tests yet for auth/feed/chat/notifications interactions
+## 13. Recommended Next Steps
+1. Implement backend adapter layer behind existing repositories.
+2. Add local database cache and sync strategy for offline durability.
+3. Replace URL-based media placeholders with real picker/upload flow.
+4. Expand Create Post to include mentions, audience, and scheduling.
+5. Add integration tests for auth, feed interactions, create flow, chat, and notifications.
 
-## 14. Known Functional Gaps
-- No backend integration for auth/feed/chat/notifications
-- No real media upload
-- No real call stack (VoIP/WebRTC)
-- No durable offline queue sync engine
-- Many advanced modules remain scaffold-level and feedback-driven
+## 14. Run and Verification Commands
+1. flutter pub get
+2. flutter analyze
+3. flutter test
+4. flutter run
 
-## 15. Recommended Implementation Order
-1. Replace feedback-only create/share/report flows with full feature screens and repository operations.
-2. Add real data sources behind existing repositories (remote API + local cache).
-3. Expand settings sub-screens from scaffold UI into editable account/security/session workflows.
-4. Add integration tests for critical paths:
-   - login success and route transition
-   - home tab feed interactions
-   - story open/swipe
-   - chat compose and attachment sheet
-   - notification deep-link route mapping
-5. Introduce backend adapter layer behind existing repositories.
-
-## 16. Run and Verify
-1. `flutter pub get`
-2. `flutter analyze`
-3. `flutter test`
-4. `flutter run`
-
-If login fails with shared_preferences plugin error on hot reload, do a full app restart. Storage now has memory fallback for plugin-unavailable sessions.
+## 15. Recent Implementation Highlights
+- Home composer now opens a dedicated full-screen create screen.
+- Local post creation now inserts runtime posts into feed instantly.
+- Post media rendering restored in feed cards.
+- Post detail now renders media and supports comment/reply interactions.
+- Storage intentionally configured for in-memory runtime behavior.
 
 ---
 Documentation maintained for branch: main

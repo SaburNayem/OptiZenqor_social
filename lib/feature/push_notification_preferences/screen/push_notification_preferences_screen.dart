@@ -2,16 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/push_notification_preferences_controller.dart';
 
-class PushNotificationPreferencesScreen extends StatefulWidget {
-  const PushNotificationPreferencesScreen({super.key});
+class PushNotificationPreferencesScreen extends StatelessWidget {
+  PushNotificationPreferencesScreen({super.key});
 
-  @override
-  State<PushNotificationPreferencesScreen> createState() =>
-      _PushNotificationPreferencesScreenState();
-}
-
-class _PushNotificationPreferencesScreenState
-    extends State<PushNotificationPreferencesScreen> {
   final PushNotificationPreferencesController _controller =
       PushNotificationPreferencesController();
 

@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/offline_sync_controller.dart';
 
-class OfflineSyncScreen extends StatefulWidget {
-  const OfflineSyncScreen({super.key});
+class OfflineSyncScreen extends StatelessWidget {
+  OfflineSyncScreen({super.key});
 
-  @override
-  State<OfflineSyncScreen> createState() => _OfflineSyncScreenState();
-}
-
-class _OfflineSyncScreenState extends State<OfflineSyncScreen> {
   final OfflineSyncController _controller = OfflineSyncController();
 
   @override

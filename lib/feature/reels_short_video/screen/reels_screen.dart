@@ -4,27 +4,12 @@ import '../../../core/common_data/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
 import '../controller/reels_controller.dart';
 
-class ReelsScreen extends StatefulWidget {
-  const ReelsScreen({super.key});
-
-  @override
-  State<ReelsScreen> createState() => _ReelsScreenState();
-}
-
-class _ReelsScreenState extends State<ReelsScreen> {
-  final ReelsController _controller = ReelsController();
-
-  @override
-  void initState() {
-    super.initState();
+class ReelsScreen extends StatelessWidget {
+  ReelsScreen({super.key}) {
     _controller.load();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final ReelsController _controller = ReelsController();
 
   @override
   Widget build(BuildContext context) {

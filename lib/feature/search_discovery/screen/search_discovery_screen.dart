@@ -1,22 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../user_profile/screen/user_profile_screen.dart';
 import '../controller/search_discovery_controller.dart';
 
-class SearchDiscoveryScreen extends StatefulWidget {
-  const SearchDiscoveryScreen({super.key});
+class SearchDiscoveryScreen extends StatelessWidget {
+  SearchDiscoveryScreen({super.key});
 
-  @override
-  State<SearchDiscoveryScreen> createState() => _SearchDiscoveryScreenState();
-}
-
-class _SearchDiscoveryScreenState extends State<SearchDiscoveryScreen> {
   final SearchDiscoveryController _controller = SearchDiscoveryController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +44,13 @@ class _SearchDiscoveryScreenState extends State<SearchDiscoveryScreen> {
                     ..._controller.results.map(
                       (item) => Card(
                         child: ListTile(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => UserProfileScreen(userId: item.id),
+                              ),
+                            );
+                          },
                           leading: CircleAvatar(backgroundImage: NetworkImage(item.avatar)),
                           title: Text(item.name),
                           subtitle: Text('@${item.username}'),

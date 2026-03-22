@@ -2,16 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/advanced_privacy_controls_controller.dart';
 
-class AdvancedPrivacyControlsScreen extends StatefulWidget {
-  const AdvancedPrivacyControlsScreen({super.key});
+class AdvancedPrivacyControlsScreen extends StatelessWidget {
+  AdvancedPrivacyControlsScreen({super.key});
 
-  @override
-  State<AdvancedPrivacyControlsScreen> createState() =>
-      _AdvancedPrivacyControlsScreenState();
-}
-
-class _AdvancedPrivacyControlsScreenState
-    extends State<AdvancedPrivacyControlsScreen> {
   final AdvancedPrivacyControlsController _controller =
       AdvancedPrivacyControlsController();
 

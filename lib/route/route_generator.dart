@@ -51,11 +51,11 @@ class RouteGenerator {
   static Route<dynamic> generate(RouteSettings settings) {
     switch (settings.name) {
       case RouteNames.splash:
-        return _buildRoute(const SplashScreen(), settings);
+        return _buildRoute(SplashScreen(), settings);
       case RouteNames.onboarding:
-        return _buildRoute(const OnboardingScreen(), settings);
+        return _buildRoute(OnboardingScreen(), settings);
       case RouteNames.login:
-        return _buildRoute(const LoginScreen(), settings);
+        return _buildRoute(LoginScreen(), settings);
       case RouteNames.signup:
         return _buildRoute(const SignupScreen(), settings);
       case RouteNames.forgotPassword:
@@ -65,17 +65,17 @@ class RouteGenerator {
       case RouteNames.shell:
         return _buildRoute(const AppMainShellScreen(), settings);
       case RouteNames.searchDiscovery:
-        return _buildRoute(const SearchDiscoveryScreen(), settings);
+        return _buildRoute(SearchDiscoveryScreen(), settings);
       case RouteNames.communities:
-        return _buildRoute(const CommunitiesScreen(), settings);
+        return _buildRoute(CommunitiesScreen(), settings);
       case RouteNames.marketplace:
-        return _buildRoute(const MarketplaceScreen(), settings);
+        return _buildRoute(MarketplaceScreen(), settings);
       case RouteNames.notifications:
-        return _buildRoute(const NotificationsScreen(), settings);
+        return _buildRoute(NotificationsScreen(), settings);
       case RouteNames.creatorDashboard:
         return _buildRoute(const CreatorDashboardScreen(), settings);
       case RouteNames.premium:
-        return _buildRoute(const PremiumMembershipScreen(), settings);
+        return _buildRoute(PremiumMembershipScreen(), settings);
       case RouteNames.settings:
         return _buildRoute(const SettingsScreen(), settings);
       case RouteNames.accountSettings:
@@ -89,49 +89,49 @@ class RouteGenerator {
       case RouteNames.languageAccessibility:
         return _buildRoute(const LanguageAccessibilityScreen(), settings);
       case RouteNames.draftsScheduling:
-        return _buildRoute(const DraftsAndSchedulingScreen(), settings);
+        return _buildRoute(DraftsAndSchedulingScreen(), settings);
       case RouteNames.uploadManager:
-        return _buildRoute(const UploadManagerScreen(), settings);
+        return _buildRoute(UploadManagerScreen(), settings);
       case RouteNames.offlineSync:
-        return _buildRoute(const OfflineSyncScreen(), settings);
+        return _buildRoute(OfflineSyncScreen(), settings);
       case RouteNames.verificationRequest:
-        return _buildRoute(const VerificationRequestScreen(), settings);
+        return _buildRoute(VerificationRequestScreen(), settings);
       case RouteNames.personalizationOnboarding:
-        return _buildRoute(const PersonalizationOnboardingScreen(), settings);
+        return _buildRoute(PersonalizationOnboardingScreen(), settings);
       case RouteNames.advancedPrivacyControls:
-        return _buildRoute(const AdvancedPrivacyControlsScreen(), settings);
+        return _buildRoute(AdvancedPrivacyControlsScreen(), settings);
       case RouteNames.shareRepostSystem:
         return _buildRoute(const ShareRepostSystemScreen(), settings);
       case RouteNames.mediaViewer:
         return _buildRoute(const MediaViewerScreen(), settings);
       case RouteNames.postDetail:
-        return _buildRoute(const PostDetailScreen(), settings);
+        return _buildRoute(PostDetailScreen(), settings);
       case RouteNames.accountSwitching:
-        return _buildRoute(const AccountSwitchingScreen(), settings);
+        return _buildRoute(AccountSwitchingScreen(), settings);
       case RouteNames.pushNotificationPreferences:
-        return _buildRoute(const PushNotificationPreferencesScreen(), settings);
+        return _buildRoute(PushNotificationPreferencesScreen(), settings);
       case RouteNames.reportCenter:
-        return _buildRoute(const ReportCenterScreen(), settings);
+        return _buildRoute(ReportCenterScreen(), settings);
       case RouteNames.activitySessions:
         return _buildRoute(const ActivitySessionsScreen(), settings);
       case RouteNames.deepLinkHandler:
         return _buildRoute(const DeepLinkHandlerScreen(), settings);
       case RouteNames.appUpdateFlow:
-        return _buildRoute(const AppUpdateFlowScreen(), settings);
+        return _buildRoute(AppUpdateFlowScreen(), settings);
       case RouteNames.localizationSupport:
-        return _buildRoute(const LocalizationSupportScreen(), settings);
+        return _buildRoute(LocalizationSupportScreen(), settings);
       case RouteNames.accessibilitySupport:
-        return _buildRoute(const AccessibilitySupportScreen(), settings);
+        return _buildRoute(AccessibilitySupportScreen(), settings);
       case RouteNames.exploreRecommendation:
         return _buildRoute(const ExploreRecommendationScreen(), settings);
       case RouteNames.blockedMutedAccounts:
-        return _buildRoute(const BlockedMutedAccountsScreen(), settings);
+        return _buildRoute(BlockedMutedAccountsScreen(), settings);
       case RouteNames.maintenanceMode:
-        return _buildRoute(const MaintenanceModeScreen(), settings);
+        return _buildRoute(MaintenanceModeScreen(), settings);
       case RouteNames.inviteReferral:
         return _buildRoute(const InviteReferralScreen(), settings);
       case RouteNames.legalCompliance:
-        return _buildRoute(const LegalComplianceScreen(), settings);
+        return _buildRoute(LegalComplianceScreen(), settings);
       default:
         return _buildRoute(
           Scaffold(

@@ -2,15 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/verification_request_controller.dart';
 
-class VerificationRequestScreen extends StatefulWidget {
-  const VerificationRequestScreen({super.key});
+class VerificationRequestScreen extends StatelessWidget {
+  VerificationRequestScreen({super.key});
 
-  @override
-  State<VerificationRequestScreen> createState() =>
-      _VerificationRequestScreenState();
-}
-
-class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
   final VerificationRequestController _controller =
       VerificationRequestController();
 

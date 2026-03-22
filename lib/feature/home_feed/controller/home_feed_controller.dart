@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
 import '../../../core/common_models/load_state_model.dart';
 import '../../../core/common_models/pagination_state_model.dart';
@@ -9,7 +9,7 @@ import '../repository/home_feed_repository.dart';
 
 enum FeedTab { forYou, following, trending }
 
-class HomeFeedController extends ChangeNotifier {
+class HomeFeedController extends GetxController {
   HomeFeedController({
     HomeFeedRepository? repository,
     AnalyticsService? analytics,
@@ -41,7 +41,7 @@ class HomeFeedController extends ChangeNotifier {
 
   Future<void> loadInitial() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    notifyListeners();
+    update();
     try {
       stories = await _repository.fetchStories();
       final FeedSegment segment = _segmentForTab(activeTab);
@@ -52,14 +52,14 @@ class HomeFeedController extends ChangeNotifier {
         isEmpty: posts.isEmpty,
         isSuccess: posts.isNotEmpty,
       );
-      notifyListeners();
+      update();
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
         hasError: true,
         errorMessage: 'Unable to load feed right now.',
       );
-      notifyListeners();
+      update();
     }
   }
 
@@ -75,7 +75,7 @@ class HomeFeedController extends ChangeNotifier {
       return;
     }
     state = state.copyWith(isLoadingMore: true, hasError: false, errorMessage: null);
-    notifyListeners();
+    update();
     try {
       final FeedSegment segment = _segmentForTab(activeTab);
       final next = await _repository.fetchFeed(
@@ -92,14 +92,14 @@ class HomeFeedController extends ChangeNotifier {
         );
       }
       state = state.copyWith(isLoadingMore: false);
-      notifyListeners();
+      update();
     } catch (_) {
       state = state.copyWith(
         isLoadingMore: false,
         hasError: true,
         errorMessage: 'Failed to load more posts',
       );
-      notifyListeners();
+      update();
     }
   }
 
@@ -121,7 +121,7 @@ class HomeFeedController extends ChangeNotifier {
     } else {
       _likedPostIds.add(postId);
     }
-    notifyListeners();
+    update();
     try {
       await Future<void>.delayed(const Duration(milliseconds: 120));
       _failedActionPostIds.remove(postId);
@@ -129,7 +129,7 @@ class HomeFeedController extends ChangeNotifier {
         'postId': postId,
         'liked': !wasLiked,
       });
-      notifyListeners();
+      update();
     } catch (_) {
       if (wasLiked) {
         _likedPostIds.add(postId);
@@ -137,7 +137,7 @@ class HomeFeedController extends ChangeNotifier {
         _likedPostIds.remove(postId);
       }
       _failedActionPostIds.add(postId);
-      notifyListeners();
+      update();
     }
   }
 
@@ -154,7 +154,7 @@ class HomeFeedController extends ChangeNotifier {
 
   void retryPostAction(String postId) {
     _failedActionPostIds.remove(postId);
-    notifyListeners();
+    update();
   }
 
   void notInterested(String postId) {
@@ -163,7 +163,46 @@ class HomeFeedController extends ChangeNotifier {
       'postId': postId,
       'tab': activeTab.name,
     });
-    notifyListeners();
+    update();
+  }
+
+  Future<void> createLocalPost({
+    required String caption,
+    String? mediaUrl,
+    bool isVideo = false,
+  }) async {
+    final text = caption.trim();
+    if (text.isEmpty) {
+      return;
+    }
+
+    final media = <String>[];
+    if (mediaUrl != null && mediaUrl.trim().isNotEmpty) {
+      media.add(mediaUrl.trim());
+    } else if (isVideo) {
+      media.add('https://example.com/sample.mp4');
+    } else {
+      media.add('https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200');
+    }
+
+    final post = PostModel(
+      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
+      authorId: 'u1',
+      caption: text,
+      tags: const <String>['#local'],
+      media: media,
+      likes: 0,
+      comments: 0,
+      createdAt: DateTime.now(),
+    );
+
+    posts = <PostModel>[post, ...posts];
+    state = state.copyWith(isEmpty: posts.isEmpty, isSuccess: posts.isNotEmpty);
+    await _analytics.logEvent('post_created_local', params: <String, dynamic>{
+      'hasMedia': media.isNotEmpty,
+      'isVideo': isVideo,
+    });
+    update();
   }
 
   FeedSegment _segmentForTab(FeedTab tab) {

@@ -3,41 +3,28 @@ import 'package:flutter/material.dart';
 import '../../../core/common_models/story_model.dart';
 import '../../../core/common_models/user_model.dart';
 
-class StoryViewScreen extends StatefulWidget {
-  const StoryViewScreen({
+class StoryViewScreen extends StatelessWidget {
+  StoryViewScreen({
     required this.stories,
     required this.users,
     required this.initialStoryId,
     super.key,
-  });
+  }) : _index = ValueNotifier<int>(
+          stories.indexWhere((StoryModel story) => story.id == initialStoryId) >= 0
+              ? stories.indexWhere((StoryModel story) => story.id == initialStoryId)
+              : 0,
+        ),
+        _pageController = PageController(
+          initialPage: stories.indexWhere((StoryModel story) => story.id == initialStoryId) >= 0
+              ? stories.indexWhere((StoryModel story) => story.id == initialStoryId)
+              : 0,
+        );
 
   final List<StoryModel> stories;
   final List<UserModel> users;
   final String initialStoryId;
-
-  @override
-  State<StoryViewScreen> createState() => _StoryViewScreenState();
-}
-
-class _StoryViewScreenState extends State<StoryViewScreen> {
-  late final PageController _pageController;
-  late int _index;
-
-  @override
-  void initState() {
-    super.initState();
-    final initialIndex = widget.stories.indexWhere(
-      (StoryModel story) => story.id == widget.initialStoryId,
-    );
-    _index = initialIndex >= 0 ? initialIndex : 0;
-    _pageController = PageController(initialPage: _index);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
+  final ValueNotifier<int> _index;
+  final PageController _pageController;
 
   @override
   Widget build(BuildContext context) {
@@ -46,20 +33,23 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(_storyOwnerName(widget.stories[_index])),
+        title: ValueListenableBuilder<int>(
+          valueListenable: _index,
+          builder: (context, index, _) {
+            return Text(_storyOwnerName(stories[index]));
+          },
+        ),
       ),
       body: Stack(
         children: [
           PageView.builder(
             controller: _pageController,
-            itemCount: widget.stories.length,
+            itemCount: stories.length,
             onPageChanged: (int value) {
-              setState(() {
-                _index = value;
-              });
+              _index.value = value;
             },
             itemBuilder: (BuildContext context, int index) {
-              final story = widget.stories[index];
+              final story = stories[index];
               return InteractiveViewer(
                 minScale: 1,
                 maxScale: 3,
@@ -82,8 +72,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Row(
-                children: List<Widget>.generate(widget.stories.length, (int i) {
-                  final bool active = i == _index;
+                children: List<Widget>.generate(stories.length, (int i) {
+                  final bool active = i == _index.value;
                   return Expanded(
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -106,7 +96,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   }
 
   String _storyOwnerName(StoryModel story) {
-    final user = widget.users.where((u) => u.id == story.userId).firstOrNull;
+    final user = users.where((u) => u.id == story.userId).firstOrNull;
     return user?.name ?? 'Story';
   }
 }

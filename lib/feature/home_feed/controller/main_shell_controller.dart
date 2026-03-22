@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
-class MainShellController extends ChangeNotifier {
+class MainShellController extends GetxController {
   int index = 0;
 
   void onTabChanged(int newIndex) {
     index = newIndex;
-    notifyListeners();
+    update();
   }
 }

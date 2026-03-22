@@ -3,14 +3,9 @@ import 'package:flutter/material.dart';
 import '../controller/upload_manager_controller.dart';
 import '../model/upload_task_model.dart';
 
-class UploadManagerScreen extends StatefulWidget {
-  const UploadManagerScreen({super.key});
+class UploadManagerScreen extends StatelessWidget {
+  UploadManagerScreen({super.key});
 
-  @override
-  State<UploadManagerScreen> createState() => _UploadManagerScreenState();
-}
-
-class _UploadManagerScreenState extends State<UploadManagerScreen> {
   final UploadManagerController _controller = UploadManagerController();
 
   @override

@@ -4,34 +4,19 @@ import '../../../core/helpers/format_helper.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../controller/notifications_controller.dart';
 
-class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key, this.showAppBar = true});
-
-  final bool showAppBar;
-
-  @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  final NotificationsController _controller = NotificationsController();
-
-  @override
-  void initState() {
-    super.initState();
+class NotificationsScreen extends StatelessWidget {
+  NotificationsScreen({super.key, this.showAppBar = true}) {
     _controller.load();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final bool showAppBar;
+
+  final NotificationsController _controller = NotificationsController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: widget.showAppBar ? AppBar(title: const Text('Notifications')) : null,
+      appBar: showAppBar ? AppBar(title: const Text('Notifications')) : null,
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
@@ -73,7 +58,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       child: ListTile(
                         onTap: () async {
                           final route = await _controller.handleTap(item);
-                          if (!mounted || route == null) {
+                          if (route == null) {
                             return;
                           }
                           Navigator.of(context).pushNamed(route);

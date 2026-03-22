@@ -3,16 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../route/route_names.dart';
 import '../controller/personalization_onboarding_controller.dart';
 
-class PersonalizationOnboardingScreen extends StatefulWidget {
-  const PersonalizationOnboardingScreen({super.key});
+class PersonalizationOnboardingScreen extends StatelessWidget {
+  PersonalizationOnboardingScreen({super.key});
 
-  @override
-  State<PersonalizationOnboardingScreen> createState() =>
-      _PersonalizationOnboardingScreenState();
-}
-
-class _PersonalizationOnboardingScreenState
-    extends State<PersonalizationOnboardingScreen> {
   final PersonalizationOnboardingController _controller =
       PersonalizationOnboardingController();
 

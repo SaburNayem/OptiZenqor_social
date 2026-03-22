@@ -3,15 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../onboarding/controller/onboarding_controller.dart';
 
-class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+class OnboardingScreen extends StatelessWidget {
+  OnboardingScreen({super.key});
 
-  @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-class _OnboardingScreenState extends State<OnboardingScreen> {
   final OnboardingController _controller = OnboardingController();
+  final ValueNotifier<int> _index = ValueNotifier<int>(0);
 
   final List<({String title, String subtitle, IconData icon})> _slides = [
     (
@@ -32,12 +28,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -55,9 +45,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Expanded(
                 child: PageView.builder(
                   controller: _controller.pageController,
-                  onPageChanged: (value) => setState(
-                    () => _controller.onPageChanged(value, () {}),
-                  ),
+                  onPageChanged: (value) {
+                    _controller.index = value;
+                    _index.value = value;
+                  },
                   itemCount: _slides.length,
                   itemBuilder: (_, index) {
                     final slide = _slides[index];
@@ -84,30 +75,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _slides.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 220),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _controller.index == index ? 26 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _controller.index == index
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(99),
+              ValueListenableBuilder<int>(
+                valueListenable: _index,
+                builder: (context, activeIndex, _) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _slides.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: activeIndex == index ? 26 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: activeIndex == index
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 20),
-              AppButton(
-                label: _controller.isLast ? 'Get Started' : 'Continue',
-                onPressed: () => setState(
-                  () => _controller.next(context, () {}),
-                ),
+              ValueListenableBuilder<int>(
+                valueListenable: _index,
+                builder: (context, activeIndex, _) {
+                  final isLast = activeIndex == _slides.length - 1;
+                  return AppButton(
+                    label: isLast ? 'Get Started' : 'Continue',
+                    onPressed: () {
+                      _controller.next(context, () {});
+                      if (!isLast) {
+                        _index.value = activeIndex + 1;
+                      }
+                    },
+                  );
+                },
               ),
             ],
           ),

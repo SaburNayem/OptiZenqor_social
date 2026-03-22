@@ -3,21 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controller/premium_membership_controller.dart';
 
-class PremiumMembershipScreen extends StatefulWidget {
-  const PremiumMembershipScreen({super.key});
+class PremiumMembershipScreen extends StatelessWidget {
+  PremiumMembershipScreen({super.key});
 
-  @override
-  State<PremiumMembershipScreen> createState() => _PremiumMembershipScreenState();
-}
-
-class _PremiumMembershipScreenState extends State<PremiumMembershipScreen> {
   final PremiumMembershipController _controller = PremiumMembershipController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

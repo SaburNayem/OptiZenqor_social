@@ -8,6 +8,6 @@ class AppMainShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Wrapper to keep a dedicated main_shell feature while reusing existing shell implementation.
-    return const home_shell.MainShellScreen();
+    return home_shell.MainShellScreen();
   }
 }

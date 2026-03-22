@@ -2,27 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../controller/communities_controller.dart';
 
-class CommunitiesScreen extends StatefulWidget {
-  const CommunitiesScreen({super.key});
-
-  @override
-  State<CommunitiesScreen> createState() => _CommunitiesScreenState();
-}
-
-class _CommunitiesScreenState extends State<CommunitiesScreen> {
-  final CommunitiesController _controller = CommunitiesController();
-
-  @override
-  void initState() {
-    super.initState();
+class CommunitiesScreen extends StatelessWidget {
+  CommunitiesScreen({super.key}) {
     _controller.load();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final CommunitiesController _controller = CommunitiesController();
 
   @override
   Widget build(BuildContext context) {

@@ -3,61 +3,47 @@ import 'package:flutter/material.dart';
 import '../../../core/common_models/message_model.dart';
 import '../../../core/common_models/user_model.dart';
 import '../../../core/helpers/format_helper.dart';
+import 'chat_settings_screen.dart';
 
-class ChatDetailScreen extends StatefulWidget {
-  const ChatDetailScreen({
+class ChatDetailScreen extends StatelessWidget {
+  ChatDetailScreen({
     required this.user,
     required this.initialMessage,
     super.key,
-  });
+  }) : _messages = ValueNotifier<List<MessageModel>>(
+          <MessageModel>[
+            MessageModel(
+              id: 'local-1',
+              chatId: initialMessage.chatId,
+              senderId: user.id,
+              text: initialMessage.text,
+              timestamp: initialMessage.timestamp,
+              read: true,
+            ),
+            MessageModel(
+              id: 'local-2',
+              chatId: initialMessage.chatId,
+              senderId: 'me',
+              text: 'Looks good. Let us ship this by tonight.',
+              timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
+              read: true,
+            ),
+            MessageModel(
+              id: 'local-3',
+              chatId: initialMessage.chatId,
+              senderId: user.id,
+              text: 'Perfect. Sending final assets now.',
+              timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+              read: false,
+            ),
+          ],
+        );
 
   final UserModel user;
   final MessageModel initialMessage;
 
-  @override
-  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
-}
-
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
-  late final List<MessageModel> _messages;
+  final ValueNotifier<List<MessageModel>> _messages;
   final TextEditingController _messageController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _messages = <MessageModel>[
-      MessageModel(
-        id: 'local-1',
-        chatId: widget.initialMessage.chatId,
-        senderId: widget.user.id,
-        text: widget.initialMessage.text,
-        timestamp: widget.initialMessage.timestamp,
-        read: true,
-      ),
-      MessageModel(
-        id: 'local-2',
-        chatId: widget.initialMessage.chatId,
-        senderId: 'me',
-        text: 'Looks good. Let us ship this by tonight.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-        read: true,
-      ),
-      MessageModel(
-        id: 'local-3',
-        chatId: widget.initialMessage.chatId,
-        senderId: widget.user.id,
-        text: 'Perfect. Sending final assets now.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
-        read: false,
-      ),
-    ];
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,13 +51,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            CircleAvatar(backgroundImage: NetworkImage(widget.user.avatar)),
+            CircleAvatar(backgroundImage: NetworkImage(user.avatar)),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.user.name, style: const TextStyle(fontSize: 16)),
+                  Text(user.name, style: const TextStyle(fontSize: 16)),
                   const Text('typing...', style: TextStyle(fontSize: 12)),
                 ],
               ),
@@ -81,57 +67,67 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         actions: [
           IconButton(
             tooltip: 'Audio call',
-            onPressed: () => _startCall(isVideo: false),
+            onPressed: () => _startCall(context, isVideo: false),
             icon: const Icon(Icons.call_outlined),
           ),
           IconButton(
             tooltip: 'Video call',
-            onPressed: () => _startCall(isVideo: true),
+            onPressed: () => _startCall(context, isVideo: true),
             icon: const Icon(Icons.videocam_outlined),
+          ),
+          IconButton(
+            tooltip: 'Chat settings',
+            onPressed: () => _openChatSettings(context),
+            icon: const Icon(Icons.tune_rounded),
           ),
         ],
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              reverse: true,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[_messages.length - 1 - index];
-                final isMe = message.senderId == 'me';
-                return Align(
-                  alignment:
-                      isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    constraints: const BoxConstraints(maxWidth: 280),
-                    decoration: BoxDecoration(
-                      color: isMe
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(message.text),
+            child: ValueListenableBuilder<List<MessageModel>>(
+              valueListenable: _messages,
+              builder: (context, messages, _) {
+                return ListView.builder(
+                  reverse: true,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[messages.length - 1 - index];
+                    final isMe = message.senderId == 'me';
+                    return Align(
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          FormatHelper.timeAgo(message.timestamp),
-                          style: Theme.of(context).textTheme.bodySmall,
+                        constraints: const BoxConstraints(maxWidth: 280),
+                        decoration: BoxDecoration(
+                          color: isMe
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : Theme.of(context).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      ],
-                    ),
-                  ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(message.text),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              FormatHelper.timeAgo(message.timestamp),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -143,21 +139,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: _openAttachmentMenu,
+                    onPressed: () => _openAttachmentMenu(context),
                     icon: const Icon(Icons.add_circle_outline),
                   ),
                   Expanded(
                     child: TextField(
                       controller: _messageController,
                       textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
+                      onSubmitted: (_) => _sendMessage(context),
                       decoration: InputDecoration(
                         hintText: 'Message...',
                       ),
                     ),
                   ),
                   IconButton(
-                    onPressed: _sendMessage,
+                    onPressed: () => _sendMessage(context),
                     icon: const Icon(Icons.send_rounded),
                   ),
                 ],
@@ -169,7 +165,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  Future<void> _openAttachmentMenu() {
+  Future<void> _openAttachmentMenu(BuildContext context) {
     return showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -181,22 +177,22 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ListTile(
                 leading: const Icon(Icons.photo_library_outlined),
                 title: const Text('Gallery'),
-                onTap: () => _handleAttachmentAction('Gallery selected'),
+                onTap: () => _handleAttachmentAction(context, 'Gallery selected'),
               ),
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined),
                 title: const Text('Camera'),
-                onTap: () => _handleAttachmentAction('Camera opened'),
+                onTap: () => _handleAttachmentAction(context, 'Camera opened'),
               ),
               ListTile(
                 leading: const Icon(Icons.insert_drive_file_outlined),
                 title: const Text('Document'),
-                onTap: () => _handleAttachmentAction('Document picker opened'),
+                onTap: () => _handleAttachmentAction(context, 'Document picker opened'),
               ),
               ListTile(
                 leading: const Icon(Icons.location_on_outlined),
                 title: const Text('Location'),
-                onTap: () => _handleAttachmentAction('Live location shared'),
+                onTap: () => _handleAttachmentAction(context, 'Live location shared'),
               ),
             ],
           ),
@@ -205,39 +201,49 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  void _handleAttachmentAction(String message) {
+  void _handleAttachmentAction(BuildContext context, String message) {
     Navigator.of(context).pop();
-    _showFeedback(message);
+    _showFeedback(context, message);
   }
 
-  void _sendMessage() {
+  void _sendMessage(BuildContext context) {
     final text = _messageController.text.trim();
     if (text.isEmpty) {
       return;
     }
-    setState(() {
-      _messages.add(
-        MessageModel(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          chatId: widget.initialMessage.chatId,
-          senderId: 'me',
-          text: text,
-          timestamp: DateTime.now(),
-          read: true,
-        ),
-      );
-      _messageController.clear();
-    });
+    _messages.value = <MessageModel>[
+      ..._messages.value,
+      MessageModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        chatId: initialMessage.chatId,
+        senderId: 'me',
+        text: text,
+        timestamp: DateTime.now(),
+        read: true,
+      ),
+    ];
+    _messageController.clear();
   }
 
-  void _startCall({required bool isVideo}) {
+  void _startCall(BuildContext context, {required bool isVideo}) {
     final mode = isVideo ? 'Video call' : 'Audio call';
-    _showFeedback('$mode started with ${widget.user.name}');
+    _showFeedback(context, '$mode started with ${user.name}');
   }
 
-  void _showFeedback(String message) {
+  void _showFeedback(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _openChatSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatSettingsScreen(
+          chatId: initialMessage.chatId,
+          title: user.name,
+        ),
+      ),
+    );
   }
 }

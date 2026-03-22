@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/report_center_controller.dart';
 
-class ReportCenterScreen extends StatefulWidget {
-  const ReportCenterScreen({super.key});
+class ReportCenterScreen extends StatelessWidget {
+  ReportCenterScreen({super.key});
 
-  @override
-  State<ReportCenterScreen> createState() => _ReportCenterScreenState();
-}
-
-class _ReportCenterScreenState extends State<ReportCenterScreen> {
   final ReportCenterController _controller = ReportCenterController();
 
   @override

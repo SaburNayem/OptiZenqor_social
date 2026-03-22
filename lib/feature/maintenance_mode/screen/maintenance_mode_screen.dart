@@ -2,21 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../controller/maintenance_mode_controller.dart';
 
-class MaintenanceModeScreen extends StatefulWidget {
-  const MaintenanceModeScreen({super.key});
+class MaintenanceModeScreen extends StatelessWidget {
+  MaintenanceModeScreen({super.key});
 
-  @override
-  State<MaintenanceModeScreen> createState() => _MaintenanceModeScreenState();
-}
-
-class _MaintenanceModeScreenState extends State<MaintenanceModeScreen> {
   final MaintenanceModeController _controller = MaintenanceModeController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

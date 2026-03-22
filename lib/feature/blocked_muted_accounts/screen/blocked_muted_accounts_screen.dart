@@ -2,23 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../controller/blocked_muted_accounts_controller.dart';
 
-class BlockedMutedAccountsScreen extends StatefulWidget {
-  const BlockedMutedAccountsScreen({super.key});
+class BlockedMutedAccountsScreen extends StatelessWidget {
+  BlockedMutedAccountsScreen({super.key});
 
-  @override
-  State<BlockedMutedAccountsScreen> createState() =>
-      _BlockedMutedAccountsScreenState();
-}
-
-class _BlockedMutedAccountsScreenState extends State<BlockedMutedAccountsScreen> {
   final BlockedMutedAccountsController _controller =
       BlockedMutedAccountsController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -2,36 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../../splash/controller/splash_controller.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class SplashScreen extends StatelessWidget {
+  SplashScreen({super.key});
 
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
   final SplashController _splashController = SplashController();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
-    _splashController.bootstrap(context);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final ValueNotifier<bool> _bootstrapped = ValueNotifier<bool>(false);
 
   @override
   Widget build(BuildContext context) {
+    if (!_bootstrapped.value) {
+      _bootstrapped.value = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _splashController.bootstrap(context);
+      });
+    }
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -42,10 +26,13 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
         child: Center(
-          child: FadeTransition(
-            opacity: _controller.drive(
-              Tween<double>(begin: 0.4, end: 1.0),
-            ),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.4, end: 1.0),
+            duration: const Duration(milliseconds: 1100),
+            curve: Curves.easeInOut,
+            builder: (context, value, child) {
+              return Opacity(opacity: value, child: child);
+            },
             child: const Column(
               mainAxisSize: MainAxisSize.min,
               children: [

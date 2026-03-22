@@ -2,15 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/accessibility_support_controller.dart';
 
-class AccessibilitySupportScreen extends StatefulWidget {
-  const AccessibilitySupportScreen({super.key});
+class AccessibilitySupportScreen extends StatelessWidget {
+  AccessibilitySupportScreen({super.key});
 
-  @override
-  State<AccessibilitySupportScreen> createState() =>
-      _AccessibilitySupportScreenState();
-}
-
-class _AccessibilitySupportScreenState extends State<AccessibilitySupportScreen> {
   final AccessibilitySupportController _controller =
       AccessibilitySupportController();
 

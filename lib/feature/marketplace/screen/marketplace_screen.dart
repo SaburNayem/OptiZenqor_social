@@ -3,27 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../controller/marketplace_controller.dart';
 
-class MarketplaceScreen extends StatefulWidget {
-  const MarketplaceScreen({super.key});
-
-  @override
-  State<MarketplaceScreen> createState() => _MarketplaceScreenState();
-}
-
-class _MarketplaceScreenState extends State<MarketplaceScreen> {
-  final MarketplaceController _controller = MarketplaceController();
-
-  @override
-  void initState() {
-    super.initState();
+class MarketplaceScreen extends StatelessWidget {
+  MarketplaceScreen({super.key}) {
     _controller.load();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final MarketplaceController _controller = MarketplaceController();
 
   @override
   Widget build(BuildContext context) {

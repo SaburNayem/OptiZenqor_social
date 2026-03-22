@@ -2,15 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/localization_support_controller.dart';
 
-class LocalizationSupportScreen extends StatefulWidget {
-  const LocalizationSupportScreen({super.key});
+class LocalizationSupportScreen extends StatelessWidget {
+  LocalizationSupportScreen({super.key});
 
-  @override
-  State<LocalizationSupportScreen> createState() =>
-      _LocalizationSupportScreenState();
-}
-
-class _LocalizationSupportScreenState extends State<LocalizationSupportScreen> {
   final LocalizationSupportController _controller = LocalizationSupportController();
 
   @override

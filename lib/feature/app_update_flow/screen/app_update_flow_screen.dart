@@ -2,21 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../controller/app_update_flow_controller.dart';
 
-class AppUpdateFlowScreen extends StatefulWidget {
-  const AppUpdateFlowScreen({super.key});
+class AppUpdateFlowScreen extends StatelessWidget {
+  AppUpdateFlowScreen({super.key});
 
-  @override
-  State<AppUpdateFlowScreen> createState() => _AppUpdateFlowScreenState();
-}
-
-class _AppUpdateFlowScreenState extends State<AppUpdateFlowScreen> {
   final AppUpdateFlowController _controller = AppUpdateFlowController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

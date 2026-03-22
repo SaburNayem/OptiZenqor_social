@@ -6,27 +6,12 @@ import '../../../core/widgets/error_state_view.dart';
 import 'chat_detail_screen.dart';
 import '../controller/chat_controller.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
-
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends State<ChatScreen> {
-  final ChatController _controller = ChatController();
-
-  @override
-  void initState() {
-    super.initState();
+class ChatScreen extends StatelessWidget {
+  ChatScreen({super.key}) {
     _controller.loadChats();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final ChatController _controller = ChatController();
 
   @override
   Widget build(BuildContext context) {

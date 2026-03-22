@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../controller/legal_compliance_controller.dart';
 
-class LegalComplianceScreen extends StatefulWidget {
-  const LegalComplianceScreen({super.key});
+class LegalComplianceScreen extends StatelessWidget {
+  LegalComplianceScreen({super.key});
 
-  @override
-  State<LegalComplianceScreen> createState() => _LegalComplianceScreenState();
-}
-
-class _LegalComplianceScreenState extends State<LegalComplianceScreen> {
   final LegalComplianceController _controller = LegalComplianceController();
 
   @override
