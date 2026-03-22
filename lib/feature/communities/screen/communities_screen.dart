@@ -39,11 +39,21 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
             itemCount: _controller.groups.length,
             itemBuilder: (context, index) {
               final item = _controller.groups[index];
+              final joined = _controller.isJoined(item.id);
               return Card(
                 child: ListTile(
                   title: Text(item.name),
                   subtitle: Text(item.description),
-                  trailing: FilledButton(onPressed: () {}, child: const Text('Join')),
+                  trailing: FilledButton(
+                    onPressed: () {
+                      _controller.toggleJoin(item.id);
+                      final label = joined ? 'Left ${item.name}' : 'Joined ${item.name}';
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(content: Text(label)));
+                    },
+                    child: Text(joined ? 'Joined' : 'Join'),
+                  ),
                 ),
               );
             },

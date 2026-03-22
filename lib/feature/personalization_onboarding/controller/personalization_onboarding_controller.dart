@@ -20,4 +20,8 @@ class PersonalizationOnboardingController extends ChangeNotifier {
         .toList();
     notifyListeners();
   }
+
+  int get selectedCount => interests.where((item) => item.selected).length;
+
+  bool get canContinue => selectedCount > 0;
 }

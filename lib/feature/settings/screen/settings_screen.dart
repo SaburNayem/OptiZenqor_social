@@ -18,9 +18,6 @@ class SettingsScreen extends StatelessWidget {
           ...controller.items.map(
             (item) => _Item(title: item.title, routeName: item.routeName),
           ),
-          const _Item(title: 'Blocked users'),
-          const _Item(title: 'Language and accessibility'),
-          const _Item(title: 'Devices and sessions (placeholder)'),
         ],
       ),
     );

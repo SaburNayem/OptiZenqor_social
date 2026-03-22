@@ -5,4 +5,13 @@ class InviteReferralController {
     inviteCode: 'OPTI-2026',
     benefit: 'Invite friends and unlock premium trial perks.',
   );
+
+  String buildInviteLink() {
+    return 'https://optizenqor.app/invite/${model.inviteCode}';
+  }
+
+  String buildShareMessage() {
+    return 'Join me on OptiZenqor Social with code ${model.inviteCode}. '
+        'Use this link: ${buildInviteLink()}';
+  }
 }

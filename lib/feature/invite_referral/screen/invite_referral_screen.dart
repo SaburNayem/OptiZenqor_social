@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../controller/invite_referral_controller.dart';
 
@@ -24,7 +25,20 @@ class InviteReferralScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final shareText = controller.buildShareMessage();
+                      await Clipboard.setData(ClipboardData(text: shareText));
+                      if (!context.mounted) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text('Invite message copied to clipboard'),
+                          ),
+                        );
+                    },
                     icon: const Icon(Icons.share_rounded),
                     label: const Text('Share Invite Link'),
                   ),

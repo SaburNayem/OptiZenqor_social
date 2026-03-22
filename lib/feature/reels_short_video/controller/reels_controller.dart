@@ -5,10 +5,42 @@ import '../../../core/common_models/reel_model.dart';
 
 class ReelsController extends ChangeNotifier {
   List<ReelModel> reels = <ReelModel>[];
+  final Set<String> _likedReelIds = <String>{};
+  final Map<String, int> _extraCommentCount = <String, int>{};
+  final Map<String, int> _extraShareCount = <String, int>{};
 
   Future<void> load() async {
     await Future<void>.delayed(const Duration(milliseconds: 320));
     reels = MockData.reels;
+    notifyListeners();
+  }
+
+  bool isLiked(String reelId) => _likedReelIds.contains(reelId);
+
+  int likeCount(ReelModel reel) =>
+      reel.likes + (_likedReelIds.contains(reel.id) ? 1 : 0);
+
+  int commentCount(ReelModel reel) =>
+      reel.comments + (_extraCommentCount[reel.id] ?? 0);
+
+  int shareCount(ReelModel reel) => reel.shares + (_extraShareCount[reel.id] ?? 0);
+
+  void toggleLike(String reelId) {
+    if (_likedReelIds.contains(reelId)) {
+      _likedReelIds.remove(reelId);
+    } else {
+      _likedReelIds.add(reelId);
+    }
+    notifyListeners();
+  }
+
+  void addComment(String reelId) {
+    _extraCommentCount[reelId] = (_extraCommentCount[reelId] ?? 0) + 1;
+    notifyListeners();
+  }
+
+  void addShare(String reelId) {
+    _extraShareCount[reelId] = (_extraShareCount[reelId] ?? 0) + 1;
     notifyListeners();
   }
 }

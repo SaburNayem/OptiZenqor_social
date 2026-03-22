@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../route/route_names.dart';
 import '../controller/personalization_onboarding_controller.dart';
 
 class PersonalizationOnboardingScreen extends StatefulWidget {
@@ -42,7 +43,20 @@ class _PersonalizationOnboardingScreenState
               ),
               const SizedBox(height: 20),
               FilledButton(
-                onPressed: () {},
+                onPressed: _controller.canContinue
+                    ? () {
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Saved ${_controller.selectedCount} interests',
+                              ),
+                            ),
+                          );
+                        Navigator.of(context).pushReplacementNamed(RouteNames.shell);
+                      }
+                    : null,
                 child: const Text('Continue'),
               ),
             ],

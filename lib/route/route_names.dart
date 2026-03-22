@@ -16,6 +16,11 @@ class RouteNames {
   static const creatorDashboard = '/creator-dashboard';
   static const premium = '/premium';
   static const settings = '/settings';
+  static const accountSettings = '/settings/account';
+  static const passwordSecurity = '/settings/password-security';
+  static const devicesSessions = '/settings/devices-sessions';
+  static const blockedUsers = '/settings/blocked-users';
+  static const languageAccessibility = '/settings/language-accessibility';
 
   static const draftsScheduling = '/drafts-scheduling';
   static const uploadManager = '/upload-manager';

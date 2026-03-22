@@ -89,9 +89,39 @@ class _ReelsScreenState extends State<ReelsScreen> {
                   bottom: 24,
                   child: Column(
                     children: [
-                      _ReelAction(icon: Icons.favorite, label: reel.likes),
-                      _ReelAction(icon: Icons.mode_comment, label: reel.comments),
-                      _ReelAction(icon: Icons.share, label: reel.shares),
+                      _ReelAction(
+                        icon: _controller.isLiked(reel.id)
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        label: _controller.likeCount(reel),
+                        onTap: () {
+                          _controller.toggleLike(reel.id);
+                        },
+                      ),
+                      _ReelAction(
+                        icon: Icons.mode_comment,
+                        label: _controller.commentCount(reel),
+                        onTap: () {
+                          _controller.addComment(reel.id);
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(content: Text('Comment action triggered')),
+                            );
+                        },
+                      ),
+                      _ReelAction(
+                        icon: Icons.share,
+                        label: _controller.shareCount(reel),
+                        onTap: () {
+                          _controller.addShare(reel.id);
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(content: Text('Reel shared')),
+                            );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -105,10 +135,15 @@ class _ReelsScreenState extends State<ReelsScreen> {
 }
 
 class _ReelAction extends StatelessWidget {
-  const _ReelAction({required this.icon, required this.label});
+  const _ReelAction({
+    required this.icon,
+    required this.label,
+    this.onTap,
+  });
 
   final IconData icon;
   final int label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +154,10 @@ class _ReelAction extends StatelessWidget {
           CircleAvatar(
             radius: 20,
             backgroundColor: Colors.white24,
-            child: Icon(icon, color: Colors.white),
+            child: IconButton(
+              onPressed: onTap,
+              icon: Icon(icon, color: Colors.white),
+            ),
           ),
           const SizedBox(height: 4),
           Text(

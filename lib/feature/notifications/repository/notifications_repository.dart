@@ -9,6 +9,7 @@ class NotificationsRepository {
 
   Future<List<NotificationModel>> fetchByCategory(String category) async {
     final all = await fetchNotifications();
-    return all.where((item) => item.title.toLowerCase().contains(category)).toList();
+    final term = category.trim().toLowerCase();
+    return all.where((item) => item.payload.type.name == term).toList();
   }
 }

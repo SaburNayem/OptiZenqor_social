@@ -3,39 +3,76 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controller/premium_membership_controller.dart';
 
-class PremiumMembershipScreen extends StatelessWidget {
+class PremiumMembershipScreen extends StatefulWidget {
   const PremiumMembershipScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final controller = PremiumMembershipController();
+  State<PremiumMembershipScreen> createState() => _PremiumMembershipScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Premium Membership')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          ...controller.plans.map(
-            (plan) => Card(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(plan.name, style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 6),
-                    Text(plan.price),
-                    const SizedBox(height: 10),
-                    ...plan.features.map((feature) => Text('• $feature')),
-                    const SizedBox(height: 14),
-                    AppButton(label: 'Choose ${plan.name}', onPressed: () {}),
-                  ],
+class _PremiumMembershipScreenState extends State<PremiumMembershipScreen> {
+  final PremiumMembershipController _controller = PremiumMembershipController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Premium Membership')),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              ..._controller.plans.map(
+                (plan) => Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                plan.name,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                            ),
+                            if (_controller.selectedPlanName == plan.name)
+                              const Chip(label: Text('Selected')),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(plan.price),
+                        const SizedBox(height: 10),
+                        ...plan.features.map((feature) => Text('• $feature')),
+                        const SizedBox(height: 14),
+                        AppButton(
+                          label: 'Choose ${plan.name}',
+                          onPressed: () {
+                            _controller.choosePlan(plan.name);
+                            ScaffoldMessenger.of(context)
+                              ..hideCurrentSnackBar()
+                              ..showSnackBar(
+                                SnackBar(content: Text('${plan.name} selected')),
+                              );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

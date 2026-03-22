@@ -3,8 +3,14 @@ import '../../../route/route_names.dart';
 
 class SettingsController {
   final List<SettingsItemModel> items = const [
-    SettingsItemModel(title: 'Account settings'),
-    SettingsItemModel(title: 'Password and security'),
+    SettingsItemModel(
+      title: 'Account settings',
+      routeName: RouteNames.accountSettings,
+    ),
+    SettingsItemModel(
+      title: 'Password and security',
+      routeName: RouteNames.passwordSecurity,
+    ),
     SettingsItemModel(
       title: 'Push notification preferences',
       routeName: RouteNames.pushNotificationPreferences,
@@ -76,6 +82,18 @@ class SettingsController {
     SettingsItemModel(
       title: 'App update flow',
       routeName: RouteNames.appUpdateFlow,
+    ),
+    SettingsItemModel(
+      title: 'Blocked users',
+      routeName: RouteNames.blockedUsers,
+    ),
+    SettingsItemModel(
+      title: 'Language and accessibility',
+      routeName: RouteNames.languageAccessibility,
+    ),
+    SettingsItemModel(
+      title: 'Devices and sessions',
+      routeName: RouteNames.devicesSessions,
     ),
   ];
 }

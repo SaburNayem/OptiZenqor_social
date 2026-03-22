@@ -7,6 +7,8 @@ import '../common_models/reel_model.dart';
 import '../common_models/story_model.dart';
 import '../common_models/user_model.dart';
 import '../enums/user_role.dart';
+import '../../feature/notifications/model/notification_payload_model.dart';
+import '../../route/route_names.dart';
 
 class MockData {
   MockData._();
@@ -213,7 +215,36 @@ class MockData {
       title: 'New follower',
       body: 'nexa.studio followed you.',
       createdAt: DateTime.now().subtract(const Duration(minutes: 8)),
+      payload: const NotificationPayloadModel(
+        type: NotificationType.social,
+        routeName: RouteNames.postDetail,
+        entityId: 'u2',
+      ),
       unread: true,
+    ),
+    NotificationModel(
+      id: 'n2',
+      title: 'Order update',
+      body: 'Your marketplace order has shipped.',
+      createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+      payload: const NotificationPayloadModel(
+        type: NotificationType.commerce,
+        routeName: RouteNames.marketplace,
+        entityId: 'order-1024',
+      ),
+      unread: true,
+    ),
+    NotificationModel(
+      id: 'n3',
+      title: 'Security alert',
+      body: 'New device sign-in detected.',
+      createdAt: DateTime.now().subtract(const Duration(hours: 4)),
+      payload: const NotificationPayloadModel(
+        type: NotificationType.security,
+        routeName: RouteNames.activitySessions,
+        entityId: 'session-77',
+      ),
+      unread: false,
     ),
   ];
 

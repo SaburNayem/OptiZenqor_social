@@ -1,22 +1,44 @@
-# OptiZenqor Social - Technical Documentation
+# OptiZenqor Social - Full App Documentation
 
-## 1. Project Overview
-OptiZenqor Social is a Flutter mobile social platform scaffold built with modular feature folders, centralized navigation, reusable core components, and mock-data-first flows.
+## 1. Purpose and Scope
+OptiZenqor Social is a Flutter mobile social platform prototype with modular feature folders, route-driven navigation, reusable UI components, and mock-data-first flows.
 
-This codebase is designed to:
-- ship quickly with polished UI flows
-- scale safely with feature isolation
-- support backend integration without rewriting UI
-- support role-based experiences on app-side only
+This document is a full status document for the current branch and includes:
+- what is implemented
+- what is partially implemented
+- what is intentionally placeholder
+- what folders exist but are not yet implemented
 
-## 2. Tech Stack
+## 2. Tech Stack and Runtime
 - Flutter (Material 3)
 - Dart (null safety)
-- ChangeNotifier-based feature controllers
-- Mock local data for early product flows
+- State management: ChangeNotifier + AnimatedBuilder
+- Persistence: shared_preferences + in-memory fallback path in storage service
+- Data source: mock data from `lib/core/common_data/mock_data.dart`
 
-## 3. App-Side Roles
-Defined in lib/core/enums/user_role.dart:
+Dependency summary from `pubspec.yaml`:
+- flutter
+- cupertino_icons
+- shared_preferences
+
+## 3. App Architecture
+
+### 3.1 Layering
+- `lib/core`: shared models, services, constants, validators, widgets, helpers
+- `lib/route`: central route names and route generator
+- `lib/feature`: feature modules (screen/controller/model/repository where used)
+
+### 3.2 State Pattern
+- Controllers own feature state.
+- Screens listen through AnimatedBuilder.
+- New shared state models exist for load/form/pagination in `lib/core/common_models`.
+
+### 3.3 Data Strategy
+- Current read/write operations are mock-based or local fallback-based.
+- Repository scaffolding exists for major domains: auth, feed, chat, notifications, profile, marketplace, posts.
+
+## 4. Roles
+User roles defined in `lib/core/enums/user_role.dart`:
 - guest
 - user
 - creator
@@ -24,250 +46,333 @@ Defined in lib/core/enums/user_role.dart:
 - seller
 - recruiter
 
-## 4. Repository Structure
+## 5. Lifecycle and Navigation
 
-### Root
-- lib/
-- android/
-- ios/
-- web/
-- test/
-- pubspec.yaml
-- analysis_options.yaml
-
-### Core Layer (lib/core)
-- constants/: app strings, dimensions, assets
-- theme/: colors and theme configuration
-- utils/: logger, debouncer
-- widgets/: reusable UI components
-- services/: backend-ready service stubs
-- helpers/: formatting helpers
-- validators/: input validation rules
-- common_models/: shared app models
-- common_data/: mock data source
-- enums/: role and view state enums
-- config/: app-level config placeholders
-
-### Routing Layer (lib/route)
-- route_names.dart: route constants
-- route_generator.dart: centralized route creation
-- app_routes.dart: public route grouping
-
-### Feature Layer (lib/feature)
-Features are modular and mostly follow:
-- model/
-- controller/
-- screen/
-- widget/ (used where needed)
-
-Implemented feature groups include:
-- splash, onboarding, auth
-- main_shell
-- home_feed, reels_short_video, stories
-- chat, notifications, user_profile, settings
-- search_discovery, communities, marketplace
-- creator_tools, premium_membership
-- advanced product modules (drafting/upload/offline/privacy/report/etc.)
-
-## 5. App Bootstrap and Lifecycle
-
-### main.dart
-- Initializes Flutter binding
-- Runs OptiZenqorApp
-
-### app.dart
-- Configures MaterialApp
-- Applies light and dark theme
-- Hooks route generator
-- Starts from splash route
-
-## 6. Navigation Architecture
-
-### Top-level flow
+### 5.1 Boot Flow
 1. Splash
 2. Onboarding
-3. Auth (login/signup/forgot/reset)
-4. Main Shell
+3. Login
+4. Shell
 
-### Main Shell
-Located at:
-- lib/feature/main_shell/screen/main_shell_screen.dart (feature-level wrapper)
-- lib/feature/home_feed/screen/main_shell_screen.dart (implementation)
+### 5.2 Shell Layout
+Main shell tabs:
+- Home
+- Reels
+- Chat
+- Profile
+- Settings
 
-Layout:
-- Top AppBar:
-  - Search action
-  - Notifications action
-- Drawer:
-  - Feature shortcuts (communities, marketplace, creator dashboard, premium, drafts, upload manager)
-- Bottom navigation tabs:
-  - Home
-  - Reels
-  - Chat
-  - Profile
-  - Settings
+Top actions:
+- Search
+- Notifications
 
-Tab rendering uses explicit index mapping to avoid icon/content mismatch.
+Drawer quick links:
+- Communities
+- Marketplace
+- Creator Dashboard
+- Premium Plans
+- Drafts & Scheduling
+- Upload Manager
 
-## 7. State Management Pattern
-Each feature controller handles:
-- loading data
-- state transitions
-- user action methods
+## 6. Route Catalog and Status
 
-Screens use AnimatedBuilder to react to controller updates.
+### 6.1 Auth and Entry
+- `/` splash: implemented
+- `/onboarding`: implemented
+- `/auth/login`: implemented
+- `/auth/signup`: scaffold screen
+- `/auth/forgot-password`: scaffold screen
+- `/auth/reset-password`: scaffold screen
+- `/shell`: implemented shell wrapper
 
-Shared view states (idle/loading/success/empty/error) are defined in:
-- lib/core/enums/view_state.dart
+### 6.2 Main Product Routes
+- `/search-discovery`: implemented
+- `/communities`: implemented (some action buttons placeholder)
+- `/marketplace`: implemented with search + grid
+- `/notifications`: implemented with filters and mock deep-link routing
+- `/creator-dashboard`: scaffold implementation
+- `/premium`: scaffold implementation
+- `/settings`: implemented settings hub (mixed active/disabled rows)
 
-## 8. Data Strategy
+### 6.3 Advanced Routes
+- `/drafts-scheduling`: scaffold implementation
+- `/upload-manager`: scaffold implementation
+- `/offline-sync`: scaffold implementation
+- `/verification-request`: scaffold implementation
+- `/personalization-onboarding`: scaffold implementation
+- `/advanced-privacy-controls`: scaffold implementation
+- `/share-repost-system`: scaffold implementation
+- `/media-viewer`: scaffold implementation
+- `/post-detail`: scaffold implementation
+- `/account-switching`: scaffold implementation
+- `/push-notification-preferences`: scaffold implementation
+- `/report-center`: scaffold implementation
+- `/activity-sessions`: scaffold implementation
+- `/deep-link-handler`: scaffold implementation
+- `/app-update-flow`: scaffold implementation
+- `/localization-support`: scaffold implementation
+- `/accessibility-support`: scaffold implementation
+- `/explore-recommendation`: scaffold implementation
+- `/blocked-muted-accounts`: scaffold implementation
+- `/maintenance-mode`: scaffold implementation
+- `/invite-referral`: scaffold implementation
+- `/legal-compliance`: scaffold implementation
 
-### Current
-- Data comes from mock source:
-  - lib/core/common_data/mock_data.dart
+## 7. Feature-by-Feature Functional Status
 
-### Future backend migration
-- Keep UI and controller API stable
-- Replace mock fetch/write logic inside controllers with repository/service calls
-- Use service stubs in lib/core/services as integration points
+### 7.1 Authentication
+Working:
+- Login form validation for email + non-empty password
+- Role selection
+- Login transition to shell
 
-## 9. Key Implemented User Flows
+Working with fallback:
+- Session persistence write uses shared_preferences if available, otherwise in-memory fallback
 
-### Auth
-- Login with role selection
-- Signup placeholders
-- Forgot password + reset password placeholders
+Known limitations:
+- No real credential backend; login is mock success flow
+- Analytics event currently logs signup event from login path (naming mismatch)
 
-### Home Feed
-- Story ring strip
-- Feed cards
+### 7.2 Home Feed
+Working:
+- Initial load
 - Pull to refresh
-- Post interactions (tap, menu, like/comment/save)
+- Infinite load trigger on scroll
+- Feed tabs (For You/Following/Trending)
+- Stories row
+- Story tap opens story viewer
+- Post tap opens post detail
+- Like optimistic toggle
+- Not interested hides post
 
-### Post Actions
-- Tap post -> post detail screen
-- Three-dot menu -> action bottom sheet
+Partially working / placeholder:
+- Share/report from post menu only show feedback
+- Create sheet opens but options have no action handlers
 
-### Reels
-- Vertical swipe feed
-- Engagement action UI
+### 7.3 Story Viewer
+Working:
+- Story open from ring list
+- Swipe through stories
+- Progress indicators
+- Zoom support via InteractiveViewer
 
-### Chat
+Limitations:
+- No auto-advance timer
+- No seen-state mutation persisted
+
+### 7.4 Reels
+Working:
+- Vertical pager and visual rendering
+
+Not wired:
+- Like/comment/share action buttons have no callbacks
+
+### 7.5 Chat
+Working:
 - Inbox list
-- Tap row opens chat detail screen
-- Conversation UI with input placeholder
+- Open chat detail
+- Compose/send local message
+- Long-press chat actions (pin/archive/simulate failure)
+- Retry marker clearing
+- Header audio and video call buttons
+- Plus attachment sheet opens
 
-### Notifications
-- Dedicated notifications page
-- Access from top app bar icon
+Partially working / placeholder:
+- Call buttons show feedback only; no RTC flow
+- Attachment options show feedback only; no picker integration
+- No backend send/read receipt sync
 
-### Settings
-- Settings hub with route-driven items
-- Links to advanced modules
+### 7.6 Notifications
+Working:
+- Loading state handling
+- Category filters
+- Unread count
+- Notification taps route to mapped screens
 
-## 10. Advanced Feature Modules
-The app includes production-oriented placeholder modules for future deep implementation:
+Limitations:
+- Route mapping is title keyword heuristic, not payload-driven deep links
 
-- drafts_and_scheduling
-  - draft save/schedule placeholders
-- upload_manager
-  - progress/retry/failed states
-- offline_sync
-  - offline queue + sync trigger
-- verification_request
-  - request/status workflow UI
-- personalization_onboarding
-  - interest selection UI
-- advanced_privacy_controls
-  - privacy toggles (mentions/comments/private account)
-- share_repost_system
-  - share/repost options
-- media_viewer
-  - fullscreen zoomable media viewer
-- post_detail
-  - detailed post screen + comment thread placeholder
-- account_switching
-  - identity switch UI
-- push_notification_preferences
-  - category-level push toggles
-- report_center
-  - reason selection + report history
-- activity_sessions
-  - activity log and session placeholders
-- deep_link_handler
-  - deep-link handling placeholder
-- app_update_flow
-  - optional/forced update UI placeholder
-- localization_support
-  - locale selection with RTL-ready option
+### 7.7 User Profile
+Working:
+- Profile load and render
+- Role-aware section labels
+- Profile tab in shell opens correctly
+
+Recent change:
+- Settings button removed from profile header
+
+### 7.8 Settings
+Working:
+- Route-linked entries navigate
+
+Disabled rows (onTap does not work because no route configured):
+- Account settings
+- Password and security
+
+Static placeholders (non-clickable):
+- Blocked users
+- Language and accessibility
+- Devices and sessions (placeholder)
+
+### 7.9 Marketplace
+Working:
+- Product list load
+- Search updates results
+- Error/loading states
+
+Limitations:
+- No item detail route
+- No cart/checkout
+
+### 7.10 Communities and Premium
+Working:
+- Screen render and list content
+
+Not wired:
+- Communities Join button has empty handler
+- Premium Choose plan button has empty handler
+
+### 7.11 Advanced Module Buttons with Empty Handlers
+Detected explicit empty callbacks:
+- Personalization onboarding Continue
+- Blocked/Muted Unblock
+- Blocked/Muted Unmute
+- Invite referral action
+- Maintenance mode Retry
+- App update flow Update
+
+## 8. Implemented Feature Modules (with Dart files)
 - accessibility_support
-  - reduced motion, larger targets, high contrast toggles
-- explore_recommendation
-  - recommendation surfaces for people, communities, and reels
+- account_switching
+- activity_sessions
+- advanced_privacy_controls
+- app_update_flow
+- auth
 - blocked_muted_accounts
-  - blocked/muted/restricted account management UI
-- maintenance_mode
-  - maintenance downtime and retry screen
+- chat
+- communities
+- creator_tools
+- deep_link_handler
+- drafts_and_scheduling
+- explore_recommendation
+- home_feed
 - invite_referral
-  - invite link and referral code placeholders
 - legal_compliance
-  - terms/privacy/guidelines acceptance placeholders
+- localization_support
+- main_shell
+- maintenance_mode
+- marketplace
+- media_viewer
+- notifications
+- offline_sync
+- onboarding
+- personalization_onboarding
+- post_detail
+- posts (repository scaffold only)
+- premium_membership
+- push_notification_preferences
+- recruiter_profile
+- reels_short_video
+- report_center
+- search_discovery
+- seller_profile
+- settings
+- share_repost_system
+- splash
+- stories
+- upload_manager
+- user_profile
+- verification_request
 
-## 11. Reusable UI Components
-Located in lib/core/widgets:
-- app_button.dart
-- app_text_field.dart
-- app_avatar.dart
-- app_loader.dart
-- empty_state_view.dart
-- error_state_view.dart
-- section_header.dart
-- post_card.dart
+## 9. Feature Folders Present but Not Implemented (No Dart files)
+- analytics
+- bookmarks
+- business_profile
+- calls
+- comments
+- creator_profile
+- events
+- follow_unfollow
+- group_chat
+- groups
+- hashtags
+- jobs_networking
+- learning_courses
+- likes_reactions
+- live_stream
+- pages
+- polls_surveys
+- safety_privacy
+- saved_collections
+- subscriptions
+- support_help
+- trending
+- wallet_payments
 
-These support consistency and avoid duplicated UI code across features.
+## 10. Core Services Summary
+- `auth_service.dart`: mock login/logout role state
+- `local_storage_service.dart`: shared_preferences + memory fallback
+- `analytics_service.dart`: event logging stubs
+- `deep_link_service.dart`: incoming/open placeholders
+- `connectivity_service.dart`: basic connectivity stub behavior
 
-## 12. Theming and UX Standards
-- Material 3 setup
-- Light and dark theme support
-- Consistent spacing and radius constants
-- Shared color system
-- Feedback patterns via snackbars and sheets
+## 11. UI Component Library
+Reusable widgets in `lib/core/widgets` include:
+- app_button
+- app_text_field
+- app_avatar
+- app_loader
+- empty_state_view
+- error_state_view
+- section_header
+- post_card
 
-## 13. Validation and Quality
-- Static analysis command: flutter analyze
-- Current status: no analyzer issues
+## 12. Data and Mock Content
+Mock datasets currently include:
+- users
+- posts
+- reels
+- stories
+- messages
+- notifications
+- groups
+- products
 
-## 14. How to Add a New Feature
-1. Create feature folder under lib/feature
-2. Add model/controller/screen (and widget if needed)
-3. Implement controller logic and state updates
-4. Build screen UI using reusable core widgets
-5. Add route name in route_names.dart
-6. Add route mapping in route_generator.dart
-7. Link entry point from shell, drawer, or settings
-8. Run flutter analyze
+Used for immediate UI behavior and demo flows.
 
-## 15. Known Placeholder Areas (Expected in Scaffold Stage)
-- API integration in services/controllers
-- Persistent storage and cache strategy
-- Real media upload lifecycle (foreground/background workers)
-- Real-time chat transport (socket/websocket)
-- Full moderation, legal, and compliance backend workflows
+## 13. Quality and Testing
+- Current analyzer state: expected clean after recent fixes
+- Existing test coverage:
+  - `test/widget_test.dart`: verifies app bootstraps to splash brand text
+- No integration tests yet for auth/feed/chat/notifications interactions
 
-## 16. Recommended Next Steps
-1. Introduce repository interfaces per feature and connect to API client
-2. Add persistent local cache for feed/chat/offline queue
-3. Add widget and integration tests for key flows
-4. Add localization arb files and Flutter localization delegates
-5. Add deep-link package integration and notification click routing
+## 14. Known Functional Gaps
+- No backend integration for auth/feed/chat/notifications
+- No real media upload
+- No real call stack (VoIP/WebRTC)
+- No durable offline queue sync engine
+- Many advanced module actions are placeholder only
 
-## 17. Run Instructions
-1. Install dependencies:
-   - flutter pub get
-2. Analyze code:
-   - flutter analyze
-3. Run app:
-   - flutter run
+## 15. Recommended Implementation Order
+1. Wire all currently empty onPressed/onTap handlers to controller actions.
+2. Add routes and screens for disabled settings rows.
+3. Replace feedback-only actions with repository/service operations.
+4. Add integration tests for critical paths:
+   - login success and route transition
+   - home tab feed interactions
+   - story open/swipe
+   - chat compose and attachment sheet
+   - notification deep-link route mapping
+5. Introduce backend adapter layer behind existing repositories.
+
+## 16. Run and Verify
+1. `flutter pub get`
+2. `flutter analyze`
+3. `flutter test`
+4. `flutter run`
+
+If login fails with shared_preferences plugin error on hot reload, do a full app restart. Storage now has memory fallback for plugin-unavailable sessions.
 
 ---
-Documentation maintained for current branch: main
+Documentation maintained for branch: main
+Last updated: 2026-03-22

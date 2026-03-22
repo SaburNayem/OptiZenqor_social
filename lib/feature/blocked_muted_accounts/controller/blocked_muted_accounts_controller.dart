@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 import '../model/restricted_account_model.dart';
 
-class BlockedMutedAccountsController {
-  final List<RestrictedAccountModel> blocked = const [
+class BlockedMutedAccountsController extends ChangeNotifier {
+  List<RestrictedAccountModel> blocked = const [
     RestrictedAccountModel(
       name: 'Sample User',
       handle: '@sample.user',
@@ -9,7 +11,7 @@ class BlockedMutedAccountsController {
     ),
   ];
 
-  final List<RestrictedAccountModel> muted = const [
+  List<RestrictedAccountModel> muted = const [
     RestrictedAccountModel(
       name: 'Muted Creator',
       handle: '@muted.creator',
@@ -24,4 +26,14 @@ class BlockedMutedAccountsController {
       status: 'restricted',
     ),
   ];
+
+  void unblock(String handle) {
+    blocked = blocked.where((item) => item.handle != handle).toList();
+    notifyListeners();
+  }
+
+  void unmute(String handle) {
+    muted = muted.where((item) => item.handle != handle).toList();
+    notifyListeners();
+  }
 }

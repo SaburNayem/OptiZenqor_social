@@ -31,6 +31,11 @@ import '../feature/push_notification_preferences/screen/push_notification_prefer
 import '../feature/report_center/screen/report_center_screen.dart';
 import '../feature/search_discovery/screen/search_discovery_screen.dart';
 import '../feature/settings/screen/settings_screen.dart';
+import '../feature/settings/screen/account_settings_screen.dart';
+import '../feature/settings/screen/password_security_screen.dart';
+import '../feature/settings/screen/devices_sessions_screen.dart';
+import '../feature/settings/screen/blocked_users_screen.dart';
+import '../feature/settings/screen/language_accessibility_screen.dart';
 import '../feature/share_repost_system/screen/share_repost_system_screen.dart';
 import '../feature/splash/screen/splash_screen.dart';
 import '../feature/upload_manager/screen/upload_manager_screen.dart';
@@ -73,6 +78,16 @@ class RouteGenerator {
         return _buildRoute(const PremiumMembershipScreen(), settings);
       case RouteNames.settings:
         return _buildRoute(const SettingsScreen(), settings);
+      case RouteNames.accountSettings:
+        return _buildRoute(const AccountSettingsScreen(), settings);
+      case RouteNames.passwordSecurity:
+        return _buildRoute(const PasswordSecurityScreen(), settings);
+      case RouteNames.devicesSessions:
+        return _buildRoute(const DevicesSessionsScreen(), settings);
+      case RouteNames.blockedUsers:
+        return _buildRoute(const BlockedUsersScreen(), settings);
+      case RouteNames.languageAccessibility:
+        return _buildRoute(const LanguageAccessibilityScreen(), settings);
       case RouteNames.draftsScheduling:
         return _buildRoute(const DraftsAndSchedulingScreen(), settings);
       case RouteNames.uploadManager:

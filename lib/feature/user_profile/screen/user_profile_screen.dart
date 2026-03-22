@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/helpers/format_helper.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/error_state_view.dart';
-import '../../../route/route_names.dart';
 import '../controller/user_profile_controller.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -61,10 +60,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       Text('@${user.username}'),
                     ],
                   ),
-                ),
-                OutlinedButton(
-                  onPressed: () => Navigator.of(context).pushNamed(RouteNames.settings),
-                  child: const Text('Settings'),
                 ),
               ],
             ),

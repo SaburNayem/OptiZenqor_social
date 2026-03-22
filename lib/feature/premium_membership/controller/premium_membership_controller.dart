@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import '../model/premium_plan_model.dart';
 
 class PremiumMembershipController extends ChangeNotifier {
+  String selectedPlanName = 'Free';
+
   final List<PremiumPlanModel> plans = const [
     PremiumPlanModel(
       name: 'Free',
@@ -15,4 +17,9 @@ class PremiumMembershipController extends ChangeNotifier {
       features: ['Priority reach', 'Advanced analytics', 'Premium badge'],
     ),
   ];
+
+  void choosePlan(String planName) {
+    selectedPlanName = planName;
+    notifyListeners();
+  }
 }

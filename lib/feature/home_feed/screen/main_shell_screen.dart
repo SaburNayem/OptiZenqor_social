@@ -128,11 +128,43 @@ class _MainShellScreenState extends State<MainShellScreen> {
       builder: (_) {
         return ListView(
           shrinkWrap: true,
-          children: const [
-            ListTile(leading: Icon(Icons.article_outlined), title: Text('Text post')),
-            ListTile(leading: Icon(Icons.image_outlined), title: Text('Image post')),
-            ListTile(leading: Icon(Icons.videocam_outlined), title: Text('Reel upload')),
-            ListTile(leading: Icon(Icons.poll_outlined), title: Text('Poll')),
+          children: [
+            ListTile(
+              leading: const Icon(Icons.article_outlined),
+              title: const Text('Text post'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushNamed(RouteNames.postDetail);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.image_outlined),
+              title: const Text('Image post'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushNamed(RouteNames.uploadManager);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam_outlined),
+              title: const Text('Reel upload'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _controller.onTabChanged(1);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.poll_outlined),
+              title: const Text('Poll'),
+              onTap: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    const SnackBar(content: Text('Poll composer opening soon')),
+                  );
+              },
+            ),
           ],
         );
       },
