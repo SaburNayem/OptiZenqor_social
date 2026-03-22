@@ -63,6 +63,7 @@ Main shell tabs:
 - Settings
 
 Top actions:
+- Create (Home tab only)
 - Search
 - Notifications
 
@@ -87,12 +88,12 @@ Drawer quick links:
 
 ### 6.2 Main Product Routes
 - `/search-discovery`: implemented
-- `/communities`: implemented (some action buttons placeholder)
+- `/communities`: implemented with join/leave interaction state
 - `/marketplace`: implemented with search + grid
-- `/notifications`: implemented with filters and mock deep-link routing
+- `/notifications`: implemented with filters and payload-based route mapping
 - `/creator-dashboard`: scaffold implementation
 - `/premium`: scaffold implementation
-- `/settings`: implemented settings hub (mixed active/disabled rows)
+- `/settings`: implemented settings hub (all listed rows route-enabled)
 
 ### 6.3 Advanced Routes
 - `/drafts-scheduling`: scaffold implementation
@@ -103,7 +104,7 @@ Drawer quick links:
 - `/advanced-privacy-controls`: scaffold implementation
 - `/share-repost-system`: scaffold implementation
 - `/media-viewer`: scaffold implementation
-- `/post-detail`: scaffold implementation
+- `/post-detail`: implemented detail screen with local comments/replies
 - `/account-switching`: scaffold implementation
 - `/push-notification-preferences`: scaffold implementation
 - `/report-center`: scaffold implementation
@@ -142,12 +143,17 @@ Working:
 - Stories row
 - Story tap opens story viewer
 - Post tap opens post detail
+- Author tap opens other profile
 - Like optimistic toggle
 - Not interested hides post
+- Home composer card present in feed
+
+Behavior update:
+- Create entry is exposed in Home top app bar only (not as cross-tab FAB)
 
 Partially working / placeholder:
 - Share/report from post menu only show feedback
-- Create sheet opens but options have no action handlers
+- Create action currently shows feedback for upcoming composer flow
 
 ### 7.3 Story Viewer
 Working:
@@ -163,9 +169,7 @@ Limitations:
 ### 7.4 Reels
 Working:
 - Vertical pager and visual rendering
-
-Not wired:
-- Like/comment/share action buttons have no callbacks
+- Like, comment, and share actions wired to controller-managed local counters and feedback
 
 ### 7.5 Chat
 Working:
@@ -176,6 +180,7 @@ Working:
 - Retry marker clearing
 - Header audio and video call buttons
 - Plus attachment sheet opens
+- Chat settings screen opens from chat detail app bar
 
 Partially working / placeholder:
 - Call buttons show feedback only; no RTC flow
@@ -187,32 +192,34 @@ Working:
 - Loading state handling
 - Category filters
 - Unread count
-- Notification taps route to mapped screens
+- Notification taps route to mapped screens through typed payload fields
 
 Limitations:
-- Route mapping is title keyword heuristic, not payload-driven deep links
+- Payload routes are local app route mappings (no server-issued deep-link parser yet)
 
 ### 7.7 User Profile
 Working:
 - Profile load and render
 - Role-aware section labels
 - Profile tab in shell opens correctly
+- Own vs other profile action separation
+- Message action shown only for other profiles
+- Three-dot action menu for profile-level actions
 
 Recent change:
 - Settings button removed from profile header
 
 ### 7.8 Settings
 Working:
-- Route-linked entries navigate
+- Route-linked entries navigate, including:
+  - Account settings
+  - Password and security
+  - Blocked users
+  - Language and accessibility
+  - Devices and sessions
 
-Disabled rows (onTap does not work because no route configured):
-- Account settings
-- Password and security
-
-Static placeholders (non-clickable):
-- Blocked users
-- Language and accessibility
-- Devices and sessions (placeholder)
+Limitations:
+- Several settings destinations are functional scaffold screens with informational UI only
 
 ### 7.9 Marketplace
 Working:
@@ -227,19 +234,13 @@ Limitations:
 ### 7.10 Communities and Premium
 Working:
 - Screen render and list content
-
-Not wired:
-- Communities Join button has empty handler
-- Premium Choose plan button has empty handler
+- Communities join/leave button toggles state and shows feedback
+- Premium plan selection shows immediate feedback
 
 ### 7.11 Advanced Module Buttons with Empty Handlers
-Detected explicit empty callbacks:
-- Personalization onboarding Continue
-- Blocked/Muted Unblock
-- Blocked/Muted Unmute
-- Invite referral action
-- Maintenance mode Retry
-- App update flow Update
+Status:
+- Previously empty callbacks were replaced with interaction handlers and user feedback flows.
+- Remaining gaps are mostly feature-depth gaps (backend/data integration), not blank UI callbacks.
 
 ## 8. Implemented Feature Modules (with Dart files)
 - accessibility_support
@@ -351,12 +352,12 @@ Used for immediate UI behavior and demo flows.
 - No real media upload
 - No real call stack (VoIP/WebRTC)
 - No durable offline queue sync engine
-- Many advanced module actions are placeholder only
+- Many advanced modules remain scaffold-level and feedback-driven
 
 ## 15. Recommended Implementation Order
-1. Wire all currently empty onPressed/onTap handlers to controller actions.
-2. Add routes and screens for disabled settings rows.
-3. Replace feedback-only actions with repository/service operations.
+1. Replace feedback-only create/share/report flows with full feature screens and repository operations.
+2. Add real data sources behind existing repositories (remote API + local cache).
+3. Expand settings sub-screens from scaffold UI into editable account/security/session workflows.
 4. Add integration tests for critical paths:
    - login success and route transition
    - home tab feed interactions
