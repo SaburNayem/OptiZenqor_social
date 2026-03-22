@@ -54,7 +54,7 @@ class HomeFeedScreen extends StatelessWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: controller.refresh,
+          onRefresh: controller.refreshFeed,
           child: ListView(
             controller: _scrollController,
             padding: AppDimensions.pagePadding,

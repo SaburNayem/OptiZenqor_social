@@ -1,84 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-import '../../../core/helpers/format_helper.dart';
-import '../../../core/widgets/error_state_view.dart';
-import '../controller/notifications_controller.dart';
+import '../../../route/route_names.dart';
 
-class NotificationsScreen extends StatelessWidget {
-  NotificationsScreen({super.key, this.showAppBar = true}) {
-    _controller.load();
-  }
+enum NotificationFilter { all, social, commerce, security }
+
+class NotificationsScreen extends StatefulWidget {
+  const NotificationsScreen({super.key, this.showAppBar = true});
 
   final bool showAppBar;
 
-  final NotificationsController _controller = NotificationsController();
+  @override
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  static const List<_NotificationItem> _items = <_NotificationItem>[
+    _NotificationItem(
+      id: 'n1',
+      title: 'New follower',
+      body: 'Nexa Studio followed your profile.',
+      category: NotificationFilter.social,
+      routeName: RouteNames.searchDiscovery,
+      createdAtLabel: '2m ago',
+      unread: true,
+    ),
+    _NotificationItem(
+      id: 'n2',
+      title: 'Order update',
+      body: 'Your marketplace order is ready for review.',
+      category: NotificationFilter.commerce,
+      routeName: RouteNames.marketplace,
+      createdAtLabel: '1h ago',
+      unread: true,
+    ),
+    _NotificationItem(
+      id: 'n3',
+      title: 'Security reminder',
+      body: 'Review your password and device settings.',
+      category: NotificationFilter.security,
+      routeName: RouteNames.passwordSecurity,
+      createdAtLabel: 'Today',
+      unread: false,
+    ),
+  ];
+
+  NotificationFilter _activeFilter = NotificationFilter.all;
+  final Set<String> _readIds = <String>{};
+
+  List<_NotificationItem> get _visibleItems {
+    if (_activeFilter == NotificationFilter.all) {
+      return _items;
+    }
+    return _items.where((item) => item.category == _activeFilter).toList();
+  }
+
+  bool _isUnread(_NotificationItem item) => item.unread && !_readIds.contains(item.id);
+
+  int get _unreadCount => _items.where((item) => _isUnread(item)).length;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: showAppBar ? AppBar(title: const Text('Notifications')) : null,
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          if (_controller.state.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (_controller.state.hasError) {
-            return ErrorStateView(
-              message:
-                  _controller.state.errorMessage ?? 'Unable to load notifications',
-              onRetry: _controller.load,
-            );
-          }
-          if (_controller.visibleNotifications.isEmpty) {
-            return const Center(child: Text('No notifications in this category'));
-          }
-          return Column(
-            children: [
-              const SizedBox(height: 10),
-              _NotificationFilterBar(
-                activeFilter: _controller.activeFilter,
-                onChanged: _controller.setFilter,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Unread: ${_controller.unreadCount}'),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _controller.visibleNotifications.length,
-                  itemBuilder: (context, index) {
-                    final item = _controller.visibleNotifications[index];
-                    return Card(
-                      child: ListTile(
-                        onTap: () async {
-                          final route = await _controller.handleTap(item);
-                          if (route == null) {
-                            return;
-                          }
-                          Navigator.of(context).pushNamed(route);
-                        },
-                        leading: Icon(
-                          _controller.isUnread(item)
-                              ? Icons.notifications_active
-                              : Icons.notifications,
-                        ),
-                        title: Text(item.title),
-                        subtitle: Text(item.body),
-                        trailing: Text(FormatHelper.timeAgo(item.createdAt)),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
+      appBar: widget.showAppBar ? AppBar(title: const Text('Notifications')) : null,
+      body: Column(
+        children: [
+          const SizedBox(height: 10),
+          _NotificationFilterBar(
+            activeFilter: _activeFilter,
+            onChanged: (filter) => setState(() => _activeFilter = filter),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Unread: $_unreadCount'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _visibleItems.length,
+              itemBuilder: (context, index) {
+                final item = _visibleItems[index];
+                return Card(
+                  child: ListTile(
+                    onTap: () {
+                      setState(() => _readIds.add(item.id));
+                      Get.toNamed(item.routeName);
+                    },
+                    leading: Icon(
+                      _isUnread(item)
+                          ? Icons.notifications_active
+                          : Icons.notifications,
+                    ),
+                    title: Text(item.title),
+                    subtitle: Text(item.body),
+                    trailing: Text(item.createdAtLabel),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -91,7 +116,7 @@ class _NotificationFilterBar extends StatelessWidget {
   });
 
   final NotificationFilter activeFilter;
-  final Future<void> Function(NotificationFilter) onChanged;
+  final ValueChanged<NotificationFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -101,9 +126,7 @@ class _NotificationFilterBar extends StatelessWidget {
         return ChoiceChip(
           label: Text(_label(filter)),
           selected: filter == activeFilter,
-          onSelected: (_) {
-            onChanged(filter);
-          },
+          onSelected: (_) => onChanged(filter),
         );
       }).toList(),
     );
@@ -121,4 +144,24 @@ class _NotificationFilterBar extends StatelessWidget {
         return 'Security';
     }
   }
+}
+
+class _NotificationItem {
+  const _NotificationItem({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.category,
+    required this.routeName,
+    required this.createdAtLabel,
+    required this.unread,
+  });
+
+  final String id;
+  final String title;
+  final String body;
+  final NotificationFilter category;
+  final String routeName;
+  final String createdAtLabel;
+  final bool unread;
 }

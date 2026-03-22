@@ -63,7 +63,7 @@ class HomeFeedController extends GetxController {
     }
   }
 
-  Future<void> refresh() async {
+  Future<void> refreshFeed() async {
     await _analytics.logEvent('feed_refresh', params: <String, dynamic>{
       'tab': activeTab.name,
     });

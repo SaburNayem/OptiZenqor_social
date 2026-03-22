@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../core/enums/user_role.dart';
 import '../../../../core/validators/input_validators.dart';
@@ -53,7 +54,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Mock login: use any valid email and any non-empty password.',
+                      'Static login: use any valid email and any non-empty password.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 16),
@@ -90,20 +91,20 @@ class LoginScreen extends StatelessWidget {
                           ? null
                           : () {
                               if (_formKey.currentState?.validate() ?? false) {
-                                _controller.login(context);
+                                _controller.login();
                               }
                             },
                     ),
                     const SizedBox(height: 12),
                     Center(
                       child: TextButton(
-                        onPressed: () => Navigator.of(context).pushNamed(RouteNames.forgotPassword),
+                        onPressed: () => Get.toNamed(RouteNames.forgotPassword),
                         child: const Text('Forgot password?'),
                       ),
                     ),
                     Center(
                       child: TextButton(
-                        onPressed: () => Navigator.of(context).pushNamed(RouteNames.signup),
+                        onPressed: () => Get.toNamed(RouteNames.signup),
                         child: const Text('Create a new account'),
                       ),
                     ),

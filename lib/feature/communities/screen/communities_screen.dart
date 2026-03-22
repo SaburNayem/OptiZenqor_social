@@ -1,50 +1,79 @@
 import 'package:flutter/material.dart';
 
-import '../controller/communities_controller.dart';
+class CommunitiesScreen extends StatefulWidget {
+  const CommunitiesScreen({super.key});
 
-class CommunitiesScreen extends StatelessWidget {
-  CommunitiesScreen({super.key}) {
-    _controller.load();
-  }
+  @override
+  State<CommunitiesScreen> createState() => _CommunitiesScreenState();
+}
 
-  final CommunitiesController _controller = CommunitiesController();
+class _CommunitiesScreenState extends State<CommunitiesScreen> {
+  static const List<_CommunityItem> _items = <_CommunityItem>[
+    _CommunityItem(
+      id: 'founders-circle',
+      name: 'Founders Circle',
+      description: 'Startup talks, product feedback, and growth notes.',
+    ),
+    _CommunityItem(
+      id: 'creator-club',
+      name: 'Creator Club',
+      description: 'Short-form content ideas, trends, and brand collabs.',
+    ),
+    _CommunityItem(
+      id: 'design-lab',
+      name: 'Design Lab',
+      description: 'UI critique, motion studies, and portfolio sharing.',
+    ),
+  ];
+
+  final Set<String> _joinedIds = <String>{'creator-club'};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Communities')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          if (_controller.groups.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: _controller.groups.length,
-            itemBuilder: (context, index) {
-              final item = _controller.groups[index];
-              final joined = _controller.isJoined(item.id);
-              return Card(
-                child: ListTile(
-                  title: Text(item.name),
-                  subtitle: Text(item.description),
-                  trailing: FilledButton(
-                    onPressed: () {
-                      _controller.toggleJoin(item.id);
-                      final label = joined ? 'Left ${item.name}' : 'Joined ${item.name}';
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(SnackBar(content: Text(label)));
-                    },
-                    child: Text(joined ? 'Joined' : 'Join'),
-                  ),
-                ),
-              );
-            },
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _items.length,
+        itemBuilder: (context, index) {
+          final item = _items[index];
+          final joined = _joinedIds.contains(item.id);
+          return Card(
+            child: ListTile(
+              title: Text(item.name),
+              subtitle: Text(item.description),
+              trailing: FilledButton(
+                onPressed: () {
+                  setState(() {
+                    if (joined) {
+                      _joinedIds.remove(item.id);
+                    } else {
+                      _joinedIds.add(item.id);
+                    }
+                  });
+                  final label = joined ? 'Left ${item.name}' : 'Joined ${item.name}';
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(SnackBar(content: Text(label)));
+                },
+                child: Text(joined ? 'Joined' : 'Join'),
+              ),
+            ),
           );
         },
       ),
     );
   }
+}
+
+class _CommunityItem {
+  const _CommunityItem({
+    required this.id,
+    required this.name,
+    required this.description,
+  });
+
+  final String id;
+  final String name;
+  final String description;
 }

@@ -15,7 +15,7 @@ class MainShellScreen extends StatelessWidget {
     Get.put(MainShellController());
   }
 
-  static const List<String> _tabTitles = [
+  static const List<String> _tabTitles = <String>[
     'Home',
     'Reels',
     'Chat',
@@ -30,7 +30,7 @@ class MainShellScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text('OptiZenqor • ${_tabTitles[controller.index]}'),
-            actions: [
+            actions: <Widget>[
               if (controller.index == 0)
                 IconButton(
                   onPressed: () => _openCreateScreen(context),
@@ -38,11 +38,11 @@ class MainShellScreen extends StatelessWidget {
                   tooltip: 'Create',
                 ),
               IconButton(
-                onPressed: () => Navigator.of(context).pushNamed(RouteNames.searchDiscovery),
+                onPressed: () => Get.toNamed(RouteNames.searchDiscovery),
                 icon: const Icon(Icons.search_rounded),
               ),
               IconButton(
-                onPressed: () => Navigator.of(context).pushNamed(RouteNames.notifications),
+                onPressed: () => Get.toNamed(RouteNames.notifications),
                 icon: const Icon(Icons.notifications_none_rounded),
                 tooltip: 'Notifications',
               ),
@@ -51,7 +51,7 @@ class MainShellScreen extends StatelessWidget {
           drawer: Drawer(
             child: SafeArea(
               child: ListView(
-                children: [
+                children: <Widget>[
                   const ListTile(
                     title: Text('Feature Hub'),
                     subtitle: Text('Quick access to core modules'),
@@ -59,32 +59,32 @@ class MainShellScreen extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.groups_rounded),
                     title: const Text('Communities'),
-                    onTap: () => Navigator.of(context).pushNamed(RouteNames.communities),
+                    onTap: () => Get.toNamed(RouteNames.communities),
                   ),
                   ListTile(
                     leading: const Icon(Icons.storefront_rounded),
                     title: const Text('Marketplace'),
-                    onTap: () => Navigator.of(context).pushNamed(RouteNames.marketplace),
+                    onTap: () => Get.toNamed(RouteNames.marketplace),
                   ),
                   ListTile(
                     leading: const Icon(Icons.insights_rounded),
                     title: const Text('Creator Dashboard'),
-                    onTap: () => Navigator.of(context).pushNamed(RouteNames.creatorDashboard),
+                    onTap: () => Get.toNamed(RouteNames.creatorDashboard),
                   ),
                   ListTile(
                     leading: const Icon(Icons.workspace_premium_rounded),
                     title: const Text('Premium Plans'),
-                    onTap: () => Navigator.of(context).pushNamed(RouteNames.premium),
+                    onTap: () => Get.toNamed(RouteNames.premium),
                   ),
                   ListTile(
                     leading: const Icon(Icons.drafts_rounded),
                     title: const Text('Drafts & Scheduling'),
-                    onTap: () => Navigator.of(context).pushNamed(RouteNames.draftsScheduling),
+                    onTap: () => Get.toNamed(RouteNames.draftsScheduling),
                   ),
                   ListTile(
                     leading: const Icon(Icons.cloud_upload_rounded),
                     title: const Text('Upload Manager'),
-                    onTap: () => Navigator.of(context).pushNamed(RouteNames.uploadManager),
+                    onTap: () => Get.toNamed(RouteNames.uploadManager),
                   ),
                 ],
               ),
@@ -97,7 +97,7 @@ class MainShellScreen extends StatelessWidget {
           bottomNavigationBar: NavigationBar(
             selectedIndex: controller.index,
             onDestinationSelected: controller.onTabChanged,
-            destinations: const [
+            destinations: const <NavigationDestination>[
               NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
               NavigationDestination(icon: Icon(Icons.play_circle_outline), label: 'Reels'),
               NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chat'),
@@ -111,7 +111,7 @@ class MainShellScreen extends StatelessWidget {
   }
 
   Future<void> _openCreateScreen(BuildContext context) async {
-    final result = await Navigator.of(context).push<CreatePostResult>(
+    final CreatePostResult? result = await Navigator.of(context).push<CreatePostResult>(
       MaterialPageRoute<CreatePostResult>(
         builder: (_) => CreatePostScreen(),
       ),

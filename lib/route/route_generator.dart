@@ -17,7 +17,6 @@ import '../feature/explore_recommendation/screen/explore_recommendation_screen.d
 import '../feature/invite_referral/screen/invite_referral_screen.dart';
 import '../feature/legal_compliance/screen/legal_compliance_screen.dart';
 import '../feature/localization_support/screen/localization_support_screen.dart';
-import '../feature/main_shell/screen/main_shell_screen.dart';
 import '../feature/marketplace/screen/marketplace_screen.dart';
 import '../feature/maintenance_mode/screen/maintenance_mode_screen.dart';
 import '../feature/media_viewer/screen/media_viewer_screen.dart';
@@ -30,6 +29,7 @@ import '../feature/premium_membership/screen/premium_membership_screen.dart';
 import '../feature/push_notification_preferences/screen/push_notification_preferences_screen.dart';
 import '../feature/report_center/screen/report_center_screen.dart';
 import '../feature/search_discovery/screen/search_discovery_screen.dart';
+import '../feature/home_feed/screen/main_shell_screen.dart';
 import '../feature/settings/screen/settings_screen.dart';
 import '../feature/settings/screen/account_settings_screen.dart';
 import '../feature/settings/screen/password_security_screen.dart';
@@ -63,7 +63,7 @@ class RouteGenerator {
       case RouteNames.resetPassword:
         return _buildRoute(const ResetPasswordScreen(), settings);
       case RouteNames.shell:
-        return _buildRoute(const AppMainShellScreen(), settings);
+        return _buildRoute(MainShellScreen(), settings);
       case RouteNames.searchDiscovery:
         return _buildRoute(SearchDiscoveryScreen(), settings);
       case RouteNames.communities:
