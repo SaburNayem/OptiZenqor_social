@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/common_data/mock_data.dart';
+import '../../../core/enums/reaction_type.dart';
 import '../../../core/helpers/format_helper.dart';
+import '../../../core/widgets/inline_video_player.dart';
 import '../controller/post_detail_controller.dart';
 import '../model/post_comment_model.dart';
 
@@ -56,23 +58,11 @@ class PostDetailScreen extends StatelessWidget {
                               lower.endsWith('.webm') ||
                               lower.endsWith('.m4v');
                           if (isVideo) {
-                            return Container(
-                              height: 210,
-                              width: double.infinity,
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.play_circle_outline_rounded),
-                                    SizedBox(width: 8),
-                                    Text('Video preview'),
-                                  ],
-                                ),
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: SizedBox(
+                                height: 230,
+                                child: InlineVideoPlayer(networkUrl: mediaUrl),
                               ),
                             );
                           }
@@ -106,29 +96,39 @@ class PostDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ReactionType.values.map((type) {
+                  final count = controller.postReactions[type] ?? 0;
+                  final selected = controller.selectedReaction == type;
+                  return FilterChip(
+                    selected: selected,
+                    label: Text('${type.emoji} $count'),
+                    onSelected: (_) => controller.toggleReaction(type),
+                  );
+                }).toList(),
+              ),
               const SizedBox(height: 16),
               Text('Comments', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              ...controller.comments.map((PostCommentModel comment) {
-                return Padding(
-                  padding: EdgeInsets.only(
-                    left: comment.replyTo == null ? 0 : 18,
-                    bottom: 6,
-                  ),
-                  child: Card(
-                    child: ListTile(
-                      title: Text('@${comment.author}'),
-                      subtitle: Text(comment.message),
-                      trailing: Text(comment.createdAt),
-                      onTap: () {
-                        _replyTo.value = comment.id;
-                        _commentController.text = '@${comment.author} ';
-                        _commentController.selection = TextSelection.fromPosition(
-                          TextPosition(offset: _commentController.text.length),
-                        );
-                      },
-                    ),
-                  ),
+              ...controller.childCommentsOf(null).map((comment) {
+                return _CommentThreadTile(
+                  comment: comment,
+                  children: controller.childCommentsOf(comment.id),
+                  childrenResolver: controller.childCommentsOf,
+                  onReply: (PostCommentModel item) {
+                    _replyTo.value = item.id;
+                    _commentController.text = '@${item.author} ';
+                    _commentController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _commentController.text.length),
+                    );
+                  },
+                  onLike: controller.toggleCommentLike,
+                  onEdit: (id, message) => controller.editComment(commentId: id, message: message),
+                  onDelete: controller.deleteComment,
+                  onReport: controller.reportComment,
                 );
               }),
               const SizedBox(height: 12),
@@ -197,5 +197,131 @@ class PostDetailScreen extends StatelessWidget {
     _controller.addComment(text, replyTo: _replyTo.value);
     _commentController.clear();
     _replyTo.value = null;
+  }
+}
+
+class _CommentThreadTile extends StatelessWidget {
+  const _CommentThreadTile({
+    required this.comment,
+    required this.children,
+    required this.childrenResolver,
+    required this.onReply,
+    required this.onLike,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onReport,
+    this.depth = 0,
+  });
+
+  final PostCommentModel comment;
+  final List<PostCommentModel> children;
+  final List<PostCommentModel> Function(String? parentId) childrenResolver;
+  final void Function(PostCommentModel comment) onReply;
+  final void Function(String id) onLike;
+  final void Function(String id, String message) onEdit;
+  final void Function(String id) onDelete;
+  final void Function(String id) onReport;
+  final int depth;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: depth * 16.0, bottom: 6),
+      child: Column(
+        children: [
+          Card(
+            child: ListTile(
+              title: Row(
+                children: [
+                  Expanded(child: Text('@${comment.author}')),
+                  if (comment.isReported)
+                    const Icon(Icons.flag_rounded, size: 16),
+                ],
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(comment.message),
+                  if (comment.isEdited)
+                    Text(
+                      'edited',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    children: [
+                      ActionChip(
+                        label: Text(comment.isLikedByMe ? 'Unlike ${comment.likeCount}' : 'Like ${comment.likeCount}'),
+                        onPressed: () => onLike(comment.id),
+                      ),
+                      ActionChip(
+                        label: const Text('Reply'),
+                        onPressed: () => onReply(comment),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              trailing: PopupMenuButton<String>(
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    final controller = TextEditingController(text: comment.message);
+                    final updated = await showDialog<String>(
+                      context: context,
+                      builder: (dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Edit comment'),
+                          content: TextField(controller: controller, maxLines: 3),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              child: const Text('Cancel'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+                              child: const Text('Save'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    if (updated != null) {
+                      onEdit(comment.id, updated);
+                    }
+                    return;
+                  }
+                  if (value == 'delete') {
+                    onDelete(comment.id);
+                    return;
+                  }
+                  if (value == 'report') {
+                    onReport(comment.id);
+                  }
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  PopupMenuItem(value: 'report', child: Text('Report')),
+                ],
+              ),
+            ),
+          ),
+          ...children.map((item) {
+            return _CommentThreadTile(
+              comment: item,
+              children: childrenResolver(item.id),
+              childrenResolver: childrenResolver,
+              depth: depth + 1,
+              onReply: onReply,
+              onLike: onLike,
+              onEdit: onEdit,
+              onDelete: onDelete,
+              onReport: onReport,
+            );
+          }),
+        ],
+      ),
+    );
   }
 }

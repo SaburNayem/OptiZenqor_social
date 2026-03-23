@@ -117,15 +117,31 @@ class UserProfileScreen extends StatelessWidget {
                 ] else ...[
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
+                        await _controller.toggleFollow();
+                        if (!context.mounted) {
+                          return;
+                        }
                         ScaffoldMessenger.of(context)
                           ..hideCurrentSnackBar()
                           ..showSnackBar(
-                            const SnackBar(content: Text('Followed user')),
+                            SnackBar(
+                              content: Text(
+                                _controller.followRequestPending
+                                    ? 'Follow request sent'
+                                    : (_controller.isFollowing ? 'Following user' : 'Unfollowed user'),
+                              ),
+                            ),
                           );
                       },
-                      icon: const Icon(Icons.person_add_alt_1_outlined),
-                      label: const Text('Follow'),
+                      icon: Icon(
+                        _controller.isFollowing ? Icons.person_remove_alt_1_outlined : Icons.person_add_alt_1_outlined,
+                      ),
+                      label: Text(
+                        _controller.followRequestPending
+                            ? 'Requested'
+                            : (_controller.isFollowing ? 'Following' : 'Follow'),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -195,11 +211,32 @@ class UserProfileScreen extends StatelessWidget {
               children: [
                 _StatTile(label: 'Posts', value: _controller.postCount.toString()),
                 const SizedBox(width: 12),
-                _StatTile(label: 'Followers', value: FormatHelper.formatCompactNumber(user.followers)),
+                _StatTile(
+                  label: 'Followers',
+                  value: FormatHelper.formatCompactNumber(_controller.followersList.isEmpty ? user.followers : _controller.followersList.length),
+                ),
                 const SizedBox(width: 12),
-                _StatTile(label: 'Following', value: FormatHelper.formatCompactNumber(user.following)),
+                _StatTile(
+                  label: 'Following',
+                  value: FormatHelper.formatCompactNumber(_controller.followingList.isEmpty ? user.following : _controller.followingList.length),
+                ),
               ],
             ),
+            if (_controller.mutualConnections.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text('Mutual connections', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: _controller.mutualConnections.map((item) {
+                  return Chip(
+                    avatar: CircleAvatar(backgroundImage: NetworkImage(item.avatar)),
+                    label: Text(item.name),
+                  );
+                }).toList(),
+              ),
+            ],
             const SizedBox(height: 20),
             Text('Highlights', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),

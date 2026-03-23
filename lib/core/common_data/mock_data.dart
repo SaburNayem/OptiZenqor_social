@@ -56,6 +56,7 @@ class MockData {
       role: UserRole.seller,
       followers: 21400,
       following: 220,
+      isPrivate: true,
       verified: true,
     ),
     const UserModel(
@@ -154,6 +155,7 @@ class MockData {
       audioName: 'Future Groove Mix',
       thumbnail:
           'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1000',
+      videoUrl: 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4',
       likes: 34200,
       comments: 510,
       shares: 220,

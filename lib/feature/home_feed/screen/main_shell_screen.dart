@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/services/connectivity_service.dart';
 import '../../../route/route_names.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
@@ -13,7 +14,10 @@ import 'home_feed_screen.dart';
 class MainShellScreen extends StatelessWidget {
   MainShellScreen({super.key}) {
     Get.put(MainShellController());
+    _connectivity = ConnectivityService();
   }
+
+  late final ConnectivityService _connectivity;
 
   static const List<String> _tabTitles = <String>[
     'Home',
@@ -90,9 +94,39 @@ class MainShellScreen extends StatelessWidget {
               ),
             ),
           ),
-          body: KeyedSubtree(
-            key: ValueKey<int>(controller.index),
-            child: _buildCurrentTab(controller.index),
+          body: Column(
+            children: [
+              AnimatedBuilder(
+                animation: _connectivity,
+                builder: (_, __) {
+                  if (_connectivity.isOnline) {
+                    return const SizedBox.shrink();
+                  }
+                  return MaterialBanner(
+                    content: const Text('You are offline. Some actions may fail.'),
+                    leading: const Icon(Icons.wifi_off_rounded),
+                    actions: [
+                      TextButton(
+                        onPressed: () async {
+                          await _connectivity.retryFailedAction((_) async {});
+                        },
+                        child: const Text('Retry'),
+                      ),
+                      TextButton(
+                        onPressed: () => _connectivity.setOnline(true),
+                        child: const Text('Go online'),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              Expanded(
+                child: KeyedSubtree(
+                  key: ValueKey<int>(controller.index),
+                  child: _buildCurrentTab(controller.index),
+                ),
+              ),
+            ],
           ),
           bottomNavigationBar: NavigationBar(
             selectedIndex: controller.index,

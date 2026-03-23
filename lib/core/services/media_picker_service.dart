@@ -1,11 +1,15 @@
+import 'package:image_picker/image_picker.dart';
+
 class MediaPickerService {
+  final ImagePicker _picker = ImagePicker();
+
   Future<String?> pickImage() async {
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    return null;
+    final file = await _picker.pickImage(source: ImageSource.gallery);
+    return file?.path;
   }
 
   Future<String?> pickVideo() async {
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    return null;
+    final file = await _picker.pickVideo(source: ImageSource.gallery);
+    return file?.path;
   }
 }

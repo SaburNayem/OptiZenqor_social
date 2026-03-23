@@ -11,13 +11,23 @@ import '../feature/auth/login/screen/login_screen.dart';
 import '../feature/auth/reset_password/screen/reset_password_screen.dart';
 import '../feature/auth/signup/screen/signup_screen.dart';
 import '../feature/blocked_muted_accounts/screen/blocked_muted_accounts_screen.dart';
+import '../feature/bookmarks/screen/bookmarks_screen.dart';
+import '../feature/business_profile/screen/business_profile_screen.dart';
+import '../feature/calls/screen/calls_screen.dart';
+import '../feature/chat/screen/chat_screen.dart';
 import '../feature/communities/screen/communities_screen.dart';
 import '../feature/creator_tools/screen/creator_dashboard_screen.dart';
 import '../feature/deep_link_handler/screen/deep_link_handler_screen.dart';
 import '../feature/drafts_and_scheduling/screen/drafts_and_scheduling_screen.dart';
+import '../feature/events/screen/events_screen.dart';
 import '../feature/explore_recommendation/screen/explore_recommendation_screen.dart';
+import '../feature/group_chat/screen/group_chat_screen.dart';
+import '../feature/groups/screen/groups_screen.dart';
+import '../feature/hashtags/screen/hashtags_screen.dart';
 import '../feature/invite_referral/screen/invite_referral_screen.dart';
 import '../feature/legal_compliance/screen/legal_compliance_screen.dart';
+import '../feature/learning_courses/screen/learning_courses_screen.dart';
+import '../feature/live_stream/screen/live_stream_screen.dart';
 import '../feature/localization_support/screen/localization_support_screen.dart';
 import '../feature/maintenance_mode/screen/maintenance_mode_screen.dart';
 import '../feature/marketplace/screen/marketplace_screen.dart';
@@ -25,11 +35,15 @@ import '../feature/media_viewer/screen/media_viewer_screen.dart';
 import '../feature/notifications/screen/notifications_screen.dart';
 import '../feature/offline_sync/screen/offline_sync_screen.dart';
 import '../feature/onboarding/screen/onboarding_screen.dart';
+import '../feature/pages/screen/pages_screen.dart';
 import '../feature/personalization_onboarding/screen/personalization_onboarding_screen.dart';
 import '../feature/post_detail/screen/post_detail_screen.dart';
+import '../feature/polls_surveys/screen/polls_surveys_screen.dart';
 import '../feature/premium_membership/screen/premium_membership_screen.dart';
 import '../feature/push_notification_preferences/screen/push_notification_preferences_screen.dart';
 import '../feature/report_center/screen/report_center_screen.dart';
+import '../feature/safety_privacy/screen/safety_privacy_screen.dart';
+import '../feature/saved_collections/screen/saved_collections_screen.dart';
 import '../feature/search_discovery/screen/search_discovery_screen.dart';
 import '../feature/home_feed/screen/main_shell_screen.dart';
 import '../feature/settings/screen/account_settings_screen.dart';
@@ -40,8 +54,14 @@ import '../feature/settings/screen/password_security_screen.dart';
 import '../feature/settings/screen/settings_screen.dart';
 import '../feature/share_repost_system/screen/share_repost_system_screen.dart';
 import '../feature/splash/screen/splash_screen.dart';
+import '../feature/subscriptions/screen/subscriptions_screen.dart';
+import '../feature/support_help/screen/support_help_screen.dart';
+import '../feature/trending/screen/trending_screen.dart';
 import '../feature/upload_manager/screen/upload_manager_screen.dart';
+import '../feature/user_profile/screen/user_profile_screen.dart';
 import '../feature/verification_request/screen/verification_request_screen.dart';
+import '../feature/wallet_payments/screen/wallet_payments_screen.dart';
+import '../feature/jobs_networking/screen/jobs_networking_screen.dart';
 import 'route_names.dart';
 
 class AppRoute {
@@ -95,6 +115,26 @@ class AppRoute {
   static const String maintenanceMode = RouteNames.maintenanceMode;
   static const String inviteReferral = RouteNames.inviteReferral;
   static const String legalCompliance = RouteNames.legalCompliance;
+  static const String groupChat = RouteNames.groupChat;
+  static const String calls = RouteNames.calls;
+  static const String groups = RouteNames.groups;
+  static const String pages = RouteNames.pages;
+  static const String hashtags = RouteNames.hashtags;
+  static const String trending = RouteNames.trending;
+  static const String jobsNetworking = RouteNames.jobsNetworking;
+  static const String businessProfile = RouteNames.businessProfile;
+  static const String bookmarks = RouteNames.bookmarks;
+  static const String savedCollections = RouteNames.savedCollections;
+  static const String walletPayments = RouteNames.walletPayments;
+  static const String subscriptions = RouteNames.subscriptions;
+  static const String events = RouteNames.events;
+  static const String liveStream = RouteNames.liveStream;
+  static const String safetyPrivacy = RouteNames.safetyPrivacy;
+  static const String learningCourses = RouteNames.learningCourses;
+  static const String pollsSurveys = RouteNames.pollsSurveys;
+  static const String supportHelp = RouteNames.supportHelp;
+  static const String userProfile = RouteNames.userProfile;
+  static const String chat = RouteNames.chat;
 
   static const String initialRoute = splash;
 
@@ -147,6 +187,26 @@ class AppRoute {
     GetPage(name: maintenanceMode, page: () => MaintenanceModeScreen()),
     GetPage(name: inviteReferral, page: () => const InviteReferralScreen()),
     GetPage(name: legalCompliance, page: () => LegalComplianceScreen()),
+    GetPage(name: groupChat, page: () => GroupChatScreen()),
+    GetPage(name: calls, page: () => CallsScreen()),
+    GetPage(name: groups, page: () => GroupsScreen()),
+    GetPage(name: pages, page: () => PagesScreen()),
+    GetPage(name: hashtags, page: () => HashtagsScreen()),
+    GetPage(name: trending, page: () => TrendingScreen()),
+    GetPage(name: jobsNetworking, page: () => JobsNetworkingScreen()),
+    GetPage(name: businessProfile, page: () => BusinessProfileScreen()),
+    GetPage(name: bookmarks, page: () => const BookmarksScreen()),
+    GetPage(name: savedCollections, page: () => const SavedCollectionsScreen()),
+    GetPage(name: walletPayments, page: () => WalletPaymentsScreen()),
+    GetPage(name: subscriptions, page: () => SubscriptionsScreen()),
+    GetPage(name: events, page: () => EventsScreen()),
+    GetPage(name: liveStream, page: () => LiveStreamScreen()),
+    GetPage(name: safetyPrivacy, page: () => SafetyPrivacyScreen()),
+    GetPage(name: learningCourses, page: () => LearningCoursesScreen()),
+    GetPage(name: pollsSurveys, page: () => PollsSurveysScreen()),
+    GetPage(name: supportHelp, page: () => SupportHelpScreen()),
+    GetPage(name: userProfile, page: () => UserProfileScreen(userId: Get.parameters['id'])),
+    GetPage(name: chat, page: () => ChatScreen()),
   ];
 
   static final GetPage<dynamic> unknownRoute = GetPage<dynamic>(

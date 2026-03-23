@@ -7,22 +7,29 @@ import '../../../core/common_models/user_model.dart';
 import '../../../core/common_data/mock_data.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/services/analytics_service.dart';
+import '../../follow_unfollow/controller/follow_controller.dart';
 import '../repository/user_profile_repository.dart';
 
 class UserProfileController extends ChangeNotifier {
   UserProfileController({
     UserProfileRepository? repository,
     AnalyticsService? analytics,
+    FollowController? followController,
   })  : _repository = repository ?? UserProfileRepository(),
-        _analytics = analytics ?? AnalyticsService();
+        _analytics = analytics ?? AnalyticsService(),
+        _followController = followController ?? FollowController() {
+    _followController.addListener(notifyListeners);
+  }
 
   final UserProfileRepository _repository;
   final AnalyticsService _analytics;
+  final FollowController _followController;
 
   LoadStateModel state = const LoadStateModel();
   UserModel? user;
   String _viewedUserId = '';
   int selectedTabIndex = 0;
+  bool _followInitialized = false;
 
   bool get isOwnProfile {
     final currentUserId = _repository.getCurrentUserId();
@@ -31,6 +38,46 @@ class UserProfileController extends ChangeNotifier {
 
   List<String> get profileTabs {
     return <String>['Posts', 'Reels', ...roleSections()];
+  }
+
+  bool get isFollowing {
+    final current = user;
+    if (current == null || isOwnProfile) {
+      return false;
+    }
+    return _followController.stateFor(current).isFollowing;
+  }
+
+  bool get followRequestPending {
+    final current = user;
+    if (current == null || isOwnProfile) {
+      return false;
+    }
+    return _followController.stateFor(current).hasPendingRequest;
+  }
+
+  List<UserModel> get followersList {
+    final current = user;
+    if (current == null) {
+      return const <UserModel>[];
+    }
+    return _followController.followers(current.id);
+  }
+
+  List<UserModel> get followingList {
+    final current = user;
+    if (current == null) {
+      return const <UserModel>[];
+    }
+    return _followController.following(current.id);
+  }
+
+  List<UserModel> get mutualConnections {
+    final current = user;
+    if (current == null || isOwnProfile) {
+      return const <UserModel>[];
+    }
+    return _followController.mutualConnections(current.id);
   }
 
   List<PostModel> get posts {
@@ -86,6 +133,10 @@ class UserProfileController extends ChangeNotifier {
   }
 
   Future<void> load({String? userId}) async {
+    if (!_followInitialized) {
+      _followInitialized = true;
+      await _followController.init();
+    }
     state = state.copyWith(isLoading: true, errorMessage: null);
     notifyListeners();
     try {
@@ -110,6 +161,15 @@ class UserProfileController extends ChangeNotifier {
       );
       notifyListeners();
     }
+  }
+
+  Future<void> toggleFollow() async {
+    final current = user;
+    if (current == null || isOwnProfile) {
+      return;
+    }
+    await _followController.toggleFollow(current);
+    notifyListeners();
   }
 
   List<String> roleSections() {

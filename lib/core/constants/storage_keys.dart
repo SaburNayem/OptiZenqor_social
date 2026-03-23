@@ -11,4 +11,11 @@ class StorageKeys {
   static const cachedProfile = 'cached_profile';
   static const offlineQueue = 'offline_queue';
   static const feedScrollOffset = 'feed_scroll_offset';
+  static const settingsState = 'settings_state';
+  static const followState = 'follow_state';
+  static const bookmarks = 'bookmarks';
+  static const savedCollections = 'saved_collections';
+  static const uploadTasks = 'upload_tasks';
+  static const callHistory = 'call_history';
+  static const groupChats = 'group_chats';
 }

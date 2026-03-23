@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
 import '../../../core/common_models/load_state_model.dart';
 import '../../../core/common_models/notification_model.dart';
@@ -88,7 +89,15 @@ class NotificationsController extends ChangeNotifier {
       'type': item.payload.type.name,
     });
     final route = item.payload.routeName;
-    await _deepLinkService.open(route);
-    return route;
+    final resolvedRoute = await _deepLinkService.open(route);
+    if (resolvedRoute != null && resolvedRoute.isNotEmpty) {
+      final uri = Uri.tryParse(resolvedRoute);
+      if (uri != null && uri.queryParameters.isNotEmpty) {
+        await Get.toNamed(uri.path, parameters: uri.queryParameters);
+      } else {
+        await Get.toNamed(resolvedRoute, arguments: item.payload.metadata);
+      }
+    }
+    return resolvedRoute;
   }
 }

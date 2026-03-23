@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'core/services/theme_service.dart';
 import 'core/theme/app_theme.dart';
 import 'route/app_route.dart';
 
@@ -9,15 +10,20 @@ class OptiZenqorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'OptiZenqor Social',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      getPages: AppRoute.routes,
-      unknownRoute: AppRoute.unknownRoute,
-      initialRoute: AppRoute.initialRoute,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeService.instance.mode,
+      builder: (_, mode, __) {
+        return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'OptiZenqor Social',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: mode,
+          getPages: AppRoute.routes,
+          unknownRoute: AppRoute.unknownRoute,
+          initialRoute: AppRoute.initialRoute,
+        );
+      },
     );
   }
 }

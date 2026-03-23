@@ -4,6 +4,7 @@ import '../common_models/post_model.dart';
 import '../common_models/user_model.dart';
 import '../helpers/format_helper.dart';
 import 'app_avatar.dart';
+import 'inline_video_player.dart';
 
 class PostCard extends StatelessWidget {
   const PostCard({
@@ -72,12 +73,25 @@ class PostCard extends StatelessWidget {
               Text(post.caption),
               if (post.media.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Image.network(post.media.first, fit: BoxFit.cover),
-                  ),
+                Builder(
+                  builder: (context) {
+                    final media = post.media.first;
+                    final lower = media.toLowerCase();
+                    final isVideo =
+                        lower.endsWith('.mp4') ||
+                        lower.endsWith('.mov') ||
+                        lower.endsWith('.webm') ||
+                        lower.endsWith('.m4v');
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: isVideo
+                            ? InlineVideoPlayer(networkUrl: media, autoPlay: true)
+                            : Image.network(media, fit: BoxFit.cover),
+                      ),
+                    );
+                  },
                 ),
               ],
               const SizedBox(height: 12),

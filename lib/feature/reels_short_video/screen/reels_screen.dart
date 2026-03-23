@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/common_data/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
+import '../../../core/widgets/inline_video_player.dart';
 import '../controller/reels_controller.dart';
 
 class ReelsScreen extends StatelessWidget {
@@ -32,7 +33,10 @@ class ReelsScreen extends StatelessWidget {
             return Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(reel.thumbnail, fit: BoxFit.cover),
+                if (reel.videoUrl != null && reel.videoUrl!.isNotEmpty)
+                  InlineVideoPlayer(networkUrl: reel.videoUrl, autoPlay: true)
+                else
+                  Image.network(reel.thumbnail, fit: BoxFit.cover),
                 DecoratedBox(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(

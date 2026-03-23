@@ -5,6 +5,10 @@ class PostCommentModel {
     required this.message,
     this.replyTo,
     this.createdAt = '',
+    this.likeCount = 0,
+    this.isLikedByMe = false,
+    this.isReported = false,
+    this.isEdited = false,
   });
 
   final String id;
@@ -12,4 +16,28 @@ class PostCommentModel {
   final String message;
   final String? replyTo;
   final String createdAt;
+  final int likeCount;
+  final bool isLikedByMe;
+  final bool isReported;
+  final bool isEdited;
+
+  PostCommentModel copyWith({
+    String? message,
+    int? likeCount,
+    bool? isLikedByMe,
+    bool? isReported,
+    bool? isEdited,
+  }) {
+    return PostCommentModel(
+      id: id,
+      author: author,
+      message: message ?? this.message,
+      replyTo: replyTo,
+      createdAt: createdAt,
+      likeCount: likeCount ?? this.likeCount,
+      isLikedByMe: isLikedByMe ?? this.isLikedByMe,
+      isReported: isReported ?? this.isReported,
+      isEdited: isEdited ?? this.isEdited,
+    );
+  }
 }

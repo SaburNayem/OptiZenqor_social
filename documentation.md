@@ -1,108 +1,104 @@
-# OptiZenqor Social - Complete Project Documentation
+# OptiZenqor Social - Full Project Documentation
 
-## 1. Project Overview
-OptiZenqor Social is a Flutter social platform prototype built with a modular architecture and mock-first data strategy. The app includes a full shell experience (Home, Reels, Chat, Profile, Settings), route-driven feature modules, and local interactive behavior intended to simulate a production social app without backend APIs.
+## 1. App Architecture
+## 1.1 Core- 
+There will be constant Folder where use constant data like text and color.
+There will be data folder there will be service and service model
+There will be common widget section
+there will be api end point 
+there will be shared preference
+## 1.2 Feature-
+ There will be only feature not anything else 
+ In feature folder like home will be a folder main folder where 3 or 4 folder according to its need common will be home model home screen and home controller and into all this folder will be file . 
 
-This document is the single source of truth for the current branch and includes:
-- architecture and folder design
-- navigation and route map
-- feature-by-feature implementation status
-- data and runtime behavior
-- known limits and next implementation priorities
+## 1.3 Route- route only have routes 
 
-## 2. Technology Stack
-- Flutter (Material 3)
-- Dart (null safety, SDK ^3.10.8)
-- State management: ChangeNotifier + AnimatedBuilder
-- Local storage package: shared_preferences (currently configured to run in in-memory mode)
+## 1. Project Summary
+OptiZenqor Social is a modular Flutter social platform prototype. It provides a complete app shell with feed, reels, chat, profile, and settings, plus a large set of route-based feature modules such as communities, premium, reporting, onboarding variants, privacy controls, localization, accessibility, and upload flow stubs.
 
-### 2.1 Dependencies in pubspec.yaml
-Core dependencies:
+The project is currently mock-first:
+- primary data is provided from local mock datasets
+- repositories simulate async network behavior with delays
+- most actions are local-state interactions without backend persistence
+
+This document reflects the current state of the main branch code.
+
+## 2. Stack and Dependencies
+
+### 2.1 Runtime Stack
+- Flutter (Material 3 UI)
+- Dart SDK constraint: ^3.10.8
+- GetX package used for app routing and some controllers
+- ChangeNotifier + AnimatedBuilder used in many feature modules
+- shared_preferences included, but current storage mode is configured as in-memory fallback
+
+### 2.2 pubspec Dependencies
+Main:
 - flutter
-- cupertino_icons
-- shared_preferences
+- cupertino_icons: ^1.0.8
+- shared_preferences: ^2.5.3
+- get: ^4.7.2
 
-Dev dependencies:
+Dev:
 - flutter_test
-- flutter_lints
+- flutter_lints: ^6.0.0
 
-## 3. High-Level Architecture
+## 3. Application Bootstrap
 
-### 3.1 App Bootstrap
-Startup sequence:
-1. main.dart initializes bindings and runs OptiZenqorApp.
-2. app.dart creates MaterialApp with light/dark themes.
-3. route_generator.dart handles all named route resolution.
-4. initial route starts at splash.
+### 3.1 Startup Sequence
+1. main.dart initializes Flutter bindings and runs OptiZenqorApp.
+2. app.dart builds GetMaterialApp.
+3. App uses AppRoute.routes (GetX route table), AppRoute.unknownRoute, and AppRoute.initialRoute.
+4. Initial route is splash (/).
 
-### 3.2 Layered Structure
-- lib/core: shared models, services, constants, reusable widgets, helpers
-- lib/route: centralized route names and route generator
-- lib/feature: domain modules, each with screen/controller/model/repository where needed
+### 3.2 Splash and Entry Flow
+Current default UX flow:
+1. Splash screen with animated brand hero.
+2. After a 2-second bootstrap delay, navigate to onboarding.
+3. Onboarding supports skip/continue.
+4. Login route leads into main shell on successful mock login.
 
-### 3.3 State and Data Flow Pattern
-Standard feature flow:
-1. UI screen creates controller instance.
-2. Controller fetches data from repository or mock source.
-3. UI listens to controller via AnimatedBuilder.
-4. User actions call controller methods.
-5. Controller mutates local state and triggers notifyListeners.
 
-This is currently local-state-first and backend-independent.
 
-## 4. Runtime and Storage Behavior
+### 4.1 Directory Design
+- lib/core: shared app-wide concerns
+	- common_data: mock datasets
+	- common_models: shared DTO/entity models
+	- config: app configuration constants
+	- constants: dimensions/assets/keys/strings
+	- enums: app enums
+	- helpers/utils/validators
+	- services: storage/auth/upload/notification/api stubs
+	- theme: global theming and colors
+	- widgets: reusable presentational components
+- lib/feature: domain modules, usually with controller/model/screen/repository
+- lib/route: route name constants and route mappings
 
-### 4.1 Storage Mode
-Current storage behavior is session-only in practice:
-- LocalStorageService has a _persistDataOnDevice flag set to false.
-- Data read/write operations use in-memory fallback map.
-- App interactions work normally, but data is not persisted across restarts.
+### 4.2 State Management Pattern
+The project uses a hybrid approach:
+- GetX controller pattern in core feed-shell surfaces
+	- MainShellController extends GetxController
+	- HomeFeedController extends GetxController
+	- PostDetailController extends GetxController
+- ChangeNotifier pattern in many other feature modules
+	- controllers extend ChangeNotifier
+	- screens bind via AnimatedBuilder
 
-### 4.2 Data Sources
-Primary runtime data comes from MockData in core/common_data:
-- users
-- posts
-- reels
-- stories
-- messages
-- notifications
-- groups
-- products
+### 4.3 Navigation Pattern
+- Primary navigation is via GetMaterialApp + named routes (Get.toNamed / Get.offNamed).
+- Some flows still use direct MaterialPageRoute pushes (for example create post, post detail from feed, user profile from feed).
 
-Controllers may append local runtime state (likes, hidden posts, created local posts, chat state toggles).
+## 5. Routing
 
-## 5. Navigation and Shell
+### 5.1 Route Source of Truth
+- route/route_names.dart: all named route string constants
+- route/app_route.dart: GetX page bindings
+- route/app_routes.dart: public route whitelist set
+- route/route_generator.dart: legacy MaterialPageRoute generator retained in codebase
 
-### 5.1 Primary App Flow
-1. Splash
-2. Onboarding
-3. Login
-4. Main shell
-
-### 5.2 Main Shell Tabs
-- Home
-- Reels
-- Chat
-- Profile
-- Settings
-
-### 5.3 App Bar Actions
-- Home-only Create button (opens full Create Post screen)
-- Search
-- Notifications
-
-### 5.4 Drawer Shortcuts
-- Communities
-- Marketplace
-- Creator Dashboard
-- Premium Plans
-- Drafts and Scheduling
-- Upload Manager
-
-## 6. Route Catalog
-
-### 6.1 Entry Routes
-- / (splash)
+### 5.2 Registered Routes
+Entry/auth routes:
+- /
 - /onboarding
 - /auth/login
 - /auth/signup
@@ -110,7 +106,7 @@ Controllers may append local runtime state (likes, hidden posts, created local p
 - /auth/reset-password
 - /shell
 
-### 6.2 Core Product Routes
+Core product routes:
 - /search-discovery
 - /communities
 - /marketplace
@@ -118,13 +114,15 @@ Controllers may append local runtime state (likes, hidden posts, created local p
 - /creator-dashboard
 - /premium
 - /settings
+
+Settings sub-routes:
 - /settings/account
 - /settings/password-security
 - /settings/devices-sessions
 - /settings/blocked-users
 - /settings/language-accessibility
 
-### 6.3 Extended Routes
+Extended routes:
 - /drafts-scheduling
 - /upload-manager
 - /offline-sync
@@ -148,147 +146,78 @@ Controllers may append local runtime state (likes, hidden posts, created local p
 - /invite-referral
 - /legal-compliance
 
-Note: Create Post currently uses MaterialPageRoute directly from Home and shell app bar, not a named route.
+Unknown routes are handled by an explicit not-found scaffold.
 
-## 7. Detailed Feature Status
+## 6. Main Shell and Core User Journey
 
-### 7.1 Authentication
-Implemented:
-- login validation (email + password required)
-- role selection integration
-- navigation to shell on success
+### 6.1 Main Shell Tabs
+Bottom navigation provides:
+- Home
+- Reels
+- Chat
+- Profile
+- Settings
 
-Current limitations:
-- mock auth only (no server credential validation)
-- analytics event naming still partially generic
+### 6.2 App Bar Actions
+- Home-only Create action (opens full create post screen)
+- Search shortcut
+- Notifications shortcut
 
-### 7.2 Home Feed
-Implemented:
-- initial load
-- pull-to-refresh
-- pagination trigger near list end
-- feed tabs (For You, Following, Trending)
-- stories section
-- post detail open
-- author profile open
-- optimistic like toggle and visible like count updates
-- not interested hide behavior
-- top composer row with reels icon (left), share prompt, photo/video icons (right)
-- full-screen create post flow
+### 6.3 Drawer Feature Hub
+Quick access links:
+- Communities
+- Marketplace
+- Creator Dashboard
+- Premium Plans
+- Drafts and Scheduling
+- Upload Manager
 
-Current behavior notes:
-- suggestions strip after tabs has been removed
-- share/report actions currently feedback-based
+## 7. Data Layer and Storage
 
-### 7.3 Create Post Flow
-Implemented in dedicated screen:
-- text input
-- media type selection (Photo or Video)
-- optional media URL
-- Post action returns result to Home
-- Home controller creates local post and inserts at top of feed
+### 7.1 Mock Data
+core/common_data/mock_data.dart provides local datasets for:
+- users
+- posts
+- reels
+- stories
+- messages
+- notifications (with typed route payloads)
+- groups
+- products
 
-Current limitations:
-- no real file picker or camera integration
-- video rendering in list/detail is URL-pattern based placeholder behavior
+### 7.2 Repository Pattern
+Repositories return async Futures and are generally stub/mock backed:
+- HomeFeedRepository fetches feed + stories, writes feed cache
+- AuthRepository wraps AuthService + LocalStorageService
+- ChatRepository simulates inbox and send
+- NotificationsRepository supports full fetch and category filtering
+- MarketplaceRepository supports basic query filtering
+- PostsRepository stores/retrieves/deletes draft payloads
 
-### 7.4 Post Card
-Implemented:
-- author row
-- caption rendering
-- image rendering for first media item
-- like/comment chips
-- bookmark action callback
+### 7.3 Local Storage Behavior
+LocalStorageService has persistence disabled by default:
+- _persistDataOnDevice is false
+- shared_preferences path is bypassed
+- values are stored in an in-memory map fallback
 
-### 7.5 Post Detail
-Implemented:
-- author block
-- caption rendering
-- media rendering support from post detail model
-- simple video preview placeholder for media URLs ending in video extensions
-- like toggle
-- comment list
-- reply mode on comment tap
-- add comment locally
-- related posts list
+Result: app state may feel persistent during runtime but is not durable across app restarts.
 
-### 7.6 Story Viewer
-Implemented:
-- open from story ring
-- swipe behavior
-- progress indicator visuals
-- zoom support
+## 8. Services Overview
 
-Limitations:
-- no auto-advance timer
-- no persisted seen-state updates
+Current core services are intentionally scaffolded/lightweight:
+- api_client_service.dart: async get/post stubs returning status maps
+- analytics_service.dart: no-op logging placeholders
+- auth_service.dart: mock login/logout and role state
+- connectivity_service.dart: local online/offline notifier
+- deep_link_service.dart: incoming/open route placeholders
+- media_picker_service.dart: pick image/video stubs returning null
+- notification_service.dart: initialize/subscribe stubs
+- upload_service.dart: simulated upload returning remote:// path
+- local_storage_service.dart: in-memory storage abstraction with optional plugin mode
 
-### 7.7 Reels
-Implemented:
-- vertical pager rendering
-- like, comment, share actions
-- local count adjustments in controller
+## 9. Feature Module Inventory
 
-Limitations:
-- no backend persistence
-- no native media upload/record flow
-
-### 7.8 Chat
-Implemented:
-- inbox list
-- chat detail open
-- local send/compose
-- long-press actions (pin/archive/failure simulation)
-- retry clearing
-- attachments sheet (feedback-oriented)
-- chat settings screen with runtime toggles
-
-Limitations:
-- no real-time transport, no read-sync backend
-- call actions are UI feedback only
-
-### 7.9 Notifications
-Implemented:
-- load + filter categories
-- unread count
-- typed payload-driven route mapping
-
-Limitations:
-- no server push integration
-- no remote deep-link parser layer
-
-### 7.10 User Profile
-Implemented:
-- role-aware profile rendering
-- own vs other profile behavior
-- message action visible for other profiles
-- three-dot action menu
-
-### 7.11 Settings
-Implemented:
-- settings hub navigation entries wired
-- account/security/blocked/language/device routes available
-
-Limitations:
-- many destination screens are still scaffold/informational
-
-### 7.12 Marketplace
-Implemented:
-- list load
-- search filtering
-- loading/error state handling
-
-Limitations:
-- no item detail/purchase checkout flow
-
-### 7.13 Communities and Premium
-Implemented:
-- communities join/leave toggle + feedback
-- premium plan selection feedback
-
-## 8. Feature Module Inventory
-
-### 8.1 Feature Folders With Dart Implementation
+All current feature directories in lib/feature contain Dart implementation files:
 - accessibility_support
 - account_switching
 - activity_sessions
@@ -306,7 +235,6 @@ Implemented:
 - invite_referral
 - legal_compliance
 - localization_support
-- main_shell
 - maintenance_mode
 - marketplace
 - media_viewer
@@ -331,82 +259,78 @@ Implemented:
 - user_profile
 - verification_request
 
-### 8.2 Feature Folders Present But Without Dart Files
-- analytics
-- bookmarks
-- business_profile
-- calls
-- comments
-- creator_profile
-- events
-- follow_unfollow
-- group_chat
-- groups
-- hashtags
-- jobs_networking
-- learning_courses
-- likes_reactions
-- live_stream
-- pages
-- polls_surveys
-- safety_privacy
-- saved_collections
-- subscriptions
-- support_help
-- trending
-- wallet_payments
+## 10. Feature Behavior Snapshot
 
-## 9. Core Services Summary
-- auth_service.dart: mock login/logout state
-- local_storage_service.dart: in-memory runtime storage mode with optional shared_preferences pathway
-- analytics_service.dart: event logging stubs
-- deep_link_service.dart: placeholders for deep link handling
-- connectivity_service.dart: baseline connectivity behavior stub
+### 10.1 Auth and Onboarding
+- Onboarding has 3 slides, skip and continue/get started actions.
+- Login form validates email/password and supports role selection.
+- Login success currently navigates to shell directly.
 
-## 10. Shared UI Components
-Reusable widgets in core/widgets include:
-- app_button
-- app_text_field
-- app_avatar
-- app_loader
-- empty_state_view
-- error_state_view
-- section_header
-- post_card
+### 10.2 Home Feed
+- Initial load and pull-to-refresh supported.
+- Pagination is triggered near the list end.
+- Tabs: For You, Following, Trending.
+- Stories strip displayed before feed posts.
+- Post actions include like toggle, post detail open, author profile open, report/share/not interested actions.
 
-## 11. Testing and Quality
-- analyzer workflow available via flutter analyze
-- current automated tests are minimal
-- widget_test.dart validates app bootstrap rendering baseline
-- integration coverage is not yet implemented for core user journeys
+### 10.3 Create Post
+- Dedicated create screen supports caption + optional media URL.
+- User can switch photo/video intent via chips.
+- On submit, result is returned and inserted at top of feed as local post.
 
-## 12. Current Functional Limitations
-- no backend integration for auth/feed/chat/reels/notifications
-- no durable persistence across app restarts in current configuration
-- no real media upload pipeline (camera/gallery/file service)
-- no production call stack (VoIP/WebRTC)
-- many advanced modules remain scaffold-level UI
+### 10.4 Reels
+- Vertical reels display with basic interaction affordances.
+- Current behavior is local and mock-data driven.
 
-## 13. Recommended Next Steps
-1. Implement backend adapter layer behind existing repositories.
-2. Add local database cache and sync strategy for offline durability.
-3. Replace URL-based media placeholders with real picker/upload flow.
-4. Expand Create Post to include mentions, audience, and scheduling.
-5. Add integration tests for auth, feed interactions, create flow, chat, and notifications.
+### 10.5 Chat
+- Inbox + chat detail flow exists.
+- Local compose/send behaviors are implemented.
+- Chat settings are present with local runtime toggles.
 
-## 14. Run and Verification Commands
+### 10.6 Notifications
+- Notification list loading and category filtering.
+- Notification payload model includes route and entity hints.
+
+### 10.7 Additional Modules
+The broader module set (privacy, legal, accessibility, localization, update flow, deep links, report center, verification, etc.) is present and navigable. Many are currently UI and local-state oriented, with backend integration pending.
+
+## 11. UI and Theming
+- Theme mode follows system (light/dark available).
+- AppTheme is centralized in core/theme.
+- Material 3 is enabled.
+- Reusable widgets include app_button, app_text_field, app_avatar, app_loader, post_card, empty_state_view, error_state_view, and section_header.
+
+## 12. Models and Shared Contracts
+
+Core shared models include:
+- Form and UI state: form_state_model, load_state_model, pagination_state_model
+- Social entities: user_model, post_model, reel_model, story_model, message_model, notification_model
+- Other entities: group_model, product_model, offline_action_model
+
+Important enums:
+- user_role
+- view_state
+
+## 13. Testing and Static Analysis
+- analysis_options.yaml includes flutter_lints defaults.
+- Current test coverage is minimal.
+- Existing widget test checks app bootstrap and splash-brand text visibility.
+
+Useful commands:
 1. flutter pub get
 2. flutter analyze
 3. flutter test
-4. flutter run
 
-## 15. Recent Implementation Highlights
-- Home composer now opens a dedicated full-screen create screen.
-- Local post creation now inserts runtime posts into feed instantly.
-- Post media rendering restored in feed cards.
-- Post detail now renders media and supports comment/reply interactions.
-- Storage intentionally configured for in-memory runtime behavior.
+## 14. Known Limitations
+- No production backend integration for core social flows.
+- Storage is not durable across app restarts in current config.
+- Media picking and upload are placeholder implementations.
+- Notification/deep-link/call systems are not production wired.
+- Some modules are primarily scaffold/UI-first and need deeper business logic.
 
----
-Documentation maintained for branch: main
-Last updated: 2026-03-22
+## 15. Recommended Next Implementation Steps
+1. Add real API/data-source adapters behind repository interfaces.
+2. Enable persistent local data layer (SQLite/Hive/Isar) and sync strategy.
+3. Integrate real media picker and upload pipeline.
+4. Complete notification and deep-link lifecycle handling.
+5. Expand automated test coverage across auth, feed, create post, and routing paths.

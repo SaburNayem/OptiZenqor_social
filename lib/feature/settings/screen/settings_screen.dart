@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/theme_service.dart';
 import '../controller/settings_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -15,6 +16,29 @@ class SettingsScreen extends StatelessWidget {
       appBar: showAppBar ? AppBar(title: const Text('Settings')) : null,
       body: ListView(
         children: [
+          ValueListenableBuilder<ThemeMode>(
+            valueListenable: ThemeService.instance.mode,
+            builder: (_, mode, __) {
+              return ListTile(
+                title: const Text('Theme mode'),
+                subtitle: Text(mode.name),
+                trailing: DropdownButton<ThemeMode>(
+                  value: mode,
+                  onChanged: (value) {
+                    if (value != null) {
+                      ThemeService.instance.setTheme(value);
+                    }
+                  },
+                  items: ThemeMode.values
+                      .map((item) => DropdownMenuItem<ThemeMode>(
+                            value: item,
+                            child: Text(item.name),
+                          ))
+                      .toList(),
+                ),
+              );
+            },
+          ),
           ...controller.items.map(
             (item) => _Item(title: item.title, routeName: item.routeName),
           ),

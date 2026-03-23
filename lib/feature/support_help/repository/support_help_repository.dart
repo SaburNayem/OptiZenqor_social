@@ -1,0 +1,46 @@
+import '../model/faq_item_model.dart';
+
+class SupportHelpRepository {
+  List<FaqItemModel> loadFaqs() => const <FaqItemModel>[
+        FaqItemModel(question: 'How to recover account?', answer: 'Go to login and tap forgot password.'),
+        FaqItemModel(question: 'How to report abuse?', answer: 'Use report action on post, co        FaqItemModel(question: 'How to report abuse?', answer: 'Use report action on post, co        FaqItemModel(question: 'How to report abuse?', answer: 'Use report action on post, co        FaqItemModel(question: 'How to report abuse?', answer: 'Use report action on post, co        FaqItemModel(question: 'How to report abuse?', answer: 'Use report action on post, co        FaqItemModel(question: 'HlpR        FaqItemModel(question: 'How to report abuse?', answer: 'Use report action on post, co        FaqItemModel(question: 'How to report abuse?', answer: 'Use report action on post, co        FaqItemModel(qport_help/screen/support_help_screen.dart <<'EOF'
+import 'package:flutter/material.dart';
+
+import '../controller/support_help_controller.dart';
+
+class SupportHelpScreen extends StatelessWidget {
+  SupportHelpScreen({super.key}) { _controller.load(); }
+  final SupportHelpController _controller = SupportHelpController();
+  final TextEditingController _subject = TextEditingController();
+  final TextEditingController _message = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Support & Help')),
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (_, __) => ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const Text('FAQ', style: TextStyle(fontWeight: FontWeight.w700)),
+            ..._controller.faqs.map((f) => ExpansionTile(title: Text(f.question), children: [Padding(padding: const EdgeInsets.all(12), child: Text(f.answer))])),
+            const SizedBox(height: 12),
+            TextField(controller: _subject, decoration: const InputDecoration(labelText: 'Subject')),
+            const SizedBox(height: 8),
+            TextField(controller: _message, minLines: 3, maxLines: 5, decoration: const InputDecoration(labelText: 'Message')),
+            const SizedBox(height: 8),
+            FilledButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Support request submitted')));
+                _subject.clear();
+                _message.clear();
+              },
+              child: const Text('Send'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

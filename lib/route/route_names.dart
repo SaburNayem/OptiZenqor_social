@@ -44,4 +44,25 @@ class RouteNames {
   static const maintenanceMode = '/maintenance-mode';
   static const inviteReferral = '/invite-referral';
   static const legalCompliance = '/legal-compliance';
+
+  static const groupChat = '/group-chat';
+  static const calls = '/calls';
+  static const groups = '/groups';
+  static const pages = '/pages';
+  static const hashtags = '/hashtags';
+  static const trending = '/trending';
+  static const jobsNetworking = '/jobs-networking';
+  static const businessProfile = '/business-profile';
+  static const bookmarks = '/bookmarks';
+  static const savedCollections = '/saved-collections';
+  static const walletPayments = '/wallet-payments';
+  static const subscriptions = '/subscriptions';
+  static const events = '/events';
+  static const liveStream = '/live-stream';
+  static const safetyPrivacy = '/safety-privacy';
+  static const learningCourses = '/learning-courses';
+  static const pollsSurveys = '/polls-surveys';
+  static const supportHelp = '/support-help';
+  static const userProfile = '/user-profile';
+  static const chat = '/chat';
 }
