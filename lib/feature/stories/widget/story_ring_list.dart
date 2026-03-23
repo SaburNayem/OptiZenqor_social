@@ -22,7 +22,23 @@ class StoryRingList extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemBuilder: (_, index) {
-          final story = stories[index];
+          if (index == 0) {
+            return Column(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  child: const Icon(Icons.archive_outlined),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Archive',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            );
+          }
+          final story = stories[index - 1];
           final user = users.where((e) => e.id == story.userId).firstOrNull;
           if (user == null) {
             return const SizedBox.shrink();
@@ -73,7 +89,7 @@ class StoryRingList extends StatelessWidget {
           );
         },
         separatorBuilder: (context, index) => const SizedBox(width: 12),
-        itemCount: stories.length,
+        itemCount: stories.length + 1,
       ),
     );
   }

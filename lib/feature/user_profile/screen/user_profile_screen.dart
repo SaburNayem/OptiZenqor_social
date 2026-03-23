@@ -99,7 +99,7 @@ class UserProfileScreen extends StatelessWidget {
               child: ListTile(
                 leading: Icon(Icons.verified_rounded, color: _controller.badgeColor()),
                 title: Text(_controller.verificationLabel()),
-                subtitle: Text('Role badge style: ${user.badgeStyle}'),
+                subtitle: Text('Role badge style: ${user.badgeStyle} • Profile category ${user.role.name}'),
                 trailing: user.supporterBadge
                     ? const Chip(label: Text('Supporter badge'))
                     : null,
@@ -289,6 +289,26 @@ class UserProfileScreen extends StatelessWidget {
                   leading: const Icon(Icons.star_border_rounded),
                   title: Text(post.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                   subtitle: Text('${post.viewCount} views • ${post.shareCount} shares'),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Chip(label: Text('Custom profile sections')),
+                    Chip(label: Text('Featured links')),
+                    Chip(label: Text('Content sorting options')),
+                    Chip(label: Text('Archive content')),
+                    Chip(label: Text('Follower milestones')),
+                    Chip(label: Text('Engagement badges')),
+                    Chip(label: Text('Community reputation')),
+                    Chip(label: Text('Helpful contributor badge')),
+                  ],
                 ),
               ),
             ),

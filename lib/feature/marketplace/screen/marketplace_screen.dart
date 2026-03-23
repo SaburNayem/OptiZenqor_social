@@ -65,6 +65,28 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               onChanged: (value) => setState(() => _query = value),
             ),
           ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Chip(label: Text('Cart placeholder')),
+                    Chip(label: Text('Checkout placeholder')),
+                    Chip(label: Text('Saved addresses')),
+                    Chip(label: Text('Order history')),
+                    Chip(label: Text('Order status')),
+                    Chip(label: Text('Return/refund')),
+                    Chip(label: Text('Wishlist')),
+                    Chip(label: Text('Nearby marketplace items')),
+                  ],
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.all(16),

@@ -71,6 +71,22 @@ class _SafetyPrivacyScreenState extends State<SafetyPrivacyScreen> {
                 leading: Icon(Icons.rotate_right_outlined),
                 title: Text('Appeal flow placeholder'),
               ),
+              const ListTile(
+                leading: Icon(Icons.family_restroom_outlined),
+                title: Text('Supervised account placeholder'),
+              ),
+              const ListTile(
+                leading: Icon(Icons.admin_panel_settings_outlined),
+                title: Text('Guardian controls placeholder'),
+              ),
+              const ListTile(
+                leading: Icon(Icons.privacy_tip_outlined),
+                title: Text('Teen privacy defaults placeholder'),
+              ),
+              const ListTile(
+                leading: Icon(Icons.visibility_off_outlined),
+                title: Text('Restricted discoverability placeholder'),
+              ),
             ],
           );
         },

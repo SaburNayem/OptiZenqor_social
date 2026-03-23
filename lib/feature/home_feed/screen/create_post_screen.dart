@@ -326,6 +326,32 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Rights & Ownership',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Chip(label: Text('Copyright ownership declaration')),
+                      Chip(label: Text('Licensed audio placeholder')),
+                      Chip(label: Text('Original content label')),
+                      Chip(label: Text('Rights dispute placeholder')),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

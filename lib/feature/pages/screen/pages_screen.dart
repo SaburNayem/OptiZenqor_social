@@ -43,7 +43,8 @@ class PagesScreen extends StatelessWidget {
                     'Posts: ${page.posts.length}\n'
                     '${page.reviewSummary}\n'
                     '${page.visitorPostsSummary}\n'
-                    '${page.followersInsight}',
+                    '${page.followersInsight}\n'
+                    'Announcement-only posting • Subscriber/follower updates',
                   ),
                   trailing: FilledButton(
                     onPressed: () => _controller.toggleFollow(page.id),

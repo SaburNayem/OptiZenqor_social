@@ -117,6 +117,31 @@ class StoryViewScreen extends StatelessWidget {
               ),
             ),
           ),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 72,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: const [
+                  Chip(label: Text('Story archive list')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Memories placeholder')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Restore to highlights')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Re-share archived story')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Create close friends list')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Edit close friends list')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Preview close friends audience')),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

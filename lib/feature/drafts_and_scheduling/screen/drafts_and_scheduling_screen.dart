@@ -16,9 +16,30 @@ class DraftsAndSchedulingScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(title: const Text('Drafts & Scheduling')),
           body: ListView.builder(
-            itemCount: _controller.drafts.length,
+            itemCount: _controller.drafts.length + 1,
             itemBuilder: (context, index) {
-              final item = _controller.drafts[index];
+              if (index == 0) {
+                return const Card(
+                  margin: EdgeInsets.all(16),
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Chip(label: Text('Content calendar placeholder')),
+                        Chip(label: Text('Scheduled content calendar')),
+                        Chip(label: Text('Creator reminder system')),
+                        Chip(label: Text('Event reminder management')),
+                        Chip(label: Text('Task/todo for creators/sellers/recruiters')),
+                        Chip(label: Text('Shared collections placeholder')),
+                        Chip(label: Text('Collaborative post placeholder')),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              final item = _controller.drafts[index - 1];
               return Card(
                 child: ListTile(
                   title: Text(item.title),

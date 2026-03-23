@@ -192,6 +192,30 @@ class HomeFeedScreen extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.favorite_border),
+              title: const Text('Favorites feed placeholder'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showFeedback(context, 'Favorites feed placeholder opened');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.key_off_outlined),
+              title: const Text('Mute keyword'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showFeedback(context, 'Mute keyword placeholder saved');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.snooze_outlined),
+              title: const Text('Snooze user/page/group'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showFeedback(context, 'Snooze placeholder saved');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.help_outline),
               title: const Text('Why am I seeing this?'),
               onTap: () {

@@ -164,6 +164,48 @@ class _SearchDiscoveryScreenState extends State<SearchDiscoveryScreen> {
                       ),
                     ),
                     _SectionCard(
+                      title: 'Watch & History',
+                      subtitle: 'Continuity and recent activity surfaces',
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: const [
+                          Chip(label: Text('Watch history')),
+                          Chip(label: Text('Continue watching')),
+                          Chip(label: Text('Recently viewed profiles/posts/products')),
+                          Chip(label: Text('Recently listened audio/live')),
+                        ],
+                      ),
+                    ),
+                    _SectionCard(
+                      title: 'Nearby Discovery',
+                      subtitle: 'Location-based recommendations and local discovery',
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: const [
+                          Chip(label: Text('Nearby events')),
+                          Chip(label: Text('Nearby groups/pages')),
+                          Chip(label: Text('Nearby marketplace items')),
+                          Chip(label: Text('Location-based recommendations')),
+                        ],
+                      ),
+                    ),
+                    _SectionCard(
+                      title: 'Universal Search',
+                      subtitle: 'Cross-feature search continuity tools',
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: const [
+                          Chip(label: Text('Recent viewed items')),
+                          Chip(label: Text('Saved search alerts')),
+                          Chip(label: Text('Search history management')),
+                          Chip(label: Text('Voice search')),
+                        ],
+                      ),
+                    ),
+                    _SectionCard(
                       title: 'Explore Sections',
                       subtitle: 'Expanded discovery surfaces',
                       child: Wrap(

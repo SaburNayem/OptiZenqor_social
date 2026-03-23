@@ -43,7 +43,30 @@ class LiveStreamScreen extends StatelessWidget {
                   Chip(label: Text('Title editing')),
                   Chip(label: Text('Live gifts')),
                   Chip(label: Text('Replay controls')),
+                  Chip(label: Text('Live schedule')),
+                  Chip(label: Text('Upcoming live calendar')),
                 ],
+              ),
+              const SizedBox(height: 8),
+              const Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.notifications_active_outlined),
+                      title: Text('Event reminder settings'),
+                    ),
+                    Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.hourglass_top_outlined),
+                      title: Text('Waitlist placeholder'),
+                    ),
+                    Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.campaign_outlined),
+                      title: Text('Host announcement placeholder'),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               Card(

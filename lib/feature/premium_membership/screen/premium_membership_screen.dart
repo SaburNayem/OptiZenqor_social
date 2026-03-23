@@ -18,6 +18,21 @@ class PremiumMembershipScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Chip(label: Text('Creator supporter levels')),
+                      Chip(label: Text('Seller loyalty rewards')),
+                      Chip(label: Text('Referral progress tracking')),
+                      Chip(label: Text('Membership perk history')),
+                    ],
+                  ),
+                ),
+              ),
               ..._controller.plans.map(
                 (plan) => Card(
                   child: Padding(

@@ -38,6 +38,27 @@ class JobsNetworkingScreen extends StatelessWidget {
                   isThreeLine: true,
                 ),
               ),
+              const SizedBox(height: 12),
+              const Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.track_changes_outlined),
+                      title: Text('Applicant tracking placeholder'),
+                    ),
+                    Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.checklist_rtl_outlined),
+                      title: Text('Shortlist placeholder'),
+                    ),
+                    Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.video_call_outlined),
+                      title: Text('Interview stage placeholder'),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ],
         ),

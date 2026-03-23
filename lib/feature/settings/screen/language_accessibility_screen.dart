@@ -21,6 +21,23 @@ class LanguageAccessibilityScreen extends StatelessWidget {
             onPressed: () => Navigator.of(context).pushNamed(RouteNames.accessibilitySupport),
             child: const Text('Open Accessibility Settings'),
           ),
+          const SizedBox(height: 16),
+          const Card(
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Chip(label: Text('Daily usage time')),
+                  Chip(label: Text('Take-a-break reminder')),
+                  Chip(label: Text('Quiet mode')),
+                  Chip(label: Text('Bedtime mode')),
+                  Chip(label: Text('Content consumption summary')),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

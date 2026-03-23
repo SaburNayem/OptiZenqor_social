@@ -45,6 +45,32 @@ class BusinessProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Card(child: ListTile(title: const Text('Analytics'), subtitle: Text(profile.analyticsPlaceholder))),
+              const SizedBox(height: 8),
+              const Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.quickreply_outlined),
+                      title: Text('Quick reply templates placeholder'),
+                    ),
+                    Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.description_outlined),
+                      title: Text('Lead form placeholder'),
+                    ),
+                    Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.inbox_outlined),
+                      title: Text('Inquiry inbox placeholder'),
+                    ),
+                    Divider(height: 1),
+                    ListTile(
+                      leading: Icon(Icons.smart_toy_outlined),
+                      title: Text('Auto-reply placeholder'),
+                    ),
+                  ],
+                ),
+              ),
             ],
           );
         },
