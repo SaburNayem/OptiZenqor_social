@@ -195,7 +195,7 @@ class AppRoute {
     GetPage(name: trending, page: () => TrendingScreen()),
     GetPage(name: jobsNetworking, page: () => JobsNetworkingScreen()),
     GetPage(name: businessProfile, page: () => BusinessProfileScreen()),
-    GetPage(name: bookmarks, page: () => const BookmarksScreen()),
+    GetPage(name: bookmarks, page: () => BookmarksScreen()),
     GetPage(name: savedCollections, page: () => const SavedCollectionsScreen()),
     GetPage(name: walletPayments, page: () => WalletPaymentsScreen()),
     GetPage(name: subscriptions, page: () => SubscriptionsScreen()),

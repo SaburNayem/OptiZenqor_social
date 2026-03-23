@@ -26,9 +26,21 @@ class BusinessProfileScreen extends StatelessWidget {
               Card(child: ListTile(title: Text(profile.name), subtitle: Text(profile.info))),
               Row(
                 children: [
-                       ded(child: OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.call_outlined), label: const Text('Call'))),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.call_outlined),
+                      label: const Text('Call'),
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  Expanded(child: OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.mail_outline), label: const Text('Email'))),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.mail_outline),
+                      label: const Text('Email'),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),

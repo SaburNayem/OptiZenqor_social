@@ -17,18 +17,28 @@ class JobsNetworkingScreen extends StatelessWidget {
         animation: _controller,
         builder: (_, __) => ListView(
           padding: const EdgeInsets.all(16),
-          children: [
-            ..._controller.jobs.map((job) => Card(
-                  child: ListTile(
-                    title: Text(job.title),
-                    subtitle: Text(job.com                    subtitle: Text(job.com                    subtitle: Text(job.com                    subtitle: Text(job.com                    subtitle: Text(job.com                        )),
-            if (_controller.selected != null)
+          children: <Widget>[
+            ..._controller.jobs.map(
+              (job) => Card(
+                child: ListTile(
+                  title: Text(job.title),
+                  subtitle: Text(job.company),
+                  onTap: () => _controller.select(job),
+                ),
+              ),
+            ),
+            if (_controller.selected != null) ...<Widget>[
+              const SizedBox(height: 12),
               Card(
                 child: ListTile(
                   title: Text(_controller.selected!.title),
-                  subtitle: Text(_controller.selected!.description),
+                  subtitle: Text(
+                    '${_controller.selected!.company}\n${_controller.selected!.description}',
+                  ),
+                  isThreeLine: true,
                 ),
               ),
+            ],
           ],
         ),
       ),
