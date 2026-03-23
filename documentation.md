@@ -1,170 +1,188 @@
-# OptiZenqor Social - Full Project Documentation
-
-## 1. App Architecture
-## 1.1 Core- 
-There will be constant Folder where use constant data like text and color.
-There will be data folder there will be service and service model
-There will be common widget section
-there will be api end point 
-there will be shared preference
-## 1.2 Feature-
- There will be only feature not anything else 
- In feature folder like home will be a folder main folder where 3 or 4 folder according to its need common will be home model home screen and home controller and into all this folder will be file . 
-
-## 1.3 Route- route only have routes 
+# OptiZenqor Social - Project Documentation
 
 ## 1. Project Summary
-OptiZenqor Social is a modular Flutter social platform prototype. It provides a complete app shell with feed, reels, chat, profile, and settings, plus a large set of route-based feature modules such as communities, premium, reporting, onboarding variants, privacy controls, localization, accessibility, and upload flow stubs.
+OptiZenqor Social is a modular Flutter social-platform prototype built around a route-driven feature architecture. The app includes onboarding, authentication, a tabbed main shell, social feed flows, chat, marketplace, profile, settings, and a broad collection of extension modules such as accessibility, privacy, reporting, subscriptions, saved collections, wallet payments, events, learning, and support surfaces.
 
 The project is currently mock-first:
-- primary data is provided from local mock datasets
-- repositories simulate async network behavior with delays
-- most actions are local-state interactions without backend persistence
-
-This document reflects the current state of the main branch code.
+- most feature data comes from local models and mock repositories
+- repositories simulate async behavior instead of calling production APIs
+- several services are placeholders intended for future backend or platform integration
 
 ## 2. Stack and Dependencies
 
 ### 2.1 Runtime Stack
-- Flutter (Material 3 UI)
-- Dart SDK constraint: ^3.10.8
-- GetX package used for app routing and some controllers
-- ChangeNotifier + AnimatedBuilder used in many feature modules
-- shared_preferences included, but current storage mode is configured as in-memory fallback
+- Flutter with Material 3
+- Dart SDK constraint: `^3.10.8`
+- GetX for named routing and selected controllers
+- `ChangeNotifier` + `AnimatedBuilder` in many feature modules
+- `shared_preferences` wired through a storage service, but persistence is intentionally disabled
+- `image_picker` and `video_player` included for media-related screens
 
-### 2.2 pubspec Dependencies
-Main:
-- flutter
-- cupertino_icons: ^1.0.8
-- shared_preferences: ^2.5.3
-- get: ^4.7.2
+### 2.2 Main Dependencies
+- `get: ^4.7.2`
+- `shared_preferences: ^2.5.3`
+- `image_picker: ^1.1.2`
+- `video_player: ^2.9.2`
 
-Dev:
-- flutter_test
-- flutter_lints: ^6.0.0
+### 2.3 Dev Dependencies
+- `flutter_test`
+- `flutter_lints: ^6.0.0`
 
 ## 3. Application Bootstrap
 
-### 3.1 Startup Sequence
-1. main.dart initializes Flutter bindings and runs OptiZenqorApp.
-2. app.dart builds GetMaterialApp.
-3. App uses AppRoute.routes (GetX route table), AppRoute.unknownRoute, and AppRoute.initialRoute.
-4. Initial route is splash (/).
+### 3.1 Startup Flow
+1. [`lib/main.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/main.dart) initializes Flutter bindings.
+2. [`lib/main.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/main.dart) awaits `ThemeService.instance.init()`.
+3. [`lib/app.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/app.dart) builds `OptiZenqorApp`.
+4. `OptiZenqorApp` renders `GetMaterialApp` with `AppRoute.routes`, `AppRoute.unknownRoute`, and `AppRoute.initialRoute`.
+5. The initial route is `/`, which maps to the splash screen.
 
-### 3.2 Splash and Entry Flow
-Current default UX flow:
-1. Splash screen with animated brand hero.
-2. After a 2-second bootstrap delay, navigate to onboarding.
-3. Onboarding supports skip/continue.
-4. Login route leads into main shell on successful mock login.
+### 3.2 Theme Setup
+- Theme mode is managed through `ThemeService`.
+- [`lib/app.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/app.dart) rebuilds through `ValueListenableBuilder<ThemeMode>`.
+- Light and dark themes are centralized in `lib/core/theme`.
 
+## 4. Architecture
 
+### 4.1 Folder Structure
+- `lib/core`: shared app-wide building blocks
+- `lib/feature`: feature modules grouped by domain
+- `lib/route`: route name constants, route registry, and legacy generator
+- `test`: minimal widget-level coverage
+- `android`, `ios`, `web`: platform runners
 
-### 4.1 Directory Design
-- lib/core: shared app-wide concerns
-	- common_data: mock datasets
-	- common_models: shared DTO/entity models
-	- config: app configuration constants
-	- constants: dimensions/assets/keys/strings
-	- enums: app enums
-	- helpers/utils/validators
-	- services: storage/auth/upload/notification/api stubs
-	- theme: global theming and colors
-	- widgets: reusable presentational components
-- lib/feature: domain modules, usually with controller/model/screen/repository
-- lib/route: route name constants and route mappings
+### 4.2 Core Layer
+`lib/core` currently contains:
+- `common_data`: mock datasets
+- `common_models`: shared entities such as users, posts, reels, stories, groups, messages, and products
+- `config`, `constants`, `enums`
+- `helpers`, `utils`, `validators`
+- `services`: auth, analytics, upload, local storage, notifications, connectivity, deep links, media picker, API client, theme
+- `theme`: global styling
+- `widgets`: reusable UI building blocks
 
-### 4.2 State Management Pattern
-The project uses a hybrid approach:
-- GetX controller pattern in core feed-shell surfaces
-	- MainShellController extends GetxController
-	- HomeFeedController extends GetxController
-	- PostDetailController extends GetxController
-- ChangeNotifier pattern in many other feature modules
-	- controllers extend ChangeNotifier
-	- screens bind via AnimatedBuilder
+### 4.3 Feature Pattern
+Most feature folders follow a lightweight module pattern with some combination of:
+- `model`
+- `controller`
+- `repository`
+- `screen`
 
-### 4.3 Navigation Pattern
-- Primary navigation is via GetMaterialApp + named routes (Get.toNamed / Get.offNamed).
-- Some flows still use direct MaterialPageRoute pushes (for example create post, post detail from feed, user profile from feed).
+Not every feature uses every layer, but the project generally keeps presentation, state, and data concerns grouped inside the feature directory.
+
+### 4.4 State Management
+The codebase uses a hybrid pattern:
+- GetX for app-level routing and several shell/feed flows
+- `ChangeNotifier` in many feature controllers
+- `AnimatedBuilder` or framework widgets for screen updates
+
+Examples:
+- `MainShellController` uses `GetxController`
+- `HomeFeedController` uses `GetxController`
+- many secondary features expose `ChangeNotifier` controllers
 
 ## 5. Routing
 
-### 5.1 Route Source of Truth
-- route/route_names.dart: all named route string constants
-- route/app_route.dart: GetX page bindings
-- route/app_routes.dart: public route whitelist set
-- route/route_generator.dart: legacy MaterialPageRoute generator retained in codebase
+### 5.1 Source of Truth
+- [`lib/route/route_names.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/route_names.dart): string constants
+- [`lib/route/app_route.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_route.dart): registered `GetPage` routes
+- [`lib/route/app_routes.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_routes.dart): route whitelist
+- [`lib/route/route_generator.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/route_generator.dart): legacy `MaterialPageRoute` helper
 
 ### 5.2 Registered Routes
-Entry/auth routes:
-- /
-- /onboarding
-- /auth/login
-- /auth/signup
-- /auth/forgot-password
-- /auth/reset-password
-- /shell
+Entry and auth:
+- `/`
+- `/onboarding`
+- `/auth/login`
+- `/auth/signup`
+- `/auth/forgot-password`
+- `/auth/reset-password`
+- `/shell`
 
-Core product routes:
-- /search-discovery
-- /communities
-- /marketplace
-- /notifications
-- /creator-dashboard
-- /premium
-- /settings
+Core routes:
+- `/search-discovery`
+- `/communities`
+- `/marketplace`
+- `/notifications`
+- `/creator-dashboard`
+- `/premium`
+- `/settings`
 
 Settings sub-routes:
-- /settings/account
-- /settings/password-security
-- /settings/devices-sessions
-- /settings/blocked-users
-- /settings/language-accessibility
+- `/settings/account`
+- `/settings/password-security`
+- `/settings/devices-sessions`
+- `/settings/blocked-users`
+- `/settings/language-accessibility`
 
 Extended routes:
-- /drafts-scheduling
-- /upload-manager
-- /offline-sync
-- /verification-request
-- /personalization-onboarding
-- /advanced-privacy-controls
-- /share-repost-system
-- /media-viewer
-- /post-detail
-- /account-switching
-- /push-notification-preferences
-- /report-center
-- /activity-sessions
-- /deep-link-handler
-- /app-update-flow
-- /localization-support
-- /accessibility-support
-- /explore-recommendation
-- /blocked-muted-accounts
-- /maintenance-mode
-- /invite-referral
-- /legal-compliance
+- `/drafts-scheduling`
+- `/upload-manager`
+- `/offline-sync`
+- `/verification-request`
+- `/personalization-onboarding`
+- `/advanced-privacy-controls`
+- `/share-repost-system`
+- `/media-viewer`
+- `/post-detail`
+- `/account-switching`
+- `/push-notification-preferences`
+- `/report-center`
+- `/activity-sessions`
+- `/deep-link-handler`
+- `/app-update-flow`
+- `/localization-support`
+- `/accessibility-support`
+- `/explore-recommendation`
+- `/blocked-muted-accounts`
+- `/maintenance-mode`
+- `/invite-referral`
+- `/legal-compliance`
+- `/group-chat`
+- `/calls`
+- `/groups`
+- `/pages`
+- `/hashtags`
+- `/trending`
+- `/jobs-networking`
+- `/business-profile`
+- `/bookmarks`
+- `/saved-collections`
+- `/wallet-payments`
+- `/subscriptions`
+- `/events`
+- `/live-stream`
+- `/safety-privacy`
+- `/learning-courses`
+- `/polls-surveys`
+- `/support-help`
+- `/user-profile`
+- `/chat`
 
-Unknown routes are handled by an explicit not-found scaffold.
+Unknown routes are handled by a dedicated not-found scaffold in [`lib/route/app_route.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_route.dart).
 
-## 6. Main Shell and Core User Journey
+## 6. Main User Flow
 
-### 6.1 Main Shell Tabs
-Bottom navigation provides:
+### 6.1 Splash and Onboarding
+- The app starts on the splash route.
+- From splash, users are moved into onboarding and then authentication.
+- Login, signup, forgot-password, and reset-password flows are present as separate routes.
+
+### 6.2 Main Shell
+[`lib/feature/home_feed/screen/main_shell_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/home_feed/screen/main_shell_screen.dart) provides the main app shell with:
+- top app bar
+- drawer-based feature hub
+- offline banner driven by `ConnectivityService`
+- bottom navigation
+
+Bottom navigation tabs:
 - Home
 - Reels
 - Chat
 - Profile
 - Settings
 
-### 6.2 App Bar Actions
-- Home-only Create action (opens full create post screen)
-- Search shortcut
-- Notifications shortcut
-
-### 6.3 Drawer Feature Hub
-Quick access links:
+Drawer shortcuts:
 - Communities
 - Marketplace
 - Creator Dashboard
@@ -172,52 +190,60 @@ Quick access links:
 - Drafts and Scheduling
 - Upload Manager
 
-## 7. Data Layer and Storage
+### 6.3 Main Shell Actions
+- home-only create-post action
+- search shortcut
+- notifications shortcut
+
+The create-post flow still uses a direct `MaterialPageRoute` push rather than a named GetX route.
+
+## 7. Data and Services
 
 ### 7.1 Mock Data
-core/common_data/mock_data.dart provides local datasets for:
+[`lib/core/common_data/mock_data.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/common_data/mock_data.dart) seeds local data for:
 - users
 - posts
 - reels
 - stories
 - messages
-- notifications (with typed route payloads)
+- notifications
 - groups
 - products
 
-### 7.2 Repository Pattern
-Repositories return async Futures and are generally stub/mock backed:
-- HomeFeedRepository fetches feed + stories, writes feed cache
-- AuthRepository wraps AuthService + LocalStorageService
-- ChatRepository simulates inbox and send
-- NotificationsRepository supports full fetch and category filtering
-- MarketplaceRepository supports basic query filtering
-- PostsRepository stores/retrieves/deletes draft payloads
+### 7.2 Repository Layer
+Repositories are mostly asynchronous mock adapters. Across the codebase they generally:
+- return `Future` results
+- simulate delay
+- shape data for the UI
+- avoid real backend persistence
 
-### 7.3 Local Storage Behavior
-LocalStorageService has persistence disabled by default:
-- _persistDataOnDevice is false
-- shared_preferences path is bypassed
-- values are stored in an in-memory map fallback
+### 7.3 Local Storage
+[`lib/core/services/local_storage_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/local_storage_service.dart) is set up with persistence intentionally disabled:
+- `_persistDataOnDevice` is `false`
+- when persistence is off, values are stored in an in-memory map
+- `shared_preferences` is only used if persistence is enabled and the plugin is available
 
-Result: app state may feel persistent during runtime but is not durable across app restarts.
+Practical result:
+- app data can survive during the current runtime session
+- app data does not persist reliably across app restarts
 
-## 8. Services Overview
+### 7.4 Core Services
+Current core services include:
+- `analytics_service.dart`
+- `api_client_service.dart`
+- `auth_service.dart`
+- `connectivity_service.dart`
+- `deep_link_service.dart`
+- `local_storage_service.dart`
+- `media_picker_service.dart`
+- `notification_service.dart`
+- `theme_service.dart`
+- `upload_service.dart`
 
-Current core services are intentionally scaffolded/lightweight:
-- api_client_service.dart: async get/post stubs returning status maps
-- analytics_service.dart: no-op logging placeholders
-- auth_service.dart: mock login/logout and role state
-- connectivity_service.dart: local online/offline notifier
-- deep_link_service.dart: incoming/open route placeholders
-- media_picker_service.dart: pick image/video stubs returning null
-- notification_service.dart: initialize/subscribe stubs
-- upload_service.dart: simulated upload returning remote:// path
-- local_storage_service.dart: in-memory storage abstraction with optional plugin mode
+Most of these are scaffolds or lightweight wrappers rather than production-ready integrations.
 
-## 9. Feature Module Inventory
-
-All current feature directories in lib/feature contain Dart implementation files:
+## 8. Feature Inventory
+Current top-level feature directories under `lib/feature`:
 - accessibility_support
 - account_switching
 - activity_sessions
@@ -225,15 +251,26 @@ All current feature directories in lib/feature contain Dart implementation files
 - app_update_flow
 - auth
 - blocked_muted_accounts
+- bookmarks
+- business_profile
+- calls
 - chat
 - communities
 - creator_tools
 - deep_link_handler
 - drafts_and_scheduling
+- events
 - explore_recommendation
+- follow_unfollow
+- group_chat
+- groups
+- hashtags
 - home_feed
 - invite_referral
+- jobs_networking
+- learning_courses
 - legal_compliance
+- live_stream
 - localization_support
 - maintenance_mode
 - marketplace
@@ -241,7 +278,9 @@ All current feature directories in lib/feature contain Dart implementation files
 - notifications
 - offline_sync
 - onboarding
+- pages
 - personalization_onboarding
+- polls_surveys
 - post_detail
 - posts
 - premium_membership
@@ -249,88 +288,68 @@ All current feature directories in lib/feature contain Dart implementation files
 - recruiter_profile
 - reels_short_video
 - report_center
+- safety_privacy
+- saved_collections
 - search_discovery
 - seller_profile
 - settings
 - share_repost_system
 - splash
 - stories
+- subscriptions
+- support_help
+- trending
 - upload_manager
 - user_profile
 - verification_request
+- wallet_payments
 
-## 10. Feature Behavior Snapshot
+## 9. Feature Snapshot
 
-### 10.1 Auth and Onboarding
-- Onboarding has 3 slides, skip and continue/get started actions.
-- Login form validates email/password and supports role selection.
-- Login success currently navigates to shell directly.
+### 9.1 Auth
+- login, signup, forgot-password, and reset-password screens are present
+- auth is mock-oriented and not backed by a production identity provider
 
-### 10.2 Home Feed
-- Initial load and pull-to-refresh supported.
-- Pagination is triggered near the list end.
-- Tabs: For You, Following, Trending.
-- Stories strip displayed before feed posts.
-- Post actions include like toggle, post detail open, author profile open, report/share/not interested actions.
+### 9.2 Feed and Content
+- home feed, reels, post detail, stories, hashtags, trending, and bookmarks are represented
+- content creation exists through the create-post flow
+- multiple supporting modules exist for saved collections, drafts, and uploads
 
-### 10.3 Create Post
-- Dedicated create screen supports caption + optional media URL.
-- User can switch photo/video intent via chips.
-- On submit, result is returned and inserted at top of feed as local post.
+### 9.3 Social and Community
+- chat and group chat flows are present
+- communities, groups, pages, follow/unfollow, and calls modules exist
+- user, seller, recruiter, and business profile variants are included
 
-### 10.4 Reels
-- Vertical reels display with basic interaction affordances.
-- Current behavior is local and mock-data driven.
+### 9.4 Platform and Growth Features
+- premium, subscriptions, wallet payments, events, jobs networking, learning courses, and creator tools are available as separate modules
+- support, reporting, legal, privacy, accessibility, and localization surfaces are also present
 
-### 10.5 Chat
-- Inbox + chat detail flow exists.
-- Local compose/send behaviors are implemented.
-- Chat settings are present with local runtime toggles.
+## 10. UI and Theming
+- Material 3 is enabled
+- theme configuration lives in `lib/core/theme`
+- app theme mode is controlled at runtime through `ThemeService`
+- shared widgets include buttons, text fields, avatars, loaders, empty/error states, section headers, post cards, and an inline video player
 
-### 10.6 Notifications
-- Notification list loading and category filtering.
-- Notification payload model includes route and entity hints.
-
-### 10.7 Additional Modules
-The broader module set (privacy, legal, accessibility, localization, update flow, deep links, report center, verification, etc.) is present and navigable. Many are currently UI and local-state oriented, with backend integration pending.
-
-## 11. UI and Theming
-- Theme mode follows system (light/dark available).
-- AppTheme is centralized in core/theme.
-- Material 3 is enabled.
-- Reusable widgets include app_button, app_text_field, app_avatar, app_loader, post_card, empty_state_view, error_state_view, and section_header.
-
-## 12. Models and Shared Contracts
-
-Core shared models include:
-- Form and UI state: form_state_model, load_state_model, pagination_state_model
-- Social entities: user_model, post_model, reel_model, story_model, message_model, notification_model
-- Other entities: group_model, product_model, offline_action_model
-
-Important enums:
-- user_role
-- view_state
-
-## 13. Testing and Static Analysis
-- analysis_options.yaml includes flutter_lints defaults.
-- Current test coverage is minimal.
-- Existing widget test checks app bootstrap and splash-brand text visibility.
+## 11. Testing and Analysis
+- [`analysis_options.yaml`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/analysis_options.yaml) uses Flutter lint defaults
+- automated test coverage is currently minimal
+- [`test/widget_test.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/test/widget_test.dart) verifies that the app bootstraps and renders the splash branding
 
 Useful commands:
-1. flutter pub get
-2. flutter analyze
-3. flutter test
+1. `flutter pub get`
+2. `flutter analyze`
+3. `flutter test`
 
-## 14. Known Limitations
-- No production backend integration for core social flows.
-- Storage is not durable across app restarts in current config.
-- Media picking and upload are placeholder implementations.
-- Notification/deep-link/call systems are not production wired.
-- Some modules are primarily scaffold/UI-first and need deeper business logic.
+## 12. Current Limitations
+- backend integration is largely incomplete
+- most repositories are still mock implementations
+- local storage is non-persistent by design in the current setup
+- media, notifications, deep links, and upload flows are not fully production wired
+- feature breadth is high, but several modules are still UI-first scaffolds
 
-## 15. Recommended Next Implementation Steps
-1. Add real API/data-source adapters behind repository interfaces.
-2. Enable persistent local data layer (SQLite/Hive/Isar) and sync strategy.
-3. Integrate real media picker and upload pipeline.
-4. Complete notification and deep-link lifecycle handling.
-5. Expand automated test coverage across auth, feed, create post, and routing paths.
+## 13. Recommended Next Steps
+1. Connect repositories to real API or local database adapters.
+2. Decide whether `LocalStorageService` should remain session-only or move to true device persistence.
+3. Standardize state management where feature complexity is growing.
+4. Expand automated testing beyond the single bootstrap widget test.
+5. Audit feature modules for route coverage, dependency wiring, and production-readiness.
