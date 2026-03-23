@@ -9,6 +9,8 @@ class PostCommentModel {
     this.isLikedByMe = false,
     this.isReported = false,
     this.isEdited = false,
+    this.reactions = const <String, int>{},
+    this.mentions = const <String>[],
   });
 
   final String id;
@@ -20,6 +22,8 @@ class PostCommentModel {
   final bool isLikedByMe;
   final bool isReported;
   final bool isEdited;
+  final Map<String, int> reactions;
+  final List<String> mentions;
 
   PostCommentModel copyWith({
     String? message,
@@ -27,6 +31,8 @@ class PostCommentModel {
     bool? isLikedByMe,
     bool? isReported,
     bool? isEdited,
+    Map<String, int>? reactions,
+    List<String>? mentions,
   }) {
     return PostCommentModel(
       id: id,
@@ -38,6 +44,8 @@ class PostCommentModel {
       isLikedByMe: isLikedByMe ?? this.isLikedByMe,
       isReported: isReported ?? this.isReported,
       isEdited: isEdited ?? this.isEdited,
+      reactions: reactions ?? this.reactions,
+      mentions: mentions ?? this.mentions,
     );
   }
 }

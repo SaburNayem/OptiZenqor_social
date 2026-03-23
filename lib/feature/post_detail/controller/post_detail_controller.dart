@@ -40,13 +40,16 @@ class PostDetailController extends GetxController {
             message: 'The visual style is super clean.',
             createdAt: '2h',
             likeCount: 4,
+            reactions: <String, int>{'love': 2},
           ),
           const PostCommentModel(
             id: 'c2',
             author: 'rafiahmed',
-            message: 'Can you share this component breakdown?',
+            message: 'Can you share this component breakdown? @mayaquinn',
             createdAt: '1h',
             likeCount: 2,
+            mentions: <String>['mayaquinn'],
+            reactions: <String, int>{'insightful': 1},
           ),
           const PostCommentModel(
             id: 'c3',
@@ -114,6 +117,11 @@ class PostDetailController extends GetxController {
         replyTo: replyTo,
         createdAt: 'now',
         likeCount: 0,
+        mentions: RegExp(r'@([a-zA-Z0-9_.]+)')
+            .allMatches(value)
+            .map((item) => item.group(1) ?? '')
+            .where((item) => item.isNotEmpty)
+            .toList(),
       ),
     );
     detail = PostDetailModel(
@@ -138,6 +146,18 @@ class PostDetailController extends GetxController {
       isLikedByMe: isLiking,
       likeCount: isLiking ? comment.likeCount + 1 : (comment.likeCount - 1).clamp(0, 999999),
     );
+    update();
+  }
+
+  void toggleCommentReaction(String commentId, String reaction) {
+    final index = comments.indexWhere((item) => item.id == commentId);
+    if (index == -1) {
+      return;
+    }
+    final comment = comments[index];
+    final next = Map<String, int>.from(comment.reactions);
+    next[reaction] = (next[reaction] ?? 0) + 1;
+    comments[index] = comment.copyWith(reactions: next);
     update();
   }
 

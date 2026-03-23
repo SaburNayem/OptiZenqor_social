@@ -51,6 +51,26 @@ class _SafetyPrivacyScreenState extends State<SafetyPrivacyScreen> {
                 },
                 title: const Text('Allow mentions'),
               ),
+              const ListTile(
+                leading: Icon(Icons.gpp_maybe_outlined),
+                title: Text('Copyright report placeholder'),
+              ),
+              const ListTile(
+                leading: Icon(Icons.person_search_outlined),
+                title: Text('Impersonation report placeholder'),
+              ),
+              const ListTile(
+                leading: Icon(Icons.sentiment_very_dissatisfied_outlined),
+                title: Text('Harassment / bullying report flow'),
+              ),
+              const ListTile(
+                leading: Icon(Icons.self_improvement_outlined),
+                title: Text('Self-harm concern placeholder'),
+              ),
+              const ListTile(
+                leading: Icon(Icons.rotate_right_outlined),
+                title: Text('Appeal flow placeholder'),
+              ),
             ],
           );
         },

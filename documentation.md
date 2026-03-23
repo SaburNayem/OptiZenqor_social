@@ -1,12 +1,12 @@
 # OptiZenqor Social - Project Documentation
 
 ## 1. Project Overview
-OptiZenqor Social is a Flutter social-platform app scaffold with a feature-first folder structure, broad route coverage, and mostly mock-backed data flows. The app includes onboarding, authentication, a multi-tab main shell, feed and reels experiences, chat, notifications, settings, creator tooling, marketplace and subscription surfaces, and a large set of supporting modules for privacy, reporting, accessibility, events, learning, and profile variations.
+OptiZenqor Social is a Flutter social-platform app scaffold with a feature-first folder structure, broad route coverage, and mock-backed product flows that now cover much more of a modern social-media surface. The app includes onboarding, authentication, a multi-tab main shell, feed and reels experiences, chat, notifications, settings, creator tooling, marketplace and subscription surfaces, and a large set of supporting modules for privacy, reporting, accessibility, events, learning, referral, moderation, and profile variations.
 
 The project is still largely prototype-oriented:
 - most screens are powered by local models, mock repositories, or in-memory controller state
 - many repositories simulate network work with delayed `Future` responses
-- several services are intentionally lightweight wrappers or placeholders for future integrations
+- several services and advanced tools are intentionally lightweight wrappers or placeholders for future integrations
 
 ## 2. Tech Stack
 
@@ -67,6 +67,12 @@ The project is still largely prototype-oriented:
 - `services`: theme, local storage, auth, analytics, upload, notifications, connectivity, deep links, media picker, and API client utilities
 - `theme`: shared colors and `ThemeData`
 - `widgets`: reusable avatars, loaders, post cards, text fields, empty/error states, and media helpers
+
+Shared models now carry richer social-product metadata, including:
+- user verification status, badge styles, public profile metadata, notes, and supporter-badge state
+- post audience, location, tagged users, mentions, alt text, edit history, sponsored labels, view/share counts, and repost-history placeholders
+- reel cover selection, text overlays, subtitle flags, trim metadata, remix flags, and draft markers
+- message delivery, reply-thread, starred-message, and message-kind placeholders
 
 ### 4.3 Feature module pattern
 Most features use some combination of:
@@ -227,13 +233,35 @@ App bar actions:
 - feed tab switching
 - infinite-scroll style pagination trigger
 - post cards with like, comment, bookmark, share, report, and not-interested interactions
+- recommendation feedback controls such as show-less-like-this, hide creator, hide topic, and why-am-I-seeing-this placeholders
 - post-detail and profile drill-down via `Navigator`
 
-### 6.4 Chat and profile flows
-- [`lib/feature/chat/screen/chat_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_screen.dart) renders inbox conversations with pinned, archived, unread, and retry states.
-- [`lib/feature/user_profile/screen/user_profile_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/user_profile/screen/user_profile_screen.dart) supports own-profile and other-user states, follow toggling, quick actions, highlights, and content stats.
+### 6.4 Content creation depth
+[`lib/feature/home_feed/screen/create_post_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/home_feed/screen/create_post_screen.dart) now supports richer local post composition metadata:
+- audience selection
+- location tagging
+- people tagging
+- co-author placeholders
+- alt-text placeholder input
+- local draft saving
+- draft version-history and edit-history placeholders
 
-### 6.5 Connectivity simulation
+Related creation surfaces now also expose placeholders for:
+- story stickers, polls, question stickers, emoji sliders, mentions, locations, music, and links
+- reel audio attach, text overlays, captions, trim/crop, cover selection, remix/duet, and draft-save flows
+
+### 6.5 Chat and profile flows
+- [`lib/feature/chat/screen/chat_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_screen.dart) renders inbox conversations with pinned, archived, unread, retry, notes/status UI, and message-request placeholders.
+- [`lib/feature/chat/screen/chat_detail_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_detail_screen.dart) adds in-conversation search, media/docs/links tabs, unread-marker jump UI, voice-note placeholder, disappearing-message placeholder, and star/reply-thread placeholders.
+- [`lib/feature/user_profile/screen/user_profile_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/user_profile/screen/user_profile_screen.dart) now supports verification state, role-based badges, public profile sharing, QR/profile-preview placeholders, notes, pinned and featured content, tagged-content history, suggested contacts, and account-center export/deactivation placeholders.
+
+### 6.6 Discovery, pages, communities, and engagement
+- [`lib/feature/search_discovery/screen/search_discovery_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/search_discovery/screen/search_discovery_screen.dart) now includes advanced entity filters, suggestion groups, trending search terms, hashtag-detail placeholders, recommendation-feedback sections, and richer explore sections.
+- [`lib/feature/post_detail/screen/post_detail_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/post_detail/screen/post_detail_screen.dart) includes comment mentions, comment reactions, and post-level view/share context.
+- [`lib/feature/communities/screen/communities_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/communities/screen/communities_screen.dart) includes owner/admin moderation placeholders such as pin announcement, join approval, member removal, role assignment, mute-member, and rule-management actions.
+- [`lib/feature/pages/screen/pages_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/pages/screen/pages_screen.dart) now exposes page categories, configurable action-button labeling, review placeholders, visitor-post placeholders, and follower-insight placeholders.
+
+### 6.7 Connectivity simulation
 - [`lib/core/services/connectivity_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/connectivity_service.dart) is a local `ChangeNotifier`.
 - It exposes `isOnline`, `lastFailedAction`, and retry helpers.
 - The current implementation is app-side simulation, not a real device/network monitoring integration.
@@ -260,6 +288,11 @@ Repositories are mostly mock adapters. In practice they often:
 - transform local model data for UI consumption
 - avoid true backend integration
 
+Notable repository additions and deepened local flows include:
+- [`lib/feature/drafts_and_scheduling/repository/drafts_and_scheduling_repository.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/drafts_and_scheduling/repository/drafts_and_scheduling_repository.dart) for durable local draft storage
+- expanded feed preference persistence for recommendation controls
+- expanded profile export caching and data-export request logging
+
 ### 7.3 Local storage
 [`lib/core/services/local_storage_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/local_storage_service.dart) supports `SharedPreferences` storage with an in-memory fallback.
 
@@ -271,6 +304,13 @@ Current behavior:
 Practical effect:
 - theme mode, onboarding completion, and auth session state are intended to persist on device
 - persistence may fall back to current-session memory in environments where the plugin is unavailable
+
+The persisted local surface now also includes:
+- durable post/reel drafts
+- bookmarks and saved collections
+- blocked and muted states
+- recommendation preferences and related safety/control settings
+- account-export request records
 
 ### 7.4 Core services
 Current core services include:
@@ -353,32 +393,40 @@ Current top-level feature directories under `lib/feature`:
 
 ### 9.1 Social content
 - feed, reels, post detail, stories, hashtags, trending, and bookmarks are represented
-- content creation exists through the create-post flow
+- content creation now includes richer audience, tagging, location, alt-text, draft, and history metadata
 - saved collections, drafts, and upload management support creator workflows
+- profile surfaces support pinned content, featured content, tagged-content history, and note/status UI
 
 ### 9.2 Messaging and community
 - one-to-one chat and group chat are present
+- direct messaging now includes notes/status, message requests, search, media/docs/links tabs, unread markers, and multiple placeholder depth features for replies, starred messages, voice notes, disappearing messages, and themes
 - communities, groups, pages, and calls modules are available
 - multiple profile variants exist for user, business, seller, and recruiter contexts
 
 ### 9.3 Growth, commerce, and creator surfaces
 - marketplace, wallet payments, subscriptions, premium membership, and events are implemented as separate modules
 - creator dashboard, jobs networking, learning courses, and live stream extend the app beyond the core feed
+- live, events, and learning screens now include richer moderation, host-tools, saved-item, instructor-profile, certificate, quiz, and audio-room placeholders
+- referral and growth-retention surfaces now expose referral-status, invite-reward, streak, milestone, and achievement placeholders
 
 ### 9.4 Platform support modules
 - privacy, safety, reporting, legal compliance, accessibility, localization, deep-link handling, offline sync, and app update flows all have dedicated surfaces
+- safety and privacy now also include hidden-word, sensitive-content, anti-spam, child/teen safety, parental-control, copyright, impersonation, harassment, self-harm, and appeal placeholders
+- support/help now includes report-bug, changelog, remote-config, feature-flag, and crash-reporting placeholders
 
 ## 10. UI and Theme Notes
 - the app uses Material 3
 - theme configuration is centralized in [`lib/core/theme/app_theme.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/theme/app_theme.dart)
 - theme switching is handled by [`lib/core/services/theme_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/theme_service.dart)
 - reusable widgets live under `lib/core/widgets`
+- several feature screens now use `Chip`, `ChoiceChip`, `ActionChip`, and card-based placeholder panels to stage future backend-connected product depth without changing the current structure
 
 ## 11. Testing and Analysis
 - [`analysis_options.yaml`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/analysis_options.yaml) uses Flutter lint defaults
 - automated coverage is still minimal
-- [`test/widget_test.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/test/widget_test.dart) contains a basic app bootstrap widget test
+- [`test/widget_test.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/test/widget_test.dart) contains a bootstrap widget test that now pumps through the splash timer before settling
 - `flutter analyze` passes with no issues as of March 24, 2026
+- `flutter test` passes as of March 24, 2026
 
 Useful commands:
 1. `flutter pub get`
@@ -391,11 +439,11 @@ Useful commands:
 - state management is intentionally mixed and not yet fully standardized
 - navigation is split between GetX named routes and direct `Navigator` pushes
 - connectivity, upload, deep links, analytics, notifications, and API services are mostly scaffolds
-- several feature modules are UI-first prototypes with limited business logic depth
+- many new social-media-grade features are present as durable local flows or UI placeholders awaiting real backend policy, search, messaging, recommendation, moderation, and media-processing services
 
 ## 13. Suggested Next Steps
 1. Connect high-value repositories to real API or local database implementations.
-2. Decide which flows should stay on `Navigator` and which should be consolidated into named GetX routes.
-3. Standardize state-management patterns where feature complexity is growing.
-4. Expand automated tests beyond bootstrap coverage.
-5. Review the broad route surface and confirm which modules are production-facing versus demo/prototype-only.
+2. Replace placeholder-only product depth with real backend-connected flows, especially in messaging, moderation, verification, discovery, and creator monetization.
+3. Decide which flows should stay on `Navigator` and which should be consolidated into named GetX routes.
+4. Standardize state-management patterns where feature complexity is growing.
+5. Expand automated tests beyond bootstrap coverage and add targeted tests for drafts, recommendation preferences, and richer profile/chat interactions.

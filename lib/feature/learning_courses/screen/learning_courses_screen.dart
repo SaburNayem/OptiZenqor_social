@@ -24,7 +24,9 @@ class LearningCoursesScreen extends StatelessWidget {
                     title: Text(course.title),
                     subtitle: Text(
                       'Lessons: ${course.lessons.length} • '
-                      'Progress ${(course.progress * 100).toStringAsFixed(0)}%',
+                      'Progress ${(course.progress * 100).toStringAsFixed(0)}%\n'
+                      'Instructor: ${course.instructor}\n'
+                      'Saved courses • ${course.certificateSummary} • ${course.quizSummary}',
                     ),
                   ),
                 ),

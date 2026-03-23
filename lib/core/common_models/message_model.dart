@@ -6,6 +6,10 @@ class MessageModel {
     required this.text,
     required this.timestamp,
     required this.read,
+    this.starred = false,
+    this.replyToMessageId,
+    this.deliveryState = 'delivered',
+    this.kind = 'text',
   });
 
   final String id;
@@ -14,4 +18,8 @@ class MessageModel {
   final String text;
   final DateTime timestamp;
   final bool read;
+  final bool starred;
+  final String? replyToMessageId;
+  final String deliveryState;
+  final String kind;
 }

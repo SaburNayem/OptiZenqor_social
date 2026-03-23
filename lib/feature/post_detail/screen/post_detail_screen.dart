@@ -94,6 +94,18 @@ class PostDetailScreen extends StatelessWidget {
                   Chip(
                     label: Text('Comments ${controller.detail.comments}'),
                   ),
+                  const SizedBox(width: 8),
+                  Chip(
+                    label: Text(
+                      'Shares ${MockData.posts.where((p) => p.id == controller.detail.id).firstOrNull?.shareCount ?? 0}',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Chip(
+                    label: Text(
+                      'Views ${FormatHelper.formatCompactNumber(MockData.posts.where((p) => p.id == controller.detail.id).firstOrNull?.viewCount ?? 0)}',
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -126,6 +138,7 @@ class PostDetailScreen extends StatelessWidget {
                     );
                   },
                   onLike: controller.toggleCommentLike,
+                  onReact: controller.toggleCommentReaction,
                   onEdit: (id, message) => controller.editComment(commentId: id, message: message),
                   onDelete: controller.deleteComment,
                   onReport: controller.reportComment,
@@ -207,6 +220,7 @@ class _CommentThreadTile extends StatelessWidget {
     required this.childrenResolver,
     required this.onReply,
     required this.onLike,
+    required this.onReact,
     required this.onEdit,
     required this.onDelete,
     required this.onReport,
@@ -218,6 +232,7 @@ class _CommentThreadTile extends StatelessWidget {
   final List<PostCommentModel> Function(String? parentId) childrenResolver;
   final void Function(PostCommentModel comment) onReply;
   final void Function(String id) onLike;
+  final void Function(String id, String reaction) onReact;
   final void Function(String id, String message) onEdit;
   final void Function(String id) onDelete;
   final void Function(String id) onReport;
@@ -256,11 +271,33 @@ class _CommentThreadTile extends StatelessWidget {
                         onPressed: () => onLike(comment.id),
                       ),
                       ActionChip(
+                        label: Text(
+                          'React ${comment.reactions.values.fold<int>(0, (sum, item) => sum + item)}',
+                        ),
+                        onPressed: () => onReact(comment.id, 'love'),
+                      ),
+                      ActionChip(
                         label: const Text('Reply'),
                         onPressed: () => onReply(comment),
                       ),
                     ],
                   ),
+                  if (comment.mentions.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Mentions: ${comment.mentions.map((item) => '@$item').join(', ')}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  if (comment.reactions.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      children: comment.reactions.entries
+                          .map((entry) => Chip(label: Text('${entry.key} ${entry.value}')))
+                          .toList(),
+                    ),
+                  ],
                 ],
               ),
               trailing: PopupMenuButton<String>(
@@ -315,6 +352,7 @@ class _CommentThreadTile extends StatelessWidget {
               depth: depth + 1,
               onReply: onReply,
               onLike: onLike,
+              onReact: onReact,
               onEdit: onEdit,
               onDelete: onDelete,
               onReport: onReport,

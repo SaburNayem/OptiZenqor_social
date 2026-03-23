@@ -31,6 +31,32 @@ class LiveStreamScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text('Viewers: ${live.viewerCount}'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: const [
+                  Chip(label: Text('Co-host placeholder')),
+                  Chip(label: Text('Guest request management')),
+                  Chip(label: Text('Live moderation')),
+                  Chip(label: Text('Mute/remove viewer')),
+                  Chip(label: Text('Title editing')),
+                  Chip(label: Text('Live gifts')),
+                  Chip(label: Text('Replay controls')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: Column(
+                  children: const [
+                    ListTile(
+                      leading: Icon(Icons.spatial_audio_off_outlined),
+                      title: Text('Audio room list'),
+                      subtitle: Text('Host/listener roles with join/leave controls'),
+                    ),
+                  ],
+                ),
+              ),
               ...live.comments.map(
                 (comment) => ListTile(
                   leading: const Icon(Icons.chat_bubble_outline),

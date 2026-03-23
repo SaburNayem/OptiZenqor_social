@@ -26,6 +26,7 @@ class PagesController extends ChangeNotifier {
         name: trimmed,
         about: 'New community page',
         posts: const <String>[],
+        category: 'Custom',
       ),
       ...pages,
     ];

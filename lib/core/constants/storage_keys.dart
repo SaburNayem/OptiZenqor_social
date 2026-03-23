@@ -23,6 +23,14 @@ class StorageKeys {
   static const verificationRequest = 'verification_request';
   static const blockedAccounts = 'blocked_accounts';
   static const mutedAccounts = 'muted_accounts';
+  static const mutedGroups = 'muted_groups';
   static const activeSessions = 'active_sessions';
   static const loginHistory = 'login_history';
+  static const recommendationPreferences = 'recommendation_preferences';
+  static const notePreferences = 'note_preferences';
+  static const postCreationSettings = 'post_creation_settings';
+  static const chatPreferences = 'chat_preferences';
+  static const dataExportRequests = 'data_export_requests';
+  static const hiddenWords = 'hidden_words';
+  static const contentSafetySettings = 'content_safety_settings';
 }

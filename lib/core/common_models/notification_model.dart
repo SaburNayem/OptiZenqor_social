@@ -8,6 +8,8 @@ class NotificationModel {
     required this.createdAt,
     required this.payload,
     this.unread = true,
+    this.actorName,
+    this.entityType = 'generic',
   });
 
   final String id;
@@ -16,4 +18,6 @@ class NotificationModel {
   final DateTime createdAt;
   final NotificationPayloadModel payload;
   final bool unread;
+  final String? actorName;
+  final String entityType;
 }

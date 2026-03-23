@@ -83,6 +83,28 @@ class UserProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Text(user.bio),
+            if (user.note != null && user.note!.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.edit_note_rounded),
+                  title: Text(user.note!),
+                  subtitle: Text('Note privacy: ${user.notePrivacy}'),
+                  trailing: const Chip(label: Text('Reply placeholder')),
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.verified_rounded, color: _controller.badgeColor()),
+                title: Text(_controller.verificationLabel()),
+                subtitle: Text('Role badge style: ${user.badgeStyle}'),
+                trailing: user.supporterBadge
+                    ? const Chip(label: Text('Supporter badge'))
+                    : null,
+              ),
+            ),
             const SizedBox(height: 14),
             Row(
               children: [
@@ -166,7 +188,7 @@ class UserProfileScreen extends StatelessWidget {
                   onSelected: (value) async {
                     if (value == 'copy_link') {
                       await Clipboard.setData(
-                        ClipboardData(text: 'https://optizenqor.app/@${user.username}'),
+                        ClipboardData(text: user.publicProfileUrl),
                       );
                       if (!context.mounted) {
                         return;
@@ -179,6 +201,7 @@ class UserProfileScreen extends StatelessWidget {
                       'copy_link' => 'Profile link copied',
                       'archive' => 'Archive opened',
                       'qr' => 'Profile QR opened',
+                      'preview' => 'Public profile preview opened',
                       'report' => 'Report submitted',
                       'block' => 'User blocked',
                       'mute' => 'User muted',
@@ -194,10 +217,12 @@ class UserProfileScreen extends StatelessWidget {
                         PopupMenuItem(value: 'copy_link', child: Text('Copy profile link')),
                         PopupMenuItem(value: 'archive', child: Text('Archive profile content')),
                         PopupMenuItem(value: 'qr', child: Text('Show profile QR')),
+                        PopupMenuItem(value: 'preview', child: Text('Public profile preview')),
                       ];
                     }
                     return const [
                       PopupMenuItem(value: 'copy_link', child: Text('Copy profile link')),
+                      PopupMenuItem(value: 'preview', child: Text('Public profile preview')),
                       PopupMenuItem(value: 'mute', child: Text('Mute user')),
                       PopupMenuItem(value: 'block', child: Text('Block user')),
                       PopupMenuItem(value: 'report', child: Text('Report profile')),
@@ -237,6 +262,36 @@ class UserProfileScreen extends StatelessWidget {
                 }).toList(),
               ),
             ],
+            if (_controller.pinnedPost != null) ...[
+              const SizedBox(height: 16),
+              Text('Pinned Post', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.push_pin_outlined),
+                  title: Text(
+                    _controller.pinnedPost!.caption,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${_controller.pinnedPost!.viewCount} views • ${_controller.pinnedPost!.shareCount} shares',
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            Text('Featured Content', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ..._controller.featuredPosts.map(
+              (post) => Card(
+                child: ListTile(
+                  leading: const Icon(Icons.star_border_rounded),
+                  title: Text(post.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text('${post.viewCount} views • ${post.shareCount} shares'),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
             Text('Highlights', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
@@ -311,6 +366,69 @@ class UserProfileScreen extends StatelessWidget {
               tabLabel: _controller.profileTabs[_controller.selectedTabIndex],
               posts: _controller.posts,
               reelCount: _controller.reelCount,
+            ),
+            const SizedBox(height: 16),
+            Text('Tagged & Mention History', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ..._controller.taggedPosts.map(
+              (item) => Card(
+                child: ListTile(
+                  leading: const Icon(Icons.alternate_email_rounded),
+                  title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: Text('${item.location ?? 'No location'} • Media ${item.mediaCount}'),
+                ),
+              ),
+            ),
+            ..._controller.mentionHistory.map(
+              (item) => Card(
+                child: ListTile(
+                  leading: const Icon(Icons.history_outlined),
+                  title: Text(item),
+                  subtitle: const Text('Mention history placeholder'),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('People You May Know', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ..._controller.suggestedContacts().map(
+              (item) => Card(
+                child: ListTile(
+                  title: Text(item.name),
+                  subtitle: Text('@${item.username} • Suggested contact'),
+                  trailing: const Chip(label: Text('Invite contacts')),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.download_outlined),
+                    title: const Text('Download my data'),
+                    subtitle: Text(_controller.accountExportMessage),
+                    onTap: () async {
+                      await _controller.requestDataExport();
+                    },
+                  ),
+                  const Divider(height: 1),
+                  const ListTile(
+                    leading: Icon(Icons.import_export_outlined),
+                    title: Text('Account data export placeholder'),
+                  ),
+                  const Divider(height: 1),
+                  const ListTile(
+                    leading: Icon(Icons.pause_circle_outline),
+                    title: Text('Deactivate account placeholder'),
+                  ),
+                  const Divider(height: 1),
+                  const ListTile(
+                    leading: Icon(Icons.delete_forever_outlined),
+                    title: Text('Delete account placeholder'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             Card(

@@ -90,6 +90,33 @@ class StoryViewScreen extends StatelessWidget {
               ),
             ),
           ),
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 20,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: const [
+                  Chip(label: Text('Story stickers')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Poll sticker')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Question sticker')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Emoji slider')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Mention sticker')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Location sticker')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Music sticker')),
+                  SizedBox(width: 8),
+                  Chip(label: Text('Link sticker')),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import '../../../core/common_models/load_state_model.dart';
 import '../../../core/common_models/post_model.dart';
@@ -30,6 +30,8 @@ class UserProfileController extends ChangeNotifier {
   String _viewedUserId = '';
   int selectedTabIndex = 0;
   bool _followInitialized = false;
+  bool showTaggedMedia = false;
+  String accountExportMessage = 'No export requested yet';
 
   bool get isOwnProfile {
     final currentUserId = _repository.getCurrentUserId();
@@ -37,7 +39,7 @@ class UserProfileController extends ChangeNotifier {
   }
 
   List<String> get profileTabs {
-    return <String>['Posts', 'Reels', ...roleSections()];
+    return <String>['Posts', 'Reels', 'Tagged Posts', 'Tagged Media', 'Mentions'];
   }
 
   bool get isFollowing {
@@ -98,6 +100,13 @@ class UserProfileController extends ChangeNotifier {
 
   int get postCount => posts.length;
   int get reelCount => reels.length;
+  PostModel? get pinnedPost => posts.isEmpty ? null : posts.first;
+  List<PostModel> get featuredPosts => posts.take(2).toList();
+  List<PostTagSummary> get taggedPosts => user == null
+      ? const <PostTagSummary>[]
+      : _repository.taggedPostSummaries(user!.id);
+  List<PostTagSummary> get taggedMedia => taggedPosts.where((item) => item.mediaCount > 0).toList();
+  List<String> get mentionHistory => user == null ? const <String>[] : _repository.mentionHistory(user!.id);
 
   List<String> get highlights => <String>[
         'Travel',
@@ -170,6 +179,49 @@ class UserProfileController extends ChangeNotifier {
     }
     await _followController.toggleFollow(current);
     notifyListeners();
+  }
+
+  Future<void> requestDataExport() async {
+    final current = user;
+    if (current == null) {
+      return;
+    }
+    final export = await _repository.buildDataExport(current);
+    accountExportMessage =
+        'Export requested at ${export['requestedAt']} for @${current.username}';
+    notifyListeners();
+  }
+
+  List<UserModel> suggestedContacts() {
+    final current = user;
+    return MockData.users
+        .where((item) => current == null || item.id != current.id)
+        .take(3)
+        .toList();
+  }
+
+  String verificationLabel() {
+    final current = user;
+    if (current == null) {
+      return 'Verification unavailable';
+    }
+    return '${current.verificationStatus.toUpperCase()} • ${current.verificationReason ?? 'No reason provided'}';
+  }
+
+  Color badgeColor() {
+    final current = user;
+    switch (current?.badgeStyle) {
+      case 'creator':
+        return const Color(0xFFEAB308);
+      case 'business':
+        return const Color(0xFF2563EB);
+      case 'seller':
+        return const Color(0xFF059669);
+      case 'recruiter':
+        return const Color(0xFF7C3AED);
+      default:
+        return const Color(0xFF6B7280);
+    }
   }
 
   List<String> roleSections() {

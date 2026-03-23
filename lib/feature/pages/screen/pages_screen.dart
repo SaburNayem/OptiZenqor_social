@@ -37,10 +37,17 @@ class PagesScreen extends StatelessWidget {
               (page) => Card(
                 child: ListTile(
                   title: Text(page.name),
-                  subtitle: Text('${page.about}\nPosts: ${page.posts.length}'),
+                  subtitle: Text(
+                    '${page.about}\n'
+                    'Category: ${page.category}\n'
+                    'Posts: ${page.posts.length}\n'
+                    '${page.reviewSummary}\n'
+                    '${page.visitorPostsSummary}\n'
+                    '${page.followersInsight}',
+                  ),
                   trailing: FilledButton(
                     onPressed: () => _controller.toggleFollow(page.id),
-                    child: Text(page.following ? 'Following' : 'Follow'),
+                    child: Text(page.following ? 'Following' : page.actionButtonLabel),
                   ),
                 ),
               ),

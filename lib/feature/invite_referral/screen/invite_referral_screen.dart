@@ -19,6 +19,25 @@ class InviteReferralScreen extends StatelessWidget {
           children: [
             Text(controller.model.benefit),
             const SizedBox(height: 12),
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Chip(label: Text('Referral status placeholder')),
+                    Chip(label: Text('Invite reward placeholder')),
+                    Chip(label: Text('Onboarding invite friends step')),
+                    Chip(label: Text('Streak placeholder')),
+                    Chip(label: Text('Achievement/badge placeholder')),
+                    Chip(label: Text('Onboarding milestone placeholder')),
+                    Chip(label: Text('Creator milestone placeholder')),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             SelectableText('Code: ${controller.model.inviteCode}'),
             const SizedBox(height: 14),
             Row(

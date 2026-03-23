@@ -40,10 +40,23 @@ class EventsScreen extends StatelessWidget {
               (event) => Card(
                 child: ListTile(
                   title: Text(event.title),
-                  subtitle: Text(event.date.toString()),
-                  trailing: FilledButton(
-                    onPressed: () => _controller.rsvp(event.id),
-                    child: Text(event.rsvped ? 'RSVPed' : 'RSVP'),
+                  subtitle: Text(
+                    '${event.date}\n'
+                    'Invite system • Share event • Save event\n'
+                    'Media gallery: ${event.mediaGallery.length} • ${event.hostToolsSummary}',
+                  ),
+                  trailing: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FilledButton(
+                        onPressed: () => _controller.rsvp(event.id),
+                        child: Text(event.rsvped ? 'RSVPed' : 'RSVP'),
+                      ),
+                      TextButton(
+                        onPressed: () => _controller.save(event.id),
+                        child: Text(event.saved ? 'Saved' : 'Save'),
+                      ),
+                    ],
                   ),
                 ),
               ),

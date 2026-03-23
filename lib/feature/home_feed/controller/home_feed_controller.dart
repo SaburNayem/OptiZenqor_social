@@ -27,6 +27,9 @@ class HomeFeedController extends GetxController {
   final Set<String> _hiddenPostIds = <String>{};
   final Set<String> _failedActionPostIds = <String>{};
   final Set<String> _likedPostIds = <String>{};
+  final Set<String> _lessLikeThisPostIds = <String>{};
+  final Set<String> _hiddenCreatorIds = <String>{};
+  final Set<String> _hiddenTopics = <String>{};
   final List<String> suggestedUsers = <String>['Maya', 'Rohan', 'Liam'];
   final List<String> suggestedGroups = <String>['Flutter Builders', 'Photo Club'];
   final List<String> suggestedPages = <String>['Travel Daily', 'Fitness Bites'];
@@ -43,6 +46,16 @@ class HomeFeedController extends GetxController {
     state = state.copyWith(isLoading: true, errorMessage: null);
     update();
     try {
+      final prefs = await _repository.readRecommendationPreferences();
+      _lessLikeThisPostIds
+        ..clear()
+        ..addAll(prefs['lessLikeThis'] ?? const <String>[]);
+      _hiddenCreatorIds
+        ..clear()
+        ..addAll(prefs['hiddenCreators'] ?? const <String>[]);
+      _hiddenTopics
+        ..clear()
+        ..addAll(prefs['hiddenTopics'] ?? const <String>[]);
       stories = await _repository.fetchStories();
       final FeedSegment segment = _segmentForTab(activeTab);
       posts = await _repository.fetchFeed(segment: segment, page: 1);
@@ -166,10 +179,42 @@ class HomeFeedController extends GetxController {
     update();
   }
 
+  Future<void> showLessLikeThis(String postId) async {
+    _lessLikeThisPostIds.add(postId);
+    await _persistRecommendationPreferences();
+    update();
+  }
+
+  Future<void> hideCreator(String authorId) async {
+    _hiddenCreatorIds.add(authorId);
+    _hiddenPostIds.addAll(
+      posts.where((item) => item.authorId == authorId).map((item) => item.id),
+    );
+    await _persistRecommendationPreferences();
+    update();
+  }
+
+  Future<void> hideTopic(String topic) async {
+    _hiddenTopics.add(topic);
+    _hiddenPostIds.addAll(
+      posts
+          .where((item) => item.tags.any((tag) => tag.toLowerCase() == topic.toLowerCase()))
+          .map((item) => item.id),
+    );
+    await _persistRecommendationPreferences();
+    update();
+  }
+
   Future<void> createLocalPost({
     required String caption,
     String? mediaUrl,
     bool isVideo = false,
+    String audience = 'Everyone',
+    String? location,
+    List<String> taggedPeople = const <String>[],
+    List<String> coAuthors = const <String>[],
+    String? altText,
+    List<String> editHistory = const <String>[],
   }) async {
     final text = caption.trim();
     if (text.isEmpty) {
@@ -194,6 +239,20 @@ class HomeFeedController extends GetxController {
       likes: 0,
       comments: 0,
       createdAt: DateTime.now(),
+      viewCount: 1,
+      shareCount: 0,
+      taggedUserIds: taggedPeople
+          .map((item) => item.replaceFirst('@', ''))
+          .where((item) => item.isNotEmpty)
+          .toList(),
+      mentionUsernames: coAuthors
+          .map((item) => item.replaceFirst('@', ''))
+          .where((item) => item.isNotEmpty)
+          .toList(),
+      location: location,
+      audience: audience,
+      altText: altText,
+      editHistory: editHistory,
     );
 
     posts = <PostModel>[post, ...posts];
@@ -221,5 +280,13 @@ class HomeFeedController extends GetxController {
     if (posts.isEmpty && !state.isLoading) {
       await loadInitial();
     }
+  }
+
+  Future<void> _persistRecommendationPreferences() {
+    return _repository.writeRecommendationPreferences(<String, List<String>>{
+      'lessLikeThis': _lessLikeThisPostIds.toList(),
+      'hiddenCreators': _hiddenCreatorIds.toList(),
+      'hiddenTopics': _hiddenTopics.toList(),
+    });
   }
 }

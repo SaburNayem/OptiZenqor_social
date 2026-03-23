@@ -55,6 +55,37 @@ class SupportHelpScreen extends StatelessWidget {
               },
               child: const Text('Send'),
             ),
+            const SizedBox(height: 16),
+            const Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.bug_report_outlined),
+                    title: Text('Feedback / report bug screen'),
+                  ),
+                  Divider(height: 1),
+                  ListTile(
+                    leading: Icon(Icons.new_releases_outlined),
+                    title: Text('Changelog screen'),
+                  ),
+                  Divider(height: 1),
+                  ListTile(
+                    leading: Icon(Icons.flag_outlined),
+                    title: Text('Remote config placeholder'),
+                  ),
+                  Divider(height: 1),
+                  ListTile(
+                    leading: Icon(Icons.toggle_on_outlined),
+                    title: Text('Feature flag placeholder'),
+                  ),
+                  Divider(height: 1),
+                  ListTile(
+                    leading: Icon(Icons.health_and_safety_outlined),
+                    title: Text('Crash reporting placeholder'),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

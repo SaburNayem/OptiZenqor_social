@@ -9,6 +9,13 @@ class ReelModel {
     required this.likes,
     required this.comments,
     required this.shares,
+    this.viewCount = 0,
+    this.coverUrl,
+    this.textOverlays = const <String>[],
+    this.subtitleEnabled = false,
+    this.trimInfo,
+    this.remixEnabled = false,
+    this.isDraft = false,
   });
 
   final String id;
@@ -20,4 +27,11 @@ class ReelModel {
   final int likes;
   final int comments;
   final int shares;
+  final int viewCount;
+  final String? coverUrl;
+  final List<String> textOverlays;
+  final bool subtitleEnabled;
+  final String? trimInfo;
+  final bool remixEnabled;
+  final bool isDraft;
 }

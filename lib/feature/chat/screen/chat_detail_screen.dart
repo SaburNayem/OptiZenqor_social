@@ -44,6 +44,8 @@ class ChatDetailScreen extends StatelessWidget {
 
   final ValueNotifier<List<MessageModel>> _messages;
   final TextEditingController _messageController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  final ValueNotifier<int?> _unreadMarkerIndex = ValueNotifier<int?>(2);
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +86,36 @@ class ChatDetailScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                hintText: 'Search in conversation',
+                prefixIcon: Icon(Icons.search),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Chip(label: Text('Media')),
+                SizedBox(width: 8),
+                Chip(label: Text('Docs')),
+                SizedBox(width: 8),
+                Chip(label: Text('Links')),
+                SizedBox(width: 8),
+                Chip(label: Text('Reply threading')),
+                SizedBox(width: 8),
+                Chip(label: Text('Disappearing messages')),
+                SizedBox(width: 8),
+                Chip(label: Text('Theme/wallpaper')),
+              ],
+            ),
+          ),
           Expanded(
             child: ValueListenableBuilder<List<MessageModel>>(
               valueListenable: _messages,
@@ -95,37 +127,54 @@ class ChatDetailScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final message = messages[messages.length - 1 - index];
                     final isMe = message.senderId == 'me';
-                    return Align(
-                      alignment:
-                          isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        constraints: const BoxConstraints(maxWidth: 280),
-                        decoration: BoxDecoration(
-                          color: isMe
-                              ? Theme.of(context).colorScheme.primaryContainer
-                              : Theme.of(context).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(message.text),
+                    return Column(
+                      children: [
+                        if (_unreadMarkerIndex.value == index)
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: Chip(label: Text('Unread marker jump')),
+                          ),
+                        Align(
+                          alignment:
+                              isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              FormatHelper.timeAgo(message.timestamp),
-                              style: Theme.of(context).textTheme.bodySmall,
+                            constraints: const BoxConstraints(maxWidth: 280),
+                            decoration: BoxDecoration(
+                              color: isMe
+                                  ? Theme.of(context).colorScheme.primaryContainer
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                          ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(message.text),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  FormatHelper.timeAgo(message.timestamp),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 6,
+                                  children: const [
+                                    Chip(label: Text('Star')),
+                                    Chip(label: Text('Reply')),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     );
                   },
                 );
@@ -141,6 +190,13 @@ class ChatDetailScreen extends StatelessWidget {
                   IconButton(
                     onPressed: () => _openAttachmentMenu(context),
                     icon: const Icon(Icons.add_circle_outline),
+                  ),
+                  IconButton(
+                    onPressed: () => _showFeedback(
+                      context,
+                      'Voice note recording placeholder',
+                    ),
+                    icon: const Icon(Icons.mic_none_rounded),
                   ),
                   Expanded(
                     child: TextField(
@@ -193,6 +249,14 @@ class ChatDetailScreen extends StatelessWidget {
                 leading: const Icon(Icons.location_on_outlined),
                 title: const Text('Location'),
                 onTap: () => _handleAttachmentAction(context, 'Live location shared'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.access_time_outlined),
+                title: const Text('Disappearing message timer'),
+                onTap: () => _handleAttachmentAction(
+                  context,
+                  'Disappearing messages placeholder',
+                ),
               ),
             ],
           ),

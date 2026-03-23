@@ -12,6 +12,14 @@ class UserModel {
     required this.following,
     this.isPrivate = false,
     this.verified = false,
+    this.verificationStatus = 'not_requested',
+    this.verificationReason,
+    this.badgeStyle = 'standard',
+    this.publicProfileUrl = '',
+    this.profilePreview = '',
+    this.note,
+    this.notePrivacy = 'followers',
+    this.supporterBadge = false,
   });
 
   final String id;
@@ -24,4 +32,12 @@ class UserModel {
   final int following;
   final bool isPrivate;
   final bool verified;
+  final String verificationStatus;
+  final String? verificationReason;
+  final String badgeStyle;
+  final String publicProfileUrl;
+  final String profilePreview;
+  final String? note;
+  final String notePrivacy;
+  final bool supporterBadge;
 }

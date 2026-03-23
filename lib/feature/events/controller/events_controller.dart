@@ -41,4 +41,15 @@ class EventsController extends ChangeNotifier {
         .toList();
     notifyListeners();
   }
+
+  void save(String id) {
+    events = events
+        .map(
+          (event) => event.id == id
+              ? event.copyWith(saved: !event.saved)
+              : event,
+        )
+        .toList();
+    notifyListeners();
+  }
 }

@@ -31,6 +31,17 @@ class HomeFeedRepository {
               'likes': p.likes,
               'comments': p.comments,
               'createdAt': p.createdAt.toIso8601String(),
+              'viewCount': p.viewCount,
+              'shareCount': p.shareCount,
+              'taggedUserIds': p.taggedUserIds,
+              'mentionUsernames': p.mentionUsernames,
+              'location': p.location,
+              'audience': p.audience,
+              'altText': p.altText,
+              'editHistory': p.editHistory,
+              'isSponsored': p.isSponsored,
+              'brandCollaborationLabel': p.brandCollaborationLabel,
+              'repostHistory': p.repostHistory,
             },
           )
           .toList(),
@@ -56,6 +67,17 @@ class HomeFeedRepository {
             likes: item['likes'] as int,
             comments: item['comments'] as int,
             createdAt: DateTime.parse(item['createdAt'] as String),
+            viewCount: item['viewCount'] as int? ?? 0,
+            shareCount: item['shareCount'] as int? ?? 0,
+            taggedUserIds: List<String>.from(item['taggedUserIds'] as List<dynamic>? ?? const <dynamic>[]),
+            mentionUsernames: List<String>.from(item['mentionUsernames'] as List<dynamic>? ?? const <dynamic>[]),
+            location: item['location'] as String?,
+            audience: item['audience'] as String? ?? 'Everyone',
+            altText: item['altText'] as String?,
+            editHistory: List<String>.from(item['editHistory'] as List<dynamic>? ?? const <dynamic>[]),
+            isSponsored: item['isSponsored'] as bool? ?? false,
+            brandCollaborationLabel: item['brandCollaborationLabel'] as String?,
+            repostHistory: List<String>.from(item['repostHistory'] as List<dynamic>? ?? const <dynamic>[]),
           ),
         )
         .toList();
@@ -64,5 +86,25 @@ class HomeFeedRepository {
   Future<List<StoryModel>> fetchStories() async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     return MockData.stories;
+  }
+
+  Future<Map<String, List<String>>> readRecommendationPreferences() async {
+    final raw = await _storage.readJson(StorageKeys.recommendationPreferences);
+    if (raw == null) {
+      return <String, List<String>>{
+        'lessLikeThis': <String>[],
+        'hiddenCreators': <String>[],
+        'hiddenTopics': <String>[],
+      };
+    }
+    return <String, List<String>>{
+      'lessLikeThis': List<String>.from(raw['lessLikeThis'] as List<dynamic>? ?? const <dynamic>[]),
+      'hiddenCreators': List<String>.from(raw['hiddenCreators'] as List<dynamic>? ?? const <dynamic>[]),
+      'hiddenTopics': List<String>.from(raw['hiddenTopics'] as List<dynamic>? ?? const <dynamic>[]),
+    };
+  }
+
+  Future<void> writeRecommendationPreferences(Map<String, List<String>> prefs) {
+    return _storage.writeJson(StorageKeys.recommendationPreferences, prefs);
   }
 }

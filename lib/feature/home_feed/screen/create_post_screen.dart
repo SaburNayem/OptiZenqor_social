@@ -6,17 +6,31 @@ import 'package:flutter/material.dart';
 import '../../../core/services/media_picker_service.dart';
 import '../../../core/services/upload_service.dart';
 import '../../../core/widgets/inline_video_player.dart';
+import '../../drafts_and_scheduling/model/draft_item_model.dart';
+import '../../drafts_and_scheduling/repository/drafts_and_scheduling_repository.dart';
 
 class CreatePostResult {
   const CreatePostResult({
     required this.caption,
     this.mediaUrl,
     this.isVideo = false,
+    this.audience = 'Everyone',
+    this.location,
+    this.taggedPeople = const <String>[],
+    this.coAuthors = const <String>[],
+    this.altText,
+    this.editHistory = const <String>[],
   });
 
   final String caption;
   final String? mediaUrl;
   final bool isVideo;
+  final String audience;
+  final String? location;
+  final List<String> taggedPeople;
+  final List<String> coAuthors;
+  final String? altText;
+  final List<String> editHistory;
 }
 
 class CreatePostScreen extends StatefulWidget {
@@ -29,9 +43,16 @@ class CreatePostScreen extends StatefulWidget {
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController _captionController = TextEditingController();
   final TextEditingController _mediaController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _tagPeopleController = TextEditingController();
+  final TextEditingController _coAuthorsController = TextEditingController();
+  final TextEditingController _altTextController = TextEditingController();
   final ValueNotifier<bool> _isVideo = ValueNotifier<bool>(false);
+  final ValueNotifier<String> _audience = ValueNotifier<String>('Everyone');
   final MediaPickerService _pickerService = MediaPickerService();
   final UploadService _uploadService = UploadService();
+  final DraftsAndSchedulingRepository _draftRepository =
+      DraftsAndSchedulingRepository();
 
   StreamSubscription<UploadProgress>? _uploadSubscription;
   String? _pickedPath;
@@ -45,7 +66,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     _uploadSubscription?.cancel();
     _captionController.dispose();
     _mediaController.dispose();
+    _locationController.dispose();
+    _tagPeopleController.dispose();
+    _coAuthorsController.dispose();
+    _altTextController.dispose();
     _isVideo.dispose();
+    _audience.dispose();
     super.dispose();
   }
 
@@ -55,6 +81,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       appBar: AppBar(
         title: const Text('Create Post'),
         actions: [
+          IconButton(
+            onPressed: _saveDraft,
+            icon: const Icon(Icons.save_outlined),
+            tooltip: 'Save draft',
+          ),
           TextButton(
             onPressed: () => _submit(context),
             child: const Text('Post'),
@@ -74,6 +105,85 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
           ),
           const SizedBox(height: 14),
+          ValueListenableBuilder<String>(
+            valueListenable: _audience,
+            builder: (context, audience, child) {
+              return DropdownButtonFormField<String>(
+                initialValue: audience,
+                decoration: const InputDecoration(
+                  labelText: 'Audience',
+                  border: OutlineInputBorder(),
+                ),
+                items: const <String>[
+                  'Everyone',
+                  'Followers',
+                  'Close Friends',
+                  'Subscribers',
+                ]
+                    .map(
+                      (value) => DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    _audience.value = value;
+                  }
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _locationController,
+            decoration: const InputDecoration(
+              labelText: 'Location tag',
+              hintText: 'Add location',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _tagPeopleController,
+            decoration: const InputDecoration(
+              labelText: 'Tag people',
+              hintText: '@username1, @username2',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _coAuthorsController,
+            decoration: const InputDecoration(
+              labelText: 'Co-authors',
+              hintText: '@collab.creator',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _altTextController,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'Alt text placeholder',
+              hintText: 'Describe the media for accessibility',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: const [
+              Chip(label: Text('Version history placeholder')),
+              Chip(label: Text('Collaborative post placeholder')),
+              Chip(label: Text('Edit history placeholder')),
+            ],
+          ),
+          const SizedBox(height: 14),
           ValueListenableBuilder<bool>(
             valueListenable: _isVideo,
             builder: (context, isVideo, _) {
@@ -84,7 +194,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ChoiceChip(
                         label: const Text('Photo'),
                         selected: !isVideo,
-                        onSelected: (_) {
+                        onSelected: (selected) {
                           _isVideo.value = false;
                         },
                       ),
@@ -92,7 +202,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ChoiceChip(
                         label: const Text('Video'),
                         selected: isVideo,
-                        onSelected: (_) {
+                        onSelected: (selected) {
                           _isVideo.value = true;
                         },
                       ),
@@ -179,9 +289,80 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             icon: const Icon(Icons.send_rounded),
             label: const Text('Post Now'),
           ),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    'Story and Reel Creation Depth',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Chip(label: Text('Story stickers')),
+                      Chip(label: Text('Poll sticker')),
+                      Chip(label: Text('Question sticker')),
+                      Chip(label: Text('Emoji slider')),
+                      Chip(label: Text('Mention sticker')),
+                      Chip(label: Text('Location sticker')),
+                      Chip(label: Text('Music sticker')),
+                      Chip(label: Text('Link sticker')),
+                      Chip(label: Text('Reel audio attach')),
+                      Chip(label: Text('Text overlays')),
+                      Chip(label: Text('Captions placeholder')),
+                      Chip(label: Text('Trim/crop placeholder')),
+                      Chip(label: Text('Cover selection')),
+                      Chip(label: Text('Remix/duet placeholder')),
+                      Chip(label: Text('Save reel draft')),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _saveDraft() async {
+    final title = _captionController.text.trim().isEmpty
+        ? 'Untitled draft'
+        : _captionController.text.trim();
+    await _draftRepository.write(<DraftItemModel>[
+      DraftItemModel(
+        id: 'draft_${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        type: _isVideo.value ? PublishType.reel : PublishType.post,
+        audience: _audience.value,
+        location: _locationController.text.trim().isEmpty
+            ? null
+            : _locationController.text.trim(),
+        taggedPeople: _splitCsv(_tagPeopleController.text),
+        coAuthors: _splitCsv(_coAuthorsController.text),
+        altText: _altTextController.text.trim().isEmpty
+            ? null
+            : _altTextController.text.trim(),
+        versionHistory: const <String>[
+          'Initial draft saved locally',
+          'Version history placeholder',
+        ],
+        editHistory: const <String>['Draft saved from composer'],
+      ),
+      ...await _draftRepository.read(),
+    ]);
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Draft saved locally')));
   }
 
   Future<void> _pickMedia() async {
@@ -273,7 +454,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         caption: caption,
         mediaUrl: _uploadedRemotePath ?? (_mediaController.text.trim().isEmpty ? null : _mediaController.text.trim()),
         isVideo: _isVideo.value,
+        audience: _audience.value,
+        location: _locationController.text.trim().isEmpty ? null : _locationController.text.trim(),
+        taggedPeople: _splitCsv(_tagPeopleController.text),
+        coAuthors: _splitCsv(_coAuthorsController.text),
+        altText: _altTextController.text.trim().isEmpty ? null : _altTextController.text.trim(),
+        editHistory: const <String>[
+          'Created from composer',
+          'Post edit history placeholder',
+        ],
       ),
     );
+  }
+
+  List<String> _splitCsv(String value) {
+    return value
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
   }
 }

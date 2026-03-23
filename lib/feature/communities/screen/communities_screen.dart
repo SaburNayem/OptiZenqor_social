@@ -34,14 +34,44 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
       appBar: AppBar(title: const Text('Communities')),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _items.length,
+        itemCount: _items.length + 1,
         itemBuilder: (context, index) {
-          final item = _items[index];
+          if (index == 0) {
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Owner/Admin Moderation',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Chip(label: Text('Pin announcement')),
+                        Chip(label: Text('Approve join requests')),
+                        Chip(label: Text('Remove member')),
+                        Chip(label: Text('Assign group role')),
+                        Chip(label: Text('Mute member')),
+                        Chip(label: Text('Rule management')),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          final item = _items[index - 1];
           final joined = _joinedIds.contains(item.id);
           return Card(
             child: ListTile(
               title: Text(item.name),
-              subtitle: Text(item.description),
+              subtitle: Text('${item.description}\nRising community placeholder'),
               trailing: FilledButton(
                 onPressed: () {
                   setState(() {

@@ -149,6 +149,57 @@ class HomeFeedScreen extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.tune_outlined),
+              title: const Text('Show less like this'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                await _controller.showLessLikeThis(postId);
+                if (!context.mounted) {
+                  return;
+                }
+                _showFeedback(context, 'Recommendation feedback saved');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_off_outlined),
+              title: const Text('Hide creator'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final post = _controller.posts.where((item) => item.id == postId).firstOrNull;
+                if (post != null) {
+                  await _controller.hideCreator(post.authorId);
+                }
+                if (!context.mounted) {
+                  return;
+                }
+                _showFeedback(context, 'Creator hidden from recommendations');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.topic_outlined),
+              title: const Text('Hide topic'),
+              onTap: () async {
+                Navigator.of(context).pop();
+                final post = _controller.posts.where((item) => item.id == postId).firstOrNull;
+                final topic = post?.tags.firstOrNull;
+                if (topic != null) {
+                  await _controller.hideTopic(topic);
+                }
+                if (!context.mounted) {
+                  return;
+                }
+                _showFeedback(context, 'Topic hidden from recommendations');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('Why am I seeing this?'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showFeedback(context, 'Recommendation explanation placeholder');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.flag_outlined),
               title: const Text('Report'),
               onTap: () {
@@ -199,6 +250,12 @@ class HomeFeedScreen extends StatelessWidget {
       caption: result.caption,
       mediaUrl: result.mediaUrl,
       isVideo: result.isVideo,
+      audience: result.audience,
+      location: result.location,
+      taggedPeople: result.taggedPeople,
+      coAuthors: result.coAuthors,
+      altText: result.altText,
+      editHistory: result.editHistory,
     );
 
     if (!context.mounted) {

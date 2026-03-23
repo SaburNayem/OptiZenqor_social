@@ -6,6 +6,7 @@ import '../../../core/common_models/reel_model.dart';
 class ReelsController extends ChangeNotifier {
   List<ReelModel> reels = <ReelModel>[];
   final Set<String> _likedReelIds = <String>{};
+  final Set<String> _savedDraftIds = <String>{};
   final Map<String, int> _extraCommentCount = <String, int>{};
   final Map<String, int> _extraShareCount = <String, int>{};
 
@@ -24,6 +25,7 @@ class ReelsController extends ChangeNotifier {
       reel.comments + (_extraCommentCount[reel.id] ?? 0);
 
   int shareCount(ReelModel reel) => reel.shares + (_extraShareCount[reel.id] ?? 0);
+  bool isSavedDraft(String reelId) => _savedDraftIds.contains(reelId);
 
   void toggleLike(String reelId) {
     if (_likedReelIds.contains(reelId)) {
@@ -41,6 +43,15 @@ class ReelsController extends ChangeNotifier {
 
   void addShare(String reelId) {
     _extraShareCount[reelId] = (_extraShareCount[reelId] ?? 0) + 1;
+    notifyListeners();
+  }
+
+  void toggleSavedDraft(String reelId) {
+    if (_savedDraftIds.contains(reelId)) {
+      _savedDraftIds.remove(reelId);
+    } else {
+      _savedDraftIds.add(reelId);
+    }
     notifyListeners();
   }
 }

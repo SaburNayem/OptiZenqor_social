@@ -70,6 +70,33 @@ class ReelsScreen extends StatelessWidget {
                         reel.audioName,
                         style: const TextStyle(color: Colors.white70),
                       ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          Chip(
+                            label: Text(
+                              '${FormatHelper.formatCompactNumber(reel.viewCount)} views',
+                            ),
+                          ),
+                          if (reel.coverUrl != null)
+                            const Chip(label: Text('Cover selected')),
+                          if (reel.subtitleEnabled)
+                            const Chip(label: Text('Captions placeholder')),
+                          if (reel.trimInfo != null)
+                            Chip(label: Text('Trim ${reel.trimInfo}')),
+                          if (reel.textOverlays.isNotEmpty)
+                            const Chip(label: Text('Text overlays')),
+                          Chip(
+                            label: Text(
+                              reel.remixEnabled
+                                  ? 'Remix enabled'
+                                  : 'Remix placeholder',
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -108,8 +135,39 @@ class ReelsScreen extends StatelessWidget {
                             ..hideCurrentSnackBar()
                             ..showSnackBar(
                               const SnackBar(content: Text('Reel shared')),
+                          );
+                        },
+                      ),
+                      _ReelAction(
+                        icon: _controller.isSavedDraft(reel.id)
+                            ? Icons.bookmark
+                            : Icons.bookmark_border,
+                        label: 0,
+                        onTap: () {
+                          _controller.toggleSavedDraft(reel.id);
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text('Reel draft/save placeholder updated'),
+                              ),
                             );
                         },
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton.tonal(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context)
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Audio attach, subtitles, cover, and duet tools are prepared as placeholders',
+                                ),
+                              ),
+                            );
+                        },
+                        child: const Text('Create Tools'),
                       ),
                     ],
                   ),
