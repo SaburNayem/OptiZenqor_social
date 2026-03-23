@@ -18,7 +18,7 @@ class SettingsScreen extends StatelessWidget {
         children: [
           ValueListenableBuilder<ThemeMode>(
             valueListenable: ThemeService.instance.mode,
-            builder: (_, mode, __) {
+            builder: (_, mode, _) {
               return ListTile(
                 title: const Text('Theme mode'),
                 subtitle: Text(mode.name),

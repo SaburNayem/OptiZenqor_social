@@ -24,7 +24,7 @@ class _SafetyPrivacyScreenState extends State<SafetyPrivacyScreen> {
       appBar: AppBar(title: const Text('Safety & Privacy')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) {
+        builder: (_, _) {
           final settings = _controller.settings;
           return ListView(
             children: [

@@ -201,6 +201,10 @@ class HomeFeedScreen extends StatelessWidget {
       isVideo: result.isVideo,
     );
 
+    if (!context.mounted) {
+      return;
+    }
+
     _showFeedback(context, 'Post created');
   }
 }

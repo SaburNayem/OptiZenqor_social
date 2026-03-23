@@ -57,7 +57,7 @@ class StoryViewScreen extends StatelessWidget {
                   child: Image.network(
                     story.media,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) {
+                    errorBuilder: (_, _, _) {
                       return const Text(
                         'Unable to load story media',
                         style: TextStyle(color: Colors.white),

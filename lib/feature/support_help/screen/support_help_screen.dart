@@ -17,7 +17,7 @@ class SupportHelpScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Support & Help')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
             const Text('FAQ', style: TextStyle(fontWeight: FontWeight.w700)),

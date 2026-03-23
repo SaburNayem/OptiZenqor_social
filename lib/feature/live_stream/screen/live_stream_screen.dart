@@ -15,7 +15,7 @@ class LiveStreamScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Live Stream')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) {
+        builder: (_, _) {
           final live = _controller.live;
           if (live == null) {
             return const Center(child: CircularProgressIndicator());

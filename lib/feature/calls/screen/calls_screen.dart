@@ -16,7 +16,7 @@ class CallsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Calls')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) {
+        builder: (_, _) {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: <Widget>[

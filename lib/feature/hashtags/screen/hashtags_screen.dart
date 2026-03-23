@@ -15,7 +15,7 @@ class HashtagsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Hashtags')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
             TextField(

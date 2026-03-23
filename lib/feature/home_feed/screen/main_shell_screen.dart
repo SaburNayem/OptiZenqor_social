@@ -98,7 +98,7 @@ class MainShellScreen extends StatelessWidget {
             children: [
               AnimatedBuilder(
                 animation: _connectivity,
-                builder: (_, __) {
+                builder: (_, _) {
                   if (_connectivity.isOnline) {
                     return const SizedBox.shrink();
                   }

@@ -15,7 +15,7 @@ class PollsSurveysScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Polls & Surveys')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) {
+        builder: (_, _) {
           final poll = _controller.poll;
           if (poll == null) {
             return const Center(child: CircularProgressIndicator());

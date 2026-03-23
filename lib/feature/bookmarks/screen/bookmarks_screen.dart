@@ -16,7 +16,7 @@ class BookmarksScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Bookmarks')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
             Wrap(

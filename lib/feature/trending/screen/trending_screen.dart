@@ -16,7 +16,7 @@ class TrendingScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Trending')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
             _TrendingSection(title: 'Posts', items: _controller.posts),

@@ -245,7 +245,7 @@ class UserProfileScreen extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _controller.highlights.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (_, index) {
                   final title = _controller.highlights[index];
                   return _HighlightItem(title: title);
@@ -295,7 +295,7 @@ class UserProfileScreen extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _controller.profileTabs.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (_, index) {
                   final selected = index == _controller.selectedTabIndex;
                   return ChoiceChip(

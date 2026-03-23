@@ -15,7 +15,7 @@ class BusinessProfileScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Business Profile')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) {
+        builder: (_, _) {
           final profile = _controller.profile;
           if (profile == null) {
             return const Center(child: CircularProgressIndicator());

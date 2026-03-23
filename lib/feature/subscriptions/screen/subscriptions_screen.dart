@@ -13,7 +13,7 @@ class SubscriptionsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Subscriptions')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: _controller.plans
               .map(

@@ -15,7 +15,7 @@ class LearningCoursesScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Learning Courses')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: _controller.courses
               .map(

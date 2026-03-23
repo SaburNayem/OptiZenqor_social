@@ -16,7 +16,7 @@ class GroupChatScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Group Chat')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
             Row(

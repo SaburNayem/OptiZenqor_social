@@ -32,7 +32,7 @@ class _SavedCollectionsScreenState extends State<SavedCollectionsScreen> {
       appBar: AppBar(title: const Text('Saved Collections')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) => ListView(
+        builder: (_, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
             Row(

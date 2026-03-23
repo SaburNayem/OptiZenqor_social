@@ -12,7 +12,7 @@ class OptiZenqorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: ThemeService.instance.mode,
-      builder: (_, mode, __) {
+      builder: (_, mode, _) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'OptiZenqor Social',
