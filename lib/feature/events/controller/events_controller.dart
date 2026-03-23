@@ -1,27 +1,44 @@
 import 'package:flutter/foundation.dart';
 
-import '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport 'ryimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport 'ryimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../n(import '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mimport 'ryimport '../mimport '../mimport '../mimport '../mimport '../mimport '../mi
-import '../controller/events_controller.dart';
+import '../model/event_item_model.dart';
+import '../repository/events_repository.dart';
 
-class EventsScreen extends StatelessWidget {
-  EventsScreen({super.key}) { _controller.load(); }
-  final EventsController _controller = EventsController();
-  final TextEditingController _title = TextEditingController();
+class EventsController extends ChangeNotifier {
+  EventsController({EventsRepository? repository})
+      : _repository = repository ?? EventsRepository();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Events')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, __) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(children: [Expanded(child: TextField(controller: _title, decoration: const InputDecoration(hintText: 'Create event'))), IconButton(onPressed: () => _controller.create(_title.text), icon: const Icon(Icons.event_available_outlined))]),
-            ..._controller.events.map((e) => Card(child: ListTile(title: Text(e.title), subtitle: Text(e.date.toString()), trailing: FilledButton(onPressed: () => _controller.rsvp(e.id), child: Text(e.rsvped ? 'RSVPed' : 'RSVP'))))),
-          ],
-        ),
+  final EventsRepository _repository;
+  List<EventItemModel> events = <EventItemModel>[];
+
+  void load() {
+    events = _repository.load();
+    notifyListeners();
+  }
+
+  void create(String title) {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+    events = <EventItemModel>[
+      EventItemModel(
+        id: 'e_${DateTime.now().millisecondsSinceEpoch}',
+        title: trimmed,
+        date: DateTime.now().add(const Duration(days: 7)),
       ),
-    );
+      ...events,
+    ];
+    notifyListeners();
+  }
+
+  void rsvp(String id) {
+    events = events
+        .map(
+          (event) => event.id == id
+              ? event.copyWith(rsvped: !event.rsvped)
+              : event,
+        )
+        .toList();
+    notifyListeners();
   }
 }

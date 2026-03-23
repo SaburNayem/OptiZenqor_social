@@ -4,33 +4,28 @@ import '../model/hashtag_model.dart';
 import '../repository/hashtags_repository.dart';
 
 class HashtagsController extends ChangeNotifier {
-  HashtagsController({HashtagsRepository? repository}) : _repository = repository ?? HashtagsRepository();
+  HashtagsController({HashtagsRepository? repository})
+      : _repository = repository ?? HashtagsRepository();
+
   final HashtagsRepository _repository;
-  final HashtagsRepository _repository;
-? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository})re? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository})re? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovis? repository}) : _repositovishtags_screen.dart <<'EOF'
-import 'package:flutter/material.dart';
+  List<HashtagModel> _all = <HashtagModel>[];
+  List<HashtagModel> visible = <HashtagModel>[];
 
-import '../controller/hashtags_controller.dart';
+  void load() {
+    _all = _repository.trending();
+    visible = List<HashtagModel>.from(_all);
+    notifyListeners();
+  }
 
-class HashtagsScreen extends StatelessWidget {
-  HashtagsScreen({super.key}) { _controller.load(); }
-  final HashtagsController _controller = HashtagsController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Hashtags')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, __) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextField(onChanged: _controller.search, decoration: const InputDecoration(hintText: 'Search hashtags')),
-            const SizedBox(height: 8),
-            ..._controller.visible.map((h) => Card(child: ListTile(title: Text(h.tag), subtitle: Text('${h.count} posts')))),
-          ],
-        ),
-      ),
-    );
+  void search(String query) {
+    final normalized = query.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      visible = List<HashtagModel>.from(_all);
+    } else {
+      visible = _all
+          .where((tag) => tag.tag.toLowerCase().contains(normalized))
+          .toList();
+    }
+    notifyListeners();
   }
 }
