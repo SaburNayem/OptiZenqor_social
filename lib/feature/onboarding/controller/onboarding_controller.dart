@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/analytics_service.dart';
 import '../../../route/route_names.dart';
+import '../repository/onboarding_repository.dart';
 
 class OnboardingController {
+  OnboardingController({
+    OnboardingRepository? repository,
+    AnalyticsService? analyticsService,
+  }) : _repository = repository ?? OnboardingRepository(),
+       _analyticsService = analyticsService ?? AnalyticsService();
+
   final PageController pageController = PageController();
+  final OnboardingRepository _repository;
+  final AnalyticsService _analyticsService;
   int index = 0;
 
   bool get isLast => index == 2;
@@ -13,8 +23,12 @@ class OnboardingController {
     onChanged();
   }
 
-  void next(BuildContext context, VoidCallback onChanged) {
+  Future<void> next(BuildContext context, VoidCallback onChanged) async {
     if (isLast) {
+      await _finish();
+      if (!context.mounted) {
+        return;
+      }
       Navigator.of(context).pushReplacementNamed(RouteNames.login);
       return;
     }
@@ -26,8 +40,17 @@ class OnboardingController {
     onChanged();
   }
 
-  void skip(BuildContext context) {
+  Future<void> skip(BuildContext context) async {
+    await _finish();
+    if (!context.mounted) {
+      return;
+    }
     Navigator.of(context).pushReplacementNamed(RouteNames.login);
+  }
+
+  Future<void> _finish() async {
+    await _repository.complete();
+    await _analyticsService.onboardingCompleted();
   }
 
   void dispose() {

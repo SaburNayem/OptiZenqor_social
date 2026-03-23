@@ -3,10 +3,19 @@ import 'package:get/get.dart';
 
 import '../../../../core/common_models/form_state_model.dart';
 import '../../../../core/enums/user_role.dart';
+import '../../../../core/services/analytics_service.dart';
 import '../../../../route/route_names.dart';
+import '../../repository/auth_repository.dart';
 
 class LoginController extends ChangeNotifier {
-  LoginController();
+  LoginController({
+    AuthRepository? authRepository,
+    AnalyticsService? analyticsService,
+  }) : _authRepository = authRepository ?? AuthRepository(),
+       _analyticsService = analyticsService ?? AnalyticsService();
+
+  final AuthRepository _authRepository;
+  final AnalyticsService _analyticsService;
 
   FormStateModel formState = const FormStateModel();
   UserRole selectedRole = UserRole.user;
@@ -15,6 +24,11 @@ class LoginController extends ChangeNotifier {
     formState = formState.copyWith(isSubmitting: true, errorMessage: null);
     notifyListeners();
     try {
+      await _authRepository.login(selectedRole);
+      await _analyticsService.logEvent(
+        'login_success',
+        params: <String, dynamic>{'role': selectedRole.name},
+      );
       formState = formState.copyWith(
         isSubmitting: false,
         successMessage: 'Login successful',

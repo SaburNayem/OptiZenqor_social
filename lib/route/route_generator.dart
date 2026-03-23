@@ -83,9 +83,9 @@ class RouteGenerator {
       case RouteNames.passwordSecurity:
         return _buildRoute(const PasswordSecurityScreen(), settings);
       case RouteNames.devicesSessions:
-        return _buildRoute(const DevicesSessionsScreen(), settings);
+        return _buildRoute(DevicesSessionsScreen(), settings);
       case RouteNames.blockedUsers:
-        return _buildRoute(const BlockedUsersScreen(), settings);
+        return _buildRoute(BlockedUsersScreen(), settings);
       case RouteNames.languageAccessibility:
         return _buildRoute(const LanguageAccessibilityScreen(), settings);
       case RouteNames.draftsScheduling:
@@ -113,7 +113,7 @@ class RouteGenerator {
       case RouteNames.reportCenter:
         return _buildRoute(ReportCenterScreen(), settings);
       case RouteNames.activitySessions:
-        return _buildRoute(const ActivitySessionsScreen(), settings);
+        return _buildRoute(ActivitySessionsScreen(), settings);
       case RouteNames.deepLinkHandler:
         return _buildRoute(const DeepLinkHandlerScreen(), settings);
       case RouteNames.appUpdateFlow:
@@ -135,9 +135,7 @@ class RouteGenerator {
       default:
         return _buildRoute(
           Scaffold(
-            body: Center(
-              child: Text('No route found for ${settings.name}'),
-            ),
+            body: Center(child: Text('No route found for ${settings.name}')),
           ),
           settings,
         );
@@ -148,9 +146,6 @@ class RouteGenerator {
     Widget page,
     RouteSettings settings,
   ) {
-    return MaterialPageRoute<dynamic>(
-      builder: (_) => page,
-      settings: settings,
-    );
+    return MaterialPageRoute<dynamic>(builder: (_) => page, settings: settings);
   }
 }

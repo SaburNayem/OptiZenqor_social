@@ -6,8 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalStorageService {
   SharedPreferences? _prefs;
   bool _initialized = false;
-  // Keep app interactions working while avoiding device persistence.
-  static const bool _persistDataOnDevice = false;
+  // Persist app state locally while keeping a safe in-memory fallback.
+  static const bool _persistDataOnDevice = true;
   bool _pluginAvailable = true;
   final Map<String, dynamic> _memoryStore = <String, dynamic>{};
 
@@ -121,7 +121,10 @@ class LocalStorageService {
     await _prefs!.setString(key, jsonEncode(value));
   }
 
-  Future<void> writeJsonList(String key, List<Map<String, dynamic>> value) async {
+  Future<void> writeJsonList(
+    String key,
+    List<Map<String, dynamic>> value,
+  ) async {
     await init();
     if (!_pluginAvailable || _prefs == null) {
       _memoryStore[key] = value;

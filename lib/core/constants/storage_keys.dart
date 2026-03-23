@@ -18,4 +18,11 @@ class StorageKeys {
   static const uploadTasks = 'upload_tasks';
   static const callHistory = 'call_history';
   static const groupChats = 'group_chats';
+  static const activeAccountId = 'active_account_id';
+  static const linkedAccounts = 'linked_accounts';
+  static const verificationRequest = 'verification_request';
+  static const blockedAccounts = 'blocked_accounts';
+  static const mutedAccounts = 'muted_accounts';
+  static const activeSessions = 'active_sessions';
+  static const loginHistory = 'login_history';
 }

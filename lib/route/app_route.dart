@@ -97,13 +97,16 @@ class AppRoute {
   static const String uploadManager = RouteNames.uploadManager;
   static const String offlineSync = RouteNames.offlineSync;
   static const String verificationRequest = RouteNames.verificationRequest;
-  static const String personalizationOnboarding = RouteNames.personalizationOnboarding;
-  static const String advancedPrivacyControls = RouteNames.advancedPrivacyControls;
+  static const String personalizationOnboarding =
+      RouteNames.personalizationOnboarding;
+  static const String advancedPrivacyControls =
+      RouteNames.advancedPrivacyControls;
   static const String shareRepostSystem = RouteNames.shareRepostSystem;
   static const String mediaViewer = RouteNames.mediaViewer;
   static const String postDetail = RouteNames.postDetail;
   static const String accountSwitching = RouteNames.accountSwitching;
-  static const String pushNotificationPreferences = RouteNames.pushNotificationPreferences;
+  static const String pushNotificationPreferences =
+      RouteNames.pushNotificationPreferences;
   static const String reportCenter = RouteNames.reportCenter;
   static const String activitySessions = RouteNames.activitySessions;
   static const String deepLinkHandler = RouteNames.deepLinkHandler;
@@ -160,30 +163,54 @@ class AppRoute {
     // Settings Sub Routes
     GetPage(name: accountSettings, page: () => const AccountSettingsScreen()),
     GetPage(name: passwordSecurity, page: () => const PasswordSecurityScreen()),
-    GetPage(name: devicesSessions, page: () => const DevicesSessionsScreen()),
-    GetPage(name: blockedUsers, page: () => const BlockedUsersScreen()),
-    GetPage(name: languageAccessibility, page: () => const LanguageAccessibilityScreen()),
+    GetPage(name: devicesSessions, page: () => DevicesSessionsScreen()),
+    GetPage(name: blockedUsers, page: () => BlockedUsersScreen()),
+    GetPage(
+      name: languageAccessibility,
+      page: () => const LanguageAccessibilityScreen(),
+    ),
 
     // Advanced
     GetPage(name: draftsScheduling, page: () => DraftsAndSchedulingScreen()),
     GetPage(name: uploadManager, page: () => UploadManagerScreen()),
     GetPage(name: offlineSync, page: () => OfflineSyncScreen()),
     GetPage(name: verificationRequest, page: () => VerificationRequestScreen()),
-    GetPage(name: personalizationOnboarding, page: () => PersonalizationOnboardingScreen()),
-    GetPage(name: advancedPrivacyControls, page: () => AdvancedPrivacyControlsScreen()),
-    GetPage(name: shareRepostSystem, page: () => const ShareRepostSystemScreen()),
+    GetPage(
+      name: personalizationOnboarding,
+      page: () => PersonalizationOnboardingScreen(),
+    ),
+    GetPage(
+      name: advancedPrivacyControls,
+      page: () => AdvancedPrivacyControlsScreen(),
+    ),
+    GetPage(
+      name: shareRepostSystem,
+      page: () => const ShareRepostSystemScreen(),
+    ),
     GetPage(name: mediaViewer, page: () => const MediaViewerScreen()),
     GetPage(name: postDetail, page: () => PostDetailScreen()),
     GetPage(name: accountSwitching, page: () => AccountSwitchingScreen()),
-    GetPage(name: pushNotificationPreferences, page: () => PushNotificationPreferencesScreen()),
+    GetPage(
+      name: pushNotificationPreferences,
+      page: () => PushNotificationPreferencesScreen(),
+    ),
     GetPage(name: reportCenter, page: () => ReportCenterScreen()),
-    GetPage(name: activitySessions, page: () => const ActivitySessionsScreen()),
+    GetPage(name: activitySessions, page: () => ActivitySessionsScreen()),
     GetPage(name: deepLinkHandler, page: () => const DeepLinkHandlerScreen()),
     GetPage(name: appUpdateFlow, page: () => AppUpdateFlowScreen()),
     GetPage(name: localizationSupport, page: () => LocalizationSupportScreen()),
-    GetPage(name: accessibilitySupport, page: () => AccessibilitySupportScreen()),
-    GetPage(name: exploreRecommendation, page: () => const ExploreRecommendationScreen()),
-    GetPage(name: blockedMutedAccounts, page: () => BlockedMutedAccountsScreen()),
+    GetPage(
+      name: accessibilitySupport,
+      page: () => AccessibilitySupportScreen(),
+    ),
+    GetPage(
+      name: exploreRecommendation,
+      page: () => const ExploreRecommendationScreen(),
+    ),
+    GetPage(
+      name: blockedMutedAccounts,
+      page: () => BlockedMutedAccountsScreen(),
+    ),
     GetPage(name: maintenanceMode, page: () => MaintenanceModeScreen()),
     GetPage(name: inviteReferral, page: () => const InviteReferralScreen()),
     GetPage(name: legalCompliance, page: () => LegalComplianceScreen()),
@@ -205,16 +232,15 @@ class AppRoute {
     GetPage(name: learningCourses, page: () => LearningCoursesScreen()),
     GetPage(name: pollsSurveys, page: () => PollsSurveysScreen()),
     GetPage(name: supportHelp, page: () => SupportHelpScreen()),
-    GetPage(name: userProfile, page: () => UserProfileScreen(userId: Get.parameters['id'])),
+    GetPage(
+      name: userProfile,
+      page: () => UserProfileScreen(userId: Get.parameters['id']),
+    ),
     GetPage(name: chat, page: () => ChatScreen()),
   ];
 
   static final GetPage<dynamic> unknownRoute = GetPage<dynamic>(
     name: '/not-found',
-    page: () => const Scaffold(
-      body: Center(
-        child: Text('Route not found'),
-      ),
-    ),
+    page: () => const Scaffold(body: Center(child: Text('Route not found'))),
   );
 }

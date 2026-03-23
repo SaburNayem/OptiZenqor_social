@@ -66,10 +66,7 @@ class OnboardingScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          slide.subtitle,
-                          textAlign: TextAlign.center,
-                        ),
+                        Text(slide.subtitle, textAlign: TextAlign.center),
                       ],
                     );
                   },
@@ -105,8 +102,8 @@ class OnboardingScreen extends StatelessWidget {
                   final isLast = activeIndex == _slides.length - 1;
                   return AppButton(
                     label: isLast ? 'Get Started' : 'Continue',
-                    onPressed: () {
-                      _controller.next(context, () {});
+                    onPressed: () async {
+                      await _controller.next(context, () {});
                       if (!isLast) {
                         _index.value = activeIndex + 1;
                       }
