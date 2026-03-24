@@ -22,6 +22,19 @@ class RouteNames {
   static const blockedUsers = '/settings/blocked-users';
   static const languageAccessibility = '/settings/language-accessibility';
   static const archiveCenter = '/settings/archive-center';
+  static const privacySettings = '/settings/privacy';
+  static const notificationsSettings = '/settings/notifications';
+  static const messagesCallsSettings = '/settings/messages-calls';
+  static const feedContentPreferences = '/settings/feed-content-preferences';
+  static const creatorToolsSettings = '/settings/creator-tools';
+  static const monetizationPayments = '/settings/monetization-payments';
+  static const communitiesGroups = '/settings/communities-groups';
+  static const dataPrivacyCenter = '/settings/data-privacy-center';
+  static const accessibilitySettings = '/settings/accessibility';
+  static const languageRegion = '/settings/language-region';
+  static const connectedApps = '/settings/connected-apps';
+  static const helpSafety = '/settings/help-safety';
+  static const aboutSettings = '/settings/about';
 
   static const draftsScheduling = '/drafts-scheduling';
   static const drafts = '/drafts';

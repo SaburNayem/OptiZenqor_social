@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../core/services/media_picker_service.dart';
 import '../../../core/services/upload_service.dart';
@@ -475,10 +476,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ..showSnackBar(const SnackBar(content: Text('Please write something first')));
       return;
     }
-    Navigator.of(context).pop(
-      CreatePostResult(
+    Get.back(
+      result: CreatePostResult(
         caption: caption,
-        mediaUrl: _uploadedRemotePath ?? (_mediaController.text.trim().isEmpty ? null : _mediaController.text.trim()),
+        mediaUrl:
+            _uploadedRemotePath ?? (_mediaController.text.trim().isEmpty ? null : _mediaController.text.trim()),
         isVideo: _isVideo.value,
         audience: _audience.value,
         location: _locationController.text.trim().isEmpty ? null : _locationController.text.trim(),

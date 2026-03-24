@@ -49,11 +49,24 @@ import '../feature/saved_collections/screen/saved_collections_screen.dart';
 import '../feature/search_discovery/screen/search_discovery_screen.dart';
 import '../feature/home_feed/screen/main_shell_screen.dart';
 import '../feature/settings/screen/account_settings_screen.dart';
+import '../feature/settings/screen/about_settings_screen.dart';
+import '../feature/settings/screen/accessibility_settings_screen.dart';
 import '../feature/settings/screen/archive_center_screen.dart';
 import '../feature/settings/screen/blocked_users_screen.dart';
+import '../feature/settings/screen/communities_groups_settings_screen.dart';
+import '../feature/settings/screen/connected_apps_screen.dart';
+import '../feature/settings/screen/creator_tools_settings_screen.dart';
+import '../feature/settings/screen/data_privacy_center_screen.dart';
 import '../feature/settings/screen/devices_sessions_screen.dart';
+import '../feature/settings/screen/feed_content_preferences_screen.dart';
+import '../feature/settings/screen/help_safety_settings_screen.dart';
 import '../feature/settings/screen/language_accessibility_screen.dart';
+import '../feature/settings/screen/language_region_settings_screen.dart';
+import '../feature/settings/screen/messages_calls_settings_screen.dart';
+import '../feature/settings/screen/monetization_payments_settings_screen.dart';
+import '../feature/settings/screen/notifications_settings_screen.dart';
 import '../feature/settings/screen/password_security_screen.dart';
+import '../feature/settings/screen/privacy_settings_screen.dart';
 import '../feature/settings/screen/settings_screen.dart';
 import '../feature/share_repost_system/screen/share_repost_system_screen.dart';
 import '../feature/splash/screen/splash_screen.dart';
@@ -95,6 +108,19 @@ class AppRoute {
   static const String blockedUsers = RouteNames.blockedUsers;
   static const String languageAccessibility = RouteNames.languageAccessibility;
   static const String archiveCenter = RouteNames.archiveCenter;
+  static const String privacySettings = RouteNames.privacySettings;
+  static const String notificationsSettings = RouteNames.notificationsSettings;
+  static const String messagesCallsSettings = RouteNames.messagesCallsSettings;
+  static const String feedContentPreferences = RouteNames.feedContentPreferences;
+  static const String creatorToolsSettings = RouteNames.creatorToolsSettings;
+  static const String monetizationPayments = RouteNames.monetizationPayments;
+  static const String communitiesGroups = RouteNames.communitiesGroups;
+  static const String dataPrivacyCenter = RouteNames.dataPrivacyCenter;
+  static const String accessibilitySettings = RouteNames.accessibilitySettings;
+  static const String languageRegion = RouteNames.languageRegion;
+  static const String connectedApps = RouteNames.connectedApps;
+  static const String helpSafety = RouteNames.helpSafety;
+  static const String aboutSettings = RouteNames.aboutSettings;
 
   // Advanced
   static const String draftsScheduling = RouteNames.draftsScheduling;
@@ -172,6 +198,46 @@ class AppRoute {
     GetPage(name: devicesSessions, page: () => DevicesSessionsScreen()),
     GetPage(name: blockedUsers, page: () => BlockedUsersScreen()),
     GetPage(name: archiveCenter, page: () => const ArchiveCenterScreen()),
+    GetPage(name: privacySettings, page: () => const PrivacySettingsScreen()),
+    GetPage(
+      name: notificationsSettings,
+      page: () => const NotificationsSettingsScreen(),
+    ),
+    GetPage(
+      name: messagesCallsSettings,
+      page: () => const MessagesCallsSettingsScreen(),
+    ),
+    GetPage(
+      name: feedContentPreferences,
+      page: () => const FeedContentPreferencesScreen(),
+    ),
+    GetPage(
+      name: creatorToolsSettings,
+      page: () => const CreatorToolsSettingsScreen(),
+    ),
+    GetPage(
+      name: monetizationPayments,
+      page: () => const MonetizationPaymentsSettingsScreen(),
+    ),
+    GetPage(
+      name: communitiesGroups,
+      page: () => const CommunitiesGroupsSettingsScreen(),
+    ),
+    GetPage(
+      name: dataPrivacyCenter,
+      page: () => const DataPrivacyCenterScreen(),
+    ),
+    GetPage(
+      name: accessibilitySettings,
+      page: () => const AccessibilitySettingsScreen(),
+    ),
+    GetPage(
+      name: languageRegion,
+      page: () => const LanguageRegionSettingsScreen(),
+    ),
+    GetPage(name: connectedApps, page: () => const ConnectedAppsScreen()),
+    GetPage(name: helpSafety, page: () => const HelpSafetySettingsScreen()),
+    GetPage(name: aboutSettings, page: () => const AboutSettingsScreen()),
     GetPage(
       name: languageAccessibility,
       page: () => const LanguageAccessibilityScreen(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/common_data/mock_data.dart';
+import '../../../core/enums/user_role.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../../route/route_names.dart';
 import '../../chat/screen/chat_screen.dart';
@@ -28,6 +29,14 @@ class MainShellScreen extends StatelessWidget {
     'Settings',
   ];
 
+  final List<Widget> _tabs = [
+    HomeFeedScreen(),
+    ReelsScreen(),
+    ChatScreen(),
+    UserProfileScreen(),
+    const SettingsScreen(showAppBar: false),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final currentUser = MockData.users.first;
@@ -36,7 +45,7 @@ class MainShellScreen extends StatelessWidget {
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
-            title: Text('OptiZenqor • ${_tabTitles[controller.index]}'),
+            title: Text('OptiZenqor - ${_tabTitles[controller.index]}'),
             actions: <Widget>[
               if (controller.index == 0)
                 IconButton(
@@ -75,9 +84,36 @@ class MainShellScreen extends StatelessWidget {
                       parameters: {'id': currentUser.id},
                     ),
                   ),
-                  const ListTile(
-                    title: Text('Feature Hub'),
-                    subtitle: Text('Quick access to core modules'),
+                  const _DrawerSectionHeader(
+                    title: 'Create',
+                    subtitle: 'Quick create actions',
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.add_box_outlined),
+                    title: const Text('New post'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _openCreateScreen(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.drafts_rounded),
+                    title: const Text('Drafts'),
+                    onTap: () => Get.toNamed(RouteNames.drafts),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.schedule_rounded),
+                    title: const Text('Scheduling'),
+                    onTap: () => Get.toNamed(RouteNames.scheduling),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_upload_rounded),
+                    title: const Text('Upload manager'),
+                    onTap: () => Get.toNamed(RouteNames.uploadManager),
+                  ),
+                  const _DrawerSectionHeader(
+                    title: 'Discover',
+                    subtitle: 'Communities and marketplace',
                   ),
                   ListTile(
                     leading: const Icon(Icons.groups_rounded),
@@ -99,34 +135,41 @@ class MainShellScreen extends StatelessWidget {
                     title: const Text('Marketplace'),
                     onTap: () => Get.toNamed(RouteNames.marketplace),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.insights_rounded),
-                    title: const Text('Creator Dashboard'),
-                    onTap: () => Get.toNamed(RouteNames.creatorDashboard),
+                  const _DrawerSectionHeader(
+                    title: 'Growth',
+                    subtitle: 'Creator and professional tools',
                   ),
+                  if (currentUser.role != UserRole.user &&
+                      currentUser.role != UserRole.guest)
+                    ListTile(
+                      leading: const Icon(Icons.insights_rounded),
+                      title: const Text('Creator dashboard'),
+                      onTap: () => Get.toNamed(RouteNames.creatorDashboard),
+                    ),
+                  if (currentUser.role != UserRole.user &&
+                      currentUser.role != UserRole.guest)
+                    ListTile(
+                      leading: const Icon(Icons.workspace_premium_rounded),
+                      title: const Text('Premium plans'),
+                      onTap: () => Get.toNamed(RouteNames.premium),
+                    ),
                   ListTile(
-                    leading: const Icon(Icons.workspace_premium_rounded),
-                    title: const Text('Premium Plans'),
-                    onTap: () => Get.toNamed(RouteNames.premium),
+                    leading: const Icon(Icons.account_balance_wallet_outlined),
+                    title: const Text('Wallet & payments'),
+                    onTap: () => Get.toNamed(RouteNames.walletPayments),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.drafts_rounded),
-                    title: const Text('Drafts'),
-                    onTap: () => Get.toNamed(RouteNames.drafts),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.schedule_rounded),
-                    title: const Text('Scheduling'),
-                    onTap: () => Get.toNamed(RouteNames.scheduling),
+                  const _DrawerSectionHeader(
+                    title: 'Library',
+                    subtitle: 'Saved content and history',
                   ),
                   ListTile(
                     leading: const Icon(Icons.bookmark_outline_rounded),
-                    title: const Text('Saved Posts'),
+                    title: const Text('Saved posts'),
                     onTap: () => Get.toNamed(RouteNames.bookmarks),
                   ),
                   ListTile(
                     leading: const Icon(Icons.archive_outlined),
-                    title: const Text('Archived Posts'),
+                    title: const Text('Archived posts'),
                     onTap: () => Get.toNamed(RouteNames.archiveCenter),
                   ),
                   ListTile(
@@ -136,13 +179,8 @@ class MainShellScreen extends StatelessWidget {
                   ),
                   ListTile(
                     leading: const Icon(Icons.live_tv_outlined),
-                    title: const Text('Live Stream'),
+                    title: const Text('Live stream'),
                     onTap: () => Get.toNamed(RouteNames.liveStream),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.cloud_upload_rounded),
-                    title: const Text('Upload Manager'),
-                    onTap: () => Get.toNamed(RouteNames.uploadManager),
                   ),
                 ],
               ),
@@ -175,9 +213,9 @@ class MainShellScreen extends StatelessWidget {
                 },
               ),
               Expanded(
-                child: KeyedSubtree(
-                  key: ValueKey<int>(controller.index),
-                  child: _buildCurrentTab(controller.index),
+                child: IndexedStack(
+                  index: controller.index,
+                  children: _tabs,
                 ),
               ),
             ],
@@ -199,32 +237,32 @@ class MainShellScreen extends StatelessWidget {
   }
 
   Future<void> _openCreateScreen(BuildContext context) async {
-    final CreatePostResult? result = await Navigator.of(context).push<CreatePostResult>(
-      MaterialPageRoute<CreatePostResult>(
-        builder: (_) => CreatePostScreen(),
-      ),
-    );
+    final CreatePostResult? result =
+        await Get.to<CreatePostResult>(() => const CreatePostScreen());
     if (result != null && context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(const SnackBar(content: Text('Post created')));
     }
   }
+}
 
-  Widget _buildCurrentTab(int index) {
-    switch (index) {
-      case 0:
-        return HomeFeedScreen();
-      case 1:
-        return ReelsScreen();
-      case 2:
-        return ChatScreen();
-      case 3:
-        return UserProfileScreen();
-      case 4:
-        return const SettingsScreen(showAppBar: false);
-      default:
-        return HomeFeedScreen();
-    }
+class _DrawerSectionHeader extends StatelessWidget {
+  const _DrawerSectionHeader({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+      ),
+      subtitle: Text(subtitle),
+    );
   }
 }
