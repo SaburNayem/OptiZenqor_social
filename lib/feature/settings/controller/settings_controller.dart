@@ -28,12 +28,8 @@ class SettingsController {
       routeName: RouteNames.accountSwitching,
     ),
     SettingsItemModel(
-      title: 'Drafts and scheduling',
-      routeName: RouteNames.draftsScheduling,
-    ),
-    SettingsItemModel(
-      title: 'Upload manager',
-      routeName: RouteNames.uploadManager,
+      title: 'My archive',
+      routeName: RouteNames.archiveCenter,
     ),
     SettingsItemModel(
       title: 'Offline sync',
@@ -84,36 +80,12 @@ class SettingsController {
       routeName: RouteNames.appUpdateFlow,
     ),
     SettingsItemModel(
-      title: 'Blocked users',
-      routeName: RouteNames.blockedUsers,
-    ),
-    SettingsItemModel(
       title: 'Language and accessibility',
       routeName: RouteNames.languageAccessibility,
     ),
     SettingsItemModel(
       title: 'Devices and sessions',
       routeName: RouteNames.devicesSessions,
-    ),
-    SettingsItemModel(
-      title: 'Group chat',
-      routeName: RouteNames.groupChat,
-    ),
-    SettingsItemModel(
-      title: 'Calls',
-      routeName: RouteNames.calls,
-    ),
-    SettingsItemModel(
-      title: 'Groups',
-      routeName: RouteNames.groups,
-    ),
-    SettingsItemModel(
-      title: 'Pages',
-      routeName: RouteNames.pages,
-    ),
-    SettingsItemModel(
-      title: 'Hashtags',
-      routeName: RouteNames.hashtags,
     ),
     SettingsItemModel(
       title: 'Trending',
@@ -128,28 +100,12 @@ class SettingsController {
       routeName: RouteNames.businessProfile,
     ),
     SettingsItemModel(
-      title: 'Bookmarks',
-      routeName: RouteNames.bookmarks,
-    ),
-    SettingsItemModel(
-      title: 'Saved collections',
-      routeName: RouteNames.savedCollections,
-    ),
-    SettingsItemModel(
       title: 'Wallet',
       routeName: RouteNames.walletPayments,
     ),
     SettingsItemModel(
       title: 'Subscriptions',
       routeName: RouteNames.subscriptions,
-    ),
-    SettingsItemModel(
-      title: 'Events',
-      routeName: RouteNames.events,
-    ),
-    SettingsItemModel(
-      title: 'Live stream',
-      routeName: RouteNames.liveStream,
     ),
     SettingsItemModel(
       title: 'Safety and privacy',

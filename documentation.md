@@ -108,7 +108,7 @@ Examples:
 - [`lib/route/route_generator.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/route_generator.dart): legacy `MaterialPageRoute` mapper for selected routes
 
 ### 5.2 Registered GetX routes
-[`lib/route/app_route.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_route.dart) currently contains 61 `GetPage` entries, including the unknown-route fallback.
+[`lib/route/app_route.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_route.dart) currently contains 64 `GetPage` entries, including the unknown-route fallback.
 
 Main named routes:
 - `/`
@@ -130,7 +130,10 @@ Main named routes:
 - `/settings/devices-sessions`
 - `/settings/blocked-users`
 - `/settings/language-accessibility`
+- `/settings/archive-center`
 - `/drafts-scheduling`
+- `/drafts`
+- `/scheduling`
 - `/upload-manager`
 - `/offline-sync`
 - `/verification-request`
@@ -202,6 +205,7 @@ These modules are still used by the app, but they are reached through tabs, nest
 [`lib/feature/home_feed/screen/main_shell_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/home_feed/screen/main_shell_screen.dart) is the primary post-login container. It includes:
 - an app bar with contextual tab title
 - a drawer-based feature hub
+- a profile header at the top of the drawer showing the signed-in user's avatar, name, and username
 - an offline banner area
 - a bottom `NavigationBar`
 
@@ -214,16 +218,26 @@ Bottom tabs:
 
 Drawer shortcuts:
 - Communities
+- Groups
+- Pages
 - Marketplace
 - Creator Dashboard
 - Premium Plans
-- Drafts & Scheduling
+- Drafts
+- Scheduling
+- Saved Posts
+- Archived Posts
+- Events
+- Live Stream
 - Upload Manager
 
 App bar actions:
 - create button on the home tab only
 - search
 - notifications
+
+The Settings tab is intentionally narrower than the drawer. It now focuses on account, privacy, system, archive, recommendation, and support surfaces rather than acting as a catch-all feature directory.
+The drawer header also links directly to the user profile screen.
 
 ### 6.3 Home feed
 [`lib/feature/home_feed/screen/home_feed_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/home_feed/screen/home_feed_screen.dart) includes:
@@ -250,10 +264,16 @@ Related creation surfaces now also expose placeholders for:
 - story stickers, polls, question stickers, emoji sliders, mentions, locations, music, and links
 - reel audio attach, text overlays, captions, trim/crop, cover selection, remix/duet, and draft-save flows
 
+The drafts/scheduling area is now split into distinct screens:
+- drafts show incomplete unpublished compositions
+- scheduling shows created posts or reels scheduled for future upload
+- the legacy `/drafts-scheduling` route remains as a lightweight hub entry point
+
 ### 6.5 Chat and profile flows
-- [`lib/feature/chat/screen/chat_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_screen.dart) renders inbox conversations with pinned, archived, unread, retry, notes/status UI, and message-request placeholders.
+- [`lib/feature/chat/screen/chat_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_screen.dart) renders inbox conversations with a dedicated `Chat` header, a three-dot overflow menu, pinned, archived, unread, retry, notes/status UI, and message-request/spam-message placeholders.
 - [`lib/feature/chat/screen/chat_detail_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_detail_screen.dart) adds in-conversation search, media/docs/links tabs, unread-marker jump UI, voice-note placeholder, disappearing-message placeholder, and star/reply-thread placeholders.
 - [`lib/feature/user_profile/screen/user_profile_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/user_profile/screen/user_profile_screen.dart) now supports verification state, role-based badges, public profile sharing, QR/profile-preview placeholders, notes, pinned and featured content, tagged-content history, suggested contacts, and account-center export/deactivation placeholders.
+- [`lib/feature/settings/screen/archive_center_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/settings/screen/archive_center_screen.dart) shows archived posts as profile-hidden content for the signed-in user, separate from saved posts.
 
 ### 6.6 Discovery, pages, communities, and engagement
 - [`lib/feature/search_discovery/screen/search_discovery_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/search_discovery/screen/search_discovery_screen.dart) now includes advanced entity filters, suggestion groups, trending search terms, hashtag-detail placeholders, recommendation-feedback sections, and richer explore sections.
@@ -292,6 +312,11 @@ Notable repository additions and deepened local flows include:
 - [`lib/feature/drafts_and_scheduling/repository/drafts_and_scheduling_repository.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/drafts_and_scheduling/repository/drafts_and_scheduling_repository.dart) for durable local draft storage
 - expanded feed preference persistence for recommendation controls
 - expanded profile export caching and data-export request logging
+
+Current local content-state split:
+- drafts are incomplete unpublished items
+- scheduling items are authored posts or reels with a non-null scheduled upload time
+- archived posts are treated separately from saved posts/bookmarks
 
 ### 7.3 Local storage
 [`lib/core/services/local_storage_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/local_storage_service.dart) supports `SharedPreferences` storage with an in-memory fallback.

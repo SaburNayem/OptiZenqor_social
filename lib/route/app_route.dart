@@ -19,6 +19,8 @@ import '../feature/communities/screen/communities_screen.dart';
 import '../feature/creator_tools/screen/creator_dashboard_screen.dart';
 import '../feature/deep_link_handler/screen/deep_link_handler_screen.dart';
 import '../feature/drafts_and_scheduling/screen/drafts_and_scheduling_screen.dart';
+import '../feature/drafts_and_scheduling/screen/drafts_screen.dart';
+import '../feature/drafts_and_scheduling/screen/scheduling_screen.dart';
 import '../feature/events/screen/events_screen.dart';
 import '../feature/explore_recommendation/screen/explore_recommendation_screen.dart';
 import '../feature/group_chat/screen/group_chat_screen.dart';
@@ -47,6 +49,7 @@ import '../feature/saved_collections/screen/saved_collections_screen.dart';
 import '../feature/search_discovery/screen/search_discovery_screen.dart';
 import '../feature/home_feed/screen/main_shell_screen.dart';
 import '../feature/settings/screen/account_settings_screen.dart';
+import '../feature/settings/screen/archive_center_screen.dart';
 import '../feature/settings/screen/blocked_users_screen.dart';
 import '../feature/settings/screen/devices_sessions_screen.dart';
 import '../feature/settings/screen/language_accessibility_screen.dart';
@@ -91,9 +94,12 @@ class AppRoute {
   static const String devicesSessions = RouteNames.devicesSessions;
   static const String blockedUsers = RouteNames.blockedUsers;
   static const String languageAccessibility = RouteNames.languageAccessibility;
+  static const String archiveCenter = RouteNames.archiveCenter;
 
   // Advanced
   static const String draftsScheduling = RouteNames.draftsScheduling;
+  static const String drafts = RouteNames.drafts;
+  static const String scheduling = RouteNames.scheduling;
   static const String uploadManager = RouteNames.uploadManager;
   static const String offlineSync = RouteNames.offlineSync;
   static const String verificationRequest = RouteNames.verificationRequest;
@@ -165,6 +171,7 @@ class AppRoute {
     GetPage(name: passwordSecurity, page: () => const PasswordSecurityScreen()),
     GetPage(name: devicesSessions, page: () => DevicesSessionsScreen()),
     GetPage(name: blockedUsers, page: () => BlockedUsersScreen()),
+    GetPage(name: archiveCenter, page: () => const ArchiveCenterScreen()),
     GetPage(
       name: languageAccessibility,
       page: () => const LanguageAccessibilityScreen(),
@@ -172,6 +179,8 @@ class AppRoute {
 
     // Advanced
     GetPage(name: draftsScheduling, page: () => DraftsAndSchedulingScreen()),
+    GetPage(name: drafts, page: () => DraftsScreen()),
+    GetPage(name: scheduling, page: () => SchedulingScreen()),
     GetPage(name: uploadManager, page: () => UploadManagerScreen()),
     GetPage(name: offlineSync, page: () => OfflineSyncScreen()),
     GetPage(name: verificationRequest, page: () => VerificationRequestScreen()),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/common_data/mock_data.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../../route/route_names.dart';
 import '../../chat/screen/chat_screen.dart';
@@ -29,6 +30,8 @@ class MainShellScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = MockData.users.first;
+
     return GetBuilder<MainShellController>(
       builder: (controller) {
         return Scaffold(
@@ -56,6 +59,22 @@ class MainShellScreen extends StatelessWidget {
             child: SafeArea(
               child: ListView(
                 children: <Widget>[
+                  UserAccountsDrawerHeader(
+                    currentAccountPicture: CircleAvatar(
+                      backgroundImage: NetworkImage(currentUser.avatar),
+                    ),
+                    accountName: Text(currentUser.name),
+                    accountEmail: Text('@${currentUser.username}'),
+                    otherAccountsPictures: const [
+                      CircleAvatar(
+                        child: Icon(Icons.keyboard_arrow_right_rounded),
+                      ),
+                    ],
+                    onDetailsPressed: () => Get.toNamed(
+                      RouteNames.userProfile,
+                      parameters: {'id': currentUser.id},
+                    ),
+                  ),
                   const ListTile(
                     title: Text('Feature Hub'),
                     subtitle: Text('Quick access to core modules'),
@@ -64,6 +83,16 @@ class MainShellScreen extends StatelessWidget {
                     leading: const Icon(Icons.groups_rounded),
                     title: const Text('Communities'),
                     onTap: () => Get.toNamed(RouteNames.communities),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.group_work_outlined),
+                    title: const Text('Groups'),
+                    onTap: () => Get.toNamed(RouteNames.groups),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.pages_outlined),
+                    title: const Text('Pages'),
+                    onTap: () => Get.toNamed(RouteNames.pages),
                   ),
                   ListTile(
                     leading: const Icon(Icons.storefront_rounded),
@@ -82,8 +111,33 @@ class MainShellScreen extends StatelessWidget {
                   ),
                   ListTile(
                     leading: const Icon(Icons.drafts_rounded),
-                    title: const Text('Drafts & Scheduling'),
-                    onTap: () => Get.toNamed(RouteNames.draftsScheduling),
+                    title: const Text('Drafts'),
+                    onTap: () => Get.toNamed(RouteNames.drafts),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.schedule_rounded),
+                    title: const Text('Scheduling'),
+                    onTap: () => Get.toNamed(RouteNames.scheduling),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.bookmark_outline_rounded),
+                    title: const Text('Saved Posts'),
+                    onTap: () => Get.toNamed(RouteNames.bookmarks),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.archive_outlined),
+                    title: const Text('Archived Posts'),
+                    onTap: () => Get.toNamed(RouteNames.archiveCenter),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.event_outlined),
+                    title: const Text('Events'),
+                    onTap: () => Get.toNamed(RouteNames.events),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.live_tv_outlined),
+                    title: const Text('Live Stream'),
+                    onTap: () => Get.toNamed(RouteNames.liveStream),
                   ),
                   ListTile(
                     leading: const Icon(Icons.cloud_upload_rounded),

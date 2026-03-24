@@ -11,24 +11,29 @@ class DraftsAndSchedulingRepository {
   Future<List<DraftItemModel>> read() async {
     final items = await _storage.readJsonList(StorageKeys.draftPosts);
     if (items.isEmpty) {
-      return const <DraftItemModel>[
-        DraftItemModel(
+      return <DraftItemModel>[
+        const DraftItemModel(
           id: 'd1',
-          title: 'Weekend photo dump',
+          title: 'Weekend photo dump draft',
           type: PublishType.post,
           audience: 'Followers',
           location: 'Dhaka, Bangladesh',
           taggedPeople: <String>['@nexa.studio'],
+          altText: 'Incomplete carousel draft from creator meetup',
           versionHistory: <String>['v1 moodboard', 'v2 caption polish'],
-          editHistory: <String>['Audience changed to Followers'],
+          editHistory: <String>['Audience changed to Followers', 'Still incomplete'],
         ),
         DraftItemModel(
-          id: 'd2',
-          title: 'Creator tip reel',
+          id: 's1',
+          title: 'Creator tip reel scheduled upload',
           type: PublishType.reel,
+          scheduledAt: DateTime(2026, 3, 25, 18, 30),
           audience: 'Everyone',
+          location: 'Creator Studio',
           coAuthors: <String>['@mayaquinn'],
+          altText: 'Scheduled creator tips reel for tomorrow evening',
           versionHistory: <String>['Hook rewrite', 'Cover updated'],
+          editHistory: <String>['Scheduled for creator upload window'],
         ),
       ];
     }

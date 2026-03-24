@@ -21,8 +21,11 @@ class RouteNames {
   static const devicesSessions = '/settings/devices-sessions';
   static const blockedUsers = '/settings/blocked-users';
   static const languageAccessibility = '/settings/language-accessibility';
+  static const archiveCenter = '/settings/archive-center';
 
   static const draftsScheduling = '/drafts-scheduling';
+  static const drafts = '/drafts';
+  static const scheduling = '/scheduling';
   static const uploadManager = '/upload-manager';
   static const offlineSync = '/offline-sync';
   static const verificationRequest = '/verification-request';

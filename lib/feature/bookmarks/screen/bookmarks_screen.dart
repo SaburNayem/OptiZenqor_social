@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/common_data/mock_data.dart';
 import '../controller/bookmarks_controller.dart';
 import '../model/bookmark_item_model.dart';
 
@@ -25,9 +26,9 @@ class BookmarksScreen extends StatelessWidget {
               children: <Widget>[
                 FilledButton(
                   onPressed: () => _controller.save(
-                    const BookmarkItemModel(
-                      id: 'post_1',
-                      title: 'Saved post',
+                    BookmarkItemModel(
+                      id: MockData.posts[1].id,
+                      title: MockData.posts[1].caption,
                       type: BookmarkType.post,
                     ),
                   ),
@@ -35,9 +36,9 @@ class BookmarksScreen extends StatelessWidget {
                 ),
                 FilledButton(
                   onPressed: () => _controller.save(
-                    const BookmarkItemModel(
-                      id: 'reel_1',
-                      title: 'Saved reel',
+                    BookmarkItemModel(
+                      id: MockData.posts[2].id,
+                      title: MockData.posts[2].caption,
                       type: BookmarkType.reel,
                     ),
                   ),
@@ -56,24 +57,42 @@ class BookmarksScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            const Card(
+              child: ListTile(
+                leading: Icon(Icons.bookmark_added_outlined),
+                title: Text('Saved Posts'),
+                subtitle: Text('This section shows other people\'s posts you saved.'),
+              ),
+            ),
+            const SizedBox(height: 12),
             if (_controller.items.isEmpty)
               const Card(
                 child: ListTile(
                   title: Text('No bookmarks yet'),
-                  subtitle: Text('Save a post, reel, or product to see it here.'),
+                  subtitle: Text('Save another user\'s post, reel, or product to see it here.'),
                 ),
               ),
             ..._controller.items.map(
-              (item) => Card(
-                child: ListTile(
-                  title: Text(item.title),
-                  subtitle: Text(item.type.name),
-                  trailing: IconButton(
-                    onPressed: () => _controller.remove(item.id),
-                    icon: const Icon(Icons.delete_outline),
+              (item) {
+                final post = MockData.posts.where((p) => p.id == item.id).firstOrNull;
+                final author = post == null
+                    ? null
+                    : MockData.users.where((u) => u.id == post.authorId).firstOrNull;
+                return Card(
+                  child: ListTile(
+                    title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    subtitle: Text(
+                      author == null
+                          ? item.type.name
+                          : 'Saved from @${author.username} • ${item.type.name}',
+                    ),
+                    trailing: IconButton(
+                      onPressed: () => _controller.remove(item.id),
+                      icon: const Icon(Icons.delete_outline),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ],
         ),

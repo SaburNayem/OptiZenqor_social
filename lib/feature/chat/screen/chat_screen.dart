@@ -33,6 +33,23 @@ class ChatScreen extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            Row(
+              children: [
+                Text(
+                  'Chat',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => _showInboxMenu(context),
+                  icon: const Icon(Icons.more_horiz),
+                  tooltip: 'More',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.sticky_note_2_outlined),
@@ -158,6 +175,62 @@ class ChatScreen extends StatelessWidget {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Chat marked unread placeholder')),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showInboxMenu(BuildContext context) {
+    return showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.mail_outline),
+              title: const Text('Message requests'),
+              subtitle: const Text('Review pending chat requests'),
+              onTap: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Opening message requests placeholder')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.report_gmailerrorred_outlined),
+              title: const Text('Spam messages'),
+              subtitle: const Text('Review filtered conversations'),
+              onTap: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Opening spam messages placeholder')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.done_all_outlined),
+              title: const Text('Mark all as read'),
+              onTap: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Mark all as read placeholder')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Chat settings'),
+              onTap: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Chat settings placeholder')),
                 );
               },
             ),
