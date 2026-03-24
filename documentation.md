@@ -1,474 +1,504 @@
-# OptiZenqor Social - Project Documentation
+I already have an existing Flutter project named "OptiZenqor Social".
+Do NOT rebuild the app from scratch.
+Do NOT replace the architecture blindly.
+Do NOT generate a new unrelated project.
+Your task is to UPGRADE, REFACTOR, STANDARDIZE, and COMPLETE my CURRENT existing project while preserving its working structure and current feature coverage.
 
-## 1. Project Overview
-OptiZenqor Social is a Flutter social-platform app scaffold with a feature-first folder structure, broad route coverage, and mock-backed product flows that now cover much more of a modern social-media surface. The app includes onboarding, authentication, a multi-tab main shell, feed and reels experiences, chat, notifications, settings, creator tooling, marketplace and subscription surfaces, and a large set of supporting modules for privacy, reporting, accessibility, events, learning, referral, moderation, and profile variations.
+You must work as a senior Flutter architect and product-minded engineer.
+Treat the current codebase as an existing social media platform scaffold that already includes many screens, routes, mock repositories, and placeholder flows.
 
-The project is still largely prototype-oriented:
-- most screens are powered by local models, mock repositories, or in-memory controller state
-- many repositories simulate network work with delayed `Future` responses
-- several services and advanced tools are intentionally lightweight wrappers or placeholders for future integrations
+==================================================
+1. CURRENT PROJECT CONTEXT YOU MUST RESPECT
+==================================================
 
-## 2. Tech Stack
-
-### 2.1 Runtime
-- Flutter
-- Dart SDK `^3.10.8`
+This existing project already has:
+- Flutter + Dart
 - Material 3
-- GetX for app-level routing and some screen controllers
-- `ChangeNotifier` and `AnimatedBuilder` across many feature flows
+- GetX routing and some controllers
+- mixed state management using GetX + ChangeNotifier + AnimatedBuilder + some plain controller flows
+- feature-first folder structure
+- route coverage for many modules
+- splash, onboarding, login, signup, reset password
+- main shell with bottom navigation and drawer
+- home feed, reels, chat, profile, settings
+- search/discovery, communities, groups, pages, marketplace
+- creator dashboard, subscriptions, premium, wallet, events, live stream
+- report center, safety/privacy, legal/compliance, accessibility, localization
+- bookmarks, saved collections, drafts/scheduling, upload manager
+- user profile, business profile, recruiter profile, seller profile
+- mock repositories and local/in-memory or shared_preferences-backed flows
+- many advanced feature placeholders already added
 
-### 2.2 Main dependencies
-- `get: ^4.7.2`
-- `shared_preferences: ^2.5.3`
-- `image_picker: ^1.1.2`
-- `video_player: ^2.9.2`
-- `cupertino_icons: ^1.0.8`
+The current codebase is broad but prototype-oriented:
+- many repositories are still mock-based
+- architecture is mixed and not fully standardized
+- navigation is mixed between GetX named routes and Navigator pushes
+- some services are scaffold-level only
+- many advanced modules are UI placeholders awaiting deeper logic
+- current structure already runs and should be preserved, improved, and completed
 
-### 2.3 Dev dependencies
-- `flutter_test`
-- `flutter_lints: ^6.0.0`
+Your job is to transform this existing project into a cleaner, more scalable, more production-ready app foundation WITHOUT destroying the current product breadth.
 
-## 3. App Bootstrap
+==================================================
+2. PRIMARY GOAL
+==================================================
 
-### 3.1 Startup flow
-1. [`lib/main.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/main.dart) initializes Flutter bindings.
-2. [`lib/main.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/main.dart) awaits `ThemeService.instance.init()`.
-3. [`lib/app.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/app.dart) launches `OptiZenqorApp`.
-4. [`lib/app.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/app.dart) builds a `GetMaterialApp` with `AppRoute.routes`, `AppRoute.unknownRoute`, and `AppRoute.initialRoute`.
-5. The initial route is `/`, which renders the splash screen.
+Upgrade the current OptiZenqor Social codebase into a high-quality, scalable, production-style Flutter social media app foundation.
 
-### 3.2 Splash and first navigation
-- [`lib/feature/splash/screen/splash_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/splash/screen/splash_screen.dart) shows branded animated splash content.
-- [`lib/feature/splash/controller/splash_controller.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/splash/controller/splash_controller.dart) waits 2 seconds, checks onboarding completion and auth session state, then uses `Navigator.pushReplacementNamed`.
-- The route decision is:
-  - onboarding not complete -> `/onboarding`
-  - onboarding complete and session exists -> `/shell`
-  - onboarding complete and no session -> `/auth/login`
+You must:
+- keep the existing project identity
+- preserve existing feature modules unless there is a very strong architectural reason to merge/refactor
+- improve consistency
+- reduce duplication
+- standardize patterns
+- deepen incomplete modules
+- replace weak placeholders with stronger local/mock logic
+- make the codebase easier for future API integration
+- keep the app runnable
 
-### 3.3 Theme setup
-- [`lib/core/services/theme_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/theme_service.dart) stores the active `ThemeMode` in a `ValueNotifier`.
-- [`lib/app.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/app.dart) rebuilds with `ValueListenableBuilder<ThemeMode>`.
-- [`lib/core/theme/app_theme.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/theme/app_theme.dart) defines light and dark themes.
-- Material 3 is enabled in both modes.
+This task is a REFACTOR + EXPANSION task, not a blank greenfield generation.
 
-## 4. Architecture
+==================================================
+3. ARCHITECTURE RULES
+==================================================
 
-### 4.1 Top-level structure
-- `lib/core`: shared models, mock data, services, constants, widgets, helpers, enums, and validators
-- `lib/feature`: domain-oriented feature modules
-- `lib/route`: route constants, GetX route registry, whitelist helpers, and a legacy route generator
-- `test`: minimal widget coverage
-- `android`, `ios`, `web`: platform runners
+Keep the existing feature-first structure, but improve it consistently.
 
-### 4.2 Core layer
-`lib/core` currently includes:
-- `common_data`: shared mock seed data
-- `common_models`: app-wide entities like users, posts, reels, stories, messages, groups, products, notifications, and offline actions
-- `services`: theme, local storage, auth, analytics, upload, notifications, connectivity, deep links, media picker, and API client utilities
-- `theme`: shared colors and `ThemeData`
-- `widgets`: reusable avatars, loaders, post cards, text fields, empty/error states, and media helpers
+Current top-level intent should remain similar to:
+- lib/core
+- lib/feature
+- lib/route
+- lib/app.dart
+- lib/main.dart
 
-Shared models now carry richer social-product metadata, including:
-- user verification status, badge styles, public profile metadata, notes, and supporter-badge state
-- post audience, location, tagged users, mentions, alt text, edit history, sponsored labels, view/share counts, and repost-history placeholders
-- reel cover selection, text overlays, subtitle flags, trim metadata, remix flags, and draft markers
-- message delivery, reply-thread, starred-message, and message-kind placeholders
+Inside features, standardize toward a consistent structure where appropriate, such as:
+- model/
+- controller/
+- screen/
+- widget/   if needed
 
-### 4.3 Feature module pattern
-Most features use some combination of:
-- `model`
-- `controller`
-- `repository`
-- `screen`
+Do not force every feature into unnecessary layers if the feature is very small, but for medium and large features use consistent organization.
 
-Not every module uses every layer, but responsibilities are generally grouped within the feature directory.
+Standardize the app around:
+- clear models/entities
+- repository abstraction
+- mock/local repository implementation
+- controller/viewmodel logic separation
+- reusable widgets
+- app-wide result/error/loading handling
+- route consistency
+- dependency injection consistency
+- theme consistency
+- local persistence consistency
 
-### 4.4 State management
-The app uses a mixed approach rather than one single state pattern:
-- GetX for named routing and some controllers such as `MainShellController` and `HomeFeedController`
-- `GetBuilder` for shell and feed rebuilds
-- `ChangeNotifier` plus `AnimatedBuilder` for many feature controllers
-- plain Dart controller classes for simple orchestration flows like splash
+==================================================
+4. STATE MANAGEMENT STANDARDIZATION
+==================================================
 
-### 4.5 Navigation style
-Navigation is also mixed:
-- named GetX routes are the main public app routing mechanism
-- several internal flows still use `Navigator.push` and `MaterialPageRoute`
+The current project uses mixed patterns.
+Do not do a dangerous full rewrite of every feature at once.
 
-Examples:
-- splash bootstrap uses `Navigator.pushReplacementNamed`
-- create-post, post-detail, chat-detail, and profile drill-down flows use direct `Navigator` pushes
+Instead:
+- keep GetX for routing and dependency injection
+- keep GetX for high-level shell / app state where it is already used
+- gradually standardize feature state into one predictable pattern
+- prefer GetX controllers for medium/large interactive features
+- reduce unnecessary ChangeNotifier usage where it adds inconsistency
+- keep simple local state local when appropriate
+- remove architectural confusion, not just code lines
 
-## 5. Routing
+The final result should feel consistent, even if migration is incremental.
 
-### 5.1 Route sources
-- [`lib/route/route_names.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/route_names.dart): route string constants
-- [`lib/route/app_route.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_route.dart): main `GetPage` registry
-- [`lib/route/app_routes.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_routes.dart): public-route helper list
-- [`lib/route/route_generator.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/route_generator.dart): legacy `MaterialPageRoute` mapper for selected routes
+==================================================
+5. ROUTING STANDARDIZATION
+==================================================
 
-### 5.2 Registered GetX routes
-[`lib/route/app_route.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_route.dart) currently contains 64 `GetPage` entries, including the unknown-route fallback.
+The current project already has many named GetX routes plus some direct Navigator pushes.
+Refactor navigation carefully.
 
-Main named routes:
-- `/`
-- `/onboarding`
-- `/auth/login`
-- `/auth/signup`
-- `/auth/forgot-password`
-- `/auth/reset-password`
-- `/shell`
-- `/search-discovery`
-- `/communities`
-- `/marketplace`
-- `/notifications`
-- `/creator-dashboard`
-- `/premium`
-- `/settings`
-- `/settings/account`
-- `/settings/password-security`
-- `/settings/devices-sessions`
-- `/settings/blocked-users`
-- `/settings/language-accessibility`
-- `/settings/archive-center`
-- `/drafts-scheduling`
-- `/drafts`
-- `/scheduling`
-- `/upload-manager`
-- `/offline-sync`
-- `/verification-request`
-- `/personalization-onboarding`
-- `/advanced-privacy-controls`
-- `/share-repost-system`
-- `/media-viewer`
-- `/post-detail`
-- `/account-switching`
-- `/push-notification-preferences`
-- `/report-center`
-- `/activity-sessions`
-- `/deep-link-handler`
-- `/app-update-flow`
-- `/localization-support`
-- `/accessibility-support`
-- `/explore-recommendation`
-- `/blocked-muted-accounts`
-- `/maintenance-mode`
-- `/invite-referral`
-- `/legal-compliance`
-- `/group-chat`
-- `/calls`
-- `/groups`
-- `/pages`
-- `/hashtags`
-- `/trending`
-- `/jobs-networking`
-- `/business-profile`
-- `/bookmarks`
-- `/saved-collections`
-- `/wallet-payments`
-- `/subscriptions`
-- `/events`
-- `/live-stream`
-- `/safety-privacy`
-- `/learning-courses`
-- `/polls-surveys`
-- `/support-help`
-- `/user-profile`
-- `/chat`
+Your task:
+- preserve all working existing route entry points
+- reduce unnecessary mixed navigation
+- move more flows toward a consistent named-route or GetX-navigation approach where helpful
+- keep internal local navigation only where it is cleaner and justified
+- ensure deep screen flows still work properly
+- keep unknown route handling
+- make route definitions cleaner and easier to extend
 
-Unknown routes fall back to a simple not-found scaffold in [`lib/route/app_route.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/route/app_route.dart).
+Do not break current module access patterns.
 
-### 5.3 Routed vs internal-only modules
-There are currently 59 top-level feature directories under `lib/feature`.
+==================================================
+6. FEATURE MODULES YOU MUST PRESERVE AND IMPROVE
+==================================================
 
-Feature directories present in the codebase but not exposed as standalone named GetX routes include:
-- `follow_unfollow`
-- `home_feed`
-- `posts`
-- `reels_short_video`
-- `stories`
-- `recruiter_profile`
-- `seller_profile`
-- `auth` subfeatures beyond the public auth routes
+The project already includes many feature areas. Keep them and improve them.
 
-These modules are still used by the app, but they are reached through tabs, nested flows, or internal composition rather than direct route entry points.
-
-## 6. Main User Experience
-
-### 6.1 Entry and auth flow
-- The app starts on splash.
-- Onboarding is a separate screen and completion state is stored through `OnboardingRepository`.
-- Login writes a session payload through `AuthRepository` and `LocalStorageService`.
-- Signup, forgot password, and reset password have dedicated screens and controllers.
-
-### 6.2 Main shell
-[`lib/feature/home_feed/screen/main_shell_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/home_feed/screen/main_shell_screen.dart) is the primary post-login container. It includes:
-- an app bar with contextual tab title
-- a drawer-based feature hub
-- a profile header at the top of the drawer showing the signed-in user's avatar, name, and username
-- an offline banner area
-- a bottom `NavigationBar`
-
-Bottom tabs:
-- Home
-- Reels
-- Chat
-- Profile
-- Settings
-
-Drawer shortcuts:
-- Communities
-- Groups
-- Pages
-- Marketplace
-- Creator Dashboard
-- Premium Plans
-- Drafts
-- Scheduling
-- Saved Posts
-- Archived Posts
-- Events
-- Live Stream
-- Upload Manager
-
-App bar actions:
-- create button on the home tab only
-- search
-- notifications
-
-The Settings tab is intentionally narrower than the drawer. It now focuses on account, privacy, system, archive, recommendation, and support surfaces rather than acting as a catch-all feature directory.
-The drawer header also links directly to the user profile screen.
-
-### 6.3 Home feed
-[`lib/feature/home_feed/screen/home_feed_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/home_feed/screen/home_feed_screen.dart) includes:
-- pull-to-refresh feed loading
-- an inline quick composer
-- stories
-- feed tab switching
-- infinite-scroll style pagination trigger
-- post cards with like, comment, bookmark, share, report, and not-interested interactions
-- recommendation feedback controls such as show-less-like-this, hide creator, hide topic, and why-am-I-seeing-this placeholders
-- post-detail and profile drill-down via `Navigator`
-
-### 6.4 Content creation depth
-[`lib/feature/home_feed/screen/create_post_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/home_feed/screen/create_post_screen.dart) now supports richer local post composition metadata:
-- audience selection
-- location tagging
-- people tagging
-- co-author placeholders
-- alt-text placeholder input
-- local draft saving
-- draft version-history and edit-history placeholders
-
-Related creation surfaces now also expose placeholders for:
-- story stickers, polls, question stickers, emoji sliders, mentions, locations, music, and links
-- reel audio attach, text overlays, captions, trim/crop, cover selection, remix/duet, and draft-save flows
-
-The drafts/scheduling area is now split into distinct screens:
-- drafts show incomplete unpublished compositions
-- scheduling shows created posts or reels scheduled for future upload
-- the legacy `/drafts-scheduling` route remains as a lightweight hub entry point
-
-### 6.5 Chat and profile flows
-- [`lib/feature/chat/screen/chat_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_screen.dart) renders inbox conversations with a dedicated `Chat` header, a three-dot overflow menu, pinned, archived, unread, retry, notes/status UI, and message-request/spam-message placeholders.
-- [`lib/feature/chat/screen/chat_detail_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/chat/screen/chat_detail_screen.dart) adds in-conversation search, media/docs/links tabs, unread-marker jump UI, voice-note placeholder, disappearing-message placeholder, and star/reply-thread placeholders.
-- [`lib/feature/user_profile/screen/user_profile_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/user_profile/screen/user_profile_screen.dart) now supports verification state, role-based badges, public profile sharing, QR/profile-preview placeholders, notes, pinned and featured content, tagged-content history, suggested contacts, and account-center export/deactivation placeholders.
-- [`lib/feature/settings/screen/archive_center_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/settings/screen/archive_center_screen.dart) shows archived posts as profile-hidden content for the signed-in user, separate from saved posts.
-
-### 6.6 Discovery, pages, communities, and engagement
-- [`lib/feature/search_discovery/screen/search_discovery_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/search_discovery/screen/search_discovery_screen.dart) now includes advanced entity filters, suggestion groups, trending search terms, hashtag-detail placeholders, recommendation-feedback sections, and richer explore sections.
-- [`lib/feature/post_detail/screen/post_detail_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/post_detail/screen/post_detail_screen.dart) includes comment mentions, comment reactions, and post-level view/share context.
-- [`lib/feature/communities/screen/communities_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/communities/screen/communities_screen.dart) includes owner/admin moderation placeholders such as pin announcement, join approval, member removal, role assignment, mute-member, and rule-management actions.
-- [`lib/feature/pages/screen/pages_screen.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/pages/screen/pages_screen.dart) now exposes page categories, configurable action-button labeling, review placeholders, visitor-post placeholders, and follower-insight placeholders.
-
-### 6.7 Connectivity simulation
-- [`lib/core/services/connectivity_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/connectivity_service.dart) is a local `ChangeNotifier`.
-- It exposes `isOnline`, `lastFailedAction`, and retry helpers.
-- The current implementation is app-side simulation, not a real device/network monitoring integration.
-
-## 7. Data, Storage, and Services
-
-### 7.1 Mock data
-[`lib/core/common_data/mock_data.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/common_data/mock_data.dart) seeds app content for:
-- users
-- posts
-- reels
-- stories
-- messages
-- notifications
-- groups
-- products
-
-The sample users already cover multiple roles such as creator, business, regular user, seller, and recruiter.
-
-### 7.2 Repository layer
-Repositories are mostly mock adapters. In practice they often:
-- return `Future` values
-- simulate latency
-- transform local model data for UI consumption
-- avoid true backend integration
-
-Notable repository additions and deepened local flows include:
-- [`lib/feature/drafts_and_scheduling/repository/drafts_and_scheduling_repository.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/feature/drafts_and_scheduling/repository/drafts_and_scheduling_repository.dart) for durable local draft storage
-- expanded feed preference persistence for recommendation controls
-- expanded profile export caching and data-export request logging
-
-Current local content-state split:
-- drafts are incomplete unpublished items
-- scheduling items are authored posts or reels with a non-null scheduled upload time
-- archived posts are treated separately from saved posts/bookmarks
-
-### 7.3 Local storage
-[`lib/core/services/local_storage_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/local_storage_service.dart) supports `SharedPreferences` storage with an in-memory fallback.
-
-Current behavior:
-- `_persistDataOnDevice` is set to `true`
-- the service tries to initialize `SharedPreferences`
-- if the plugin is unavailable, it gracefully falls back to an in-memory map
-
-Practical effect:
-- theme mode, onboarding completion, and auth session state are intended to persist on device
-- persistence may fall back to current-session memory in environments where the plugin is unavailable
-
-The persisted local surface now also includes:
-- durable post/reel drafts
-- bookmarks and saved collections
-- blocked and muted states
-- recommendation preferences and related safety/control settings
-- account-export request records
-
-### 7.4 Core services
-Current core services include:
-- `analytics_service.dart`
-- `api_client_service.dart`
-- `auth_service.dart`
-- `connectivity_service.dart`
-- `deep_link_service.dart`
-- `local_storage_service.dart`
-- `media_picker_service.dart`
-- `notification_service.dart`
-- `theme_service.dart`
-- `upload_service.dart`
-
-Most of these remain lightweight wrappers or scaffolds rather than production integrations.
-
-## 8. Feature Inventory
-Current top-level feature directories under `lib/feature`:
-- accessibility_support
-- account_switching
-- activity_sessions
-- advanced_privacy_controls
-- app_update_flow
-- auth
-- blocked_muted_accounts
-- bookmarks
-- business_profile
-- calls
-- chat
-- communities
-- creator_tools
-- deep_link_handler
-- drafts_and_scheduling
-- events
-- explore_recommendation
-- follow_unfollow
-- group_chat
-- groups
-- hashtags
-- home_feed
-- invite_referral
-- jobs_networking
-- learning_courses
-- legal_compliance
-- live_stream
-- localization_support
-- maintenance_mode
-- marketplace
-- media_viewer
-- notifications
-- offline_sync
-- onboarding
-- pages
-- personalization_onboarding
-- polls_surveys
-- post_detail
-- posts
-- premium_membership
-- push_notification_preferences
-- recruiter_profile
-- reels_short_video
-- report_center
-- safety_privacy
-- saved_collections
-- search_discovery
-- seller_profile
-- settings
-- share_repost_system
+Preserve and deepen:
 - splash
+- onboarding
+- auth
+- main shell
+- home feed
+- posts
+- create post
+- reels / short video
 - stories
-- subscriptions
-- support_help
+- chat
+- group chat
+- notifications
+- search / discovery
+- hashtags
 - trending
-- upload_manager
-- user_profile
-- verification_request
-- wallet_payments
+- communities
+- groups
+- pages
+- user profile
+- business profile
+- recruiter profile
+- seller profile
+- creator tools
+- subscriptions
+- premium membership
+- wallet / payments
+- marketplace
+- events
+- live stream
+- bookmarks
+- saved collections
+- drafts and scheduling
+- upload manager
+- personalization onboarding
+- safety/privacy
+- report center
+- settings
+- accessibility
+- localization
+- legal compliance
+- invite/referral
+- support/help
+- offline sync
+- verification request
+- account switching
+- blocked/muted accounts
+- activity sessions
+- deep link handler
+- app update flow
 
-## 9. Functional Snapshot
+If new shared abstractions are needed, add them cleanly without damaging current screens.
 
-### 9.1 Social content
-- feed, reels, post detail, stories, hashtags, trending, and bookmarks are represented
-- content creation now includes richer audience, tagging, location, alt-text, draft, and history metadata
-- saved collections, drafts, and upload management support creator workflows
-- profile surfaces support pinned content, featured content, tagged-content history, and note/status UI
+==================================================
+7. SETTINGS MODULE: MAKE IT STRONG AND COMPLETE
+==================================================
 
-### 9.2 Messaging and community
-- one-to-one chat and group chat are present
-- direct messaging now includes notes/status, message requests, search, media/docs/links tabs, unread markers, and multiple placeholder depth features for replies, starred messages, voice notes, disappearing messages, and themes
-- communities, groups, pages, and calls modules are available
-- multiple profile variants exist for user, business, seller, and recruiter contexts
+The settings area must become one of the strongest parts of the app.
 
-### 9.3 Growth, commerce, and creator surfaces
-- marketplace, wallet payments, subscriptions, premium membership, and events are implemented as separate modules
-- creator dashboard, jobs networking, learning courses, and live stream extend the app beyond the core feed
-- live, events, and learning screens now include richer moderation, host-tools, saved-item, instructor-profile, certificate, quiz, and audio-room placeholders
-- referral and growth-retention surfaces now expose referral-status, invite-reward, streak, milestone, and achievement placeholders
+Preserve and improve the existing settings module and make it fully structured with detailed sub-screens for:
 
-### 9.4 Platform support modules
-- privacy, safety, reporting, legal compliance, accessibility, localization, deep-link handling, offline sync, and app update flows all have dedicated surfaces
-- safety and privacy now also include hidden-word, sensitive-content, anti-spam, child/teen safety, parental-control, copyright, impersonation, harassment, self-harm, and appeal placeholders
-- support/help now includes report-bug, changelog, remote-config, feature-flag, and crash-reporting placeholders
+- Account
+- Privacy
+- Security
+- Notifications
+- Messages & Calls
+- Feed & Content Preferences
+- Creator / Professional Tools
+- Monetization & Payments
+- Communities & Groups
+- Data & Privacy Center
+- Accessibility
+- Language & Region
+- Connected Apps
+- Help & Safety
+- About
 
-## 10. UI and Theme Notes
-- the app uses Material 3
-- theme configuration is centralized in [`lib/core/theme/app_theme.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/theme/app_theme.dart)
-- theme switching is handled by [`lib/core/services/theme_service.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/lib/core/services/theme_service.dart)
-- reusable widgets live under `lib/core/widgets`
-- several feature screens now use `Chip`, `ChoiceChip`, `ActionChip`, and card-based placeholder panels to stage future backend-connected product depth without changing the current structure
+Deepen current settings with better local logic and cleaner UX for:
+- profile editing
+- username/display name/bio/pronouns/links
+- account type switching
+- verification request entry
+- deactivate/delete/download data
+- privacy visibility controls
+- blocked / muted / restricted users
+- tagging / mention / repost / comment permissions
+- activity status / last seen / read receipts
+- hidden words / sensitive content
+- discoverability and search indexing toggles
+- security checkup
+- active sessions / trusted devices
+- password / 2FA / biometric lock
+- notification category toggles
+- chat/media/download/call preferences
+- feed mode / autoplay / data saver / hidden topics / recommendation reset
+- ad personalization and activity preferences
+- data summary / history / cache clearing / permissions
+- accessibility options
+- support, safety, appeals, account status, strikes, violations
 
-## 11. Testing and Analysis
-- [`analysis_options.yaml`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/analysis_options.yaml) uses Flutter lint defaults
-- automated coverage is still minimal
-- [`test/widget_test.dart`](/Users/bdcalling/Desktop/nayamProjects/OptiZenqor_social/test/widget_test.dart) contains a bootstrap widget test that now pumps through the splash timer before settling
-- `flutter analyze` passes with no issues as of March 24, 2026
-- `flutter test` passes as of March 24, 2026
+Make settings clean, scalable, and role-aware.
 
-Useful commands:
-1. `flutter pub get`
-2. `flutter analyze`
-3. `flutter test`
+==================================================
+8. DRAWER AND MAIN SHELL IMPROVEMENT
+==================================================
 
-## 12. Current Limitations
-- backend integration is still largely incomplete
-- most repositories remain mock implementations
-- state management is intentionally mixed and not yet fully standardized
-- navigation is split between GetX named routes and direct `Navigator` pushes
-- connectivity, upload, deep links, analytics, notifications, and API services are mostly scaffolds
-- many new social-media-grade features are present as durable local flows or UI placeholders awaiting real backend policy, search, messaging, recommendation, moderation, and media-processing services
+The current app already has a shell, bottom navigation, and drawer.
+Refine them instead of replacing them.
 
-## 13. Suggested Next Steps
-1. Connect high-value repositories to real API or local database implementations.
-2. Replace placeholder-only product depth with real backend-connected flows, especially in messaging, moderation, verification, discovery, and creator monetization.
-3. Decide which flows should stay on `Navigator` and which should be consolidated into named GetX routes.
-4. Standardize state-management patterns where feature complexity is growing.
-5. Expand automated tests beyond bootstrap coverage and add targeted tests for drafts, recommendation preferences, and richer profile/chat interactions.
+Requirements:
+- improve drawer hierarchy
+- group drawer items better
+- make drawer role-aware
+- keep creator/business/admin-only sections conditional
+- improve shell state persistence across tabs
+- improve app bar logic by active tab
+- make navigation feel more professional and less prototype-like
+- preserve existing major entry points like communities, marketplace, creator dashboard, premium, drafts, scheduling, saved posts, archived posts, events, live stream, upload manager
+
+Bottom navigation should remain strong and stable.
+Only adjust if a clearly better scalable structure is needed.
+
+==================================================
+9. HOME FEED AND CONTENT SYSTEM
+==================================================
+
+The current feed already includes quick composer, stories, tabs, pagination, post cards, recommendation feedback, and drill-down flows.
+Deepen and standardize it.
+
+Improve:
+- feed tab architecture
+- pagination logic
+- refresh behavior
+- post card reuse
+- recommendation feedback system
+- loading, empty, retry, and offline states
+- action handling consistency
+- local post state mutation consistency
+- bookmarking / save state consistency
+- like/comment/share/report/not interested flow consistency
+
+Preserve support for:
+- text posts
+- image posts
+- carousel posts
+- video/reel preview
+- poll/event/product placeholders where already present
+- mentions, hashtags, location, alt text, audience, sponsored labels, view/share counts, edit history placeholders
+
+Make the content model cleaner and more scalable.
+
+==================================================
+10. CREATE POST / DRAFTS / SCHEDULING
+==================================================
+
+The current project already supports rich create-post metadata, drafts, scheduling split, and placeholders.
+Upgrade this flow into a stronger local-first content composer.
+
+Requirements:
+- preserve existing create-post flow
+- improve form organization
+- modularize media, audience, tagging, alt text, location, hashtag, co-author, and scheduling sections
+- strengthen local validation
+- improve local draft persistence
+- support draft versioning in a cleaner way
+- make scheduled items clearly separate from drafts
+- make upload manager, drafts, and scheduling feel like one connected ecosystem
+
+Do not just scaffold. Make these modules practically usable with mock/local persistence.
+
+==================================================
+11. CHAT AND INBOX
+==================================================
+
+The current chat module already includes inbox, detail, search, pinned, archived, unread, requests, tabs, media/docs/links tabs, disappearing placeholders, reply/thread placeholders, and more.
+
+Refine it into a cleaner messaging architecture:
+- improve inbox state handling
+- standardize conversation model usage
+- standardize message model usage
+- improve message action logic
+- keep local/mock-ready real-time structure
+- keep future websocket integration easy
+- improve starred, reply, request, archive, mute, block, search, and unread marker behavior
+- make chat detail UI more consistent and scalable
+- preserve direct chat and group chat separation where helpful
+
+==================================================
+12. PROFILE SURFACES
+==================================================
+
+The project already supports user profile and role-based profile variations.
+Preserve and refine:
+- user profile
+- business profile
+- recruiter profile
+- seller profile
+
+Unify shared profile foundations while allowing role-based specialization.
+
+Improve:
+- profile header consistency
+- tab structure
+- relation states
+- verification/badge rendering
+- pinned and featured content
+- notes/status areas
+- profile share and QR logic placeholders
+- export/deactivate placeholders
+- tagged content history
+- suggested people or related entity sections
+
+==================================================
+13. DISCOVERY / COMMUNITIES / PAGES / MARKETPLACE / EVENTS
+==================================================
+
+These modules already exist. Do not remove them.
+
+Improve them by:
+- reducing repetitive placeholder code
+- standardizing section cards and list patterns
+- making filters/tabs/search patterns more reusable
+- improving local mock flows
+- preserving moderation/admin/owner action placeholders
+- making list/detail page relationships clearer
+- improving empty/loading states
+- preparing API contract boundaries clearly
+
+==================================================
+14. SERVICES AND INFRASTRUCTURE
+==================================================
+
+The project already has services such as:
+- theme
+- local storage
+- auth
+- analytics
+- upload
+- notifications
+- connectivity
+- deep links
+- media picker
+- API client
+
+Improve these carefully:
+- do not overengineer fake production integrations
+- make interfaces and responsibilities clearer
+- keep them as strong scaffolds for future real integration
+- improve local storage keys and typed access patterns
+- improve mock upload and background-task simulation
+- improve connectivity/offline action structure
+- improve analytics event abstraction
+- improve API client abstraction even if still mock-based
+
+==================================================
+15. DESIGN SYSTEM AND UI CONSISTENCY
+==================================================
+
+The app already uses Material 3 and shared theme files.
+Refine the visual system across the app.
+
+Requirements:
+- unify spacing
+- unify cards, chips, pills, avatars, badges, section headers
+- unify empty states, loading states, and error states
+- unify bottom sheet patterns
+- unify action menus
+- improve list/detail consistency
+- improve role badges and verification visuals
+- improve creator/business visual differentiation
+- keep light and dark themes both polished
+- preserve the current project feel but make it more premium and coherent
+
+Do not create a random completely new design language.
+Evolve the existing app into a better product system.
+
+==================================================
+16. TESTING AND CODE HEALTH
+==================================================
+
+The project already passes analyze and test according to documentation.
+Do not break that.
+
+Improve code health by:
+- keeping flutter analyze clean
+- keeping flutter test passing
+- reducing duplication
+- improving naming
+- removing dead or confusing code when safe
+- adding targeted tests for critical local flows where valuable
+- keeping files reasonably sized
+- extracting reusable widgets when repeated
+- using comments only where useful
+
+==================================================
+17. DELIVERABLE FORMAT
+==================================================
+
+You must produce real code changes, not just explanations.
+
+Work in this order:
+
+Step 1:
+Audit the current project structure and identify the highest-value refactor targets without deleting breadth.
+
+Step 2:
+Standardize shared foundations:
+- route organization
+- dependency setup
+- reusable widgets
+- result/loading/error patterns
+- shared models where obvious duplication exists
+
+Step 3:
+Refine the main app shell, drawer, and settings architecture.
+
+Step 4:
+Refine core social flows:
+- home feed
+- create post
+- drafts/scheduling/upload manager
+- chat/inbox
+- profile system
+
+Step 5:
+Refine supporting feature modules without breaking current route coverage.
+
+Step 6:
+Ensure the app still runs cleanly with mock/local data.
+
+==================================================
+18. IMPORTANT CONSTRAINTS
+==================================================
+
+- Do not rebuild from scratch
+- Do not delete large feature surfaces just because backend is missing
+- Do not replace everything with generic placeholders
+- Do not collapse the project into a tiny MVP
+- Do not destroy existing routes
+- Do not create a new architecture that ignores the current project
+- Do not give only advice; make real implementation improvements
+- Do not reduce feature breadth
+
+Instead:
+- preserve breadth
+- improve depth
+- improve consistency
+- improve scalability
+- improve maintainability
+- improve local/mock realism
+- prepare for future backend integration
+
+==================================================
+19. FINAL EXPECTATION
+==================================================
+
+The result should feel like:
+- the same OptiZenqor Social project
+- but cleaner
+- more organized
+- more consistent
+- more polished
+- more professional
+- more scalable
+- more complete
+
+Do not output only a plan.
+Do actual repository-quality implementation.
+If the task is too large for one pass, start by making the highest-value architectural and feature improvements first, while keeping the app runnable and preserving the existing product surface.
