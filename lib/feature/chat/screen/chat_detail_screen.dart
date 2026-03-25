@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/common_models/message_model.dart';
-import '../../../core/common_models/user_model.dart';
+import '../../../core/data/models/message_model.dart';
+import '../../../core/data/models/user_model.dart';
 
 class ChatDetailScreen extends StatelessWidget {
   ChatDetailScreen({

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/common_models/form_state_model.dart';
+import '../../../../core/data/models/form_state_model.dart';
 import '../../../../core/enums/user_role.dart';
-import '../../../../core/services/analytics_service.dart';
+import '../../../../core/data/service/analytics_service.dart';
 import '../../../../route/route_names.dart';
 import '../../repository/auth_repository.dart';
 

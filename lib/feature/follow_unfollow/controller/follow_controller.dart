@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/common_models/user_model.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/user_model.dart';
 import '../model/follow_state_model.dart';
 import '../repository/follow_repository.dart';
 

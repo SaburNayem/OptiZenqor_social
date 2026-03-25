@@ -1,4 +1,4 @@
-import '../../feature/notifications/model/notification_payload_model.dart';
+import '../../../feature/notifications/model/notification_payload_model.dart';
 
 class NotificationModel {
   const NotificationModel({

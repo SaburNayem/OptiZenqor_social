@@ -1,5 +1,5 @@
 import '../../../core/constants/storage_keys.dart';
-import '../../../core/services/local_storage_service.dart';
+import '../../../core/data/service/local_storage_service.dart';
 import '../model/saved_collection_model.dart';
 
 class SavedCollectionsRepository {

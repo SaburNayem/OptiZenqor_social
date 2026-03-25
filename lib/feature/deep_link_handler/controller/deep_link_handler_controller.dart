@@ -1,4 +1,4 @@
-import '../../../core/services/deep_link_service.dart';
+import '../../../core/data/service/deep_link_service.dart';
 
 class DeepLinkHandlerController {
   DeepLinkHandlerController({DeepLinkService? service})

@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 
-import '../../../core/common_models/load_state_model.dart';
-import '../../../core/common_models/pagination_state_model.dart';
-import '../../../core/common_models/post_model.dart';
-import '../../../core/common_models/story_model.dart';
-import '../../../core/services/analytics_service.dart';
+import '../../../core/data/models/load_state_model.dart';
+import '../../../core/data/models/pagination_state_model.dart';
+import '../../../core/data/models/post_model.dart';
+import '../../../core/data/models/story_model.dart';
+import '../../../core/data/service/analytics_service.dart';
 import '../repository/home_feed_repository.dart';
 
 enum FeedTab { forYou, following, trending }

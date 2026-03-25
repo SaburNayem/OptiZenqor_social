@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/common_data/mock_data.dart';
+import '../../../core/data/mock/mock_data.dart';
 
 class ArchiveCenterScreen extends StatelessWidget {
   const ArchiveCenterScreen({super.key});

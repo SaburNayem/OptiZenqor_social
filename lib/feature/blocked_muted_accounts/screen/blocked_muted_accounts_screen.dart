@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../controller/blocked_muted_accounts_controller.dart';
 
 class BlockedMutedAccountsScreen extends StatelessWidget {
@@ -16,106 +17,176 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
       animation: _controller,
       builder: (context, _) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Blocked & Muted Accounts')),
+          backgroundColor: const Color(0xFFFBFBFB),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: const Text(
+              'Blocked Users',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.search, color: Colors.black54),
+                onPressed: () {},
+              ),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications_none_outlined,
+                      color: Colors.black54,
+                    ),
+                    onPressed: () {},
+                  ),
+                  Positioned(
+                    right: 12,
+                    top: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 8,
+                        minHeight: 8,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.only(right: 16.0, left: 8),
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(
+                    'https://i.pravatar.cc/150?u=myprofile',
+                  ),
+                ),
+              ),
+            ],
+          ),
           body: _controller.isLoading
               ? const Center(child: CircularProgressIndicator())
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Chip(
-                          label: Text('Blocked ${_controller.blocked.length}'),
+                        Container(
+                          height: 50,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: const Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    hintText: 'Search blocked users...',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        Chip(label: Text('Muted ${_controller.muted.length}')),
-                        Chip(
-                          label: Text(
-                            'Restricted ${_controller.restricted.length}',
+                        const SizedBox(height: 24),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFF0F0F0)),
+                          ),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _controller.blocked.length,
+                            separatorBuilder: (context, index) => const Divider(
+                              height: 1,
+                              color: Color(0xFFF0F0F0),
+                              indent: 16,
+                              endIndent: 16,
+                            ),
+                            itemBuilder: (context, index) {
+                              final user = _controller.blocked[index];
+                              return ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                leading: CircleAvatar(
+                                  radius: 24,
+                                  backgroundImage: NetworkImage(
+                                    user.avatarUrl ??
+                                        'https://i.pravatar.cc/150?u=${user.handle}',
+                                  ),
+                                ),
+                                title: Text(
+                                  user.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  user.handle,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                trailing: SizedBox(
+                                  width: 90,
+                                  height: 36,
+                                  child: OutlinedButton(
+                                    onPressed: () => _controller.unblock(user.handle),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(
+                                        color: AppColors.secondary,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    child: const Text(
+                                      'Unblock',
+                                      style: TextStyle(
+                                        color: AppColors.secondary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Blocked',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    if (_controller.blocked.isEmpty)
-                      const ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text('No blocked users'),
-                        subtitle: Text('Blocked accounts will appear here.'),
-                      ),
-                    ..._controller.blocked.map(
-                      (item) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(item.name),
-                        subtitle: Text(item.handle),
-                        trailing: TextButton(
-                          onPressed: () async {
-                            await _controller.unblock(item.handle);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context)
-                                ..hideCurrentSnackBar()
-                                ..showSnackBar(
-                                  SnackBar(
-                                    content: Text('Unblocked ${item.handle}'),
-                                  ),
-                                );
-                            }
-                          },
-                          child: const Text('Unblock'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Muted',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    if (_controller.muted.isEmpty)
-                      const ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text('No muted users'),
-                        subtitle: Text('Muted accounts will appear here.'),
-                      ),
-                    ..._controller.muted.map(
-                      (item) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(item.name),
-                        subtitle: Text(item.handle),
-                        trailing: TextButton(
-                          onPressed: () async {
-                            await _controller.unmute(item.handle);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context)
-                                ..hideCurrentSnackBar()
-                                ..showSnackBar(
-                                  SnackBar(
-                                    content: Text('Unmuted ${item.handle}'),
-                                  ),
-                                );
-                            }
-                          },
-                          child: const Text('Unmute'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Restricted',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    ..._controller.restricted.map(
-                      (item) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(item.name),
-                        subtitle: Text(item.handle),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
         );
       },

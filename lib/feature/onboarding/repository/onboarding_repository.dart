@@ -1,4 +1,4 @@
-import '../../../core/constant/storage_keys.dart';
+import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
 
 class OnboardingRepository {

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/common_models/story_model.dart';
-import '../../../core/common_models/user_model.dart';
+import '../../../core/data/models/story_model.dart';
+import '../../../core/data/models/user_model.dart';
+import '../controller/stories_controller.dart';
 
 class StoryViewScreen extends StatefulWidget {
   const StoryViewScreen({
@@ -20,20 +21,21 @@ class StoryViewScreen extends StatefulWidget {
 }
 
 class _StoryViewScreenState extends State<StoryViewScreen> {
-  late PageController _pageController;
-  late int _currentIndex;
+  late StoriesController _controller;
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.stories.indexWhere((s) => s.id == widget.initialStoryId);
-    if (_currentIndex < 0) _currentIndex = 0;
-    _pageController = PageController(initialPage: _currentIndex);
+    final startIndex = widget.stories.indexWhere((s) => s.id == widget.initialStoryId);
+    _controller = StoriesController(
+      stories: widget.stories,
+      startIndex: startIndex < 0 ? 0 : startIndex,
+    );
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -41,29 +43,33 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Story Content
-          PageView.builder(
-            controller: _pageController,
-            itemCount: widget.stories.length,
-            onPageChanged: (index) => setState(() => _currentIndex = index),
-            itemBuilder: (context, index) {
-              final story = widget.stories[index];
-              return Container(
-                width: double.infinity,
-                height: double.infinity,
-                decoration: const BoxDecoration(color: Color(0xFF6A1B9A)), // Purple background from screenshot
-                child: Center(
-                  child: Image.network(
-                    story.media,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.error, color: Colors.white),
-                  ),
-                ),
-              );
-            },
-          ),
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return Stack(
+            children: [
+              // Story Content
+              PageView.builder(
+                controller: _controller.pageController,
+                itemCount: _controller.stories.length,
+                onPageChanged: _controller.onPageChanged,
+                itemBuilder: (context, index) {
+                  final story = _controller.stories[index];
+                  return Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    decoration: const BoxDecoration(color: Color(0xFF6A1B9A)),
+                    child: Center(
+                      child: Image.network(
+                        story.media,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.error, color: Colors.white),
+                      ),
+                    ),
+                  );
+                },
+              ),
 
           // Top UI (Progress bars & User info)
           SafeArea(
@@ -73,13 +79,15 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Row(
-                    children: List.generate(widget.stories.length, (index) {
+                    children: List.generate(_controller.stories.length, (index) {
                       return Expanded(
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 2),
                           height: 2,
                           decoration: BoxDecoration(
-                            color: index <= _currentIndex ? Colors.white : Colors.white.withOpacity(0.3),
+                            color: index <= _controller.currentIndex
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(1),
                           ),
                         ),
@@ -94,11 +102,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                     children: [
                       CircleAvatar(
                         radius: 18,
-                        backgroundImage: NetworkImage(_getUser(widget.stories[_currentIndex])?.avatar ?? ''),
+                        backgroundImage: NetworkImage(
+                          _getUser(_controller.stories[_controller.currentIndex])?.avatar ?? '',
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        _getUser(widget.stories[_currentIndex])?.name ?? '8Luck',
+                        _getUser(_controller.stories[_controller.currentIndex])?.name ?? '8Luck',
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       const SizedBox(width: 8),
@@ -161,7 +171,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
               ),
             ),
           ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

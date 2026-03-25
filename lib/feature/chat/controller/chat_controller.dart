@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/common_models/load_state_model.dart';
-import '../../../core/common_models/message_model.dart';
-import '../../../core/services/analytics_service.dart';
+import '../../../core/data/models/load_state_model.dart';
+import '../../../core/data/models/message_model.dart';
+import '../../../core/data/service/analytics_service.dart';
+import '../model/chat_inbox_filter_model.dart';
 import '../repository/chat_repository.dart';
 
 class ChatController extends ChangeNotifier {
@@ -20,12 +21,19 @@ class ChatController extends ChangeNotifier {
   final Set<String> _pinnedChatIds = <String>{};
   final Set<String> _archivedChatIds = <String>{};
   final Set<String> _retryChatIds = <String>{};
+  ChatInboxFilterModel filter =
+      const ChatInboxFilterModel(filter: ChatInboxFilter.all);
 
   bool get isLoading => state.isLoading;
   bool get hasError => state.hasError;
   bool isPinned(String chatId) => _pinnedChatIds.contains(chatId);
   bool isArchived(String chatId) => _archivedChatIds.contains(chatId);
   bool needsRetry(String chatId) => _retryChatIds.contains(chatId);
+
+  void setFilter(ChatInboxFilter next) {
+    filter = ChatInboxFilterModel(filter: next);
+    notifyListeners();
+  }
 
   List<MessageModel> get inboxMessages {
     final visible = messages

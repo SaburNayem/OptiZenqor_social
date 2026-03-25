@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/common_data/mock_data.dart';
+import '../../../core/data/mock/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
 import '../../../route/route_names.dart';
 import '../controller/user_profile_controller.dart';
@@ -42,7 +42,7 @@ class UserProfileScreen extends StatelessWidget {
                           right: 16,
                           child: IconButton(
                             icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                            onPressed: () {},
+                            onPressed: () => Get.toNamed(RouteNames.settings),
                           ),
                         ),
                       ],
@@ -179,10 +179,22 @@ class UserProfileScreen extends StatelessWidget {
                       const Color(0xFF00897B),
                       onTap: () => Get.toNamed(RouteNames.bookmarks),
                     ),
-                    _buildUtilityIcon(Icons.account_balance_wallet_outlined, 'Wallet', const Color(0xFFE3F2FD), const Color(0xFF1E88E5)),
+                    _buildUtilityIcon(
+                      Icons.account_balance_wallet_outlined,
+                      'Wallet',
+                      const Color(0xFFE3F2FD),
+                      const Color(0xFF1E88E5),
+                      onTap: () => Get.toNamed(RouteNames.walletPayments),
+                    ),
                     _buildUtilityIcon(Icons.calendar_today_outlined, 'Events', const Color(0xFFF3E5F5), const Color(0xFF8E24AA)),
                     _buildUtilityIcon(Icons.bar_chart_outlined, 'Polls', const Color(0xFFE1F5FE), const Color(0xFF039BE5)),
-                    _buildUtilityIcon(Icons.workspace_premium_outlined, 'Plans', const Color(0xFFFFF3E0), const Color(0xFFFB8C00)),
+                    _buildUtilityIcon(
+                      Icons.workspace_premium_outlined,
+                      'Plans',
+                      const Color(0xFFFFF3E0),
+                      const Color(0xFFFB8C00),
+                      onTap: () => Get.toNamed(RouteNames.premium),
+                    ),
                     _buildUtilityIcon(Icons.card_giftcard, 'Invite', const Color(0xFFE8F5E9), const Color(0xFF43A047)),
                   ],
                 ),

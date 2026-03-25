@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/common_models/load_state_model.dart';
-import '../../../core/common_models/post_model.dart';
-import '../../../core/common_models/reel_model.dart';
-import '../../../core/common_models/user_model.dart';
-import '../../../core/common_data/mock_data.dart';
+import '../../../core/data/models/load_state_model.dart';
+import '../../../core/data/models/post_model.dart';
+import '../../../core/data/models/reel_model.dart';
+import '../../../core/data/models/user_model.dart';
+import '../../../core/data/mock/mock_data.dart';
 import '../../../core/enums/user_role.dart';
-import '../../../core/services/analytics_service.dart';
+import '../../../core/data/service/analytics_service.dart';
 import '../../follow_unfollow/controller/follow_controller.dart';
 import '../repository/user_profile_repository.dart';
 
@@ -134,6 +134,7 @@ class UserProfileController extends ChangeNotifier {
       case UserRole.guest:
         return <String>['Explore', 'Follow', 'Share Profile'];
     }
+    return <String>['Share Profile'];
   }
 
   void selectTab(int index) {
@@ -243,5 +244,6 @@ class UserProfileController extends ChangeNotifier {
       case UserRole.guest:
         return <String>['Posts', 'Reels', 'About'];
     }
+    return <String>['Posts', 'Reels'];
   }
 }

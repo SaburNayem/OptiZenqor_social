@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/common_models/reel_model.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/reel_model.dart';
+import '../model/reel_filter_model.dart';
 
 class ReelsController extends ChangeNotifier {
   List<ReelModel> reels = <ReelModel>[];
+  ReelFilterModel filter = const ReelFilterModel(filter: ReelFeedFilter.forYou);
   final Set<String> _likedReelIds = <String>{};
   final Set<String> _savedDraftIds = <String>{};
   final Map<String, int> _extraCommentCount = <String, int>{};
@@ -52,6 +54,11 @@ class ReelsController extends ChangeNotifier {
     } else {
       _savedDraftIds.add(reelId);
     }
+    notifyListeners();
+  }
+
+  void setFilter(ReelFeedFilter next) {
+    filter = ReelFilterModel(filter: next);
     notifyListeners();
   }
 }

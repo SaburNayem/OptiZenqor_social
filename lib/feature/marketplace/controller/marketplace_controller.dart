@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/common_models/load_state_model.dart';
-import '../../../core/common_models/product_model.dart';
+import '../../../core/data/models/load_state_model.dart';
+import '../../../core/data/models/product_model.dart';
 import '../repository/marketplace_repository.dart';
 
 class MarketplaceController extends ChangeNotifier {

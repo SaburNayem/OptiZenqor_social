@@ -1,14 +1,14 @@
-import '../common_models/group_model.dart';
-import '../common_models/message_model.dart';
-import '../common_models/notification_model.dart';
-import '../common_models/post_model.dart';
-import '../common_models/product_model.dart';
-import '../common_models/reel_model.dart';
-import '../common_models/story_model.dart';
-import '../common_models/user_model.dart';
-import '../enums/user_role.dart';
-import '../../feature/notifications/model/notification_payload_model.dart';
-import '../../route/route_names.dart';
+import '../models/group_model.dart';
+import '../models/message_model.dart';
+import '../models/notification_model.dart';
+import '../models/post_model.dart';
+import '../models/product_model.dart';
+import '../models/reel_model.dart';
+import '../models/story_model.dart';
+import '../models/user_model.dart';
+import '../../enums/user_role.dart';
+import '../../../feature/notifications/model/notification_payload_model.dart';
+import '../../../route/route_names.dart';
 
 class MockData {
   MockData._();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/widgets/app_button.dart';
 import '../../onboarding/controller/onboarding_controller.dart';
+import '../model/onboarding_slide_model.dart';
 
 class OnboardingScreen extends StatelessWidget {
   OnboardingScreen({super.key});
@@ -9,18 +10,18 @@ class OnboardingScreen extends StatelessWidget {
   final OnboardingController _controller = OnboardingController();
   final ValueNotifier<int> _index = ValueNotifier<int>(0);
 
-  final List<({String title, String subtitle, IconData icon})> _slides = [
-    (
+  final List<OnboardingSlideModel> _slides = const [
+    OnboardingSlideModel(
       title: 'Create your social identity',
       subtitle: 'One profile, multiple roles, premium social tools.',
       icon: Icons.person_pin_circle_rounded,
     ),
-    (
+    OnboardingSlideModel(
       title: 'Discover what matters faster',
       subtitle: 'Reels, communities, market, jobs, and curated feed.',
       icon: Icons.travel_explore_rounded,
     ),
-    (
+    OnboardingSlideModel(
       title: 'Scale with creator and business tools',
       subtitle: 'Insights, campaigns, subscriptions, and growth modules.',
       icon: Icons.insights_rounded,

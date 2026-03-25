@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/common_data/mock_data.dart';
+import '../../../core/data/mock/mock_data.dart';
 import '../controller/events_controller.dart';
 
 class EventsScreen extends StatefulWidget {

@@ -1,7 +1,7 @@
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/common_models/user_model.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/constants/storage_keys.dart';
-import '../../../core/services/local_storage_service.dart';
+import '../../../core/data/service/local_storage_service.dart';
 import '../model/follow_state_model.dart';
 
 class FollowRepository {

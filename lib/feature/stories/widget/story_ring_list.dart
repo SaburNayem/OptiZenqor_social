@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/common_models/story_model.dart';
-import '../../../core/common_models/user_model.dart';
+import '../../../core/data/models/story_model.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../screen/story_view_screen.dart';
 import '../screen/add_story_screen.dart';

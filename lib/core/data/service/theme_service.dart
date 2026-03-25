@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../constant/storage_keys.dart';
-import '../data/shared_preference/app_shared_preferences.dart';
+import '../../constants/storage_keys.dart';
+import '../shared_preference/app_shared_preferences.dart';
 
 class ThemeService {
   ThemeService._();

@@ -1,7 +1,7 @@
-import '../../../core/constant/storage_keys.dart';
+import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../../../core/enums/user_role.dart';
-import '../../../core/services/auth_service.dart';
+import '../../../core/data/service/auth_service.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthRepository {

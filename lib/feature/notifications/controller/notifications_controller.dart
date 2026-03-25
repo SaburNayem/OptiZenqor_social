@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-import '../../../core/common_models/load_state_model.dart';
-import '../../../core/common_models/notification_model.dart';
-import '../../../core/services/analytics_service.dart';
-import '../../../core/services/deep_link_service.dart';
+import '../../../core/data/models/load_state_model.dart';
+import '../../../core/data/models/notification_model.dart';
+import '../../../core/data/service/analytics_service.dart';
+import '../../../core/data/service/deep_link_service.dart';
 import '../model/notification_payload_model.dart';
 import '../repository/notifications_repository.dart';
 
