@@ -7,7 +7,7 @@ void main() {
     await tester.pumpWidget(const OptiZenqorApp());
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('OptiZenqor Social'), findsOneWidget);
+    expect(find.text('OPTIZENQOR SOCIETY'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 2));
     await tester.pumpAndSettle();

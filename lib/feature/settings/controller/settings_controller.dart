@@ -1,17 +1,4 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/enums/user_role.dart';
-import '../../../route/route_names.dart';
-import '../model/settings_item_model.dart';
-import '../model/settings_section_model.dart';
-
-class SettingsController {
-  SettingsController({UserRole? role}) : _role = role ?? MockData.users.first.role;
-
-  final UserRole _role;
-=======
 import 'package:get/get.dart';
 
 import '../../../core/common_data/mock_data.dart';
@@ -37,39 +24,11 @@ class SettingsController extends GetxController {
         UserRole.recruiter => 'Recruiter controls enabled',
         _ => 'Personal account controls',
       };
->>>>>>> 08433d8 (update)
 
   List<SettingsSectionModel> get sections {
     return <SettingsSectionModel>[
       SettingsSectionModel(
         title: 'Account',
-<<<<<<< HEAD
-        description: 'Profile, identity, and account management.',
-        items: const [
-          SettingsItemModel(
-            title: 'Account settings',
-            subtitle: 'Edit profile, username, and account status',
-            icon: Icons.person_outline,
-            routeName: RouteNames.accountSettings,
-          ),
-          SettingsItemModel(
-            title: 'Account switching',
-            subtitle: 'Manage linked accounts',
-            icon: Icons.switch_account_outlined,
-            routeName: RouteNames.accountSwitching,
-          ),
-          SettingsItemModel(
-            title: 'Verification request',
-            subtitle: 'Request or manage verification',
-            icon: Icons.verified_outlined,
-            routeName: RouteNames.verificationRequest,
-          ),
-          SettingsItemModel(
-            title: 'Blocked and muted accounts',
-            subtitle: 'Review blocked or muted users',
-            icon: Icons.block_outlined,
-            routeName: RouteNames.blockedMutedAccounts,
-=======
         description: 'Identity, sessions, verification, and account access.',
         items: const <SettingsItemModel>[
           SettingsItemModel(
@@ -101,15 +60,19 @@ class SettingsController extends GetxController {
             subtitle: 'Move between linked identities',
             icon: Icons.switch_account_outlined,
             routeName: RouteNames.accountSwitching,
->>>>>>> 08433d8 (update)
+          ),
+          SettingsItemModel(
+            title: 'Archive center',
+            subtitle: 'Archived posts, stories, and saved history',
+            icon: Icons.archive_outlined,
+            routeName: RouteNames.archiveCenter,
           ),
         ],
       ),
       SettingsSectionModel(
-<<<<<<< HEAD
-        title: 'Privacy & Security',
-        description: 'Control visibility, safety, and security protections.',
-        items: const [
+        title: 'Privacy & Safety',
+        description: 'Visibility, moderation, reports, and account safety.',
+        items: const <SettingsItemModel>[
           SettingsItemModel(
             title: 'Privacy',
             subtitle: 'Visibility, tagging, and sensitive content',
@@ -117,29 +80,9 @@ class SettingsController extends GetxController {
             routeName: RouteNames.privacySettings,
           ),
           SettingsItemModel(
-            title: 'Password & security',
-            subtitle: '2FA, recovery, and alerts',
-            icon: Icons.lock_outline,
-            routeName: RouteNames.passwordSecurity,
-          ),
-          SettingsItemModel(
-            title: 'Active sessions',
-            subtitle: 'Login history and trusted devices',
-            icon: Icons.devices_outlined,
-            routeName: RouteNames.activitySessions,
-          ),
-          SettingsItemModel(
-            title: 'Report center',
-            subtitle: 'Manage reports and appeals',
-            icon: Icons.report_outlined,
-=======
-        title: 'Privacy & Safety',
-        description: 'Visibility, moderation, reports, and account safety.',
-        items: const <SettingsItemModel>[
-          SettingsItemModel(
             title: 'Advanced privacy controls',
             subtitle: 'Mentions, tagging, discoverability, and visibility',
-            icon: Icons.shield_outlined,
+            icon: Icons.manage_accounts_outlined,
             routeName: RouteNames.advancedPrivacyControls,
           ),
           SettingsItemModel(
@@ -164,118 +107,73 @@ class SettingsController extends GetxController {
             title: 'Report center',
             subtitle: 'Track reports, strikes, and moderation outcomes',
             icon: Icons.flag_outlined,
->>>>>>> 08433d8 (update)
             routeName: RouteNames.reportCenter,
+          ),
+          SettingsItemModel(
+            title: 'Help & safety',
+            subtitle: 'Appeals, help flows, and platform support',
+            icon: Icons.support_agent_outlined,
+            routeName: RouteNames.helpSafety,
           ),
         ],
       ),
       SettingsSectionModel(
-<<<<<<< HEAD
-        title: 'Notifications & Messages',
-        description: 'Choose how you receive alerts and messages.',
-        items: const [
+        title: 'Messages, Calls & Notifications',
+        description: 'Tune alerts, messaging privacy, and call controls.',
+        items: const <SettingsItemModel>[
           SettingsItemModel(
             title: 'Notifications',
             subtitle: 'Push, email, and in-app alerts',
-            icon: Icons.notifications_none_outlined,
+            icon: Icons.notifications_active_outlined,
             routeName: RouteNames.notificationsSettings,
           ),
           SettingsItemModel(
+            title: 'Notification categories',
+            subtitle: 'Fine-tune post, comment, and mention alerts',
+            icon: Icons.tune_outlined,
+            routeName: RouteNames.pushNotificationPreferences,
+          ),
+          SettingsItemModel(
             title: 'Messages & calls',
-            subtitle: 'Message requests, read receipts, call rules',
+            subtitle: 'Requests, read receipts, downloads, and calling',
             icon: Icons.chat_bubble_outline,
             routeName: RouteNames.messagesCallsSettings,
+          ),
+          SettingsItemModel(
+            title: 'Activity sessions',
+            subtitle: 'Review session history and security events',
+            icon: Icons.history_toggle_off_outlined,
+            routeName: RouteNames.activitySessions,
           ),
         ],
       ),
       SettingsSectionModel(
         title: 'Content & Feed',
-        description: 'Recommendations, autoplay, and content preferences.',
-        items: const [
+        description: 'Recommendations, autoplay, drafts, and discovery controls.',
+        items: const <SettingsItemModel>[
           SettingsItemModel(
             title: 'Feed & content preferences',
             subtitle: 'Autoplay, topics, and recommendation reset',
-            icon: Icons.tune_outlined,
+            icon: Icons.view_stream_outlined,
             routeName: RouteNames.feedContentPreferences,
           ),
           SettingsItemModel(
             title: 'Explore recommendations',
-            subtitle: 'Tune discovery suggestions',
+            subtitle: 'Reset recommendation signals and content preferences',
             icon: Icons.explore_outlined,
             routeName: RouteNames.exploreRecommendation,
           ),
           SettingsItemModel(
             title: 'Saved collections',
             subtitle: 'Collections and bookmarks',
-            icon: Icons.bookmark_border,
+            icon: Icons.collections_bookmark_outlined,
             routeName: RouteNames.savedCollections,
           ),
           SettingsItemModel(
-            title: 'My archive',
-            subtitle: 'Stories, reels, and archived content',
-            icon: Icons.archive_outlined,
-            routeName: RouteNames.archiveCenter,
-          ),
-        ],
-      ),
-      if (_role == UserRole.creator ||
-          _role == UserRole.business ||
-          _role == UserRole.seller ||
-          _role == UserRole.recruiter)
-        SettingsSectionModel(
-          title: 'Creator & Professional Tools',
-          description: 'Creator tools, professional dashboards, and growth.',
-          items: const [
-            SettingsItemModel(
-              title: 'Creator tools',
-              subtitle: 'Professional dashboards and branded content',
-              icon: Icons.insights_outlined,
-              routeName: RouteNames.creatorToolsSettings,
-            ),
-            SettingsItemModel(
-              title: 'Creator dashboard',
-              subtitle: 'Performance and monetization overview',
-              icon: Icons.dashboard_outlined,
-              routeName: RouteNames.creatorDashboard,
-            ),
-            SettingsItemModel(
-              title: 'Jobs networking',
-              subtitle: 'Recruiting and professional connections',
-              icon: Icons.work_outline,
-              routeName: RouteNames.jobsNetworking,
-=======
-        title: 'Experience',
-        description: 'Notifications, language, accessibility, and feed behavior.',
-        items: const <SettingsItemModel>[
-          SettingsItemModel(
-            title: 'Push notification preferences',
-            subtitle: 'Tune activity, message, and creator alerts',
-            icon: Icons.notifications_active_outlined,
-            routeName: RouteNames.pushNotificationPreferences,
-          ),
-          SettingsItemModel(
-            title: 'Explore recommendations',
-            subtitle: 'Reset recommendation signals and content preferences',
-            icon: Icons.tune_outlined,
-            routeName: RouteNames.exploreRecommendation,
-          ),
-          SettingsItemModel(
-            title: 'Language and accessibility',
-            subtitle: 'Language, captions, and assistive options',
-            icon: Icons.language_outlined,
-            routeName: RouteNames.languageAccessibility,
-          ),
-          SettingsItemModel(
-            title: 'Localization support',
-            subtitle: 'Locale-aware content and translation settings',
-            icon: Icons.translate_outlined,
-            routeName: RouteNames.localizationSupport,
-          ),
-          SettingsItemModel(
-            title: 'Accessibility support',
-            subtitle: 'Readable UI, motion, and assistive interaction settings',
-            icon: Icons.accessibility_new_outlined,
-            routeName: RouteNames.accessibilitySupport,
+            title: 'Drafts & scheduling',
+            subtitle: 'Manage unpublished and scheduled content',
+            icon: Icons.edit_calendar_outlined,
+            routeName: RouteNames.draftsScheduling,
           ),
         ],
       ),
@@ -284,11 +182,17 @@ class SettingsController extends GetxController {
           title: 'Professional',
           description: 'Monetization, audience tools, and role-aware controls.',
           items: <SettingsItemModel>[
+            const SettingsItemModel(
+              title: 'Creator / professional tools',
+              subtitle: 'Professional dashboards and branded content settings',
+              icon: Icons.insights_outlined,
+              routeName: RouteNames.creatorToolsSettings,
+            ),
             if (currentUser.role == UserRole.creator)
               const SettingsItemModel(
                 title: 'Creator dashboard',
                 subtitle: 'Insights, growth, and creator controls',
-                icon: Icons.insights_outlined,
+                icon: Icons.dashboard_outlined,
                 routeName: RouteNames.creatorDashboard,
               ),
             if (currentUser.role == UserRole.business)
@@ -298,6 +202,12 @@ class SettingsController extends GetxController {
                 icon: Icons.business_center_outlined,
                 routeName: RouteNames.businessProfile,
               ),
+            const SettingsItemModel(
+              title: 'Monetization & payments',
+              subtitle: 'Payout settings and subscriber badges',
+              icon: Icons.payments_outlined,
+              routeName: RouteNames.monetizationPayments,
+            ),
             const SettingsItemModel(
               title: 'Wallet and payments',
               subtitle: 'Balance, payouts, and saved payment preferences',
@@ -311,49 +221,17 @@ class SettingsController extends GetxController {
               routeName: RouteNames.subscriptions,
             ),
             const SettingsItemModel(
-              title: 'Invite and referral',
-              subtitle: 'Referral rewards and shareable invite flows',
-              icon: Icons.card_giftcard_outlined,
-              routeName: RouteNames.inviteReferral,
->>>>>>> 08433d8 (update)
+              title: 'Premium membership',
+              subtitle: 'Upgrade and premium features',
+              icon: Icons.stars_outlined,
+              routeName: RouteNames.premium,
             ),
           ],
         ),
       SettingsSectionModel(
-<<<<<<< HEAD
-        title: 'Monetization & Payments',
-        description: 'Wallets, subscriptions, and premium access.',
-        items: const [
-          SettingsItemModel(
-            title: 'Monetization & payments',
-            subtitle: 'Payout settings and subscriber badges',
-            icon: Icons.payments_outlined,
-            routeName: RouteNames.monetizationPayments,
-          ),
-          SettingsItemModel(
-            title: 'Wallet',
-            subtitle: 'Balance, payout methods, and history',
-            icon: Icons.account_balance_wallet_outlined,
-            routeName: RouteNames.walletPayments,
-          ),
-          SettingsItemModel(
-            title: 'Subscriptions',
-            subtitle: 'Subscriber tiers and benefits',
-            icon: Icons.subscriptions_outlined,
-            routeName: RouteNames.subscriptions,
-          ),
-          SettingsItemModel(
-            title: 'Premium membership',
-            subtitle: 'Upgrade and premium features',
-            icon: Icons.workspace_premium_outlined,
-            routeName: RouteNames.premium,
-          ),
-        ],
-      ),
-      SettingsSectionModel(
-        title: 'Communities',
-        description: 'Groups, pages, and community management.',
-        items: const [
+        title: 'Communities & Discoverability',
+        description: 'Groups, pages, communities, and public presence.',
+        items: const <SettingsItemModel>[
           SettingsItemModel(
             title: 'Communities & groups',
             subtitle: 'Invites, mentions, and events',
@@ -361,149 +239,88 @@ class SettingsController extends GetxController {
             routeName: RouteNames.communitiesGroups,
           ),
           SettingsItemModel(
-            title: 'Communities',
-            subtitle: 'Manage community memberships',
-            icon: Icons.forum_outlined,
-            routeName: RouteNames.communities,
+            title: 'Connected apps',
+            subtitle: 'Linked services and integrations',
+            icon: Icons.extension_outlined,
+            routeName: RouteNames.connectedApps,
           ),
           SettingsItemModel(
-            title: 'Groups',
-            subtitle: 'Group discovery and moderation',
-            icon: Icons.group_work_outlined,
-            routeName: RouteNames.groups,
+            title: 'Deep link handler',
+            subtitle: 'Inspect route entry behavior for links',
+            icon: Icons.link_outlined,
+            routeName: RouteNames.deepLinkHandler,
           ),
           SettingsItemModel(
-            title: 'Pages',
-            subtitle: 'Page management and insights',
-            icon: Icons.pages_outlined,
-            routeName: RouteNames.pages,
+            title: 'Invite and referral',
+            subtitle: 'Referral rewards and shareable invite flows',
+            icon: Icons.card_giftcard_outlined,
+            routeName: RouteNames.inviteReferral,
           ),
         ],
       ),
       SettingsSectionModel(
-        title: 'Data & Privacy Center',
-        description: 'Data export, ad preferences, and privacy controls.',
-        items: const [
-          SettingsItemModel(
-            title: 'Data & privacy center',
-            subtitle: 'Download data, permissions, and cache',
-            icon: Icons.storage_outlined,
-            routeName: RouteNames.dataPrivacyCenter,
-          ),
-          SettingsItemModel(
-            title: 'Offline sync',
-            subtitle: 'Queued actions and downloads',
-            icon: Icons.offline_bolt_outlined,
-=======
-        title: 'Support & App',
-        description: 'Archive, app utilities, compliance, and product support.',
+        title: 'Language, Accessibility & Data',
+        description: 'Locale, accessibility, privacy center, and device behavior.',
         items: const <SettingsItemModel>[
           SettingsItemModel(
-            title: 'Archive center',
-            subtitle: 'Archived posts, stories, and saved history',
-            icon: Icons.archive_outlined,
-            routeName: RouteNames.archiveCenter,
+            title: 'Language and accessibility',
+            subtitle: 'Language, captions, and assistive options',
+            icon: Icons.language_outlined,
+            routeName: RouteNames.languageAccessibility,
+          ),
+          SettingsItemModel(
+            title: 'Language & region',
+            subtitle: 'Region-aware formatting and translation controls',
+            icon: Icons.public_outlined,
+            routeName: RouteNames.languageRegion,
+          ),
+          SettingsItemModel(
+            title: 'Accessibility',
+            subtitle: 'Readable UI, motion, and assistive interaction settings',
+            icon: Icons.accessibility_new_outlined,
+            routeName: RouteNames.accessibilitySettings,
+          ),
+          SettingsItemModel(
+            title: 'Localization support',
+            subtitle: 'Locale-aware content and translation settings',
+            icon: Icons.translate_outlined,
+            routeName: RouteNames.localizationSupport,
+          ),
+          SettingsItemModel(
+            title: 'Accessibility support',
+            subtitle: 'Additional accessibility preview and support tools',
+            icon: Icons.assistant_direction_outlined,
+            routeName: RouteNames.accessibilitySupport,
+          ),
+          SettingsItemModel(
+            title: 'Data & privacy center',
+            subtitle: 'Data export, cache, permissions, and privacy history',
+            icon: Icons.privacy_tip_outlined,
+            routeName: RouteNames.dataPrivacyCenter,
           ),
           SettingsItemModel(
             title: 'Offline sync',
             subtitle: 'Queued actions, retry state, and local sync health',
             icon: Icons.sync_outlined,
->>>>>>> 08433d8 (update)
             routeName: RouteNames.offlineSync,
           ),
-          SettingsItemModel(
-            title: 'Deep link handler',
-<<<<<<< HEAD
-            subtitle: 'Link routing and app associations',
-            icon: Icons.link_outlined,
-            routeName: RouteNames.deepLinkHandler,
-          ),
         ],
       ),
       SettingsSectionModel(
-        title: 'Accessibility & Language',
-        description: 'Accessibility settings and regional preferences.',
-        items: const [
+        title: 'About & App',
+        description: 'Legal, updates, app support, and diagnostics.',
+        items: const <SettingsItemModel>[
           SettingsItemModel(
-            title: 'Accessibility',
-            subtitle: 'Captions, contrast, and motion',
-            icon: Icons.accessibility_new_outlined,
-            routeName: RouteNames.accessibilitySettings,
+            title: 'Support and help',
+            subtitle: 'FAQ, help center, and safety support',
+            icon: Icons.help_outline_rounded,
+            routeName: RouteNames.supportHelp,
           ),
           SettingsItemModel(
-            title: 'Language & region',
-            subtitle: 'Locale, date, and time format',
-            icon: Icons.language_outlined,
-            routeName: RouteNames.languageRegion,
-          ),
-          SettingsItemModel(
-            title: 'Localization support',
-            subtitle: 'Translation and localization status',
-            icon: Icons.translate_outlined,
-            routeName: RouteNames.localizationSupport,
-          ),
-        ],
-      ),
-      SettingsSectionModel(
-        title: 'Connected Apps',
-        description: 'Manage third-party access and integrations.',
-        items: const [
-          SettingsItemModel(
-            title: 'Connected apps',
-            subtitle: 'Manage permissions and access',
-            icon: Icons.extension_outlined,
-            routeName: RouteNames.connectedApps,
-          ),
-        ],
-      ),
-      SettingsSectionModel(
-        title: 'Help & Safety',
-        description: 'Support, safety resources, and legal information.',
-        items: const [
-          SettingsItemModel(
-            title: 'Help & safety',
-            subtitle: 'Support and safety resources',
-            icon: Icons.help_outline,
-            routeName: RouteNames.helpSafety,
-          ),
-          SettingsItemModel(
-            title: 'Safety & privacy',
-            subtitle: 'Safety resources and reporting',
-            icon: Icons.health_and_safety_outlined,
-            routeName: RouteNames.safetyPrivacy,
-          ),
-          SettingsItemModel(
-            title: 'Legal & compliance',
-            subtitle: 'Policies and legal notices',
-            icon: Icons.gavel_outlined,
-            routeName: RouteNames.legalCompliance,
-          ),
-        ],
-      ),
-      SettingsSectionModel(
-        title: 'About',
-        description: 'App details and update information.',
-        items: const [
-          SettingsItemModel(
-            title: 'About OptiZenqor',
-            subtitle: 'Version, updates, and acknowledgements',
-            icon: Icons.info_outline,
+            title: 'About',
+            subtitle: 'Version, licenses, and release notes',
+            icon: Icons.info_outline_rounded,
             routeName: RouteNames.aboutSettings,
-          ),
-          SettingsItemModel(
-            title: 'App update flow',
-            subtitle: 'Preview update prompts',
-            icon: Icons.system_update_alt_outlined,
-            routeName: RouteNames.appUpdateFlow,
-          ),
-          SettingsItemModel(
-            title: 'Maintenance mode preview',
-            subtitle: 'Preview service interruptions',
-            icon: Icons.build_outlined,
-=======
-            subtitle: 'Inspect route entry behavior for links',
-            icon: Icons.link_outlined,
-            routeName: RouteNames.deepLinkHandler,
           ),
           SettingsItemModel(
             title: 'App update flow',
@@ -518,24 +335,15 @@ class SettingsController extends GetxController {
             routeName: RouteNames.legalCompliance,
           ),
           SettingsItemModel(
-            title: 'Support and help',
-            subtitle: 'FAQ, help center, and safety support',
-            icon: Icons.help_outline_rounded,
-            routeName: RouteNames.supportHelp,
-          ),
-          SettingsItemModel(
             title: 'Maintenance mode preview',
             subtitle: 'Internal preview of maintenance UX',
             icon: Icons.build_circle_outlined,
->>>>>>> 08433d8 (update)
             routeName: RouteNames.maintenanceMode,
           ),
         ],
       ),
     ];
   }
-<<<<<<< HEAD
-=======
 
   bool get _hasProfessionalControls {
     return currentUser.role == UserRole.creator ||
@@ -543,5 +351,4 @@ class SettingsController extends GetxController {
         currentUser.role == UserRole.seller ||
         currentUser.role == UserRole.recruiter;
   }
->>>>>>> 08433d8 (update)
 }

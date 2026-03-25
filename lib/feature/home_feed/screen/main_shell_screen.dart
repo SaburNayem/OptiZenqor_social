@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/common_data/mock_data.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../../route/route_names.dart';
-import '../common/main_shell_drawer_section.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
 import '../../settings/screen/settings_screen.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
+import '../common/main_shell_drawer_section.dart';
 import '../controller/main_shell_controller.dart';
 import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
@@ -22,25 +21,6 @@ class MainShellScreen extends StatelessWidget {
 
   late final ConnectivityService _connectivity;
 
-<<<<<<< HEAD
-  static const List<String> _tabTitles = <String>[
-    'Home',
-    'Reels',
-    'Chat',
-    'Profile',
-    'Settings',
-  ];
-
-  final List<Widget> _tabs = [
-    HomeFeedScreen(),
-    ReelsScreen(),
-    ChatScreen(),
-    UserProfileScreen(),
-    const SettingsScreen(showAppBar: false),
-  ];
-
-=======
->>>>>>> 08433d8 (update)
   @override
   Widget build(BuildContext context) {
     final currentUser = MockData.users.first;
@@ -56,11 +36,7 @@ class MainShellScreen extends StatelessWidget {
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
-<<<<<<< HEAD
-            title: Text('OptiZenqor - ${_tabTitles[controller.index]}'),
-=======
             title: Text('OptiZenqor • ${controller.currentTitle}'),
->>>>>>> 08433d8 (update)
             actions: <Widget>[
               if (controller.showCreateAction)
                 IconButton(
@@ -90,115 +66,25 @@ class MainShellScreen extends StatelessWidget {
                     accountName: Text(currentUser.name),
                     accountEmail: Text('@${currentUser.username}'),
                     margin: EdgeInsets.zero,
-                    otherAccountsPictures: const [
+                    otherAccountsPictures: const <Widget>[
                       CircleAvatar(
                         child: Icon(Icons.keyboard_arrow_right_rounded),
                       ),
                     ],
                     onDetailsPressed: () => Get.toNamed(
                       RouteNames.userProfile,
-                      parameters: {'id': currentUser.id},
+                      parameters: <String, String>{'id': currentUser.id},
                     ),
-                  ),
-<<<<<<< HEAD
-                  const _DrawerSectionHeader(
-                    title: 'Create',
-                    subtitle: 'Quick create actions',
                   ),
                   ListTile(
                     leading: const Icon(Icons.add_box_outlined),
                     title: const Text('New post'),
+                    subtitle: const Text('Jump into the composer'),
                     onTap: () {
                       Navigator.pop(context);
                       _openCreateScreen(context);
                     },
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.drafts_rounded),
-                    title: const Text('Drafts'),
-                    onTap: () => Get.toNamed(RouteNames.drafts),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.schedule_rounded),
-                    title: const Text('Scheduling'),
-                    onTap: () => Get.toNamed(RouteNames.scheduling),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.cloud_upload_rounded),
-                    title: const Text('Upload manager'),
-                    onTap: () => Get.toNamed(RouteNames.uploadManager),
-                  ),
-                  const _DrawerSectionHeader(
-                    title: 'Discover',
-                    subtitle: 'Communities and marketplace',
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.groups_rounded),
-                    title: const Text('Communities'),
-                    onTap: () => Get.toNamed(RouteNames.communities),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.group_work_outlined),
-                    title: const Text('Groups'),
-                    onTap: () => Get.toNamed(RouteNames.groups),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.pages_outlined),
-                    title: const Text('Pages'),
-                    onTap: () => Get.toNamed(RouteNames.pages),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.storefront_rounded),
-                    title: const Text('Marketplace'),
-                    onTap: () => Get.toNamed(RouteNames.marketplace),
-                  ),
-                  const _DrawerSectionHeader(
-                    title: 'Growth',
-                    subtitle: 'Creator and professional tools',
-                  ),
-                  if (currentUser.role != UserRole.user &&
-                      currentUser.role != UserRole.guest)
-                    ListTile(
-                      leading: const Icon(Icons.insights_rounded),
-                      title: const Text('Creator dashboard'),
-                      onTap: () => Get.toNamed(RouteNames.creatorDashboard),
-                    ),
-                  if (currentUser.role != UserRole.user &&
-                      currentUser.role != UserRole.guest)
-                    ListTile(
-                      leading: const Icon(Icons.workspace_premium_rounded),
-                      title: const Text('Premium plans'),
-                      onTap: () => Get.toNamed(RouteNames.premium),
-                    ),
-                  ListTile(
-                    leading: const Icon(Icons.account_balance_wallet_outlined),
-                    title: const Text('Wallet & payments'),
-                    onTap: () => Get.toNamed(RouteNames.walletPayments),
-                  ),
-                  const _DrawerSectionHeader(
-                    title: 'Library',
-                    subtitle: 'Saved content and history',
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.bookmark_outline_rounded),
-                    title: const Text('Saved posts'),
-                    onTap: () => Get.toNamed(RouteNames.bookmarks),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.archive_outlined),
-                    title: const Text('Archived posts'),
-                    onTap: () => Get.toNamed(RouteNames.archiveCenter),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.event_outlined),
-                    title: const Text('Events'),
-                    onTap: () => Get.toNamed(RouteNames.events),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.live_tv_outlined),
-                    title: const Text('Live stream'),
-                    onTap: () => Get.toNamed(RouteNames.liveStream),
-=======
                   const Padding(
                     padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
                     child: Text('Feature Hub'),
@@ -211,14 +97,13 @@ class MainShellScreen extends StatelessWidget {
                         Get.toNamed(routeName);
                       },
                     ),
->>>>>>> 08433d8 (update)
                   ),
                 ],
               ),
             ),
           ),
           body: Column(
-            children: [
+            children: <Widget>[
               AnimatedBuilder(
                 animation: _connectivity,
                 builder: (_, _) {
@@ -228,7 +113,7 @@ class MainShellScreen extends StatelessWidget {
                   return MaterialBanner(
                     content: const Text('You are offline. Some actions may fail.'),
                     leading: const Icon(Icons.wifi_off_rounded),
-                    actions: [
+                    actions: <Widget>[
                       TextButton(
                         onPressed: () async {
                           await _connectivity.retryFailedAction((_) async {});
@@ -246,11 +131,7 @@ class MainShellScreen extends StatelessWidget {
               Expanded(
                 child: IndexedStack(
                   index: controller.index,
-<<<<<<< HEAD
-                  children: _tabs,
-=======
                   children: tabs,
->>>>>>> 08433d8 (update)
                 ),
               ),
             ],
@@ -275,34 +156,15 @@ class MainShellScreen extends StatelessWidget {
 
   Future<void> _openCreateScreen(BuildContext context) async {
     final CreatePostResult? result =
-        await Get.to<CreatePostResult>(() => const CreatePostScreen());
+        await Navigator.of(context).push<CreatePostResult>(
+      MaterialPageRoute<CreatePostResult>(
+        builder: (_) => CreatePostScreen(),
+      ),
+    );
     if (result != null && context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(const SnackBar(content: Text('Post created')));
     }
   }
-<<<<<<< HEAD
-}
-
-class _DrawerSectionHeader extends StatelessWidget {
-  const _DrawerSectionHeader({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-      ),
-      subtitle: Text(subtitle),
-    );
-  }
-=======
->>>>>>> 08433d8 (update)
 }

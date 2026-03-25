@@ -35,8 +35,16 @@ class SettingsSectionCard extends StatelessWidget {
             for (final item in section.items)
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(item.icon),
-                title: Text(item.title),
+                leading: item.icon == null ? null : Icon(item.icon),
+                title: Text(
+                  item.title,
+                  style: item.isDestructive
+                      ? theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        )
+                      : null,
+                ),
                 subtitle: item.subtitle == null ? null : Text(item.subtitle!),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: item.routeName == null

@@ -50,11 +50,24 @@ import '../feature/safety_privacy/screen/safety_privacy_screen.dart';
 import '../feature/saved_collections/screen/saved_collections_screen.dart';
 import '../feature/search_discovery/screen/search_discovery_screen.dart';
 import '../feature/settings/screen/account_settings_screen.dart';
+import '../feature/settings/screen/about_settings_screen.dart';
+import '../feature/settings/screen/accessibility_settings_screen.dart';
 import '../feature/settings/screen/archive_center_screen.dart';
 import '../feature/settings/screen/blocked_users_screen.dart';
+import '../feature/settings/screen/communities_groups_settings_screen.dart';
+import '../feature/settings/screen/connected_apps_screen.dart';
+import '../feature/settings/screen/creator_tools_settings_screen.dart';
+import '../feature/settings/screen/data_privacy_center_screen.dart';
 import '../feature/settings/screen/devices_sessions_screen.dart';
+import '../feature/settings/screen/feed_content_preferences_screen.dart';
+import '../feature/settings/screen/help_safety_settings_screen.dart';
 import '../feature/settings/screen/language_accessibility_screen.dart';
+import '../feature/settings/screen/language_region_settings_screen.dart';
+import '../feature/settings/screen/messages_calls_settings_screen.dart';
+import '../feature/settings/screen/monetization_payments_settings_screen.dart';
+import '../feature/settings/screen/notifications_settings_screen.dart';
 import '../feature/settings/screen/password_security_screen.dart';
+import '../feature/settings/screen/privacy_settings_screen.dart';
 import '../feature/settings/screen/settings_screen.dart';
 import '../feature/share_repost_system/screen/share_repost_system_screen.dart';
 import '../feature/splash/screen/splash_screen.dart';
@@ -95,6 +108,26 @@ class AppPages {
         RouteNames.devicesSessions: () => DevicesSessionsScreen(),
         RouteNames.blockedUsers: () => BlockedUsersScreen(),
         RouteNames.archiveCenter: () => const ArchiveCenterScreen(),
+        RouteNames.privacySettings: () => const PrivacySettingsScreen(),
+        RouteNames.notificationsSettings: () =>
+            const NotificationsSettingsScreen(),
+        RouteNames.messagesCallsSettings: () =>
+            const MessagesCallsSettingsScreen(),
+        RouteNames.feedContentPreferences: () =>
+            const FeedContentPreferencesScreen(),
+        RouteNames.creatorToolsSettings: () =>
+            const CreatorToolsSettingsScreen(),
+        RouteNames.monetizationPayments: () =>
+            const MonetizationPaymentsSettingsScreen(),
+        RouteNames.communitiesGroups: () =>
+            const CommunitiesGroupsSettingsScreen(),
+        RouteNames.dataPrivacyCenter: () => const DataPrivacyCenterScreen(),
+        RouteNames.accessibilitySettings: () =>
+            const AccessibilitySettingsScreen(),
+        RouteNames.languageRegion: () => const LanguageRegionSettingsScreen(),
+        RouteNames.connectedApps: () => const ConnectedAppsScreen(),
+        RouteNames.helpSafety: () => const HelpSafetySettingsScreen(),
+        RouteNames.aboutSettings: () => const AboutSettingsScreen(),
         RouteNames.languageAccessibility: () =>
             const LanguageAccessibilityScreen(),
         RouteNames.draftsScheduling: () => DraftsAndSchedulingScreen(),
