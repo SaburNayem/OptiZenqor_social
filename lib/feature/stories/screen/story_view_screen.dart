@@ -3,141 +3,160 @@ import 'package:flutter/material.dart';
 import '../../../core/common_models/story_model.dart';
 import '../../../core/common_models/user_model.dart';
 
-class StoryViewScreen extends StatelessWidget {
-  StoryViewScreen({
+class StoryViewScreen extends StatefulWidget {
+  const StoryViewScreen({
     required this.stories,
     required this.users,
     required this.initialStoryId,
     super.key,
-  }) : _index = ValueNotifier<int>(
-          stories.indexWhere((StoryModel story) => story.id == initialStoryId) >= 0
-              ? stories.indexWhere((StoryModel story) => story.id == initialStoryId)
-              : 0,
-        ),
-        _pageController = PageController(
-          initialPage: stories.indexWhere((StoryModel story) => story.id == initialStoryId) >= 0
-              ? stories.indexWhere((StoryModel story) => story.id == initialStoryId)
-              : 0,
-        );
+  });
 
   final List<StoryModel> stories;
   final List<UserModel> users;
   final String initialStoryId;
-  final ValueNotifier<int> _index;
-  final PageController _pageController;
+
+  @override
+  State<StoryViewScreen> createState() => _StoryViewScreenState();
+}
+
+class _StoryViewScreenState extends State<StoryViewScreen> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.stories.indexWhere((s) => s.id == widget.initialStoryId);
+    if (_currentIndex < 0) _currentIndex = 0;
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        title: ValueListenableBuilder<int>(
-          valueListenable: _index,
-          builder: (context, index, _) {
-            return Text(_storyOwnerName(stories[index]));
-          },
-        ),
-      ),
       body: Stack(
         children: [
+          // Story Content
           PageView.builder(
             controller: _pageController,
-            itemCount: stories.length,
-            onPageChanged: (int value) {
-              _index.value = value;
-            },
-            itemBuilder: (BuildContext context, int index) {
-              final story = stories[index];
-              return InteractiveViewer(
-                minScale: 1,
-                maxScale: 3,
+            itemCount: widget.stories.length,
+            onPageChanged: (index) => setState(() => _currentIndex = index),
+            itemBuilder: (context, index) {
+              final story = widget.stories[index];
+              return Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: const BoxDecoration(color: Color(0xFF6A1B9A)), // Purple background from screenshot
                 child: Center(
                   child: Image.network(
                     story.media,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) {
-                      return const Text(
-                        'Unable to load story media',
-                        style: TextStyle(color: Colors.white),
-                      );
-                    },
+                    errorBuilder: (_, __, ___) => const Icon(Icons.error, color: Colors.white),
                   ),
                 ),
               );
             },
           ),
+
+          // Top UI (Progress bars & User info)
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Row(
-                children: List<Widget>.generate(stories.length, (int i) {
-                  final bool active = i == _index.value;
-                  return Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: active
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(99),
+            child: Column(
+              children: [
+                // Progress Bars
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: List.generate(widget.stories.length, (index) {
+                      return Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                          height: 2,
+                          decoration: BoxDecoration(
+                            color: index <= _currentIndex ? Colors.white : Colors.white.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(1),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                // User Info
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundImage: NetworkImage(_getUser(widget.stories[_currentIndex])?.avatar ?? ''),
                       ),
-                    ),
-                  );
-                }),
-              ),
+                      const SizedBox(width: 12),
+                      Text(
+                        _getUser(widget.stories[_currentIndex])?.name ?? '8Luck',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '25 min',
+                        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.more_vert, color: Colors.white),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
+
+          // Bottom UI (Input, Heart, Share)
           Positioned(
-            left: 12,
-            right: 12,
-            bottom: 20,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: const [
-                  Chip(label: Text('Story stickers')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Poll sticker')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Question sticker')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Emoji slider')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Mention sticker')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Location sticker')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Music sticker')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Link sticker')),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 72,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: const [
-                  Chip(label: Text('Story archive list')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Memories placeholder')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Restore to highlights')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Re-share archived story')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Create close friends list')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Edit close friends list')),
-                  SizedBox(width: 8),
-                  Chip(label: Text('Preview close friends audience')),
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   const Text(
+                    '8LUCK.COM',
+                    style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1.2),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 48,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: Colors.white.withOpacity(0.3)),
+                          ),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Send a message',
+                            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.favorite_border, color: Colors.white, size: 28),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.send_outlined, color: Colors.white, size: 28),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -147,8 +166,7 @@ class StoryViewScreen extends StatelessWidget {
     );
   }
 
-  String _storyOwnerName(StoryModel story) {
-    final user = users.where((u) => u.id == story.userId).firstOrNull;
-    return user?.name ?? 'Story';
+  UserModel? _getUser(StoryModel story) {
+    return widget.users.where((u) => u.id == story.userId).firstOrNull;
   }
 }

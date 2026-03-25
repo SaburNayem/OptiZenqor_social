@@ -7,7 +7,6 @@ import '../../../route/route_names.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
-import '../common/main_shell_drawer_section.dart';
 import '../controller/main_shell_controller.dart';
 import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
@@ -31,12 +30,12 @@ class MainShellScreen extends StatelessWidget {
           ReelsScreen(),
           const SizedBox.shrink(), // Placeholder for center FAB action
           ChatScreen(),
-          UserProfileScreen(),
+          UserProfileScreen(showAppBar: false),
         ];
 
         return Scaffold(
           backgroundColor: Colors.white,
-          appBar: AppBar(
+          appBar: controller.index == 1 ? null : AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
             leading: Builder(
@@ -86,8 +85,8 @@ class MainShellScreen extends StatelessWidget {
           ),
           drawer: Drawer(
             child: SafeArea(
-              child: ListView(
-                children: <Widget>[
+              child: Column(
+                children: [
                   UserAccountsDrawerHeader(
                     currentAccountPicture: CircleAvatar(
                       backgroundImage: NetworkImage(currentUser.avatar),
@@ -100,13 +99,27 @@ class MainShellScreen extends StatelessWidget {
                       parameters: <String, String>{'id': currentUser.id},
                     ),
                   ),
-                  ...controller.drawerSections.map(
-                    (section) => MainShellDrawerSection(
-                      section: section,
-                      onTap: (routeName) {
-                        Get.back<void>();
-                        Get.toNamed(routeName);
-                      },
+                  Expanded(
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _buildDrawerItem(Icons.groups_outlined, 'Communities', RouteNames.communities),
+                        _buildDrawerItem(Icons.shopping_bag_outlined, 'Marketplace', RouteNames.marketplace),
+                        _buildDrawerItem(Icons.bar_chart_outlined, 'Creator Dashboard', RouteNames.creatorDashboard),
+                        _buildDrawerItem(Icons.star_outline, 'Premium Plans', RouteNames.premium),
+                        _buildDrawerItem(Icons.calendar_today_outlined, 'Drafts & Scheduling', RouteNames.scheduling),
+                        _buildDrawerItem(Icons.cloud_upload_outlined, 'Upload Manager', RouteNames.uploadManager),
+                        _buildDrawerItem(Icons.bookmark_border_outlined, 'Bookmarks', RouteNames.bookmarks),
+                        _buildDrawerItem(Icons.account_balance_wallet_outlined, 'Wallet', RouteNames.walletPayments),
+                        _buildDrawerItem(Icons.event_outlined, 'Events', RouteNames.events),
+                        _buildDrawerItem(Icons.work_outline, 'Jobs', RouteNames.marketplace),
+                        _buildDrawerItem(Icons.card_giftcard_outlined, 'Invite Friends', RouteNames.marketplace),
+                        _buildDrawerItem(Icons.archive_outlined, 'My archive', RouteNames.archiveCenter),
+                        const Divider(),
+                        _buildDrawerItem(Icons.settings_outlined, 'Settings', RouteNames.settings),
+                        _buildDrawerItem(Icons.help_outline, 'Help & Support', RouteNames.settings),
+                        _buildDrawerItem(Icons.logout, 'Log Out', RouteNames.login, isDestructive: true),
+                      ],
                     ),
                   ),
                 ],
@@ -191,6 +204,24 @@ class MainShellScreen extends StatelessWidget {
             ),
           ),
         );
+      },
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String label, String routeName, {bool isDestructive = false}) {
+    return ListTile(
+      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.blueGrey.shade700),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: isDestructive ? Colors.red : Colors.blueGrey.shade800,
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
+        ),
+      ),
+      onTap: () {
+        Get.back();
+        Get.toNamed(routeName);
       },
     );
   }

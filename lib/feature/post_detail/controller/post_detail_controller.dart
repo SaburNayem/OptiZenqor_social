@@ -29,6 +29,7 @@ class PostDetailController extends GetxController {
       media: selected.media,
       likes: selected.likes,
       comments: selected.comments,
+      createdAt: selected.createdAt,
     );
     comments
       ..clear()
@@ -78,6 +79,7 @@ class PostDetailController extends GetxController {
       media: detail.media,
       likes: isLiked ? detail.likes + 1 : detail.likes - 1,
       comments: detail.comments,
+      createdAt: detail.createdAt,
     );
     update();
   }
@@ -131,6 +133,7 @@ class PostDetailController extends GetxController {
       media: detail.media,
       likes: detail.likes,
       comments: detail.comments + 1,
+      createdAt: detail.createdAt,
     );
     update();
   }
@@ -195,6 +198,7 @@ class PostDetailController extends GetxController {
       media: detail.media,
       likes: detail.likes,
       comments: (detail.comments - removedCount).clamp(0, 999999),
+      createdAt: detail.createdAt,
     );
     update();
   }

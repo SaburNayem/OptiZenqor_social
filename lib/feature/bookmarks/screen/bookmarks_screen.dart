@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../core/common_data/mock_data.dart';
 import '../controller/bookmarks_controller.dart';
-import '../model/bookmark_item_model.dart';
 
 class BookmarksScreen extends StatelessWidget {
   BookmarksScreen({super.key}) {
@@ -13,90 +13,168 @@ class BookmarksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = MockData.users.first;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Bookmarks')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, _) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: <Widget>[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: <Widget>[
-                FilledButton(
-                  onPressed: () => _controller.save(
-                    BookmarkItemModel(
-                      id: MockData.posts[1].id,
-                      title: MockData.posts[1].caption,
-                      type: BookmarkType.post,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Get.back(),
+        ),
+        title: const Text(
+          'Saved Collections',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black87),
+            onPressed: () {},
+          ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: Colors.black87),
+                onPressed: () {},
+              ),
+              Positioned(
+                right: 12,
+                top: 12,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundImage: NetworkImage(currentUser.avatar),
+            ),
+          ),
+        ],
+      ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        padding: const EdgeInsets.all(16),
+        mainAxisSpacing: 24,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.85,
+        children: [
+          // New Collection Button
+          InkWell(
+            onTap: () {},
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add, size: 32, color: Colors.grey.shade400),
+                          const SizedBox(height: 12),
+                          Text(
+                            'New Collection',
+                            style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: const Text('Save post'),
                 ),
-                FilledButton(
-                  onPressed: () => _controller.save(
-                    BookmarkItemModel(
-                      id: MockData.posts[2].id,
-                      title: MockData.posts[2].caption,
-                      type: BookmarkType.reel,
-                    ),
-                  ),
-                  child: const Text('Save reel'),
-                ),
-                FilledButton(
-                  onPressed: () => _controller.save(
-                    const BookmarkItemModel(
-                      id: 'product_1',
-                      title: 'Saved product',
-                      type: BookmarkType.product,
-                    ),
-                  ),
-                  child: const Text('Save product'),
-                ),
+                const SizedBox(height: 12),
+                const Opacity(opacity: 0, child: Text('Placeholder')), // For spacing
               ],
             ),
-            const SizedBox(height: 12),
-            const Card(
-              child: ListTile(
-                leading: Icon(Icons.bookmark_added_outlined),
-                title: Text('Saved Posts'),
-                subtitle: Text('This section shows other people\'s posts you saved.'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_controller.items.isEmpty)
-              const Card(
-                child: ListTile(
-                  title: Text('No bookmarks yet'),
-                  subtitle: Text('Save another user\'s post, reel, or product to see it here.'),
-                ),
-              ),
-            ..._controller.items.map(
-              (item) {
-                final post = MockData.posts.where((p) => p.id == item.id).firstOrNull;
-                final author = post == null
-                    ? null
-                    : MockData.users.where((u) => u.id == post.authorId).firstOrNull;
-                return Card(
-                  child: ListTile(
-                    title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(
-                      author == null
-                          ? item.type.name
-                          : 'Saved from @${author.username} • ${item.type.name}',
-                    ),
-                    trailing: IconButton(
-                      onPressed: () => _controller.remove(item.id),
-                      icon: const Icon(Icons.delete_outline),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+
+          _buildCollectionCard(
+            'All Posts',
+            '124',
+            [
+              'https://picsum.photos/seed/s1/200/200',
+              'https://picsum.photos/seed/s2/200/200',
+              'https://picsum.photos/seed/s3/200/200',
+              'https://picsum.photos/seed/s4/200/200',
+            ],
+          ),
+          _buildCollectionCard(
+            'Travel Inspo',
+            '42',
+            [
+              'https://picsum.photos/seed/s5/200/200',
+              'https://picsum.photos/seed/s6/200/200',
+              'https://picsum.photos/seed/s7/200/200',
+              'https://picsum.photos/seed/s8/200/200',
+            ],
+          ),
+          _buildCollectionCard(
+            'Recipes',
+            '18',
+            [
+              'https://picsum.photos/seed/s9/200/200',
+              'https://picsum.photos/seed/s10/200/200',
+              'https://picsum.photos/seed/s11/200/200',
+              'https://picsum.photos/seed/s12/200/200',
+            ],
+          ),
+          _buildCollectionCard(
+            'Design Ideas',
+            '56',
+            [
+              'https://picsum.photos/seed/s13/200/200',
+              'https://picsum.photos/seed/s14/200/200',
+              'https://picsum.photos/seed/s15/200/200',
+              'https://picsum.photos/seed/s16/200/200',
+            ],
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildCollectionCard(String title, String count, List<String> images) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: GridView.count(
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 2,
+              mainAxisSpacing: 2,
+              children: images.map((url) => Image.network(url, fit: BoxFit.cover)).toList(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '$count saved items',
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+        ),
+      ],
     );
   }
 }

@@ -6,6 +6,7 @@ class PostDetailModel {
     required this.media,
     required this.likes,
     required this.comments,
+    required this.createdAt,
   });
 
   final String id;
@@ -14,4 +15,5 @@ class PostDetailModel {
   final List<String> media;
   final int likes;
   final int comments;
+  final DateTime createdAt;
 }

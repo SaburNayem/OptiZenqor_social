@@ -4,6 +4,7 @@ import '../../../core/common_models/story_model.dart';
 import '../../../core/common_models/user_model.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../screen/story_view_screen.dart';
+import '../screen/add_story_screen.dart';
 
 class StoryRingList extends StatelessWidget {
   const StoryRingList({
@@ -27,38 +28,47 @@ class StoryRingList extends StatelessWidget {
         itemBuilder: (_, index) {
           if (index == 0) {
             // Your Story
-            return Column(
-              children: [
-                Stack(
-                  children: [
-                    AppAvatar(
-                      imageUrl: currentUser.avatar,
-                      radius: 30,
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const CircleAvatar(
-                          radius: 8,
-                          backgroundColor: Color(0xFF26C6DA),
-                          child: Icon(Icons.add, size: 12, color: Colors.white),
+            return InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AddStoryScreen(),
+                  ),
+                );
+              },
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      AppAvatar(
+                        imageUrl: currentUser.avatar,
+                        radius: 30,
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const CircleAvatar(
+                            radius: 8,
+                            backgroundColor: Color(0xFF26C6DA),
+                            child: Icon(Icons.add, size: 12, color: Colors.white),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Your Story',
-                  style: TextStyle(fontSize: 11, color: Colors.black87),
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Your Story',
+                    style: TextStyle(fontSize: 11, color: Colors.black87),
+                  ),
+                ],
+              ),
             );
           }
 

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/common_data/mock_data.dart';
-import '../../../core/enums/reaction_type.dart';
 import '../../../core/helpers/format_helper.dart';
-import '../../../core/widgets/inline_video_player.dart';
 import '../controller/post_detail_controller.dart';
 import '../model/post_comment_model.dart';
 
@@ -20,7 +18,6 @@ class PostDetailScreen extends StatelessWidget {
 
   final PostDetailController _controller = Get.put(PostDetailController());
   final TextEditingController _commentController = TextEditingController();
-  final ValueNotifier<String?> _replyTo = ValueNotifier<String?>(null);
 
   @override
   Widget build(BuildContext context) {
@@ -29,335 +26,289 @@ class PostDetailScreen extends StatelessWidget {
         final author = MockData.users
             .where((u) => u.id == controller.detail.authorId)
             .firstOrNull;
+        
         return Scaffold(
-          appBar: AppBar(title: const Text('Post Detail')),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+              onPressed: () => Get.back(),
+            ),
+            title: const Text(''), // Empty title as per screenshot
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.more_horiz, color: Colors.black87),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          body: Column(
             children: [
-              if (author != null)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(backgroundImage: NetworkImage(author.avatar)),
-                  title: Text(author.name),
-                  subtitle: Text('@${author.username}'),
-                ),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(controller.detail.caption),
-                      if (controller.detail.media.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        ...controller.detail.media.map((String mediaUrl) {
-                          final lower = mediaUrl.toLowerCase();
-                          final isVideo =
-                              lower.endsWith('.mp4') ||
-                              lower.endsWith('.mov') ||
-                              lower.endsWith('.webm') ||
-                              lower.endsWith('.m4v');
-                          if (isVideo) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: SizedBox(
-                                height: 230,
-                                child: InlineVideoPlayer(networkUrl: mediaUrl),
-                              ),
-                            );
-                          }
-                          return ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: AspectRatio(
-                              aspectRatio: 16 / 9,
-                              child: Image.network(mediaUrl, fit: BoxFit.cover),
+              Expanded(
+                child: ListView(
+                  children: [
+                    // Author Header
+                    if (author != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: NetworkImage(author.avatar),
                             ),
-                          );
-                        }),
-                      ],
-                    ],
-                  ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  author.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                Text(
+                                  FormatHelper.timeAgo(controller.detail.createdAt),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Main Image
+                    if (controller.detail.media.isNotEmpty)
+                      Image.network(
+                        controller.detail.media.first,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+
+                    // Actions Row
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              controller.isLiked ? Icons.favorite : Icons.favorite_border,
+                              color: controller.isLiked ? Colors.red : Colors.black87,
+                            ),
+                            onPressed: controller.toggleLike,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.chat_bubble_outline, color: Colors.black87),
+                            onPressed: () {},
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.share_outlined, color: Colors.black87),
+                            onPressed: () {},
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.bookmark_border, color: Colors.black87),
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Likes and Caption
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${FormatHelper.formatCompactNumber(controller.detail.likes)} likes',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          RichText(
+                            text: TextSpan(
+                              style: const TextStyle(color: Colors.black87, height: 1.4),
+                              children: [
+                                TextSpan(
+                                  text: '@${author?.username ?? 'user'}  ',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                TextSpan(text: controller.detail.caption),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '#workspace #productivity',
+                            style: TextStyle(color: Colors.blue.shade800, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
+                      child: Text(
+                        'Comments ( 89 )',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+
+                    // Comments List
+                    ...controller.childCommentsOf(null).map((comment) {
+                      return _CommentTile(comment: comment);
+                    }),
+                    
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  ActionChip(
-                    label: Text('Likes ${FormatHelper.formatCompactNumber(controller.detail.likes)}'),
-                    avatar: Icon(
-                      controller.isLiked ? Icons.favorite : Icons.favorite_border,
-                      size: 18,
+
+              // Bottom Comment Input
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Colors.grey.shade100)),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage(MockData.users.first.avatar),
                     ),
-                    onPressed: controller.toggleLike,
-                  ),
-                  const SizedBox(width: 8),
-                  Chip(
-                    label: Text('Comments ${controller.detail.comments}'),
-                  ),
-                  const SizedBox(width: 8),
-                  Chip(
-                    label: Text(
-                      'Shares ${MockData.posts.where((p) => p.id == controller.detail.id).firstOrNull?.shareCount ?? 0}',
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        height: 44,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                        child: TextField(
+                          controller: _commentController,
+                          decoration: const InputDecoration(
+                            hintText: 'Add a comment...',
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Chip(
-                    label: Text(
-                      'Views ${FormatHelper.formatCompactNumber(MockData.posts.where((p) => p.id == controller.detail.id).firstOrNull?.viewCount ?? 0)}',
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: ReactionType.values.map((type) {
-                  final count = controller.postReactions[type] ?? 0;
-                  final selected = controller.selectedReaction == type;
-                  return FilterChip(
-                    selected: selected,
-                    label: Text('${type.emoji} $count'),
-                    onSelected: (_) => controller.toggleReaction(type),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              Text('Comments', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              ...controller.childCommentsOf(null).map((comment) {
-                return _CommentThreadTile(
-                  comment: comment,
-                  children: controller.childCommentsOf(comment.id),
-                  childrenResolver: controller.childCommentsOf,
-                  onReply: (PostCommentModel item) {
-                    _replyTo.value = item.id;
-                    _commentController.text = '@${item.author} ';
-                    _commentController.selection = TextSelection.fromPosition(
-                      TextPosition(offset: _commentController.text.length),
-                    );
-                  },
-                  onLike: controller.toggleCommentLike,
-                  onReact: controller.toggleCommentReaction,
-                  onEdit: (id, message) => controller.editComment(commentId: id, message: message),
-                  onDelete: controller.deleteComment,
-                  onReport: controller.reportComment,
-                );
-              }),
-              const SizedBox(height: 12),
-              ValueListenableBuilder<String?>(
-                valueListenable: _replyTo,
-                builder: (context, replyTo, _) {
-                  if (replyTo == null) {
-                    return const SizedBox.shrink();
-                  }
-                  return Row(
-                    children: [
-                      const Icon(Icons.reply_rounded, size: 16),
-                      const SizedBox(width: 6),
-                      const Expanded(child: Text('Reply mode active')),
-                      TextButton(
-                        onPressed: () {
-                          _replyTo.value = null;
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.send, color: Color(0xFF26C6DA)),
+                      onPressed: () {
+                        if (_commentController.text.isNotEmpty) {
+                          controller.addComment(_commentController.text);
                           _commentController.clear();
-                        },
-                        child: const Text('Cancel'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      decoration: const InputDecoration(
-                        hintText: 'Write a comment',
-                      ),
-                      onSubmitted: (_) => _submitComment(),
+                        }
+                      },
                     ),
-                  ),
-                  IconButton(
-                    onPressed: _submitComment,
-                    icon: const Icon(Icons.send_rounded),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 18),
-              Text('Related Posts', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              ...controller.relatedPosts.map((post) {
-                return Card(
-                  child: ListTile(
-                    title: Text(post.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text('${post.likes} likes • ${post.comments} comments'),
-                  ),
-                );
-              }),
             ],
           ),
         );
       },
     );
   }
-
-  void _submitComment() {
-    final text = _commentController.text;
-    if (text.trim().isEmpty) {
-      return;
-    }
-    _controller.addComment(text, replyTo: _replyTo.value);
-    _commentController.clear();
-    _replyTo.value = null;
-  }
 }
 
-class _CommentThreadTile extends StatelessWidget {
-  const _CommentThreadTile({
-    required this.comment,
-    required this.children,
-    required this.childrenResolver,
-    required this.onReply,
-    required this.onLike,
-    required this.onReact,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onReport,
-    this.depth = 0,
-  });
+class _CommentTile extends StatelessWidget {
+  const _CommentTile({required this.comment});
 
   final PostCommentModel comment;
-  final List<PostCommentModel> children;
-  final List<PostCommentModel> Function(String? parentId) childrenResolver;
-  final void Function(PostCommentModel comment) onReply;
-  final void Function(String id) onLike;
-  final void Function(String id, String reaction) onReact;
-  final void Function(String id, String message) onEdit;
-  final void Function(String id) onDelete;
-  final void Function(String id) onReport;
-  final int depth;
 
   @override
   Widget build(BuildContext context) {
+    // Mock user data for comments based on screenshots
+    final Map<String, String> avatars = {
+      'marcusc': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500',
+      'emmaw': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500',
+      'dkim': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500',
+    };
+
+    final isReply = comment.author == 'sarahj';
+
     return Padding(
-      padding: EdgeInsets.only(left: depth * 16.0, bottom: 6),
-      child: Column(
+      padding: EdgeInsets.only(
+        left: isReply ? 64 : 16,
+        right: 16,
+        top: 8,
+        bottom: 8,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Card(
-            child: ListTile(
-              title: Row(
-                children: [
-                  Expanded(child: Text('@${comment.author}')),
-                  if (comment.isReported)
-                    const Icon(Icons.flag_rounded, size: 16),
-                ],
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(comment.message),
-                  if (comment.isEdited)
-                    Text(
-                      'edited',
-                      style: Theme.of(context).textTheme.bodySmall,
+          CircleAvatar(
+            radius: 16,
+            backgroundImage: NetworkImage(avatars[comment.author] ?? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500'),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(0),
+                      topRight: const Radius.circular(16),
+                      bottomLeft: const Radius.circular(16),
+                      bottomRight: const Radius.circular(16),
                     ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    children: [
-                      ActionChip(
-                        label: Text(comment.isLikedByMe ? 'Unlike ${comment.likeCount}' : 'Like ${comment.likeCount}'),
-                        onPressed: () => onLike(comment.id),
-                      ),
-                      ActionChip(
-                        label: Text(
-                          'React ${comment.reactions.values.fold<int>(0, (sum, item) => sum + item)}',
-                        ),
-                        onPressed: () => onReact(comment.id, 'love'),
-                      ),
-                      ActionChip(
-                        label: const Text('Reply'),
-                        onPressed: () => onReply(comment),
-                      ),
-                    ],
                   ),
-                  if (comment.mentions.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Mentions: ${comment.mentions.map((item) => '@$item').join(', ')}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(color: Colors.black87, fontSize: 13, height: 1.3),
+                      children: [
+                        TextSpan(
+                          text: '@${comment.author}   ',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        if (isReply)
+                          const TextSpan(
+                            text: '@sarahj   ',
+                            style: TextStyle(color: Color(0xFF00ACC1), fontWeight: FontWeight.bold),
+                          ),
+                        TextSpan(text: comment.message),
+                      ],
                     ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Text('2h', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                    const SizedBox(width: 16),
+                    const Text('Reply', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
                   ],
-                  if (comment.reactions.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      children: comment.reactions.entries
-                          .map((entry) => Chip(label: Text('${entry.key} ${entry.value}')))
-                          .toList(),
-                    ),
-                  ],
-                ],
-              ),
-              trailing: PopupMenuButton<String>(
-                onSelected: (value) async {
-                  if (value == 'edit') {
-                    final controller = TextEditingController(text: comment.message);
-                    final updated = await showDialog<String>(
-                      context: context,
-                      builder: (dialogContext) {
-                        return AlertDialog(
-                          title: const Text('Edit comment'),
-                          content: TextField(controller: controller, maxLines: 3),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(dialogContext).pop(),
-                              child: const Text('Cancel'),
-                            ),
-                            FilledButton(
-                              onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-                              child: const Text('Save'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    if (updated != null) {
-                      onEdit(comment.id, updated);
-                    }
-                    return;
-                  }
-                  if (value == 'delete') {
-                    onDelete(comment.id);
-                    return;
-                  }
-                  if (value == 'report') {
-                    onReport(comment.id);
-                  }
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  PopupMenuItem(value: 'report', child: Text('Report')),
+                ),
+              ],
+            ),
+          ),
+          if (!isReply)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Column(
+                children: [
+                  const Icon(Icons.favorite_border, size: 14, color: Colors.grey),
+                  const SizedBox(height: 2),
+                  Text('${comment.likeCount}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
                 ],
               ),
             ),
-          ),
-          ...children.map((item) {
-            return _CommentThreadTile(
-              comment: item,
-              children: childrenResolver(item.id),
-              childrenResolver: childrenResolver,
-              depth: depth + 1,
-              onReply: onReply,
-              onLike: onLike,
-              onReact: onReact,
-              onEdit: onEdit,
-              onDelete: onDelete,
-              onReport: onReport,
-            );
-          }),
         ],
       ),
     );
