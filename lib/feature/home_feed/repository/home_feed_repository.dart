@@ -1,16 +1,16 @@
 import '../../../core/common_data/mock_data.dart';
 import '../../../core/common_models/post_model.dart';
 import '../../../core/common_models/story_model.dart';
-import '../../../core/constants/storage_keys.dart';
-import '../../../core/services/local_storage_service.dart';
+import '../../../core/constant/storage_keys.dart';
+import '../../../core/data/shared_preference/app_shared_preferences.dart';
 
 enum FeedSegment { forYou, following, trending }
 
 class HomeFeedRepository {
-  HomeFeedRepository({LocalStorageService? storage})
-      : _storage = storage ?? LocalStorageService();
+  HomeFeedRepository({AppSharedPreferences? storage})
+      : _storage = storage ?? AppSharedPreferences();
 
-  final LocalStorageService _storage;
+  final AppSharedPreferences _storage;
 
   Future<List<PostModel>> fetchFeed({
     required FeedSegment segment,

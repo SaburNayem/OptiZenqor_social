@@ -1,11 +1,11 @@
-import '../../../core/constants/storage_keys.dart';
-import '../../../core/services/local_storage_service.dart';
+import '../../../core/constant/storage_keys.dart';
+import '../../../core/data/shared_preference/app_shared_preferences.dart';
 
 class SettingsPreferencesRepository {
-  SettingsPreferencesRepository({LocalStorageService? storage})
-      : _storage = storage ?? LocalStorageService();
+  SettingsPreferencesRepository({AppSharedPreferences? storage})
+      : _storage = storage ?? AppSharedPreferences();
 
-  final LocalStorageService _storage;
+  final AppSharedPreferences _storage;
 
   Future<Map<String, dynamic>> readAll() async {
     final data = await _storage.readJson(StorageKeys.settingsState);

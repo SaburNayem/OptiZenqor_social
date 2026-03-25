@@ -5,11 +5,18 @@ import '../../../core/common_data/mock_data.dart';
 import '../../../core/common_models/user_model.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../route/route_names.dart';
+import '../../auth/repository/auth_repository.dart';
 import '../model/main_shell_destination_model.dart';
 import '../model/main_shell_drawer_section_model.dart';
 
 class MainShellController extends GetxController {
+  MainShellController({AuthRepository? authRepository})
+    : _authRepository = authRepository ?? AuthRepository();
+
   int index = 0;
+  bool isSigningOut = false;
+
+  final AuthRepository _authRepository;
 
   final List<MainShellDestinationModel> destinations =
       const <MainShellDestinationModel>[
@@ -163,5 +170,24 @@ class MainShellController extends GetxController {
   void onTabChanged(int newIndex) {
     index = newIndex;
     update();
+  }
+
+  Future<void> logout() async {
+    if (isSigningOut) {
+      return;
+    }
+    isSigningOut = true;
+    update();
+    try {
+      await _authRepository.logout();
+      Get.offAllNamed(RouteNames.login);
+    } catch (error, stackTrace) {
+      debugPrint('[MainShellController] Logout failed: $error');
+      debugPrint('$stackTrace');
+      rethrow;
+    } finally {
+      isSigningOut = false;
+      update();
+    }
   }
 }

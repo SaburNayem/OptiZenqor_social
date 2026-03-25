@@ -98,6 +98,30 @@ class MainShellScreen extends StatelessWidget {
                       },
                     ),
                   ),
+                  const Divider(height: 24),
+                  ListTile(
+                    leading: controller.isSigningOut
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            Icons.logout_rounded,
+                            color: Colors.redAccent,
+                          ),
+                    title: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: const Text('Sign out from this account'),
+                    onTap: controller.isSigningOut
+                        ? null
+                        : () => _confirmLogout(context, controller),
+                  ),
                 ],
               ),
             ),
@@ -165,6 +189,49 @@ class MainShellScreen extends StatelessWidget {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(const SnackBar(content: Text('Post created')));
+    }
+  }
+
+  Future<void> _confirmLogout(
+    BuildContext context,
+    MainShellController controller,
+  ) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to sign out?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout == true) {
+      if (Get.isOverlaysOpen) {
+        Get.back<void>();
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      try {
+        await controller.logout();
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(content: Text('Unable to logout. Please try again.')),
+            );
+        }
+      }
     }
   }
 }

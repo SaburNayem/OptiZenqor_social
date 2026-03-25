@@ -1,3 +1,20 @@
+APPROVED APP ARCHITECTURE
+
+- `lib/core`
+  - `constant/`
+  - `common_widget/`
+  - `data/api/`
+  - `data/service/`
+  - `data/service_model/`
+  - `data/shared_preference/`
+- `lib/feature`
+  - only feature folders
+  - each feature uses only what it needs: `common/`, `model/`, `controller/`, `repository/`, `screen/`
+- `lib/route`
+  - route-only files
+
+See `ARCHITECTURE.md` for the detailed structure and migration rules.
+
 I already have an existing Flutter project named "OptiZenqor Social".
 Do NOT rebuild the app from scratch.
 Do NOT replace the architecture blindly.

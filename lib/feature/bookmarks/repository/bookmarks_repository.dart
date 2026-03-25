@@ -1,12 +1,12 @@
-import '../../../core/constants/storage_keys.dart';
-import '../../../core/services/local_storage_service.dart';
+import '../../../core/constant/storage_keys.dart';
+import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../model/bookmark_item_model.dart';
 
 class BookmarksRepository {
-  BookmarksRepository({LocalStorageService? storage})
-      : _storage = storage ?? LocalStorageService();
+  BookmarksRepository({AppSharedPreferences? storage})
+      : _storage = storage ?? AppSharedPreferences();
 
-  final LocalStorageService _storage;
+  final AppSharedPreferences _storage;
 
   Future<List<BookmarkItemModel>> read() async {
     final items = await _storage.readJsonList(StorageKeys.bookmarks);

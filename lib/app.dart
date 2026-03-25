@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import 'core/services/theme_service.dart';
 import 'core/theme/app_theme.dart';
-import 'route/app_pages.dart';
+import 'route/routes.dart';
 
 class OptiZenqorApp extends StatelessWidget {
   const OptiZenqorApp({super.key});

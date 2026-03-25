@@ -33,4 +33,5 @@ class StorageKeys {
   static const dataExportRequests = 'data_export_requests';
   static const hiddenWords = 'hidden_words';
   static const contentSafetySettings = 'content_safety_settings';
+  static const activeSubscriptionPlan = 'active_subscription_plan';
 }

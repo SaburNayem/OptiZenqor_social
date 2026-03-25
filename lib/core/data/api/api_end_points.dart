@@ -10,6 +10,7 @@ class ApiEndPoints {
   static const notifications = '/notifications';
   static const messages = '/messages';
   static const settings = '/settings';
+  static const subscriptions = '/subscriptions';
   static const profile = '/profile';
   static const marketplace = '/marketplace';
 }

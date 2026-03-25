@@ -1,18 +1,18 @@
-import '../../../core/constants/storage_keys.dart';
+import '../../../core/constant/storage_keys.dart';
+import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/services/auth_service.dart';
-import '../../../core/services/local_storage_service.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthRepository {
   AuthRepository({
     AuthService? authService,
-    LocalStorageService? storage,
+    AppSharedPreferences? storage,
   })  : _authService = authService ?? AuthService(),
-        _storage = storage ?? LocalStorageService();
+        _storage = storage ?? AppSharedPreferences();
 
   final AuthService _authService;
-  final LocalStorageService _storage;
+  final AppSharedPreferences _storage;
 
   Future<void> login(UserRole role) async {
     debugPrint('[AuthRepository] login start role=${role.name}');
