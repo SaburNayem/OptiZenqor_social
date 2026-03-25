@@ -17,9 +17,16 @@ class SignupScreen extends StatelessWidget {
           SizedBox(height: 12),
           AppTextField(hint: 'Email', prefixIcon: Icons.mail_outline),
           SizedBox(height: 12),
-          AppTextField(hint: 'Password', obscureText: true, prefixIcon: Icons.lock_outline),
+          AppTextField(
+            hint: 'Password',
+            obscureText: true,
+            prefixIcon: Icons.lock_outline,
+          ),
           SizedBox(height: 12),
-          AppTextField(hint: 'OTP (placeholder)', prefixIcon: Icons.pin_outlined),
+          AppTextField(
+            hint: 'OTP (placeholder)',
+            prefixIcon: Icons.pin_outlined,
+          ),
           SizedBox(height: 20),
           AppButton(label: 'Sign Up', onPressed: null),
           SizedBox(height: 10),

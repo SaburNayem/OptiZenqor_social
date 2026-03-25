@@ -7,6 +7,7 @@ import '../feature/activity_sessions/screen/activity_sessions_screen.dart';
 import '../feature/advanced_privacy_controls/screen/advanced_privacy_controls_screen.dart';
 import '../feature/app_update_flow/screen/app_update_flow_screen.dart';
 import '../feature/auth/forgot_password/screen/forgot_password_screen.dart';
+import '../feature/auth/forgot_password/screen/otp_verification_screen.dart';
 import '../feature/auth/login/screen/login_screen.dart';
 import '../feature/auth/reset_password/screen/reset_password_screen.dart';
 import '../feature/auth/signup/screen/signup_screen.dart';
@@ -49,9 +50,9 @@ import '../feature/report_center/screen/report_center_screen.dart';
 import '../feature/safety_privacy/screen/safety_privacy_screen.dart';
 import '../feature/saved_collections/screen/saved_collections_screen.dart';
 import '../feature/search_discovery/screen/search_discovery_screen.dart';
-import '../feature/settings/screen/account_settings_screen.dart';
 import '../feature/settings/screen/about_settings_screen.dart';
 import '../feature/settings/screen/accessibility_settings_screen.dart';
+import '../feature/settings/screen/account_settings_screen.dart';
 import '../feature/settings/screen/archive_center_screen.dart';
 import '../feature/settings/screen/blocked_users_screen.dart';
 import '../feature/settings/screen/communities_groups_settings_screen.dart';
@@ -94,6 +95,7 @@ class AppPages {
         RouteNames.login: () => LoginScreen(),
         RouteNames.signup: () => const SignupScreen(),
         RouteNames.forgotPassword: () => const ForgotPasswordScreen(),
+        RouteNames.otpVerification: () => const OtpVerificationScreen(),
         RouteNames.resetPassword: () => const ResetPasswordScreen(),
         RouteNames.shell: () => MainShellScreen(),
         RouteNames.searchDiscovery: () => SearchDiscoveryScreen(),
@@ -183,21 +185,14 @@ class AppPages {
 
   static List<GetPage<dynamic>> get routes {
     return pageBuilders.entries
-        .map(
-          (entry) => GetPage<dynamic>(
-            name: entry.key,
-            page: entry.value,
-          ),
-        )
+        .map((entry) => GetPage<dynamic>(name: entry.key, page: entry.value))
         .toList(growable: false);
   }
 
   static GetPage<dynamic> get unknownRoute {
     return GetPage<dynamic>(
       name: '/not-found',
-      page: () => const Scaffold(
-        body: Center(child: Text('Route not found')),
-      ),
+      page: () => const Scaffold(body: Center(child: Text('Route not found'))),
     );
   }
 }

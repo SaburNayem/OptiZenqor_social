@@ -6,6 +6,7 @@ class RouteNames {
   static const login = '/auth/login';
   static const signup = '/auth/signup';
   static const forgotPassword = '/auth/forgot-password';
+  static const otpVerification = '/auth/otp-verification';
   static const resetPassword = '/auth/reset-password';
   static const shell = '/shell';
 
