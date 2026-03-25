@@ -17,34 +17,56 @@ class StoryRingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = users.first; // Assuming first is current user for demo
+
     return SizedBox(
-      height: 88,
+      height: 100,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemBuilder: (_, index) {
           if (index == 0) {
+            // Your Story
             return Column(
               children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  child: const Icon(Icons.archive_outlined),
+                Stack(
+                  children: [
+                    AppAvatar(
+                      imageUrl: currentUser.avatar,
+                      radius: 30,
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const CircleAvatar(
+                          radius: 8,
+                          backgroundColor: Color(0xFF26C6DA),
+                          child: Icon(Icons.add, size: 12, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  'Archive',
-                  style: Theme.of(context).textTheme.bodySmall,
+                const Text(
+                  'Your Story',
+                  style: TextStyle(fontSize: 11, color: Colors.black87),
                 ),
               ],
             );
           }
+
           final story = stories[index - 1];
           final user = users.where((e) => e.id == story.userId).firstOrNull;
-          if (user == null) {
-            return const SizedBox.shrink();
-          }
+          if (user == null) return const SizedBox.shrink();
+
           return InkWell(
-            borderRadius: BorderRadius.circular(30),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -59,36 +81,42 @@ class StoryRingList extends StatelessWidget {
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(2.5),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: story.seen
                         ? null
                         : const LinearGradient(
-                            colors: [Color(0xFF1D4ED8), Color(0xFF0EA5A4)],
+                            begin: Alignment.topRight,
+                            end: Alignment.bottomLeft,
+                            colors: [Color(0xFFE91E63), Color(0xFFFFC107)],
                           ),
                     border: story.seen
-                        ? Border.all(
-                            color: Theme.of(context).colorScheme.outlineVariant,
-                          )
+                        ? Border.all(color: Colors.grey.shade300)
                         : null,
                   ),
-                  child: AppAvatar(
-                    imageUrl: user.avatar,
-                    radius: 24,
-                    verified: user.verified,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: AppAvatar(
+                      imageUrl: user.avatar,
+                      radius: 26,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  user.username,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  user.name.split(' ').first,
+                  style: const TextStyle(fontSize: 11, color: Colors.black87),
                 ),
               ],
             ),
           );
         },
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        separatorBuilder: (context, index) => const SizedBox(width: 15),
         itemCount: stories.length + 1,
       ),
     );

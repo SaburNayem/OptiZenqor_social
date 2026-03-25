@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/common_models/message_model.dart';
 import '../../../core/common_models/user_model.dart';
-import '../../../core/helpers/format_helper.dart';
-import 'chat_settings_screen.dart';
 
 class ChatDetailScreen extends StatelessWidget {
   ChatDetailScreen({
@@ -13,28 +12,36 @@ class ChatDetailScreen extends StatelessWidget {
   }) : _messages = ValueNotifier<List<MessageModel>>(
           <MessageModel>[
             MessageModel(
-              id: 'local-1',
+              id: 'm1',
               chatId: initialMessage.chatId,
               senderId: user.id,
-              text: initialMessage.text,
-              timestamp: initialMessage.timestamp,
+              text: 'Hey Alex! How are you doing?',
+              timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
               read: true,
             ),
             MessageModel(
-              id: 'local-2',
+              id: 'm2',
               chatId: initialMessage.chatId,
               senderId: 'me',
-              text: 'Looks good. Let us ship this by tonight.',
-              timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
+              text: 'Hey Sarah! I am doing great, just working on a new project. How about you?',
+              timestamp: DateTime.now().subtract(const Duration(minutes: 20)),
               read: true,
             ),
             MessageModel(
-              id: 'local-3',
+              id: 'm3',
               chatId: initialMessage.chatId,
               senderId: user.id,
-              text: 'Perfect. Sending final assets now.',
-              timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
-              read: false,
+              text: 'Same here. Been super busy this week.',
+              timestamp: DateTime.now().subtract(const Duration(minutes: 18)),
+              read: true,
+            ),
+            MessageModel(
+              id: 'm4',
+              chatId: initialMessage.chatId,
+              senderId: user.id,
+              text: 'Are we still on for tomorrow?',
+              timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
+              read: true,
             ),
           ],
         );
@@ -44,279 +51,247 @@ class ChatDetailScreen extends StatelessWidget {
 
   final ValueNotifier<List<MessageModel>> _messages;
   final TextEditingController _messageController = TextEditingController();
-  final TextEditingController _searchController = TextEditingController();
-  final ValueNotifier<int?> _unreadMarkerIndex = ValueNotifier<int?>(2);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        titleSpacing: 0,
         title: Row(
           children: [
-            CircleAvatar(backgroundImage: NetworkImage(user.avatar)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(user.name, style: const TextStyle(fontSize: 16)),
-                  const Text('typing...', style: TextStyle(fontSize: 12)),
-                ],
-              ),
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage(user.avatar),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4CAF50),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const Text(
+                  'Online',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF00ACC1),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
           IconButton(
-            tooltip: 'Audio call',
-            onPressed: () => _startCall(context, isVideo: false),
-            icon: const Icon(Icons.call_outlined),
+            onPressed: () {},
+            icon: const Icon(Icons.call_outlined, color: Colors.grey),
           ),
           IconButton(
-            tooltip: 'Video call',
-            onPressed: () => _startCall(context, isVideo: true),
-            icon: const Icon(Icons.videocam_outlined),
+            onPressed: () {},
+            icon: const Icon(Icons.videocam_outlined, color: Colors.grey),
           ),
           IconButton(
-            tooltip: 'Chat settings',
-            onPressed: () => _openChatSettings(context),
-            icon: const Icon(Icons.tune_rounded),
+            onPressed: () {},
+            icon: const Icon(Icons.more_vert, color: Colors.grey),
           ),
         ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: 'Search in conversation',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Chip(label: Text('Media')),
-                SizedBox(width: 8),
-                Chip(label: Text('Docs')),
-                SizedBox(width: 8),
-                Chip(label: Text('Links')),
-                SizedBox(width: 8),
-                Chip(label: Text('Reply threading')),
-                SizedBox(width: 8),
-                Chip(label: Text('Disappearing messages')),
-                SizedBox(width: 8),
-                Chip(label: Text('Theme/wallpaper')),
-                SizedBox(width: 8),
-                Chip(label: Text('Encrypted chat')),
-                SizedBox(width: 8),
-                Chip(label: Text('E2E placeholder')),
-                SizedBox(width: 8),
-                Chip(label: Text('Screenshot warning')),
-                SizedBox(width: 8),
-                Chip(label: Text('Media auto-expire')),
-                SizedBox(width: 8),
-                Chip(label: Text('Device-based chat session')),
-              ],
-            ),
-          ),
+          const Divider(height: 1, thickness: 0.5),
           Expanded(
             child: ValueListenableBuilder<List<MessageModel>>(
               valueListenable: _messages,
               builder: (context, messages, _) {
                 return ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: messages.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  itemCount: messages.length + 1, // +1 for the "Today" label
                   itemBuilder: (context, index) {
-                    final message = messages[messages.length - 1 - index];
-                    final isMe = message.senderId == 'me';
-                    return Column(
-                      children: [
-                        if (_unreadMarkerIndex.value == index)
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 8),
-                            child: Chip(label: Text('Unread marker jump')),
+                    if (index == 0) {
+                      return Center(
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        Align(
-                          alignment:
-                              isMe ? Alignment.centerRight : Alignment.centerLeft,
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
-                            constraints: const BoxConstraints(maxWidth: 280),
-                            decoration: BoxDecoration(
-                              color: isMe
-                                  ? Theme.of(context).colorScheme.primaryContainer
-                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(message.text),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  FormatHelper.timeAgo(message.timestamp),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                                const SizedBox(height: 6),
-                                Wrap(
-                                  spacing: 6,
-                                  children: const [
-                                    Chip(label: Text('Star')),
-                                    Chip(label: Text('Reply')),
-                                  ],
-                                ),
-                              ],
+                          child: Text(
+                            'Today',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
-                      ],
+                      );
+                    }
+
+                    final message = messages[index - 1];
+                    final isMe = message.senderId == 'me';
+                    final showAvatar = !isMe &&
+                        (index == 1 || messages[index - 2].senderId == 'me');
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (!isMe)
+                                SizedBox(
+                                  width: 40,
+                                  child: showAvatar
+                                      ? CircleAvatar(
+                                          radius: 16,
+                                          backgroundImage: NetworkImage(user.avatar),
+                                        )
+                                      : const SizedBox.shrink(),
+                                ),
+                              if (!isMe) const SizedBox(width: 8),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: isMe ? const Color(0xFF26C6DA) : Colors.grey.shade50,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: const Radius.circular(20),
+                                      topRight: const Radius.circular(20),
+                                      bottomLeft: Radius.circular(isMe ? 20 : 4),
+                                      bottomRight: Radius.circular(isMe ? 4 : 20),
+                                    ),
+                                    border: isMe ? null : Border.all(color: Colors.grey.shade100),
+                                  ),
+                                  child: Text(
+                                    message.text,
+                                    style: TextStyle(
+                                      color: isMe ? Colors.white : Colors.black87,
+                                      fontSize: 14,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: isMe ? 0 : 48,
+                              right: isMe ? 4 : 0,
+                            ),
+                            child: Text(
+                              DateFormat('h:mm a').format(message.timestamp),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 );
               },
             ),
           ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => _openAttachmentMenu(context),
-                    icon: const Icon(Icons.add_circle_outline),
-                  ),
-                  IconButton(
-                    onPressed: () => _showFeedback(
-                      context,
-                      'Voice note recording placeholder',
-                    ),
-                    icon: const Icon(Icons.mic_none_rounded),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(context),
-                      decoration: InputDecoration(
-                        hintText: 'Message...',
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => _sendMessage(context),
-                    icon: const Icon(Icons.send_rounded),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildMessageComposer(context),
         ],
       ),
     );
   }
 
-  Future<void> _openAttachmentMenu(BuildContext context) {
-    return showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (_) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
-                title: const Text('Gallery'),
-                onTap: () => _handleAttachmentAction(context, 'Gallery selected'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt_outlined),
-                title: const Text('Camera'),
-                onTap: () => _handleAttachmentAction(context, 'Camera opened'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.insert_drive_file_outlined),
-                title: const Text('Document'),
-                onTap: () => _handleAttachmentAction(context, 'Document picker opened'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.location_on_outlined),
-                title: const Text('Location'),
-                onTap: () => _handleAttachmentAction(context, 'Live location shared'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.access_time_outlined),
-                title: const Text('Disappearing message timer'),
-                onTap: () => _handleAttachmentAction(
-                  context,
-                  'Disappearing messages placeholder',
-                ),
-              ),
-            ],
+  Widget _buildMessageComposer(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
-        );
-      },
-    );
-  }
-
-  void _handleAttachmentAction(BuildContext context, String message) {
-    Navigator.of(context).pop();
-    _showFeedback(context, message);
-  }
-
-  void _sendMessage(BuildContext context) {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) {
-      return;
-    }
-    _messages.value = <MessageModel>[
-      ..._messages.value,
-      MessageModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        chatId: initialMessage.chatId,
-        senderId: 'me',
-        text: text,
-        timestamp: DateTime.now(),
-        read: true,
+        ],
       ),
-    ];
-    _messageController.clear();
-  }
-
-  void _startCall(BuildContext context, {required bool isVideo}) {
-    final mode = isVideo ? 'Video call' : 'Audio call';
-    _showFeedback(context, '$mode started with ${user.name}');
-  }
-
-  void _showFeedback(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _openChatSettings(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ChatSettingsScreen(
-          chatId: initialMessage.chatId,
-          title: user.name,
-        ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.attach_file, color: Colors.grey),
+          ),
+          Expanded(
+            child: Container(
+              height: 46,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.grey.shade100),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: const InputDecoration(
+                        hintText: 'Type a message...',
+                        hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.sentiment_satisfied_alt_outlined, color: Colors.grey),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.image_outlined, color: Colors.grey),
+          ),
+        ],
       ),
     );
   }

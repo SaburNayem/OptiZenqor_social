@@ -33,6 +33,12 @@ class MainShellController extends GetxController {
           title: 'Reels',
         ),
         MainShellDestinationModel(
+          label: 'Create',
+          icon: Icons.add_circle_outline,
+          activeIcon: Icons.add_circle,
+          title: 'Create',
+        ),
+        MainShellDestinationModel(
           label: 'Chat',
           icon: Icons.chat_bubble_outline,
           activeIcon: Icons.chat_bubble,
@@ -43,12 +49,6 @@ class MainShellController extends GetxController {
           icon: Icons.person_outline,
           activeIcon: Icons.person,
           title: 'Profile',
-        ),
-        MainShellDestinationModel(
-          label: 'Settings',
-          icon: Icons.settings_outlined,
-          activeIcon: Icons.settings,
-          title: 'Settings',
         ),
       ];
 
@@ -168,6 +168,10 @@ class MainShellController extends GetxController {
   }
 
   void onTabChanged(int newIndex) {
+    if (newIndex == 2) {
+      // Create tab - handle externally if needed or just switch
+      // Often "Create" is a modal but here it's a tab index.
+    }
     index = newIndex;
     update();
   }

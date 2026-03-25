@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../../core/common_data/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
-import '../../../core/common_models/post_model.dart';
-import '../../../core/widgets/app_avatar.dart';
-import '../../../core/widgets/error_state_view.dart';
 import '../controller/user_profile_controller.dart';
 
 class UserProfileScreen extends StatelessWidget {
@@ -13,596 +10,337 @@ class UserProfileScreen extends StatelessWidget {
   }
 
   final String? userId;
-
   final UserProfileController _controller = UserProfileController();
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final user = _controller.user;
-        if (_controller.state.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (_controller.state.hasError) {
-          return ErrorStateView(
-            message: _controller.state.errorMessage ?? 'Unable to load profile',
-            onRetry: _controller.load,
-          );
-        }
-        if (user == null) {
-          return const Center(child: Text('Profile not available'));
-        }
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'Profile',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black87),
+            onPressed: () {},
+          ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none, color: Colors.black87),
+                onPressed: () {},
+              ),
+              Positioned(
+                right: 12,
+                top: 12,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.only(right: 12.0),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500'),
+            ),
+          ),
+        ],
+      ),
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final user = _controller.user;
+          if (user == null) return const SizedBox.shrink();
+
+          return SingleChildScrollView(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppAvatar(imageUrl: user.avatar, radius: 42, verified: user.verified),
-                const SizedBox(width: 14),
-                Expanded(
+                // Header Image and Avatar
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      color: const Color(0xFF26C6DA),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            top: 10,
+                            right: 16,
+                            child: IconButton(
+                              icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                              onPressed: () {},
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -50,
+                      left: 16,
+                      child: Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: NetworkImage(user.avatar),
+                            ),
+                          ),
+                          Positioned(
+                            right: 4,
+                            bottom: 4,
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF26C6DA),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 3),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                // Edit/Share Buttons
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF26C6DA)),
+                        label: const Text('Edit', style: TextStyle(color: Color(0xFF26C6DA))),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF26C6DA)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.share_outlined, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // Profile Info
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Expanded(
-                            child: Text(
-                              user.name,
-                              style: Theme.of(context).textTheme.titleLarge,
+                          Text(
+                            user.name,
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE0F7FA),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              'creator',
+                              style: TextStyle(color: Color(0xFF00ACC1), fontSize: 12, fontWeight: FontWeight.bold),
                             ),
                           ),
-                          if (user.verified)
-                            Icon(
-                              Icons.verified_rounded,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 20,
-                            ),
                         ],
                       ),
-                      Text('@${user.username}'),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          _RoleBadge(label: user.role.name.toUpperCase()),
-                          _RoleBadge(
-                            label: '${_controller.postCount} POSTS',
-                          ),
-                          _RoleBadge(
-                            label: '${_controller.reelCount} REELS',
-                          ),
-                        ],
+                      Text(
+                        '@${user.username}',
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Digital nomad & visual storyteller. Exploring the world one pixel at a time. 📸✈️',
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 14, height: 1.4),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text(user.bio),
-            if (user.note != null && user.note!.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.edit_note_rounded),
-                  title: Text(user.note!),
-                  subtitle: Text('Note privacy: ${user.notePrivacy}'),
-                  trailing: const Chip(label: Text('Reply placeholder')),
-                ),
-              ),
-            ],
-            const SizedBox(height: 10),
-            Card(
-              child: ListTile(
-                leading: Icon(Icons.verified_rounded, color: _controller.badgeColor()),
-                title: Text(_controller.verificationLabel()),
-                subtitle: Text('Role badge style: ${user.badgeStyle} • Profile category ${user.role.name}'),
-                trailing: user.supporterBadge
-                    ? const Chip(label: Text('Supporter badge'))
-                    : null,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                if (_controller.isOwnProfile) ...[
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(content: Text('Profile edit flow opened')),
-                          );
-                      },
-                      icon: const Icon(Icons.edit_outlined),
-                      label: const Text('Edit Profile'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(content: Text('Insights opened')),
-                          );
-                      },
-                      icon: const Icon(Icons.insights_outlined),
-                      label: const Text('Insights'),
-                    ),
-                  ),
-                ] else ...[
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () async {
-                        await _controller.toggleFollow();
-                        if (!context.mounted) {
-                          return;
-                        }
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                _controller.followRequestPending
-                                    ? 'Follow request sent'
-                                    : (_controller.isFollowing ? 'Following user' : 'Unfollowed user'),
-                              ),
-                            ),
-                          );
-                      },
-                      icon: Icon(
-                        _controller.isFollowing ? Icons.person_remove_alt_1_outlined : Icons.person_add_alt_1_outlined,
-                      ),
-                      label: Text(
-                        _controller.followRequestPending
-                            ? 'Requested'
-                            : (_controller.isFollowing ? 'Following' : 'Follow'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(content: Text('Message opened')),
-                          );
-                      },
-                      icon: const Icon(Icons.chat_bubble_outline),
-                      label: const Text('Message'),
-                    ),
-                  ),
-                ],
-                const SizedBox(width: 10),
-                PopupMenuButton<String>(
-                  tooltip: 'More profile actions',
-                  icon: const Icon(Icons.more_horiz_rounded),
-                  onSelected: (value) async {
-                    if (value == 'copy_link') {
-                      await Clipboard.setData(
-                        ClipboardData(text: user.publicProfileUrl),
-                      );
-                      if (!context.mounted) {
-                        return;
-                      }
-                    }
-                    if (!context.mounted) {
-                      return;
-                    }
-                    final message = switch (value) {
-                      'copy_link' => 'Profile link copied',
-                      'archive' => 'Archive opened',
-                      'qr' => 'Profile QR opened',
-                      'preview' => 'Public profile preview opened',
-                      'report' => 'Report submitted',
-                      'block' => 'User blocked',
-                      'mute' => 'User muted',
-                      _ => 'Action completed',
-                    };
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(SnackBar(content: Text(message)));
-                  },
-                  itemBuilder: (_) {
-                    if (_controller.isOwnProfile) {
-                      return const [
-                        PopupMenuItem(value: 'copy_link', child: Text('Copy profile link')),
-                        PopupMenuItem(value: 'archive', child: Text('Archive profile content')),
-                        PopupMenuItem(value: 'qr', child: Text('Show profile QR')),
-                        PopupMenuItem(value: 'preview', child: Text('Public profile preview')),
-                      ];
-                    }
-                    return const [
-                      PopupMenuItem(value: 'copy_link', child: Text('Copy profile link')),
-                      PopupMenuItem(value: 'preview', child: Text('Public profile preview')),
-                      PopupMenuItem(value: 'mute', child: Text('Mute user')),
-                      PopupMenuItem(value: 'block', child: Text('Block user')),
-                      PopupMenuItem(value: 'report', child: Text('Report profile')),
-                    ];
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _StatTile(label: 'Posts', value: _controller.postCount.toString()),
-                const SizedBox(width: 12),
-                _StatTile(
-                  label: 'Followers',
-                  value: FormatHelper.formatCompactNumber(_controller.followersList.isEmpty ? user.followers : _controller.followersList.length),
-                ),
-                const SizedBox(width: 12),
-                _StatTile(
-                  label: 'Following',
-                  value: FormatHelper.formatCompactNumber(_controller.followingList.isEmpty ? user.following : _controller.followingList.length),
-                ),
-              ],
-            ),
-            if (_controller.mutualConnections.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text('Mutual connections', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: _controller.mutualConnections.map((item) {
-                  return Chip(
-                    avatar: CircleAvatar(backgroundImage: NetworkImage(item.avatar)),
-                    label: Text(item.name),
-                  );
-                }).toList(),
-              ),
-            ],
-            if (_controller.pinnedPost != null) ...[
-              const SizedBox(height: 16),
-              Text('Pinned Post', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.push_pin_outlined),
-                  title: Text(
-                    _controller.pinnedPost!.caption,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    '${_controller.pinnedPost!.viewCount} views • ${_controller.pinnedPost!.shareCount} shares',
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            Text('Featured Content', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ..._controller.featuredPosts.map(
-              (post) => Card(
-                child: ListTile(
-                  leading: const Icon(Icons.star_border_rounded),
-                  title: Text(post.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text('${post.viewCount} views • ${post.shareCount} shares'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(12),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+
+                const SizedBox(height: 24),
+
+                // Stats
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Chip(label: Text('Custom profile sections')),
-                    Chip(label: Text('Featured links')),
-                    Chip(label: Text('Content sorting options')),
-                    Chip(label: Text('Archive content')),
-                    Chip(label: Text('Follower milestones')),
-                    Chip(label: Text('Engagement badges')),
-                    Chip(label: Text('Community reputation')),
-                    Chip(label: Text('Helpful contributor badge')),
+                    _buildStatColumn('142', 'Posts'),
+                    _buildStatDivider(),
+                    _buildStatColumn('12.4 K', 'Followers'),
+                    _buildStatDivider(),
+                    _buildStatColumn('342', 'Following'),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text('Highlights', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 92,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _controller.highlights.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 10),
-                itemBuilder: (_, index) {
-                  final title = _controller.highlights[index];
-                  return _HighlightItem(title: title);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('Quick Tools', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _controller.quickActions().map((item) {
-                return ActionChip(
-                  label: Text(item),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context)
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(SnackBar(content: Text('$item opened')));
+
+                const SizedBox(height: 24),
+
+                // Utility Icons Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildUtilityIcon(Icons.bookmark_border, 'Saved', const Color(0xFFE0F2F1), const Color(0xFF00897B)),
+                      _buildUtilityIcon(Icons.account_balance_wallet_outlined, 'Wallet', const Color(0xFFE3F2FD), const Color(0xFF1E88E5)),
+                      _buildUtilityIcon(Icons.calendar_today_outlined, 'Events', const Color(0xFFF3E5F5), const Color(0xFF8E24AA)),
+                      _buildUtilityIcon(Icons.bar_chart_outlined, 'Polls', const Color(0xFFE1F5FE), const Color(0xFF039BE5)),
+                      _buildUtilityIcon(Icons.workspace_premium_outlined, 'Plans', const Color(0xFFFFF3E0), const Color(0xFFFB8C00)),
+                      _buildUtilityIcon(Icons.card_giftcard, 'Invite', const Color(0xFFE8F5E9), const Color(0xFF43A047)),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Tab Selector
+                Row(
+                  children: [
+                    _buildTabItem(Icons.grid_view_rounded, true),
+                    _buildTabItem(Icons.play_circle_outline, false),
+                    _buildTabItem(Icons.person_pin_outlined, false),
+                  ],
+                ),
+
+                // Content Grid
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: 9,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 2,
+                    mainAxisSpacing: 2,
+                  ),
+                  itemBuilder: (context, index) {
+                    final List<String> images = [
+                      'https://picsum.photos/seed/p1/400/400',
+                      'https://picsum.photos/seed/p2/400/400',
+                      'https://picsum.photos/seed/p3/400/400',
+                      'https://picsum.photos/seed/p4/400/400',
+                      'https://picsum.photos/seed/p5/400/400',
+                      'https://picsum.photos/seed/p6/400/400',
+                      'https://picsum.photos/seed/p7/400/400',
+                      'https://picsum.photos/seed/p8/400/400',
+                      'https://picsum.photos/seed/p9/400/400',
+                    ];
+                    final List<String> likes = ['1k+', '856', '342', '', '', '', '', '', ''];
+
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(images[index], fit: BoxFit.cover),
+                        if (likes[index].isNotEmpty)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: Container(
+                              alignment: Alignment.center,
+                              color: Colors.black.withOpacity(0.1),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.favorite, color: Colors.white, size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    likes[index],
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
                   },
-                );
-              }).toList(),
-            ),
-            if (!_controller.isOwnProfile) ...[
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.mark_chat_unread_outlined),
-                  title: const Text('Message section'),
-                  subtitle: const Text('Start a direct chat with this profile.'),
-                  trailing: FilledButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          const SnackBar(content: Text('Direct message started')),
-                        );
-                    },
-                    child: const Text('Message'),
-                  ),
                 ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 42,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _controller.profileTabs.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, index) {
-                  final selected = index == _controller.selectedTabIndex;
-                  return ChoiceChip(
-                    label: Text(_controller.profileTabs[index]),
-                    selected: selected,
-                    onSelected: (_) => _controller.selectTab(index),
-                  );
-                },
-              ),
+              ],
             ),
-            const SizedBox(height: 12),
-            _ProfileTabContent(
-              tabLabel: _controller.profileTabs[_controller.selectedTabIndex],
-              posts: _controller.posts,
-              reelCount: _controller.reelCount,
-            ),
-            const SizedBox(height: 16),
-            Text('Tagged & Mention History', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ..._controller.taggedPosts.map(
-              (item) => Card(
-                child: ListTile(
-                  leading: const Icon(Icons.alternate_email_rounded),
-                  title: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text('${item.location ?? 'No location'} • Media ${item.mediaCount}'),
-                ),
-              ),
-            ),
-            ..._controller.mentionHistory.map(
-              (item) => Card(
-                child: ListTile(
-                  leading: const Icon(Icons.history_outlined),
-                  title: Text(item),
-                  subtitle: const Text('Mention history placeholder'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text('People You May Know', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ..._controller.suggestedContacts().map(
-              (item) => Card(
-                child: ListTile(
-                  title: Text(item.name),
-                  subtitle: Text('@${item.username} • Suggested contact'),
-                  trailing: const Chip(label: Text('Invite contacts')),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.download_outlined),
-                    title: const Text('Download my data'),
-                    subtitle: Text(_controller.accountExportMessage),
-                    onTap: () async {
-                      await _controller.requestDataExport();
-                    },
-                  ),
-                  const Divider(height: 1),
-                  const ListTile(
-                    leading: Icon(Icons.import_export_outlined),
-                    title: Text('Account data export placeholder'),
-                  ),
-                  const Divider(height: 1),
-                  const ListTile(
-                    leading: Icon(Icons.pause_circle_outline),
-                    title: Text('Deactivate account placeholder'),
-                  ),
-                  const Divider(height: 1),
-                  const ListTile(
-                    leading: Icon(Icons.delete_forever_outlined),
-                    title: Text('Delete account placeholder'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                title: const Text('Safety actions'),
-                subtitle: const Text('Block • Report • Mute options ready for policy integration'),
-                trailing: Icon(
-                  Icons.shield_outlined,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _StatTile extends StatelessWidget {
-  const _StatTile({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          children: [
-            Text(value, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(label),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RoleBadge extends StatelessWidget {
-  const _RoleBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Text(label, style: Theme.of(context).textTheme.labelSmall),
-    );
-  }
-}
-
-class _HighlightItem extends StatelessWidget {
-  const _HighlightItem({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 72,
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-            child: Icon(
-              Icons.auto_stories_rounded,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileTabContent extends StatelessWidget {
-  const _ProfileTabContent({
-    required this.tabLabel,
-    required this.posts,
-    required this.reelCount,
-  });
-
-  final String tabLabel;
-  final List<PostModel> posts;
-  final int reelCount;
-
-  @override
-  Widget build(BuildContext context) {
-    final normalized = tabLabel.toLowerCase();
-    if (normalized == 'posts') {
-      if (posts.isEmpty) {
-        return const Card(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('No posts yet.'),
-          ),
-        );
-      }
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: posts.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 6,
-          mainAxisSpacing: 6,
-        ),
-        itemBuilder: (_, index) {
-          final media = posts[index].media;
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: media.isEmpty
-                ? Container(color: Theme.of(context).colorScheme.surfaceContainer)
-                : Image.network(media.first, fit: BoxFit.cover),
           );
         },
-      );
-    }
+      ),
+    );
+  }
 
-    if (normalized == 'reels') {
-      return Card(
-        child: ListTile(
-          leading: const Icon(Icons.play_circle_outline),
-          title: Text('Reels uploaded: $reelCount'),
-          subtitle: const Text('Tap reels tab in shell to manage short videos.'),
+  Widget _buildStatColumn(String value, String label) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+      ],
+    );
+  }
+
+  Widget _buildStatDivider() {
+    return Container(height: 24, width: 1, color: Colors.grey.shade200);
+  }
+
+  Widget _buildUtilityIcon(IconData icon, String label, Color bgColor, Color iconColor) {
+    return Column(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+          child: Icon(icon, color: iconColor, size: 22),
         ),
-      );
-    }
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
+      ],
+    );
+  }
 
-    return Card(
-      child: ListTile(
-        title: Text(tabLabel),
-        subtitle: const Text('Detailed content for this section will appear here.'),
+  Widget _buildTabItem(IconData icon, bool isSelected) {
+    return Expanded(
+      child: Column(
+        children: [
+          IconButton(
+            onPressed: () {},
+            icon: Icon(icon, color: isSelected ? const Color(0xFF26C6DA) : Colors.grey.shade400),
+          ),
+          if (isSelected)
+            Container(height: 2, width: double.infinity, color: const Color(0xFF26C6DA)),
+        ],
       ),
     );
   }

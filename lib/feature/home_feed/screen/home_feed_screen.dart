@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/common_data/mock_data.dart';
-import '../../../core/constants/app_dimensions.dart';
 import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/post_card.dart';
-import '../../../core/widgets/section_header.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
 import '../../stories/widget/story_ring_list.dart';
@@ -57,21 +55,11 @@ class HomeFeedScreen extends StatelessWidget {
           onRefresh: controller.refreshFeed,
           child: ListView(
             controller: _scrollController,
-            padding: AppDimensions.pagePadding,
+            padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
-              _QuickComposer(
-                onCreateTap: () => _openCreatePostScreen(context),
-              ),
-              const SizedBox(height: 14),
-              const SectionHeader(title: 'Stories'),
-              const SizedBox(height: 10),
-              StoryRingList(stories: controller.stories, users: MockData.users),
-              const SizedBox(height: 16),
-              _FeedTabSelector(
-                activeTab: controller.activeTab,
-                onTabSelected: controller.setTab,
-              ),
               const SizedBox(height: 8),
+              StoryRingList(stories: controller.stories, users: MockData.users),
+              const Divider(height: 32, thickness: 0.5),
               ...controller.visiblePosts.map((post) {
                 final user = MockData.users
                     .where((item) => item.id == post.authorId)
@@ -79,36 +67,25 @@ class HomeFeedScreen extends StatelessWidget {
                 if (user == null) {
                   return const SizedBox.shrink();
                 }
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: PostCard(
-                    post: post,
-                    author: user,
-                    likeCount: controller.displayLikeCount(post),
-                    isLiked: controller.isLiked(post.id),
-                    onTap: () => _openPostDetail(context, post.id),
-                    onAuthorTap: () => _openOtherProfile(context, user.id),
-                    onMoreTap: () => _showPostActions(context, post.id),
-                    onLikeTap: () => controller.likePost(post.id),
-                    onCommentTap: () {
-                      _openPostDetail(context, post.id);
-                    },
-                    onBookmarkTap: () => _showFeedback(context, 'Saved to bookmarks'),
-                  ),
+                return PostCard(
+                  post: post,
+                  author: user,
+                  likeCount: controller.displayLikeCount(post),
+                  isLiked: controller.isLiked(post.id),
+                  onTap: () => _openPostDetail(context, post.id),
+                  onAuthorTap: () => _openOtherProfile(context, user.id),
+                  onMoreTap: () => _showPostActions(context, post.id),
+                  onLikeTap: () => controller.likePost(post.id),
+                  onCommentTap: () {
+                    _openPostDetail(context, post.id);
+                  },
+                  onBookmarkTap: () => _showFeedback(context, 'Saved to bookmarks'),
                 );
               }),
               if (controller.isLoadingMore) ...[
                 const SizedBox(height: 8),
                 const Center(child: CircularProgressIndicator()),
               ],
-              if (controller.state.hasError && !controller.isLoading)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: TextButton(
-                    onPressed: controller.loadNextPage,
-                    child: const Text('Retry loading more'),
-                  ),
-                ),
             ],
           ),
         );
@@ -130,97 +107,6 @@ class HomeFeedScreen extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).pop();
                 _openPostDetail(context, postId);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share_outlined),
-              title: const Text('Share'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _showFeedback(context, 'Share flow for $postId');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.block_outlined),
-              title: const Text('Not Interested'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _controller.notInterested(postId);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.tune_outlined),
-              title: const Text('Show less like this'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                await _controller.showLessLikeThis(postId);
-                if (!context.mounted) {
-                  return;
-                }
-                _showFeedback(context, 'Recommendation feedback saved');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_off_outlined),
-              title: const Text('Hide creator'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final post = _controller.posts.where((item) => item.id == postId).firstOrNull;
-                if (post != null) {
-                  await _controller.hideCreator(post.authorId);
-                }
-                if (!context.mounted) {
-                  return;
-                }
-                _showFeedback(context, 'Creator hidden from recommendations');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.topic_outlined),
-              title: const Text('Hide topic'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final post = _controller.posts.where((item) => item.id == postId).firstOrNull;
-                final topic = post?.tags.firstOrNull;
-                if (topic != null) {
-                  await _controller.hideTopic(topic);
-                }
-                if (!context.mounted) {
-                  return;
-                }
-                _showFeedback(context, 'Topic hidden from recommendations');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.favorite_border),
-              title: const Text('Favorites feed placeholder'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _showFeedback(context, 'Favorites feed placeholder opened');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.key_off_outlined),
-              title: const Text('Mute keyword'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _showFeedback(context, 'Mute keyword placeholder saved');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.snooze_outlined),
-              title: const Text('Snooze user/page/group'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _showFeedback(context, 'Snooze placeholder saved');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.help_outline),
-              title: const Text('Why am I seeing this?'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _showFeedback(context, 'Recommendation explanation placeholder');
               },
             ),
             ListTile(
@@ -257,123 +143,5 @@ class HomeFeedScreen extends StatelessWidget {
         builder: (_) => PostDetailScreen(postId: postId),
       ),
     );
-  }
-
-  Future<void> _openCreatePostScreen(BuildContext context) async {
-    final result = await Navigator.of(context).push<CreatePostResult>(
-      MaterialPageRoute<CreatePostResult>(
-        builder: (_) => CreatePostScreen(),
-      ),
-    );
-
-    if (result == null) {
-      return;
-    }
-
-    await _controller.createLocalPost(
-      caption: result.caption,
-      mediaUrl: result.mediaUrl,
-      isVideo: result.isVideo,
-      audience: result.audience,
-      location: result.location,
-      taggedPeople: result.taggedPeople,
-      coAuthors: result.coAuthors,
-      altText: result.altText,
-      editHistory: result.editHistory,
-    );
-
-    if (!context.mounted) {
-      return;
-    }
-
-    _showFeedback(context, 'Post created');
-  }
-}
-
-class _QuickComposer extends StatelessWidget {
-  const _QuickComposer({required this.onCreateTap});
-
-  final VoidCallback onCreateTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: onCreateTap,
-              icon: const Icon(Icons.movie_filter_outlined),
-              tooltip: 'Create reel',
-            ),
-            Expanded(
-              child: InkWell(
-                onTap: onCreateTap,
-                borderRadius: BorderRadius.circular(99),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    'Share what you are thinking...',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: onCreateTap,
-              icon: const Icon(Icons.add_photo_alternate_outlined),
-              tooltip: 'Add photo',
-            ),
-            IconButton(
-              onPressed: onCreateTap,
-              icon: const Icon(Icons.videocam_outlined),
-              tooltip: 'Add video',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FeedTabSelector extends StatelessWidget {
-  const _FeedTabSelector({
-    required this.activeTab,
-    required this.onTabSelected,
-  });
-
-  final FeedTab activeTab;
-  final Future<void> Function(FeedTab) onTabSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      children: FeedTab.values.map((FeedTab tab) {
-        return ChoiceChip(
-          label: Text(_labelForTab(tab)),
-          selected: tab == activeTab,
-          onSelected: (_) {
-            onTabSelected(tab);
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  String _labelForTab(FeedTab tab) {
-    switch (tab) {
-      case FeedTab.forYou:
-        return 'For You';
-      case FeedTab.following:
-        return 'Following';
-      case FeedTab.trending:
-        return 'Trending';
-    }
   }
 }

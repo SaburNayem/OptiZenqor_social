@@ -35,57 +35,71 @@ class PostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
+      color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  AppAvatar(
-                    imageUrl: author.avatar,
-                    verified: author.verified,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: onAuthorTap,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    AppAvatar(
+                      imageUrl: author.avatar,
+                      verified: author.verified,
+                      radius: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InkWell(
+                        onTap: onAuthorTap,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(author.name, style: Theme.of(context).textTheme.titleSmall),
-                            Text('@${author.username} • ${FormatHelper.timeAgo(post.createdAt)}'),
+                            Text(
+                              author.name,
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            Text(
+                              FormatHelper.timeAgo(post.createdAt),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey,
+                                  ),
+                            ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  IconButton(onPressed: onMoreTap, icon: const Icon(Icons.more_horiz)),
-                ],
+                    IconButton(
+                      onPressed: onMoreTap,
+                      icon: const Icon(Icons.more_horiz, color: Colors.grey),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 10),
-              Text(post.caption),
-              if (post.media.isNotEmpty) ...[
-                const SizedBox(height: 12),
+              const SizedBox(height: 8),
+              // Media
+              if (post.media.isNotEmpty)
                 Builder(
                   builder: (context) {
                     final media = post.media.first;
                     final lower = media.toLowerCase();
-                    final isVideo =
-                        lower.endsWith('.mp4') ||
+                    final isVideo = lower.endsWith('.mp4') ||
                         lower.endsWith('.mov') ||
                         lower.endsWith('.webm') ||
                         lower.endsWith('.m4v');
                     return ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(24),
                       child: AspectRatio(
-                        aspectRatio: 16 / 9,
+                        aspectRatio: 1, // Instagram-like square or 4:5
                         child: isVideo
                             ? InlineVideoPlayer(networkUrl: media, autoPlay: true)
                             : Image.network(media, fit: BoxFit.cover),
@@ -93,64 +107,72 @@ class PostCard extends StatelessWidget {
                     );
                   },
                 ),
-              ],
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  _EngagementChip(
-                    icon: isLiked ? Icons.favorite : Icons.favorite_border,
-                    value: likeCount ?? post.likes,
-                    onTap: onLikeTap,
-                  ),
-                  const SizedBox(width: 8),
-                  _EngagementChip(
-                    icon: Icons.mode_comment_outlined,
-                    value: post.comments,
-                    onTap: onCommentTap,
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: onBookmarkTap,
-                    icon: const Icon(Icons.bookmark_border_rounded),
-                  ),
-                ],
+              // Actions
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: onLikeTap,
+                      icon: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: isLiked ? Colors.red : null,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onCommentTap,
+                      icon: const Icon(Icons.chat_bubble_outline),
+                    ),
+                    IconButton(
+                      onPressed: () {}, // Share action
+                      icon: const Icon(Icons.share_outlined),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: onBookmarkTap,
+                      icon: const Icon(Icons.bookmark_border_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              // Likes and Caption
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${FormatHelper.formatCompactNumber(likeCount ?? post.likes)} likes',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    RichText(
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        children: [
+                          TextSpan(
+                            text: '@${author.username} ',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(text: post.caption),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (post.comments > 0)
+                      InkWell(
+                        onTap: onCommentTap,
+                        child: Text(
+                          'View all ${post.comments} comments',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EngagementChip extends StatelessWidget {
-  const _EngagementChip({
-    required this.icon,
-    required this.value,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final int value;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(99),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(99),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 16),
-            const SizedBox(width: 6),
-            Text(FormatHelper.formatCompactNumber(value)),
-          ],
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../controller/search_discovery_controller.dart';
 
@@ -13,7 +14,22 @@ class _SearchDiscoveryScreenState extends State<SearchDiscoveryScreen> {
   final SearchDiscoveryController _controller = SearchDiscoveryController();
   final TextEditingController _queryController = TextEditingController();
 
-  static const List<String> _hashtagTabs = <String>['Top', 'Latest'];
+  final List<String> _categories = [
+    'For You',
+    'Trending',
+    'Art',
+    'Travel',
+    'Food'
+  ];
+  String _activeCategory = 'For You';
+
+  final List<String> _trendingTags = [
+    '#design',
+    '#photography',
+    '#travel2025',
+    '#tech',
+    '#lifestyle'
+  ];
 
   @override
   void dispose() {
@@ -25,238 +41,187 @@ class _SearchDiscoveryScreenState extends State<SearchDiscoveryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search & Discovery')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
-                  controller: _queryController,
-                  onChanged: _controller.search,
-                  decoration: const InputDecoration(
-                    hintText: 'Search users, creators, posts, hashtags',
-                    prefixIcon: Icon(Icons.search),
-                  ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 0, // Hidden appBar to use custom search bar
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(color: Colors.grey.shade100),
                 ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
-                  children: SearchEntityFilter.values.map((filter) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(filter.name),
-                        selected: _controller.activeFilter == filter,
-                        onSelected: (_) => _controller.setFilter(
-                          filter,
-                          currentQuery: _queryController.text,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
-                    const SizedBox(height: 12),
-                    Text(
-                      'Trending Search Terms',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _controller.trendingTerms
-                          .map((term) => Chip(label: Text(term)))
-                          .toList(),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      'Suggestions by Entity Type',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _controller
-                          .suggestionsForActiveFilter()
-                          .map(
-                            (item) => ActionChip(
-                              label: Text(item),
-                              onPressed: () {
-                                _queryController.text = item;
-                                _controller.search(item);
-                              },
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    ..._controller.userResults.map(
-                      (item) => Card(
-                        child: ListTile(
-                          onTap: () {
-                            ScaffoldMessenger.of(context)
-                              ..hideCurrentSnackBar()
-                              ..showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '${item.name} public profile preview opened',
-                                  ),
-                                ),
-                              );
-                          },
-                          leading: CircleAvatar(
-                            child: Text(item.name.substring(0, 1)),
-                          ),
-                          title: Text(item.name),
-                          subtitle: Text('@${item.username} • ${item.role.name}'),
-                          trailing: item.verified
-                              ? const Icon(Icons.verified_rounded)
-                              : null,
+                    Expanded(
+                      child: TextField(
+                        controller: _queryController,
+                        onChanged: _controller.search,
+                        decoration: InputDecoration(
+                          hintText: 'Search people, tags, places...',
+                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+                          border: InputBorder.none,
+                          isDense: true,
                         ),
                       ),
                     ),
-                    ..._controller.mediaResults.map(
-                      (item) => Card(
-                        child: ListTile(
-                          title: Text(item.caption),
-                          subtitle: Text(
-                            '${item.location ?? 'No location'} • ${item.viewCount} views • ${item.audience}',
-                          ),
-                          trailing: const Icon(Icons.photo_library_outlined),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _SectionCard(
-                      title: 'Hashtag Detail',
-                      subtitle: '#creatoreconomy with top/latest tabs',
-                      child: Wrap(
-                        spacing: 8,
-                        children: _hashtagTabs
-                            .map((tab) => Chip(label: Text(tab)))
-                            .toList(),
-                      ),
-                    ),
-                    _SectionCard(
-                      title: 'Recommendation Feedback',
-                      subtitle: 'Controls for tuning what the system shows next',
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: const [
-                          Chip(label: Text('Show less like this')),
-                          Chip(label: Text('Hide creator')),
-                          Chip(label: Text('Hide topic')),
-                          Chip(label: Text('Improve recommendations')),
-                          Chip(label: Text('Why am I seeing this?')),
-                        ],
-                      ),
-                    ),
-                    _SectionCard(
-                      title: 'Watch & History',
-                      subtitle: 'Continuity and recent activity surfaces',
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: const [
-                          Chip(label: Text('Watch history')),
-                          Chip(label: Text('Continue watching')),
-                          Chip(label: Text('Recently viewed profiles/posts/products')),
-                          Chip(label: Text('Recently listened audio/live')),
-                        ],
-                      ),
-                    ),
-                    _SectionCard(
-                      title: 'Nearby Discovery',
-                      subtitle: 'Location-based recommendations and local discovery',
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: const [
-                          Chip(label: Text('Nearby events')),
-                          Chip(label: Text('Nearby groups/pages')),
-                          Chip(label: Text('Nearby marketplace items')),
-                          Chip(label: Text('Location-based recommendations')),
-                        ],
-                      ),
-                    ),
-                    _SectionCard(
-                      title: 'Universal Search',
-                      subtitle: 'Cross-feature search continuity tools',
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: const [
-                          Chip(label: Text('Recent viewed items')),
-                          Chip(label: Text('Saved search alerts')),
-                          Chip(label: Text('Search history management')),
-                          Chip(label: Text('Voice search')),
-                        ],
-                      ),
-                    ),
-                    _SectionCard(
-                      title: 'Explore Sections',
-                      subtitle: 'Expanded discovery surfaces',
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: const [
-                          Chip(label: Text('Creator Spotlight')),
-                          Chip(label: Text('Rising Communities')),
-                          Chip(label: Text('Trending Products')),
-                          Chip(label: Text('Trending Jobs')),
-                          Chip(label: Text('Suggested Pages')),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
+            ),
 
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.title,
-    required this.subtitle,
-    required this.child,
-  });
+            // Categories
+            SizedBox(
+              height: 38,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _categories.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final category = _categories[index];
+                  final isSelected = category == _activeCategory;
+                  return InkWell(
+                    onTap: () => setState(() => _activeCategory = category),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF26C6DA) : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.grey.shade600,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
 
-  final String title;
-  final String subtitle;
-  final Widget child;
+            const SizedBox(height: 24),
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(subtitle),
-            const SizedBox(height: 8),
-            child,
+            // Trending Now Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.trending_up, color: Color(0xFF26C6DA), size: 20),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Trending Now',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'See All >',
+                    style: TextStyle(
+                      color: const Color(0xFF26C6DA).withOpacity(0.8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Trending Tags
+            SizedBox(
+              height: 32,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _trendingTags.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0F7FA),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      _trendingTags[index],
+                      style: const TextStyle(
+                        color: Color(0xFF00ACC1),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Discovery Grid
+            Expanded(
+              child: MasonryGridView.count(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                crossAxisCount: 2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                itemCount: 20, // Mock count
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        Image.network(
+                          'https://picsum.photos/seed/${index + 50}/400/${index % 3 == 0 ? 600 : 400}',
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned(
+                          left: 8,
+                          bottom: 8,
+                          child: Row(
+                            children: const [
+                              Icon(Icons.location_on, color: Colors.white, size: 12),
+                              SizedBox(width: 4),
+                              Text(
+                                'Location',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
