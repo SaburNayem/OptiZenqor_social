@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/services/theme_service.dart';
+import '../../../core/data/service/theme_service.dart';
 import '../common/settings_section_card.dart';
 import '../controller/settings_controller.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../common_models/post_model.dart';
-import '../common_models/user_model.dart';
+import '../data/models/post_model.dart';
+import '../data/models/user_model.dart';
 import '../helpers/format_helper.dart';
 import 'app_avatar.dart';
 import 'inline_video_player.dart';

@@ -1,4 +1,4 @@
-import '../enums/user_role.dart';
+import '../../enums/user_role.dart';
 
 class UserModel {
   const UserModel({

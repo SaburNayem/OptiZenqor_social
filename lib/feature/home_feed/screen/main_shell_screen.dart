@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/services/connectivity_service.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/service/connectivity_service.dart';
 import '../../../route/route_names.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
@@ -112,12 +112,12 @@ class MainShellScreen extends StatelessWidget {
                         _buildDrawerItem(Icons.bookmark_border_outlined, 'Bookmarks', RouteNames.bookmarks),
                         _buildDrawerItem(Icons.account_balance_wallet_outlined, 'Wallet', RouteNames.walletPayments),
                         _buildDrawerItem(Icons.event_outlined, 'Events', RouteNames.events),
-                        _buildDrawerItem(Icons.work_outline, 'Jobs', RouteNames.marketplace),
-                        _buildDrawerItem(Icons.card_giftcard_outlined, 'Invite Friends', RouteNames.marketplace),
+                        _buildDrawerItem(Icons.work_outline, 'Jobs', RouteNames.jobsNetworking),
+                        _buildDrawerItem(Icons.card_giftcard_outlined, 'Invite Friends', RouteNames.inviteReferral),
                         _buildDrawerItem(Icons.archive_outlined, 'My archive', RouteNames.archiveCenter),
                         const Divider(),
                         _buildDrawerItem(Icons.settings_outlined, 'Settings', RouteNames.settings),
-                        _buildDrawerItem(Icons.help_outline, 'Help & Support', RouteNames.settings),
+                        _buildDrawerItem(Icons.help_outline, 'Help & Support', RouteNames.supportHelp),
                         _buildDrawerItem(Icons.logout, 'Log Out', RouteNames.login, isDestructive: true),
                       ],
                     ),

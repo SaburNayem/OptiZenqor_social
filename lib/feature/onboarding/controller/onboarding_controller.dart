@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/services/analytics_service.dart';
+import '../../../core/data/service/analytics_service.dart';
 import '../../../route/route_names.dart';
 import '../repository/onboarding_repository.dart';
 

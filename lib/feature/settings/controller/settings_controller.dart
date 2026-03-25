@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/common_models/user_model.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../route/route_names.dart';
 import '../model/settings_item_model.dart';

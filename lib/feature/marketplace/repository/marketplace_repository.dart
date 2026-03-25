@@ -1,5 +1,5 @@
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/common_models/product_model.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/product_model.dart';
 
 class MarketplaceRepository {
   Future<List<ProductModel>> fetchProducts({String? query}) async {

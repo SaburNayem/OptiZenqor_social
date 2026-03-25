@@ -1,5 +1,5 @@
 import '../../../core/constants/storage_keys.dart';
-import '../../../core/services/local_storage_service.dart';
+import '../../../core/data/service/local_storage_service.dart';
 import '../model/restricted_account_model.dart';
 
 class BlockedMutedAccountsRepository {
@@ -12,8 +12,20 @@ class BlockedMutedAccountsRepository {
       <RestrictedAccountModel>[
         RestrictedAccountModel(
           id: 'b1',
-          name: 'Sample User',
-          handle: '@sample.user',
+          name: 'Sarah Jenkins',
+          handle: '@sarahj',
+          status: 'blocked',
+        ),
+        RestrictedAccountModel(
+          id: 'b2',
+          name: 'Marcus Chen',
+          handle: '@marcusc',
+          status: 'blocked',
+        ),
+        RestrictedAccountModel(
+          id: 'b3',
+          name: 'Emma Wilson',
+          handle: '@emmaw',
           status: 'blocked',
         ),
       ];

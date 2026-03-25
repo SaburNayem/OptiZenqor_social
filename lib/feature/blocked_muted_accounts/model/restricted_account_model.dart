@@ -4,12 +4,14 @@ class RestrictedAccountModel {
     required this.name,
     required this.handle,
     required this.status,
+    this.avatarUrl,
   });
 
   final String id;
   final String name;
   final String handle;
   final String status;
+  final String? avatarUrl;
 
   factory RestrictedAccountModel.fromJson(Map<String, dynamic> json) {
     return RestrictedAccountModel(
@@ -17,6 +19,7 @@ class RestrictedAccountModel {
       name: json['name'] as String,
       handle: json['handle'] as String,
       status: json['status'] as String,
+      avatarUrl: json['avatarUrl'] as String?,
     );
   }
 
@@ -26,6 +29,7 @@ class RestrictedAccountModel {
       'name': name,
       'handle': handle,
       'status': status,
+      'avatarUrl': avatarUrl,
     };
   }
 }

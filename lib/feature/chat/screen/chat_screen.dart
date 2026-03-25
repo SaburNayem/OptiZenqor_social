@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/common_data/mock_data.dart';
+import '../../../core/data/mock/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
 import '../../../core/widgets/error_state_view.dart';
 import 'chat_detail_screen.dart';

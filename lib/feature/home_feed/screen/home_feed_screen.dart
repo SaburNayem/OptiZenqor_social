@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/common_data/mock_data.dart';
+import '../../../core/data/mock/mock_data.dart';
 import '../../../core/widgets/app_loader.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';

@@ -1,5 +1,5 @@
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/common_models/message_model.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/message_model.dart';
 
 class ChatRepository {
   Future<List<MessageModel>> fetchInbox() async {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/common_data/mock_data.dart';
+import '../../../core/data/mock/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
 import '../../../core/widgets/inline_video_player.dart';
 import '../controller/reels_controller.dart';

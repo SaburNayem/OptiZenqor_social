@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/common_data/mock_data.dart';
-import '../../../core/common_models/group_model.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/group_model.dart';
 
 class CommunitiesController extends ChangeNotifier {
   List<GroupModel> groups = <GroupModel>[];
