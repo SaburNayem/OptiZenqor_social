@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/enums/user_role.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/validators/input_validators.dart';
-import '../../../../core/widgets/app_button.dart';
-import '../../../../core/widgets/app_text_field.dart';
 import '../../../../route/route_names.dart';
 import '../controller/login_controller.dart';
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final LoginController _controller = LoginController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
           child: Form(
             key: _formKey,
             child: AnimatedBuilder(
@@ -30,63 +35,92 @@ class LoginScreen extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Welcome Back',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('Login to continue your feed and communities.'),
-                    const SizedBox(height: 28),
-                    AppTextField(
-                      hint: 'Email',
-                      controller: _emailController,
-                      validator: InputValidators.email,
-                      keyboardType: TextInputType.emailAddress,
-                      prefixIcon: Icons.mail_outline,
+                    Row(
+                      children: [
+                        Text(
+                          'Welcome back!',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black.withOpacity(0.85),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('👋', style: TextStyle(fontSize: 28)),
+                      ],
                     ),
                     const SizedBox(height: 12),
-                    AppTextField(
-                      hint: 'Password',
-                      controller: _passwordController,
-                      validator: InputValidators.loginPassword,
-                      obscureText: true,
-                      prefixIcon: Icons.lock_outline,
-                    ),
-                    const SizedBox(height: 8),
                     Text(
-                      'Static login: use any valid email and any non-empty password.',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      'Log in to your account to continue',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<UserRole>(
-                      initialValue: _controller.selectedRole,
-                      decoration: const InputDecoration(labelText: 'Login as role'),
-                      items: UserRole.values
-                          .where((role) => role != UserRole.guest)
-                          .map(
-                            (role) => DropdownMenuItem<UserRole>(
-                              value: role,
-                              child: Text(role.name),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          _controller.updateRole(value);
-                        }
-                      },
+                    const SizedBox(height: 48),
+                    const Text(
+                      'Email Address',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF495057),
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    if (_controller.formState.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(
-                          _controller.formState.errorMessage!,
-                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _emailController,
+                      validator: (v) => InputValidators.email(v ?? ''),
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        hintText: 'hello@example.com',
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Password',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF495057),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _passwordController,
+                      validator: (v) => InputValidators.loginPassword(v ?? ''),
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        hintText: '••••••••',
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: Colors.grey.shade400,
+                          ),
                         ),
                       ),
-                    AppButton(
-                      label: _controller.formState.isSubmitting ? 'Signing In...' : 'Login',
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Get.toNamed(RouteNames.forgotPassword),
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: AppColors.splashBackground,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton(
                       onPressed: _controller.formState.isSubmitting
                           ? null
                           : () {
@@ -94,18 +128,79 @@ class LoginScreen extends StatelessWidget {
                                 _controller.login();
                               }
                             },
-                    ),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: TextButton(
-                        onPressed: () => Get.toNamed(RouteNames.forgotPassword),
-                        child: const Text('Forgot password?'),
+                      child: Text(
+                        _controller.formState.isSubmitting
+                            ? 'Logging In...'
+                            : 'Log In',
                       ),
                     ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey.shade200)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(child: Divider(color: Colors.grey.shade200)),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    OutlinedButton(
+                      onPressed: () {},
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(56),
+                        side: BorderSide(color: Colors.grey.shade200),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.network(
+                            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
+                            height: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              color: Color(0xFF495057),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 48),
                     Center(
-                      child: TextButton(
-                        onPressed: () => Get.toNamed(RouteNames.signup),
-                        child: const Text('Create a new account'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account? ",
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          GestureDetector(
+                            onTap: () => Get.toNamed(RouteNames.signup),
+                            child: const Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                color: AppColors.splashBackground,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

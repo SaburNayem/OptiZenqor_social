@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+<<<<<<< HEAD
 import '../feature/accessibility_support/screen/accessibility_support_screen.dart';
 import '../feature/account_switching/screen/account_switching_screen.dart';
 import '../feature/activity_sessions/screen/activity_sessions_screen.dart';
@@ -78,6 +78,9 @@ import '../feature/user_profile/screen/user_profile_screen.dart';
 import '../feature/verification_request/screen/verification_request_screen.dart';
 import '../feature/wallet_payments/screen/wallet_payments_screen.dart';
 import '../feature/jobs_networking/screen/jobs_networking_screen.dart';
+=======
+import 'app_pages.dart';
+>>>>>>> 08433d8 (update)
 import 'route_names.dart';
 
 class AppRoute {
@@ -171,6 +174,7 @@ class AppRoute {
   static const String userProfile = RouteNames.userProfile;
   static const String chat = RouteNames.chat;
 
+<<<<<<< HEAD
   static const String initialRoute = splash;
 
   static final List<GetPage<dynamic>> routes = <GetPage<dynamic>>[
@@ -318,4 +322,9 @@ class AppRoute {
     name: '/not-found',
     page: () => const Scaffold(body: Center(child: Text('Route not found'))),
   );
+=======
+  static const String initialRoute = AppPages.initialRoute;
+  static List<GetPage<dynamic>> get routes => AppPages.routes;
+  static GetPage<dynamic> get unknownRoute => AppPages.unknownRoute;
+>>>>>>> 08433d8 (update)
 }

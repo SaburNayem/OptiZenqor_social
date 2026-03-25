@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../constants/storage_keys.dart';
-import 'local_storage_service.dart';
+import '../constant/storage_keys.dart';
+import '../data/shared_preference/app_shared_preferences.dart';
 
 class ThemeService {
   ThemeService._();
 
   static final ThemeService instance = ThemeService._();
 
-  final LocalStorageService _storage = LocalStorageService();
+  final AppSharedPreferences _storage = AppSharedPreferences();
   final ValueNotifier<ThemeMode> mode = ValueNotifier<ThemeMode>(ThemeMode.system);
 
   Future<void> init() async {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../../core/theme/app_colors.dart';
 import '../../splash/controller/splash_controller.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -17,44 +17,44 @@ class SplashScreen extends StatelessWidget {
       });
     }
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0E1726), Color(0xFF1D4ED8), Color(0xFF0EA5A4)],
-          ),
-        ),
-        child: Center(
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.4, end: 1.0),
-            duration: const Duration(milliseconds: 1100),
-            curve: Curves.easeInOut,
-            builder: (context, value, child) {
-              return Opacity(opacity: value, child: child);
-            },
-            child: const Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 64),
-                SizedBox(height: 14),
-                Text(
-                  'OptiZenqor Social',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
+      backgroundColor: AppColors.splashBackground,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 3),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.handshake_rounded, // Best fit for the logo shape in icons
+                    color: Colors.black,
+                    size: 50,
                   ),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'People. Media. Communities. Growth.',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 24),
+            const Text(
+              'OPTIZENQOR SOCIETY',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
         ),
       ),
     );

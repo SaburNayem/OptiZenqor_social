@@ -5,6 +5,7 @@ import '../../../core/common_data/mock_data.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../../route/route_names.dart';
+import '../common/main_shell_drawer_section.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
 import '../../settings/screen/settings_screen.dart';
@@ -21,6 +22,7 @@ class MainShellScreen extends StatelessWidget {
 
   late final ConnectivityService _connectivity;
 
+<<<<<<< HEAD
   static const List<String> _tabTitles = <String>[
     'Home',
     'Reels',
@@ -37,17 +39,30 @@ class MainShellScreen extends StatelessWidget {
     const SettingsScreen(showAppBar: false),
   ];
 
+=======
+>>>>>>> 08433d8 (update)
   @override
   Widget build(BuildContext context) {
     final currentUser = MockData.users.first;
+    final tabs = <Widget>[
+      HomeFeedScreen(),
+      ReelsScreen(),
+      ChatScreen(),
+      UserProfileScreen(),
+      const SettingsScreen(showAppBar: false),
+    ];
 
     return GetBuilder<MainShellController>(
       builder: (controller) {
         return Scaffold(
           appBar: AppBar(
+<<<<<<< HEAD
             title: Text('OptiZenqor - ${_tabTitles[controller.index]}'),
+=======
+            title: Text('OptiZenqor • ${controller.currentTitle}'),
+>>>>>>> 08433d8 (update)
             actions: <Widget>[
-              if (controller.index == 0)
+              if (controller.showCreateAction)
                 IconButton(
                   onPressed: () => _openCreateScreen(context),
                   icon: const Icon(Icons.add_box_outlined),
@@ -74,6 +89,7 @@ class MainShellScreen extends StatelessWidget {
                     ),
                     accountName: Text(currentUser.name),
                     accountEmail: Text('@${currentUser.username}'),
+                    margin: EdgeInsets.zero,
                     otherAccountsPictures: const [
                       CircleAvatar(
                         child: Icon(Icons.keyboard_arrow_right_rounded),
@@ -84,6 +100,7 @@ class MainShellScreen extends StatelessWidget {
                       parameters: {'id': currentUser.id},
                     ),
                   ),
+<<<<<<< HEAD
                   const _DrawerSectionHeader(
                     title: 'Create',
                     subtitle: 'Quick create actions',
@@ -181,6 +198,20 @@ class MainShellScreen extends StatelessWidget {
                     leading: const Icon(Icons.live_tv_outlined),
                     title: const Text('Live stream'),
                     onTap: () => Get.toNamed(RouteNames.liveStream),
+=======
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+                    child: Text('Feature Hub'),
+                  ),
+                  ...controller.drawerSections.map(
+                    (section) => MainShellDrawerSection(
+                      section: section,
+                      onTap: (routeName) {
+                        Get.back<void>();
+                        Get.toNamed(routeName);
+                      },
+                    ),
+>>>>>>> 08433d8 (update)
                   ),
                 ],
               ),
@@ -215,7 +246,11 @@ class MainShellScreen extends StatelessWidget {
               Expanded(
                 child: IndexedStack(
                   index: controller.index,
+<<<<<<< HEAD
                   children: _tabs,
+=======
+                  children: tabs,
+>>>>>>> 08433d8 (update)
                 ),
               ),
             ],
@@ -223,13 +258,15 @@ class MainShellScreen extends StatelessWidget {
           bottomNavigationBar: NavigationBar(
             selectedIndex: controller.index,
             onDestinationSelected: controller.onTabChanged,
-            destinations: const <NavigationDestination>[
-              NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-              NavigationDestination(icon: Icon(Icons.play_circle_outline), label: 'Reels'),
-              NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chat'),
-              NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
-              NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
-            ],
+            destinations: controller.destinations
+                .map(
+                  (destination) => NavigationDestination(
+                    icon: Icon(destination.icon),
+                    selectedIcon: Icon(destination.activeIcon),
+                    label: destination.label,
+                  ),
+                )
+                .toList(growable: false),
           ),
         );
       },
@@ -245,6 +282,7 @@ class MainShellScreen extends StatelessWidget {
         ..showSnackBar(const SnackBar(content: Text('Post created')));
     }
   }
+<<<<<<< HEAD
 }
 
 class _DrawerSectionHeader extends StatelessWidget {
@@ -265,4 +303,6 @@ class _DrawerSectionHeader extends StatelessWidget {
       subtitle: Text(subtitle),
     );
   }
+=======
+>>>>>>> 08433d8 (update)
 }
