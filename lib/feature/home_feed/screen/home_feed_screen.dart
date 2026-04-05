@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/widgets/app_loader.dart';
@@ -62,7 +61,11 @@ class HomeFeedScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
               const SizedBox(height: 8),
-              StoryRingList(stories: controller.stories, users: MockData.users),
+              StoryRingList(
+                stories: controller.stories,
+                users: MockData.users,
+                onStoryAdded: (stories) => controller.addLocalStories(stories),
+              ),
               const Divider(height: 32, thickness: 0.5),
               ...controller.visiblePosts.map((post) {
                 final user = MockData.users

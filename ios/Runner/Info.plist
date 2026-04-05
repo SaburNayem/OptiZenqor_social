@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>OptiZenqor Social needs access to your photo library to create stories from your device media.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>OptiZenqor Social needs photo library access to manage story media on your device.</string>
 </dict>
 </plist>

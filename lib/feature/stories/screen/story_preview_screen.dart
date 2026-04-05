@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/functions/app_feedback.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/story_model.dart';
 import '../controller/story_preview_controller.dart';
 import '../model/story_preview_model.dart';
 
@@ -69,7 +69,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                             children: [
                               _buildTopButton(
                                 icon: Icons.arrow_back_ios_new_rounded,
-                                onTap: () => AppGet.back<void>(),
+                                onTap: () => Navigator.of(context).pop(),
                               ),
                               const Spacer(),
                               FilledButton(
@@ -345,13 +345,15 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       return;
     }
     setState(() => _isSharing = false);
-    AppFeedback.showSnackbar(
-      title: 'Story shared',
-      message: _controller.hasText
-          ? 'Your photo story with text and music is live.'
-          : 'Your photo story is live.',
+    final StoryModel story = StoryModel(
+      id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
+      userId: MockData.users.first.id,
+      media: widget.preview.mediaPath,
+      isLocalFile: widget.preview.isLocalFile,
+      text: _controller.hasText ? _controller.currentText : null,
+      music: _controller.selectedMusic,
+      textColorValue: _controller.selectedTextColor.value,
     );
-    AppGet.back<void>();
-    AppGet.back<void>();
+    Navigator.of(context).pop(story);
   }
 }

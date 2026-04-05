@@ -85,7 +85,23 @@ class HomeFeedRepository {
 
   Future<List<StoryModel>> fetchStories() async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
-    return MockData.stories;
+    final localStories = await readLocalStories();
+    return <StoryModel>[...localStories, ...MockData.stories];
+  }
+
+  Future<List<StoryModel>> readLocalStories() async {
+    final cached = await _storage.readJsonList(StorageKeys.localStories);
+    if (cached.isEmpty) {
+      return <StoryModel>[];
+    }
+    return cached.map(StoryModel.fromJson).toList();
+  }
+
+  Future<void> saveLocalStories(List<StoryModel> stories) {
+    return _storage.writeJsonList(
+      StorageKeys.localStories,
+      stories.map((story) => story.toJson()).toList(),
+    );
   }
 
   Future<Map<String, List<String>>> readRecommendationPreferences() async {

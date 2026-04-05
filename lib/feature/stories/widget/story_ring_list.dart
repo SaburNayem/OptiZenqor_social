@@ -10,11 +10,13 @@ class StoryRingList extends StatelessWidget {
   const StoryRingList({
     required this.stories,
     required this.users,
+    required this.onStoryAdded,
     super.key,
   });
 
   final List<StoryModel> stories;
   final List<UserModel> users;
+  final ValueChanged<List<StoryModel>> onStoryAdded;
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +32,16 @@ class StoryRingList extends StatelessWidget {
             // Your Story
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
+              onTap: () async {
+                final List<StoryModel>? createdStories =
+                    await Navigator.of(context).push<List<StoryModel>>(
+                  MaterialPageRoute<List<StoryModel>>(
                     builder: (_) => const AddStoryScreen(),
                   ),
                 );
+                if (createdStories != null && createdStories.isNotEmpty) {
+                  onStoryAdded(createdStories);
+                }
               },
               child: Column(
                 children: [
@@ -75,14 +81,16 @@ class StoryRingList extends StatelessWidget {
 
           final story = stories[index - 1];
           final user = users.where((e) => e.id == story.userId).firstOrNull;
-          if (user == null) return const SizedBox.shrink();
+          if (user == null) {
+            return const SizedBox.shrink();
+          }
 
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => StoryViewScreen(
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => StoryViewScreen(
                     stories: stories,
                     users: users,
                     initialStoryId: story.id,

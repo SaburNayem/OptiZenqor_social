@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/story_model.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../controller/story_text_composer_controller.dart';
 import '../model/story_text_composer_model.dart';
@@ -62,10 +63,15 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
                   child: Column(
                     children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: _buildTopColorTool(),
+                      ),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
                           IconButton(
-                            onPressed: () => AppGet.back<void>(),
+                            onPressed: () => Navigator.of(context).pop(),
                             icon: const Icon(
                               Icons.arrow_back_ios_new_rounded,
                               color: Colors.white,
@@ -223,12 +229,6 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   _buildSideTool(
-                                    icon: Icons.palette_outlined,
-                                    label: 'Color',
-                                    onTap: _controller.cycleTextColor,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildSideTool(
                                     icon: Icons.music_note_outlined,
                                     label: 'Music',
                                     onTap: _showMusicPicker,
@@ -272,6 +272,43 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
             Text(
               label,
               style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopColorTool() {
+    return InkWell(
+      onTap: _controller.cycleTextColor,
+      borderRadius: BorderRadius.circular(999),
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: _controller.selectedTextColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.4),
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Text color',
+              style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),
@@ -329,12 +366,16 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
       return;
     }
     setState(() => _isSharing = false);
-    AppFeedback.showSnackbar(
-      title: 'Story shared',
-      message: widget.config.startWithMusic
-          ? 'Your text story with music is live.'
-          : 'Your text story is live.',
+    final List<int> gradient =
+        StoryTextComposerController.gradients[_controller.gradientIndex];
+    final StoryModel story = StoryModel(
+      id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
+      userId: MockData.users.first.id,
+      text: _controller.currentText,
+      music: _controller.showMusic ? _controller.selectedMusic : null,
+      backgroundColors: gradient,
+      textColorValue: _controller.selectedTextColor.value,
     );
-    AppGet.back<void>();
+    Navigator.of(context).pop(story);
   }
 }

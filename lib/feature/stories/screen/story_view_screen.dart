@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/data/models/story_model.dart';
@@ -55,19 +57,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                 onPageChanged: _controller.onPageChanged,
                 itemBuilder: (context, index) {
                   final story = _controller.stories[index];
-                  return Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    decoration: const BoxDecoration(color: Color(0xFF6A1B9A)),
-                    child: Center(
-                      child: Image.network(
-                        story.media,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.error, color: Colors.white),
-                      ),
-                    ),
-                  );
+                  return _buildStoryContent(story);
                 },
               ),
 
@@ -180,5 +170,111 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   UserModel? _getUser(StoryModel story) {
     return widget.users.where((u) => u.id == story.userId).firstOrNull;
+  }
+
+  Widget _buildStoryContent(StoryModel story) {
+    final List<Color> backgroundColors = story.backgroundColors.length >= 2
+        ? story.backgroundColors.map(Color.new).toList(growable: false)
+        : const <Color>[Color(0xFF1E40AF), Color(0xFF2BB0A1)];
+
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: backgroundColors,
+        ),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (story.hasMedia) _buildStoryMedia(story),
+          if (story.hasText || (story.music ?? '').trim().isNotEmpty)
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 120, 24, 140),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if ((story.music ?? '').trim().isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.28),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.music_note_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                story.music!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if ((story.music ?? '').trim().isNotEmpty)
+                      const SizedBox(height: 20),
+                    if (story.hasText)
+                      Text(
+                        story.text!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(story.textColorValue),
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          height: 1.15,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStoryMedia(StoryModel story) {
+    final Widget child;
+    if (story.isLocalFile) {
+      child = Image.file(
+        File(story.media),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            const Icon(Icons.broken_image_outlined, color: Colors.white),
+      );
+    } else {
+      child = Image.network(
+        story.media,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            const Icon(Icons.broken_image_outlined, color: Colors.white),
+      );
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.2),
+      ),
+      child: child,
+    );
   }
 }

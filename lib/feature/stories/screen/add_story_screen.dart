@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/data/models/story_model.dart';
 import '../../../core/data/service/media_picker_service.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../model/story_preview_model.dart';
@@ -19,27 +24,25 @@ class AddStoryScreen extends StatefulWidget {
 }
 
 class _AddStoryScreenState extends State<AddStoryScreen> {
-  static const List<String> _galleryItems = <String>[
-    'https://picsum.photos/seed/50/400/600',
-    'https://picsum.photos/seed/51/400/600',
-    'https://picsum.photos/seed/52/400/600',
-    'https://picsum.photos/seed/53/400/600',
-    'https://picsum.photos/seed/54/400/600',
-    'https://picsum.photos/seed/55/400/600',
-    'https://picsum.photos/seed/56/400/600',
-    'https://picsum.photos/seed/57/400/600',
-    'https://picsum.photos/seed/58/400/600',
-    'https://picsum.photos/seed/59/400/600',
-    'https://picsum.photos/seed/60/400/600',
-    'https://picsum.photos/seed/61/400/600',
-  ];
-
   final MediaPickerService _mediaPickerService = MediaPickerService();
 
   StoryComposerMode _mode = StoryComposerMode.gallery;
+  bool _isLoadingGallery = false;
+  bool _hasGalleryPermission = false;
   bool _isMultiSelectEnabled = false;
-  final Set<int> _selectedGalleryIndexes = <int>{};
+  int _selectedAlbumIndex = 0;
+  final List<String> _selectedAssetIds = <String>[];
+  List<AssetPathEntity> _albums = <AssetPathEntity>[];
+  List<AssetEntity> _galleryItems = <AssetEntity>[];
   String? _selectedMediaPath;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureGalleryAccess();
+    });
+  }
 
   @override
   void dispose() {
@@ -95,7 +98,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
 
   Widget _buildComposerOptions() {
     return SizedBox(
-      height: 110,
+      height: 88,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -115,12 +118,6 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
             selected: false,
             onTap: _openMusicComposer,
           ),
-          _buildOptionCard(
-            icon: Icons.photo_library_outlined,
-            label: 'Gallery',
-            selected: _mode == StoryComposerMode.gallery,
-            onTap: _activateGalleryMode,
-          ),
         ],
       ),
     );
@@ -136,11 +133,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 130,
+        width: 104,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: selected ? AppColors.lightBackground : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
                 ? AppColors.primary.withValues(alpha: 0.35)
@@ -162,15 +159,15 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
             else
               Icon(
                 icon,
-                size: 28,
+                size: 22,
                 color: selected ? AppColors.primary : Colors.black,
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             Text(
               label,
               style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 color: selected ? AppColors.primary : Colors.black,
               ),
             ),
@@ -187,39 +184,49 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           InkWell(
-            onTap: _pickImage,
-            borderRadius: BorderRadius.circular(12),
+            onTap: _openAlbumMenu,
+            borderRadius: BorderRadius.circular(10),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+              padding: const EdgeInsets.symmetric(vertical: 4,),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Gallery',
+                    _selectedAlbumLabel,
                     style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontSize: _selectedAlbumIndex == 0 ? 14 : 15,
+                      fontWeight: FontWeight.w600,
                       color: Colors.grey.shade800,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down, size: 28),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.keyboard_arrow_down, size: 20),
                 ],
               ),
             ),
           ),
           OutlinedButton.icon(
-            onPressed: _toggleMultiSelect,
-            icon: const Icon(Icons.collections_outlined, size: 20),
+            onPressed: _hasGalleryPermission ? _toggleMultiSelect : null,
+            icon: const Icon(Icons.collections_outlined, size: 16),
             label: Text(
               _isMultiSelectEnabled ? 'Multiple on' : 'Select multiple',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.black,
               side: const BorderSide(color: Colors.black, width: 1.5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              minimumSize: const Size(0, 34),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: const VisualDensity(
+                horizontal: -2,
+                vertical: -2,
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
@@ -229,6 +236,76 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   }
 
   Widget _buildGalleryGrid() {
+    if (_isLoadingGallery) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (!_hasGalleryPermission) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.photo_library_outlined,
+                size: 44,
+                color: Colors.grey.shade500,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Allow photo access first.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'We will load your device photos inside the app and let you switch albums here.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: _ensureGalleryAccess,
+                icon: const Icon(Icons.lock_open_rounded),
+                label: const Text('Allow access'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_galleryItems.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.photo_library_outlined,
+                size: 44,
+                color: Colors.grey.shade500,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'No recent media available here yet.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'No images found in this album yet. Try another album from the bar above.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Stack(
       key: const ValueKey<String>('gallery-grid'),
       children: [
@@ -242,15 +319,23 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
           ),
           itemCount: _galleryItems.length,
           itemBuilder: (BuildContext context, int index) {
-            final bool isSelected = _selectedGalleryIndexes.contains(index);
+            final bool isSelected = _selectedAssetIds.contains(
+              _galleryItems[index].id,
+            );
             return GestureDetector(
               onTap: () => _selectGalleryItem(index),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
+                  AssetEntityImage(
                     _galleryItems[index],
                     fit: BoxFit.cover,
+                    isOriginal: false,
+                    thumbnailSize: const ThumbnailSize.square(400),
+                    errorBuilder: (_, __, ___) => const ColoredBox(
+                      color: Color(0x11000000),
+                      child: Icon(Icons.broken_image_outlined),
+                    ),
                   ),
                   if (index == 0)
                     Positioned(
@@ -296,7 +381,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                         child: Center(
                           child: Text(
                             _isMultiSelectEnabled
-                                ? '${_selectedOrderFor(index)}'
+                                ? '${_selectedOrderFor(_galleryItems[index].id)}'
                                 : '',
                             style: const TextStyle(
                               color: Colors.white,
@@ -356,7 +441,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   Widget _buildFloatingAction() {
     if (_isMultiSelectEnabled) {
       return FloatingActionButton.extended(
-        onPressed: _selectedGalleryIndexes.isEmpty ? null : _shareMultipleNow,
+        onPressed: _selectedAssetIds.isEmpty ? null : _shareMultipleNow,
         backgroundColor: AppColors.splashBackground,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.send_rounded),
@@ -387,62 +472,220 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   void _toggleMultiSelect() {
     setState(() {
       _isMultiSelectEnabled = !_isMultiSelectEnabled;
-      if (!_isMultiSelectEnabled && _selectedGalleryIndexes.length > 1) {
-        final int first = _selectedGalleryIndexes.first;
-        _selectedGalleryIndexes
+      if (!_isMultiSelectEnabled && _selectedAssetIds.length > 1) {
+        final String first = _selectedAssetIds.first;
+        _selectedAssetIds
           ..clear()
           ..add(first);
       }
     });
   }
 
-  int _selectedOrderFor(int index) {
-    return _selectedGalleryIndexes.toList().indexOf(index) + 1;
+  int _selectedOrderFor(String assetId) {
+    return _selectedAssetIds.indexOf(assetId) + 1;
   }
 
-  void _selectGalleryItem(int index) {
+  String get _selectedAlbumLabel {
+    if (_albums.isEmpty || _selectedAlbumIndex >= _albums.length) {
+      return 'Gallery';
+    }
+    return _selectedAlbumIndex == 0 ? 'All' : _albums[_selectedAlbumIndex].name;
+  }
+
+  Future<void> _selectGalleryItem(int index) async {
+    final AssetEntity asset = _galleryItems[index];
     setState(() {
       _mode = StoryComposerMode.gallery;
       _selectedMediaPath = null;
       if (_isMultiSelectEnabled) {
-        if (_selectedGalleryIndexes.contains(index)) {
-          _selectedGalleryIndexes.remove(index);
+        if (_selectedAssetIds.contains(asset.id)) {
+          _selectedAssetIds.remove(asset.id);
         } else {
-          _selectedGalleryIndexes.add(index);
+          _selectedAssetIds.add(asset.id);
         }
       } else {
-        _selectedGalleryIndexes
+        _selectedAssetIds
           ..clear()
-          ..add(index);
+          ..add(asset.id);
       }
     });
 
     if (!_isMultiSelectEnabled) {
+      final File? file = await asset.file;
+      if (!mounted || file == null) {
+        AppFeedback.showSnackbar(
+          title: 'Story',
+          message: 'This photo could not be opened.',
+        );
+        return;
+      }
       _openStoryPreview(
         StoryPreviewModel(
-          mediaPath: _galleryItems[index],
+          mediaPath: file.path,
+          isLocalFile: true,
         ),
       );
     }
   }
 
-  Future<void> _pickImage() async {
-    final String? path = await _mediaPickerService.pickImage();
-    if (!mounted || path == null) {
+  Future<void> _ensureGalleryAccess() async {
+    setState(() => _isLoadingGallery = true);
+    final PermissionState permission =
+        await PhotoManager.requestPermissionExtend();
+    if (!mounted) {
+      return;
+    }
+
+    final bool granted =
+        permission.isAuth || permission == PermissionState.limited;
+    if (!granted) {
+      setState(() {
+        _isLoadingGallery = false;
+        _hasGalleryPermission = false;
+      });
+      AppFeedback.showSnackbar(
+        title: 'Permission needed',
+        message: 'Allow photo access to load your gallery inside the app.',
+      );
+      return;
+    }
+
+    final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+      type: RequestType.image,
+      hasAll: true,
+    );
+    if (!mounted) {
+      return;
+    }
+
+    if (albums.isEmpty) {
+      setState(() {
+        _isLoadingGallery = false;
+        _hasGalleryPermission = true;
+        _albums = <AssetPathEntity>[];
+        _galleryItems = <AssetEntity>[];
+      });
+      return;
+    }
+
+    final List<AssetEntity> assets = await albums.first.getAssetListPaged(
+      page: 0,
+      size: 200,
+    );
+    if (!mounted) {
       return;
     }
 
     setState(() {
+      _isLoadingGallery = false;
+      _hasGalleryPermission = true;
       _mode = StoryComposerMode.gallery;
-      _selectedMediaPath = path;
-      _selectedGalleryIndexes.clear();
+      _albums = albums;
+      _selectedAlbumIndex = 0;
+      _galleryItems = assets;
+      _selectedMediaPath = null;
+      _selectedAssetIds.clear();
     });
-    _openStoryPreview(
-      StoryPreviewModel(
-        mediaPath: path,
-        isLocalFile: true,
-      ),
+  }
+
+  Future<void> _selectAlbum(int index) async {
+    if (index < 0 || index >= _albums.length) {
+      return;
+    }
+    setState(() {
+      _isLoadingGallery = true;
+      _selectedAlbumIndex = index;
+      _selectedAssetIds.clear();
+      _selectedMediaPath = null;
+    });
+
+    final List<AssetEntity> assets = await _albums[index].getAssetListPaged(
+      page: 0,
+      size: 200,
     );
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingGallery = false;
+      _galleryItems = assets;
+    });
+  }
+
+  Future<void> _openAlbumMenu() async {
+    if (!_hasGalleryPermission) {
+      await _ensureGalleryAccess();
+      return;
+    }
+    if (_albums.isEmpty) {
+      return;
+    }
+
+    final RenderBox? overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final int? nextIndex = await showMenu<int>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        16,
+        150,
+        (overlay?.size.width ?? 0) - 220,
+        0,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      items: List<PopupMenuEntry<int>>.generate(_albums.length, (int index) {
+        final bool isSelected = index == _selectedAlbumIndex;
+        final AssetPathEntity album = _albums[index];
+        final String label = index == 0 ? 'All' : album.name;
+
+        return PopupMenuItem<int>(
+          value: index,
+          child: SizedBox(
+            width: 180,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  index == 0
+                      ? Icons.grid_view_rounded
+                      : Icons.photo_album_outlined,
+                  size: 18,
+                  color: isSelected ? AppColors.primary : Colors.black87,
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (isSelected) ...[
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.check_rounded,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+
+    if (nextIndex == null || nextIndex == _selectedAlbumIndex) {
+      return;
+    }
+    await _selectAlbum(nextIndex);
+  }
+
+  Future<void> _pickImage() async {
+    await _openAlbumMenu();
   }
 
   Future<void> _handleCameraCapture() async {
@@ -454,7 +697,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     setState(() {
       _mode = StoryComposerMode.gallery;
       _selectedMediaPath = path;
-      _selectedGalleryIndexes.clear();
+      _selectedAssetIds.clear();
     });
     _openStoryPreview(
       StoryPreviewModel(
@@ -471,16 +714,20 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     );
   }
 
-  void _openStoryPreview(StoryPreviewModel preview) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
+  Future<void> _openStoryPreview(StoryPreviewModel preview) async {
+    final StoryModel? story = await Navigator.of(context).push<StoryModel>(
+      MaterialPageRoute<StoryModel>(
         builder: (_) => StoryPreviewScreen(preview: preview),
       ),
     );
+    if (!mounted || story == null) {
+      return;
+    }
+    Navigator.of(context).pop(<StoryModel>[story]);
   }
 
   Future<void> _shareMultipleNow() async {
-    if (_selectedGalleryIndexes.isEmpty) {
+    if (_selectedAssetIds.isEmpty) {
       return;
     }
 
@@ -489,30 +736,56 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       return;
     }
 
-    AppFeedback.showSnackbar(
-      title: 'Stories shared',
-      message: '${_selectedGalleryIndexes.length} items shared to your story.',
-    );
-    AppGet.back<void>();
+    final Map<String, AssetEntity> assetsById = <String, AssetEntity>{
+      for (final AssetEntity asset in _galleryItems) asset.id: asset,
+    };
+    final List<StoryModel> stories = <StoryModel>[];
+    for (final String assetId in _selectedAssetIds) {
+      final AssetEntity? asset = assetsById[assetId];
+      final File? file = await asset?.file;
+      if (file == null) {
+        continue;
+      }
+      stories.add(
+        StoryModel(
+            id: 'local_story_${DateTime.now().microsecondsSinceEpoch}_$assetId',
+            userId: 'u1',
+            media: file.path,
+            isLocalFile: true,
+          ),
+      );
+    }
+    if (!mounted || stories.isEmpty) {
+      return;
+    }
+    Navigator.of(context).pop(stories);
   }
 
-  void _openTextComposer() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
+  Future<void> _openTextComposer() async {
+    final StoryModel? story = await Navigator.of(context).push<StoryModel>(
+      MaterialPageRoute<StoryModel>(
         builder: (_) => const StoryTextComposerScreen(
           config: StoryTextComposerModel(),
         ),
       ),
     );
+    if (!mounted || story == null) {
+      return;
+    }
+    Navigator.of(context).pop(<StoryModel>[story]);
   }
 
-  void _openMusicComposer() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
+  Future<void> _openMusicComposer() async {
+    final StoryModel? story = await Navigator.of(context).push<StoryModel>(
+      MaterialPageRoute<StoryModel>(
         builder: (_) => const StoryTextComposerScreen(
           config: StoryTextComposerModel(startWithMusic: true),
         ),
       ),
     );
+    if (!mounted || story == null) {
+      return;
+    }
+    Navigator.of(context).pop(<StoryModel>[story]);
   }
 }

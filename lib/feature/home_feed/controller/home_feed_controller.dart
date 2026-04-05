@@ -265,6 +265,23 @@ class HomeFeedController extends Cubit<int> {
     _notify();
   }
 
+  Future<void> addLocalStories(List<StoryModel> newStories) async {
+    if (newStories.isEmpty) {
+      return;
+    }
+
+    stories = <StoryModel>[...newStories, ...stories];
+    await _repository.saveLocalStories(
+      stories.where((story) => story.id.startsWith('local_story_')).toList(),
+    );
+    await _analytics.logEvent('story_created_local', params: <String, dynamic>{
+      'count': newStories.length,
+      'hasMedia': newStories.any((story) => story.hasMedia),
+      'hasText': newStories.any((story) => story.hasText),
+    });
+    _notify();
+  }
+
   FeedSegment _segmentForTab(FeedTab tab) {
     switch (tab) {
       case FeedTab.forYou:

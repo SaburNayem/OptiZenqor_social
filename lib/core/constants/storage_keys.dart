@@ -8,6 +8,7 @@ class StorageKeys {
   static const searchHistory = 'search_history';
   static const draftPosts = 'draft_posts';
   static const cachedFeed = 'cached_feed';
+  static const localStories = 'local_stories';
   static const cachedProfile = 'cached_profile';
   static const offlineQueue = 'offline_queue';
   static const feedScrollOffset = 'feed_scroll_offset';
