@@ -10,6 +10,7 @@ class MessageModel {
     this.replyToMessageId,
     this.deliveryState = 'delivered',
     this.kind = 'text',
+    this.mediaPath,
   });
 
   final String id;
@@ -22,4 +23,5 @@ class MessageModel {
   final String? replyToMessageId;
   final String deliveryState;
   final String kind;
+  final String? mediaPath;
 }

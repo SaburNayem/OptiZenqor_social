@@ -49,5 +49,7 @@
 	<string>OptiZenqor Social needs access to your photo library to create stories from your device media.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>OptiZenqor Social needs photo library access to manage story media on your device.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>OptiZenqor Social needs microphone access so you can record voice messages.</string>
 </dict>
 </plist>
