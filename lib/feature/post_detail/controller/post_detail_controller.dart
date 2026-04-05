@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
@@ -6,8 +6,8 @@ import '../../../core/enums/reaction_type.dart';
 import '../model/post_detail_model.dart';
 import '../model/post_comment_model.dart';
 
-class PostDetailController extends GetxController {
-  PostDetailController();
+class PostDetailController extends Cubit<int> {
+  PostDetailController() : super(0);
 
   late PostDetailModel detail;
   final List<PostCommentModel> comments = <PostCommentModel>[];
@@ -67,7 +67,7 @@ class PostDetailController extends GetxController {
         .where((p) => p.id != detail.id)
         .take(3)
         .toList();
-    update();
+    _notify();
   }
 
   void toggleLike() {
@@ -81,7 +81,7 @@ class PostDetailController extends GetxController {
       comments: detail.comments,
       createdAt: detail.createdAt,
     );
-    update();
+    _notify();
   }
 
   void toggleReaction(ReactionType type) {
@@ -92,7 +92,7 @@ class PostDetailController extends GetxController {
         postReactions.remove(type);
       }
       selectedReaction = null;
-      update();
+      _notify();
       return;
     }
     if (previous != null) {
@@ -103,7 +103,7 @@ class PostDetailController extends GetxController {
     }
     postReactions[type] = (postReactions[type] ?? 0) + 1;
     selectedReaction = type;
-    update();
+    _notify();
   }
 
   void addComment(String text, {String? replyTo}) {
@@ -135,7 +135,7 @@ class PostDetailController extends GetxController {
       comments: detail.comments + 1,
       createdAt: detail.createdAt,
     );
-    update();
+    _notify();
   }
 
   void toggleCommentLike(String commentId) {
@@ -149,7 +149,7 @@ class PostDetailController extends GetxController {
       isLikedByMe: isLiking,
       likeCount: isLiking ? comment.likeCount + 1 : (comment.likeCount - 1).clamp(0, 999999),
     );
-    update();
+    _notify();
   }
 
   void toggleCommentReaction(String commentId, String reaction) {
@@ -161,7 +161,7 @@ class PostDetailController extends GetxController {
     final next = Map<String, int>.from(comment.reactions);
     next[reaction] = (next[reaction] ?? 0) + 1;
     comments[index] = comment.copyWith(reactions: next);
-    update();
+    _notify();
   }
 
   void editComment({required String commentId, required String message}) {
@@ -174,7 +174,7 @@ class PostDetailController extends GetxController {
       return;
     }
     comments[index] = comments[index].copyWith(message: text, isEdited: true);
-    update();
+    _notify();
   }
 
   void deleteComment(String commentId) {
@@ -200,7 +200,7 @@ class PostDetailController extends GetxController {
       comments: (detail.comments - removedCount).clamp(0, 999999),
       createdAt: detail.createdAt,
     );
-    update();
+    _notify();
   }
 
   void reportComment(String commentId) {
@@ -209,10 +209,12 @@ class PostDetailController extends GetxController {
       return;
     }
     comments[index] = comments[index].copyWith(isReported: true);
-    update();
+    _notify();
   }
 
   List<PostCommentModel> childCommentsOf(String? parentId) {
     return comments.where((item) => item.replyTo == parentId).toList();
   }
+
+  void _notify() => emit(state + 1);
 }

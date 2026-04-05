@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/service/theme_service.dart';
 import '../common/settings_section_card.dart';
 import '../controller/settings_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key, this.showAppBar = true});
+  SettingsScreen({super.key, this.showAppBar = true});
 
   final bool showAppBar;
+  final SettingsController controller = SettingsController();
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<SettingsController>()
-        ? Get.find<SettingsController>()
-        : Get.put(SettingsController(), permanent: false);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -76,7 +74,7 @@ class SettingsScreen extends StatelessWidget {
           ...controller.sections.map(
             (section) => SettingsSectionCard(
               section: section,
-              onItemTap: Get.toNamed,
+              onItemTap: AppGet.toNamed,
             ),
           ),
         ],

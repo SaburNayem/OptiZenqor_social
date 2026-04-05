@@ -1,6 +1,4 @@
-import 'package:get/get.dart';
-
-import 'app_pages.dart';
+import 'app_router.dart';
 import 'route_names.dart';
 
 class AppRoute {
@@ -90,7 +88,5 @@ class AppRoute {
   static const String userProfile = RouteNames.userProfile;
   static const String chat = RouteNames.chat;
 
-  static const String initialRoute = AppPages.initialRoute;
-  static List<GetPage<dynamic>> get routes => AppPages.routes;
-  static GetPage<dynamic> get unknownRoute => AppPages.unknownRoute;
+  static const String initialRoute = AppRouter.initialRoute;
 }

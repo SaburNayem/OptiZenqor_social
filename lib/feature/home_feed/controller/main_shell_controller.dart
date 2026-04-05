@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/user_model.dart';
@@ -9,14 +10,27 @@ import '../../auth/repository/auth_repository.dart';
 import '../model/main_shell_destination_model.dart';
 import '../model/main_shell_drawer_section_model.dart';
 
-class MainShellController extends GetxController {
-  MainShellController({AuthRepository? authRepository})
-    : _authRepository = authRepository ?? AuthRepository();
+class MainShellController extends Cubit<int> {
+  MainShellController({
+    AuthRepository? authRepository,
+    Object? arguments,
+  }) : _authRepository = authRepository ?? AuthRepository(),
+       _arguments = arguments,
+       super(0) {
+    currentUser = MockData.users.first;
+    if (_arguments is Map && (_arguments as Map)['tabIndex'] is int) {
+      final tabIndex = (_arguments as Map)['tabIndex'] as int;
+      if (tabIndex >= 0 && tabIndex < destinations.length) {
+        index = tabIndex;
+      }
+    }
+  }
 
   int index = 0;
   bool isSigningOut = false;
 
   final AuthRepository _authRepository;
+  final Object? _arguments;
 
   final List<MainShellDestinationModel> destinations =
       const <MainShellDestinationModel>[
@@ -54,18 +68,6 @@ class MainShellController extends GetxController {
 
   late final UserModel currentUser;
 
-  @override
-  void onInit() {
-    super.onInit();
-    currentUser = MockData.users.first;
-    final arguments = Get.arguments;
-    if (arguments is Map && arguments['tabIndex'] is int) {
-      final tabIndex = arguments['tabIndex'] as int;
-      if (tabIndex >= 0 && tabIndex < destinations.length) {
-        index = tabIndex;
-      }
-    }
-  }
 
   String get currentTitle => destinations[index].title;
 
@@ -180,7 +182,7 @@ class MainShellController extends GetxController {
       // Often "Create" is a modal but here it's a tab index.
     }
     index = newIndex;
-    update();
+    emit(index);
   }
 
   Future<void> logout() async {
@@ -188,17 +190,18 @@ class MainShellController extends GetxController {
       return;
     }
     isSigningOut = true;
-    update();
+    emit(index);
     try {
       await _authRepository.logout();
-      Get.offAllNamed(RouteNames.login);
+      // Navigation is handled by the shell screen listener.
+      emit(index);
     } catch (error, stackTrace) {
       debugPrint('[MainShellController] Logout failed: $error');
       debugPrint('$stackTrace');
       rethrow;
     } finally {
       isSigningOut = false;
-      update();
+      emit(index);
     }
   }
 }

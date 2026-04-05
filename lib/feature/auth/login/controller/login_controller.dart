@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/data/models/form_state_model.dart';
 import '../../../../core/enums/user_role.dart';
@@ -34,7 +34,7 @@ class LoginController extends ChangeNotifier {
         successMessage: 'Login successful',
       );
       notifyListeners();
-      Get.offNamed(RouteNames.shell);
+      AppGet.offNamed(RouteNames.shell);
     } catch (e, st) {
       debugPrint('[Login] Failed: $e');
       debugPrint('$st');

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/models/load_state_model.dart';
 import '../../../core/data/models/notification_model.dart';
@@ -110,9 +110,9 @@ class NotificationsController extends ChangeNotifier {
     if (resolvedRoute != null && resolvedRoute.isNotEmpty) {
       final uri = Uri.tryParse(resolvedRoute);
       if (uri != null && uri.queryParameters.isNotEmpty) {
-        await Get.toNamed(uri.path, parameters: uri.queryParameters);
+        await AppGet.toNamed(uri.path, parameters: uri.queryParameters);
       } else {
-        await Get.toNamed(resolvedRoute, arguments: item.payload.metadata);
+        await AppGet.toNamed(resolvedRoute, arguments: item.payload.metadata);
       }
     }
     return resolvedRoute;

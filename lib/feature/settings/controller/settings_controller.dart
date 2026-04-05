@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/user_model.dart';
@@ -8,14 +7,10 @@ import '../../../route/route_names.dart';
 import '../model/settings_item_model.dart';
 import '../model/settings_section_model.dart';
 
-class SettingsController extends GetxController {
-  late final UserModel currentUser;
+class SettingsController {
+  SettingsController() : currentUser = MockData.users.first;
 
-  @override
-  void onInit() {
-    super.onInit();
-    currentUser = MockData.users.first;
-  }
+  final UserModel currentUser;
 
   String get roleLabel => switch (currentUser.role) {
         UserRole.creator => 'Creator tools enabled',

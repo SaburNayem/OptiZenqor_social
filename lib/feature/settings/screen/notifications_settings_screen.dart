@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/widgets/app_loader.dart';
 import '../../../route/route_names.dart';
@@ -81,7 +81,7 @@ class _NotificationsSettingsScreenState
                 title: 'Notification categories',
                 subtitle: 'Fine-tune post, comment, and mention alerts',
                 icon: Icons.tune_outlined,
-                onTap: () => Get.toNamed(RouteNames.pushNotificationPreferences),
+                onTap: () => AppGet.toNamed(RouteNames.pushNotificationPreferences),
               ),
             ],
           );

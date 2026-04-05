@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/models/notification_model.dart';
 import '../controller/notifications_controller.dart';
@@ -33,7 +33,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 TextButton(
                   onPressed: () {
                     _controller.markAllAsRead();
-                    Get.snackbar(
+                    AppGet.snackbar(
                       'Notifications',
                       'All notifications marked as read',
                     );
@@ -111,7 +111,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             _confirmNotificationDelete(context, item),
                         onDismissed: (_) {
                           _controller.removeNotification(item.id);
-                          Get.snackbar(
+                          AppGet.snackbar(
                             'Notification Deleted',
                             '${item.title} was removed',
                             snackPosition: SnackPosition.BOTTOM,
@@ -123,18 +123,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             await _controller.handleTap(item);
                           },
                           onLongPress: () {
-                            Get.bottomSheet(
+                            AppGet.bottomSheet(
                               _NotificationActionSheet(
                                 onMute: () {
-                                  Get.back();
-                                  Get.snackbar(
+                                  AppGet.back();
+                                  AppGet.snackbar(
                                     'Notification',
                                     'User muted from notifications',
                                   );
                                 },
                                 onTurnOff: () {
-                                  Get.back();
-                                  Get.snackbar(
+                                  AppGet.back();
+                                  AppGet.snackbar(
                                     'Notification',
                                     'Similar notifications turned off',
                                   );
@@ -229,18 +229,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 ),
                                 IconButton(
                                   onPressed: () {
-                                    Get.bottomSheet(
+                                    AppGet.bottomSheet(
                                       _NotificationActionSheet(
                                         onMute: () {
-                                          Get.back();
-                                          Get.snackbar(
+                                          AppGet.back();
+                                          AppGet.snackbar(
                                             'Notification',
                                             'User muted from notifications',
                                           );
                                         },
                                         onTurnOff: () {
-                                          Get.back();
-                                          Get.snackbar(
+                                          AppGet.back();
+                                          AppGet.snackbar(
                                             'Notification',
                                             'Similar notifications turned off',
                                           );
@@ -396,7 +396,7 @@ class _NotificationActionSheet extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.cancel_outlined),
               title: const Text('Close'),
-              onTap: Get.back,
+              onTap: AppGet.back,
             ),
           ],
         ),

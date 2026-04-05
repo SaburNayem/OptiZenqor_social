@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/widgets/app_loader.dart';
 import '../../../route/route_names.dart';
@@ -73,19 +73,19 @@ class _CommunitiesGroupsSettingsScreenState
                 title: 'Communities',
                 subtitle: 'Browse and manage communities',
                 icon: Icons.groups_outlined,
-                onTap: () => Get.toNamed(RouteNames.communities),
+                onTap: () => AppGet.toNamed(RouteNames.communities),
               ),
               SettingsNavigationTile(
                 title: 'Groups',
                 subtitle: 'Manage group memberships',
                 icon: Icons.group_work_outlined,
-                onTap: () => Get.toNamed(RouteNames.groups),
+                onTap: () => AppGet.toNamed(RouteNames.groups),
               ),
               SettingsNavigationTile(
                 title: 'Events',
                 subtitle: 'Upcoming events and reminders',
                 icon: Icons.calendar_today_outlined,
-                onTap: () => Get.toNamed(RouteNames.events),
+                onTap: () => AppGet.toNamed(RouteNames.events),
               ),
             ],
           );

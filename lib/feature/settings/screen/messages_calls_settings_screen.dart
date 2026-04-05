@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/widgets/app_loader.dart';
 import '../../../route/route_names.dart';
@@ -81,7 +81,7 @@ class _MessagesCallsSettingsScreenState
                 title: 'Call preferences',
                 subtitle: 'Manage call history and devices',
                 icon: Icons.settings_phone_outlined,
-                onTap: () => Get.toNamed(RouteNames.calls),
+                onTap: () => AppGet.toNamed(RouteNames.calls),
               ),
             ],
           );

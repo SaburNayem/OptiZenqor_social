@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../controller/bookmarks_controller.dart';
@@ -22,7 +22,7 @@ class BookmarksScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Get.back(),
+          onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'Saved Collections',

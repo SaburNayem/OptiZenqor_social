@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/widgets/error_state_view.dart';
@@ -53,7 +53,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
-                      Get.snackbar('Search', 'Static message search opened');
+                      AppGet.snackbar('Search', 'Static message search opened');
                     },
                     child: Container(
                       height: 48,
@@ -110,7 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           final user = MockData.users[index];
                           return InkWell(
                             onTap: () {
-                              Get.snackbar(
+                              AppGet.snackbar(
                                 'Quick Chat',
                                 'Started static chat with ${user.name}',
                               );
@@ -215,7 +215,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           _confirmChatDelete(context, user.name),
                       onDismissed: (_) {
                         _controller.deleteConversation(message.chatId);
-                        Get.snackbar(
+                        AppGet.snackbar(
                           'Chat Deleted',
                           'Conversation with ${user.name} removed',
                         );
@@ -367,7 +367,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   } else if (value == 'archive') {
                                     _controller.toggleArchived(message.chatId);
                                   } else if (value == 'mute') {
-                                    Get.snackbar(
+                                    AppGet.snackbar(
                                       'Mute',
                                       '${user.name} conversation muted',
                                     );
@@ -404,7 +404,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showChatOptions(String chatId, String name) {
-    Get.bottomSheet(
+    AppGet.bottomSheet(
       SafeArea(
         child: Wrap(
           children: [
@@ -412,7 +412,7 @@ class _ChatScreenState extends State<ChatScreen> {
               leading: const Icon(Icons.push_pin_outlined),
               title: const Text('Pin chat'),
               onTap: () {
-                Get.back();
+                AppGet.back();
                 _controller.togglePinned(chatId);
               },
             ),
@@ -420,7 +420,7 @@ class _ChatScreenState extends State<ChatScreen> {
               leading: const Icon(Icons.archive_outlined),
               title: const Text('Archive chat'),
               onTap: () {
-                Get.back();
+                AppGet.back();
                 _controller.toggleArchived(chatId);
               },
             ),
@@ -428,8 +428,8 @@ class _ChatScreenState extends State<ChatScreen> {
               leading: const Icon(Icons.volume_off_outlined),
               title: const Text('Mute conversation'),
               onTap: () {
-                Get.back();
-                Get.snackbar('Mute', '$name conversation muted');
+                AppGet.back();
+                AppGet.snackbar('Mute', '$name conversation muted');
               },
             ),
           ],

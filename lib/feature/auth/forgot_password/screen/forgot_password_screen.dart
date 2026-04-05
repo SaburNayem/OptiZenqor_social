@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../route/route_names.dart';
@@ -16,7 +16,7 @@ class ForgotPasswordScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.grey),
-          onPressed: () => Get.back(),
+          onPressed: () => AppGet.back(),
         ),
         centerTitle: true,
         title: Row(
@@ -86,7 +86,7 @@ class ForgotPasswordScreen extends StatelessWidget {
             ),
             const Spacer(),
             FilledButton(
-              onPressed: () => Get.toNamed(RouteNames.otpVerification),
+              onPressed: () => AppGet.toNamed(RouteNames.otpVerification),
               child: const Text('Send Reset Code'),
             ),
             const SizedBox(height: 40),

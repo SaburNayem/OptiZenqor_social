@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../route/route_names.dart';
@@ -16,7 +16,7 @@ class OtpVerificationScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF868E96)),
-          onPressed: () => Get.back(),
+          onPressed: () => AppGet.back(),
         ),
         centerTitle: true,
         title: Row(
@@ -117,7 +117,7 @@ class OtpVerificationScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: () => Get.toNamed(RouteNames.resetPassword),
+                  onPressed: () => AppGet.toNamed(RouteNames.resetPassword),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.splashBackground,
                     minimumSize: const Size.fromHeight(56),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../route/route_names.dart';
@@ -30,7 +30,7 @@ class SupportHelpScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black54),
             onPressed: () {
-              Get.snackbar('Search', 'Static help search opened');
+              AppGet.snackbar('Search', 'Static help search opened');
             },
           ),
           Stack(
@@ -42,7 +42,7 @@ class SupportHelpScreen extends StatelessWidget {
                   color: Colors.black54,
                 ),
                 onPressed: () {
-                  Get.toNamed(RouteNames.notifications);
+                  AppGet.toNamed(RouteNames.notifications);
                 },
               ),
               Positioned(
@@ -230,7 +230,7 @@ class SupportHelpScreen extends StatelessWidget {
                       height: 50,
                       child: FilledButton(
                         onPressed: () {
-                          Get.snackbar(
+                          AppGet.snackbar(
                             'Support Chat',
                             'Static support chat opened',
                           );
@@ -253,7 +253,7 @@ class SupportHelpScreen extends StatelessWidget {
                       height: 50,
                       child: OutlinedButton(
                         onPressed: () {
-                          Get.snackbar(
+                          AppGet.snackbar(
                             'Email Support',
                             'Static email support compose opened',
                           );
@@ -323,7 +323,7 @@ class SupportHelpScreen extends StatelessWidget {
 
   void _handleBottomNavTap(int index) {
     if (index == 2) {
-      Get.toNamed(RouteNames.create);
+      AppGet.toNamed(RouteNames.create);
       return;
     }
 
@@ -333,7 +333,7 @@ class SupportHelpScreen extends StatelessWidget {
       return;
     }
 
-    Get.offNamed(
+    AppGet.offNamed(
       RouteNames.shell,
       arguments: <String, dynamic>{'tabIndex': tabIndex},
     );
@@ -348,7 +348,7 @@ class SupportHelpScreen extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () {
-        Get.snackbar(title, 'Static $title help category opened');
+        AppGet.snackbar(title, 'Static $title help category opened');
       },
       child: Container(
         decoration: BoxDecoration(
@@ -378,7 +378,7 @@ class SupportHelpScreen extends StatelessWidget {
   Widget _buildArticleTile(String title, String tag, Color tagBgColor) {
     return ListTile(
       onTap: () {
-        Get.snackbar(title, 'Static article opened');
+        AppGet.snackbar(title, 'Static article opened');
       },
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: Container(

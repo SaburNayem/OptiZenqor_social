@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../controller/events_controller.dart';
@@ -12,7 +12,7 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  final EventsController _controller = Get.put(EventsController());
+  final EventsController _controller = EventsController();
   int _selectedDateIndex = 2; // Default to Wednesday 14
 
   final List<Map<String, String>> _dates = [
@@ -42,7 +42,7 @@ class _EventsScreenState extends State<EventsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Get.back(),
+          onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'Events',

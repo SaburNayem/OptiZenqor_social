@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/widgets/app_loader.dart';
 import '../../../route/route_names.dart';
@@ -73,13 +73,13 @@ class _MonetizationPaymentsSettingsScreenState
                 title: 'Wallet',
                 subtitle: 'View balance and payout methods',
                 icon: Icons.account_balance_wallet_outlined,
-                onTap: () => Get.toNamed(RouteNames.walletPayments),
+                onTap: () => AppGet.toNamed(RouteNames.walletPayments),
               ),
               SettingsNavigationTile(
                 title: 'Subscriptions',
                 subtitle: 'Manage subscriber tiers',
                 icon: Icons.subscriptions_outlined,
-                onTap: () => Get.toNamed(RouteNames.subscriptions),
+                onTap: () => AppGet.toNamed(RouteNames.subscriptions),
               ),
             ],
           );

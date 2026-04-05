@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/service/connectivity_service.dart';
@@ -12,19 +13,24 @@ import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
 
 class MainShellScreen extends StatelessWidget {
-  MainShellScreen({super.key}) {
-    Get.put(MainShellController());
+  MainShellScreen({super.key, this.arguments}) {
+    _controller = MainShellController(arguments: arguments);
     _connectivity = ConnectivityService();
   }
 
+  final Object? arguments;
+  late final MainShellController _controller;
   late final ConnectivityService _connectivity;
 
   @override
   Widget build(BuildContext context) {
     final currentUser = MockData.users.first;
 
-    return GetBuilder<MainShellController>(
-      builder: (controller) {
+    return BlocProvider<MainShellController>.value(
+      value: _controller,
+      child: BlocBuilder<MainShellController, int>(
+        builder: (context, _) {
+        final controller = _controller;
         final tabs = <Widget>[
           HomeFeedScreen(),
           ReelsScreen(),
@@ -47,14 +53,14 @@ class MainShellScreen extends StatelessWidget {
             title: const Text(''),
             actions: <Widget>[
               IconButton(
-                onPressed: () => Get.toNamed(RouteNames.searchDiscovery),
+                onPressed: () => AppGet.toNamed(RouteNames.searchDiscovery),
                 icon: const Icon(Icons.search_rounded, color: Colors.black87),
               ),
               Stack(
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    onPressed: () => Get.toNamed(RouteNames.notifications),
+                    onPressed: () => AppGet.toNamed(RouteNames.notifications),
                     icon: const Icon(Icons.notifications_none_rounded, color: Colors.black87),
                   ),
                   Positioned(
@@ -94,7 +100,7 @@ class MainShellScreen extends StatelessWidget {
                     accountName: Text(currentUser.name),
                     accountEmail: Text('@${currentUser.username}'),
                     margin: EdgeInsets.zero,
-                    onDetailsPressed: () => Get.toNamed(
+                    onDetailsPressed: () => AppGet.toNamed(
                       RouteNames.userProfile,
                       parameters: <String, String>{'id': currentUser.id},
                     ),
@@ -204,7 +210,8 @@ class MainShellScreen extends StatelessWidget {
             ),
           ),
         );
-      },
+        },
+      ),
     );
   }
 
@@ -220,8 +227,8 @@ class MainShellScreen extends StatelessWidget {
         ),
       ),
       onTap: () {
-        Get.back();
-        Get.toNamed(routeName);
+        AppGet.back();
+        AppGet.toNamed(routeName);
       },
     );
   }

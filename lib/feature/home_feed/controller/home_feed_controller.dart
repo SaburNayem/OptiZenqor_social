@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/data/models/load_state_model.dart';
 import '../../../core/data/models/pagination_state_model.dart';
@@ -9,17 +9,18 @@ import '../repository/home_feed_repository.dart';
 
 enum FeedTab { forYou, following, trending }
 
-class HomeFeedController extends GetxController {
+class HomeFeedController extends Cubit<int> {
   HomeFeedController({
     HomeFeedRepository? repository,
     AnalyticsService? analytics,
   })  : _repository = repository ?? HomeFeedRepository(),
-        _analytics = analytics ?? AnalyticsService();
+        _analytics = analytics ?? AnalyticsService(),
+        super(0);
 
   final HomeFeedRepository _repository;
   final AnalyticsService _analytics;
 
-  LoadStateModel state = const LoadStateModel();
+  LoadStateModel loadState = const LoadStateModel();
   PaginationStateModel pagination = const PaginationStateModel();
   List<PostModel> posts = <PostModel>[];
   List<StoryModel> stories = <StoryModel>[];
@@ -34,17 +35,17 @@ class HomeFeedController extends GetxController {
   final List<String> suggestedGroups = <String>['Flutter Builders', 'Photo Club'];
   final List<String> suggestedPages = <String>['Travel Daily', 'Fitness Bites'];
 
-  bool get hasError => state.hasError;
-  bool get isLoading => state.isLoading;
-  bool get isLoadingMore => state.isLoadingMore;
+  bool get hasError => loadState.hasError;
+  bool get isLoading => loadState.isLoading;
+  bool get isLoadingMore => loadState.isLoadingMore;
   List<PostModel> get visiblePosts =>
       posts.where((PostModel post) => !_hiddenPostIds.contains(post.id)).toList();
   bool isPostActionFailed(String postId) => _failedActionPostIds.contains(postId);
   bool isLiked(String postId) => _likedPostIds.contains(postId);
 
   Future<void> loadInitial() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    update();
+    loadState = loadState.copyWith(isLoading: true, errorMessage: null);
+    _notify();
     try {
       final prefs = await _repository.readRecommendationPreferences();
       _lessLikeThisPostIds
@@ -60,19 +61,19 @@ class HomeFeedController extends GetxController {
       final FeedSegment segment = _segmentForTab(activeTab);
       posts = await _repository.fetchFeed(segment: segment, page: 1);
       pagination = pagination.copyWith(page: 1, hasMore: true);
-      state = state.copyWith(
+      loadState = loadState.copyWith(
         isLoading: false,
         isEmpty: posts.isEmpty,
         isSuccess: posts.isNotEmpty,
       );
-      update();
+      _notify();
     } catch (_) {
-      state = state.copyWith(
+      loadState = loadState.copyWith(
         isLoading: false,
         hasError: true,
         errorMessage: 'Unable to load feed right now.',
       );
-      update();
+      _notify();
     }
   }
 
@@ -84,11 +85,11 @@ class HomeFeedController extends GetxController {
   }
 
   Future<void> loadNextPage() async {
-    if (state.isLoadingMore || !pagination.hasMore) {
+    if (loadState.isLoadingMore || !pagination.hasMore) {
       return;
     }
-    state = state.copyWith(isLoadingMore: true, hasError: false, errorMessage: null);
-    update();
+    loadState = loadState.copyWith(isLoadingMore: true, hasError: false, errorMessage: null);
+    _notify();
     try {
       final FeedSegment segment = _segmentForTab(activeTab);
       final next = await _repository.fetchFeed(
@@ -104,15 +105,15 @@ class HomeFeedController extends GetxController {
           hasMore: true,
         );
       }
-      state = state.copyWith(isLoadingMore: false);
-      update();
+      loadState = loadState.copyWith(isLoadingMore: false);
+      _notify();
     } catch (_) {
-      state = state.copyWith(
+      loadState = loadState.copyWith(
         isLoadingMore: false,
         hasError: true,
         errorMessage: 'Failed to load more posts',
       );
-      update();
+      _notify();
     }
   }
 
@@ -134,7 +135,7 @@ class HomeFeedController extends GetxController {
     } else {
       _likedPostIds.add(postId);
     }
-    update();
+    _notify();
     try {
       await Future<void>.delayed(const Duration(milliseconds: 120));
       _failedActionPostIds.remove(postId);
@@ -142,7 +143,7 @@ class HomeFeedController extends GetxController {
         'postId': postId,
         'liked': !wasLiked,
       });
-      update();
+      _notify();
     } catch (_) {
       if (wasLiked) {
         _likedPostIds.add(postId);
@@ -150,7 +151,7 @@ class HomeFeedController extends GetxController {
         _likedPostIds.remove(postId);
       }
       _failedActionPostIds.add(postId);
-      update();
+      _notify();
     }
   }
 
@@ -167,7 +168,7 @@ class HomeFeedController extends GetxController {
 
   void retryPostAction(String postId) {
     _failedActionPostIds.remove(postId);
-    update();
+    _notify();
   }
 
   void notInterested(String postId) {
@@ -176,13 +177,13 @@ class HomeFeedController extends GetxController {
       'postId': postId,
       'tab': activeTab.name,
     });
-    update();
+    _notify();
   }
 
   Future<void> showLessLikeThis(String postId) async {
     _lessLikeThisPostIds.add(postId);
     await _persistRecommendationPreferences();
-    update();
+    _notify();
   }
 
   Future<void> hideCreator(String authorId) async {
@@ -191,7 +192,7 @@ class HomeFeedController extends GetxController {
       posts.where((item) => item.authorId == authorId).map((item) => item.id),
     );
     await _persistRecommendationPreferences();
-    update();
+    _notify();
   }
 
   Future<void> hideTopic(String topic) async {
@@ -202,7 +203,7 @@ class HomeFeedController extends GetxController {
           .map((item) => item.id),
     );
     await _persistRecommendationPreferences();
-    update();
+    _notify();
   }
 
   Future<void> createLocalPost({
@@ -256,12 +257,12 @@ class HomeFeedController extends GetxController {
     );
 
     posts = <PostModel>[post, ...posts];
-    state = state.copyWith(isEmpty: posts.isEmpty, isSuccess: posts.isNotEmpty);
+    loadState = loadState.copyWith(isEmpty: posts.isEmpty, isSuccess: posts.isNotEmpty);
     await _analytics.logEvent('post_created_local', params: <String, dynamic>{
       'hasMedia': media.isNotEmpty,
       'isVideo': isVideo,
     });
-    update();
+    _notify();
   }
 
   FeedSegment _segmentForTab(FeedTab tab) {
@@ -277,7 +278,7 @@ class HomeFeedController extends GetxController {
 
   // Legacy compatibility method used by existing UI and shell lifecycle.
   Future<void> restore() async {
-    if (posts.isEmpty && !state.isLoading) {
+    if (posts.isEmpty && !loadState.isLoading) {
       await loadInitial();
     }
   }
@@ -289,4 +290,7 @@ class HomeFeedController extends GetxController {
       'hiddenTopics': _hiddenTopics.toList(),
     });
   }
+
+  void _notify() => emit(loadState.hashCode ^ posts.length ^ stories.length ^ pagination.page);
 }
+

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 
@@ -54,7 +54,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.black87),
-          onPressed: () => Get.back(),
+          onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'New Post',
@@ -196,13 +196,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     color: Color(0xFF26C6DA),
                   ),
                   onPressed: () {
-                    Get.snackbar('Media', 'Static media picker opened');
+                    AppGet.snackbar('Media', 'Static media picker opened');
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.tag, color: Color(0xFF26C6DA)),
                   onPressed: () {
-                    Get.snackbar('Tag People', 'Static tag people flow opened');
+                    AppGet.snackbar('Tag People', 'Static tag people flow opened');
                   },
                 ),
                 IconButton(
@@ -211,7 +211,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     color: Color(0xFF26C6DA),
                   ),
                   onPressed: () {
-                    Get.snackbar('Feeling', 'Static feeling selector opened');
+                    AppGet.snackbar('Feeling', 'Static feeling selector opened');
                   },
                 ),
                 const Spacer(),
@@ -262,6 +262,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void _submit() {
     final caption = _captionController.text.trim();
     if (caption.isEmpty) return;
-    Get.back(result: CreatePostResult(caption: caption));
+    AppGet.back(result: CreatePostResult(caption: caption));
   }
 }

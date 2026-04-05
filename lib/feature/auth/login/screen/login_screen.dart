@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/validators/input_validators.dart';
@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => Get.toNamed(RouteNames.forgotPassword),
+                        onPressed: () => AppGet.toNamed(RouteNames.forgotPassword),
                         child: const Text(
                           'Forgot Password?',
                           style: TextStyle(
@@ -155,12 +155,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 32),
                     OutlinedButton(
                       onPressed: () {
-                        Get.snackbar(
+                        AppGet.snackbar(
                           'Google Login',
                           'Static Google login success',
                           snackPosition: SnackPosition.BOTTOM,
                         );
-                        Get.offNamed(RouteNames.shell);
+                        AppGet.offNamed(RouteNames.shell);
                       },
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(56),
@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(color: Colors.grey.shade600),
                           ),
                           GestureDetector(
-                            onTap: () => Get.toNamed(RouteNames.signup),
+                            onTap: () => AppGet.toNamed(RouteNames.signup),
                             child: const Text(
                               'Sign Up',
                               style: TextStyle(

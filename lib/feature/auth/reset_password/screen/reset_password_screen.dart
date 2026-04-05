@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../route/route_names.dart';
@@ -24,7 +24,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.grey),
-          onPressed: () => Get.back(),
+          onPressed: () => AppGet.back(),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -134,7 +134,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             ),
             const Spacer(),
             FilledButton(
-              onPressed: () => Get.offAllNamed(RouteNames.login),
+              onPressed: () => AppGet.offAllNamed(RouteNames.login),
               child: const Text('Reset Password'),
             ),
             const SizedBox(height: 40),

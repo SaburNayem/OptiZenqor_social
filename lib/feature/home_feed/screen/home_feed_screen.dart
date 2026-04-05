@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/widgets/app_loader.dart';
@@ -18,7 +19,7 @@ class HomeFeedScreen extends StatelessWidget {
     _scrollController.addListener(_onScroll);
   }
 
-  final HomeFeedController _controller = Get.put(HomeFeedController());
+  final HomeFeedController _controller = HomeFeedController();
   final ScrollController _scrollController = ScrollController();
 
   void _onScroll() {
@@ -33,18 +34,21 @@ class HomeFeedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<HomeFeedController>(
-      builder: (controller) {
+    return BlocProvider<HomeFeedController>.value(
+      value: _controller,
+      child: BlocBuilder<HomeFeedController, int>(
+        builder: (context, _) {
+          final controller = _controller;
         if (controller.isLoading) {
           return const AppLoader(label: 'Preparing your personalized feed');
         }
         if (controller.hasError) {
           return ErrorStateView(
             onRetry: controller.loadInitial,
-            message: controller.state.errorMessage ?? 'Unable to load feed',
+            message: controller.loadState.errorMessage ?? 'Unable to load feed',
           );
         }
-        if (controller.state.isEmpty) {
+        if (controller.loadState.isEmpty) {
           return const EmptyStateView(
             title: 'Feed is quiet',
             message: 'Follow more people and communities to personalize this.',
@@ -89,7 +93,8 @@ class HomeFeedScreen extends StatelessWidget {
             ],
           ),
         );
-      },
+        },
+      ),
     );
   }
 

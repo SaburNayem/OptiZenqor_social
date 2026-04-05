@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
@@ -16,13 +17,16 @@ class PostDetailScreen extends StatelessWidget {
 
   final String? postId;
 
-  final PostDetailController _controller = Get.put(PostDetailController());
+  final PostDetailController _controller = PostDetailController();
   final TextEditingController _commentController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<PostDetailController>(
-      builder: (controller) {
+    return BlocProvider<PostDetailController>.value(
+      value: _controller,
+      child: BlocBuilder<PostDetailController, int>(
+        builder: (context, _) {
+        final controller = _controller;
         final author = MockData.users
             .where((u) => u.id == controller.detail.authorId)
             .firstOrNull;
@@ -34,7 +38,7 @@ class PostDetailScreen extends StatelessWidget {
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => Get.back(),
+              onPressed: () => AppGet.back(),
             ),
             title: const Text(''), // Empty title as per screenshot
             actions: [
@@ -218,7 +222,8 @@ class PostDetailScreen extends StatelessWidget {
             ],
           ),
         );
-      },
+        },
+      ),
     );
   }
 }

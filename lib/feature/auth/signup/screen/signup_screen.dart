@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../route/route_names.dart';
@@ -30,7 +30,7 @@ class _SignupScreenState extends State<SignupScreen> {
             if (_currentStep > 1) {
               setState(() => _currentStep--);
             } else {
-              Get.back();
+              AppGet.back();
             }
           },
         ),
@@ -86,7 +86,7 @@ class _SignupScreenState extends State<SignupScreen> {
             if (_currentStep < 3) {
               setState(() => _currentStep++);
             } else {
-              Get.offAllNamed(RouteNames.shell);
+              AppGet.offAllNamed(RouteNames.shell);
             }
           },
           style: FilledButton.styleFrom(
@@ -341,7 +341,7 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () {
-                  Get.snackbar(
+                  AppGet.snackbar(
                     'Upload Photo',
                     'Static profile photo picker opened',
                     snackPosition: SnackPosition.BOTTOM,

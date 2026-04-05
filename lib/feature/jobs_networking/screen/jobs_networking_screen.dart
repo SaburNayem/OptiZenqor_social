@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../route/route_names.dart';
@@ -46,7 +46,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black54),
             onPressed: () {
-              Get.snackbar('Search', 'Static job search opened');
+              AppGet.snackbar('Search', 'Static job search opened');
             },
           ),
           Stack(
@@ -58,7 +58,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
                   color: Colors.black54,
                 ),
                 onPressed: () {
-                  Get.toNamed(RouteNames.notifications);
+                  AppGet.toNamed(RouteNames.notifications);
                 },
               ),
               Positioned(
@@ -158,7 +158,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
 
   void _handleBottomNavTap(int index) {
     if (index == 2) {
-      Get.toNamed(RouteNames.create);
+      AppGet.toNamed(RouteNames.create);
       return;
     }
 
@@ -168,7 +168,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
       return;
     }
 
-    Get.offNamed(
+    AppGet.offNamed(
       RouteNames.shell,
       arguments: <String, dynamic>{'tabIndex': tabIndex},
     );
@@ -259,7 +259,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
               ),
               IconButton(
                 onPressed: () {
-                  Get.snackbar('Saved', '${job.title} saved to bookmarks');
+                  AppGet.snackbar('Saved', '${job.title} saved to bookmarks');
                 },
                 icon: const Icon(
                   Icons.bookmark_border,
@@ -299,7 +299,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
                 height: 36,
                 child: FilledButton(
                   onPressed: () {
-                    Get.snackbar(
+                    AppGet.snackbar(
                       'Apply',
                       'Static apply flow started for ${job.title}',
                     );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../route/route_names.dart';
 import '../controller/user_profile_controller.dart';
@@ -43,7 +43,7 @@ class UserProfileScreen extends StatelessWidget {
                               Icons.settings_outlined,
                               color: Colors.white,
                             ),
-                            onPressed: () => Get.toNamed(RouteNames.settings),
+                            onPressed: () => AppGet.toNamed(RouteNames.settings),
                           ),
                         ),
                       ],
@@ -54,7 +54,7 @@ class UserProfileScreen extends StatelessWidget {
                     left: 16,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(54),
-                      onTap: () => Get.toNamed(RouteNames.mediaViewer),
+                      onTap: () => AppGet.toNamed(RouteNames.mediaViewer),
                       child: Stack(
                         children: [
                           Container(
@@ -100,7 +100,7 @@ class UserProfileScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () => Get.snackbar(
+                      onPressed: () => AppGet.snackbar(
                         'Edit Profile',
                         'Static edit profile flow opened',
                       ),
@@ -122,7 +122,7 @@ class UserProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     IconButton(
-                      onPressed: () => Get.snackbar(
+                      onPressed: () => AppGet.snackbar(
                         'Share Profile',
                         'Static share profile sheet opened',
                       ),
@@ -208,7 +208,7 @@ class UserProfileScreen extends StatelessWidget {
                   _buildStatColumn(
                     '12.4 K',
                     'Followers',
-                    onTap: () => Get.snackbar(
+                    onTap: () => AppGet.snackbar(
                       'Followers',
                       'Static followers list opened',
                     ),
@@ -217,7 +217,7 @@ class UserProfileScreen extends StatelessWidget {
                   _buildStatColumn(
                     '342',
                     'Following',
-                    onTap: () => Get.snackbar(
+                    onTap: () => AppGet.snackbar(
                       'Following',
                       'Static following list opened',
                     ),
@@ -238,42 +238,42 @@ class UserProfileScreen extends StatelessWidget {
                       'Saved',
                       const Color(0xFFE0F2F1),
                       const Color(0xFF00897B),
-                      onTap: () => Get.toNamed(RouteNames.bookmarks),
+                      onTap: () => AppGet.toNamed(RouteNames.bookmarks),
                     ),
                     _buildUtilityIcon(
                       Icons.account_balance_wallet_outlined,
                       'Wallet',
                       const Color(0xFFE3F2FD),
                       const Color(0xFF1E88E5),
-                      onTap: () => Get.toNamed(RouteNames.walletPayments),
+                      onTap: () => AppGet.toNamed(RouteNames.walletPayments),
                     ),
                     _buildUtilityIcon(
                       Icons.calendar_today_outlined,
                       'Events',
                       const Color(0xFFF3E5F5),
                       const Color(0xFF8E24AA),
-                      onTap: () => Get.toNamed(RouteNames.events),
+                      onTap: () => AppGet.toNamed(RouteNames.events),
                     ),
                     _buildUtilityIcon(
                       Icons.bar_chart_outlined,
                       'Polls',
                       const Color(0xFFE1F5FE),
                       const Color(0xFF039BE5),
-                      onTap: () => Get.toNamed(RouteNames.pollsSurveys),
+                      onTap: () => AppGet.toNamed(RouteNames.pollsSurveys),
                     ),
                     _buildUtilityIcon(
                       Icons.workspace_premium_outlined,
                       'Plans',
                       const Color(0xFFFFF3E0),
                       const Color(0xFFFB8C00),
-                      onTap: () => Get.toNamed(RouteNames.premium),
+                      onTap: () => AppGet.toNamed(RouteNames.premium),
                     ),
                     _buildUtilityIcon(
                       Icons.card_giftcard,
                       'Invite',
                       const Color(0xFFE8F5E9),
                       const Color(0xFF43A047),
-                      onTap: () => Get.toNamed(RouteNames.inviteReferral),
+                      onTap: () => AppGet.toNamed(RouteNames.inviteReferral),
                     ),
                   ],
                 ),
@@ -338,7 +338,7 @@ class UserProfileScreen extends StatelessWidget {
                   ];
 
                   return InkWell(
-                    onTap: () => Get.toNamed(RouteNames.postDetail),
+                    onTap: () => AppGet.toNamed(RouteNames.postDetail),
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
@@ -402,7 +402,7 @@ class UserProfileScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black87),
-            onPressed: () => Get.toNamed(RouteNames.searchDiscovery),
+            onPressed: () => AppGet.toNamed(RouteNames.searchDiscovery),
           ),
           Stack(
             alignment: Alignment.center,
@@ -412,7 +412,7 @@ class UserProfileScreen extends StatelessWidget {
                   Icons.notifications_none,
                   color: Colors.black87,
                 ),
-                onPressed: () => Get.toNamed(RouteNames.notifications),
+                onPressed: () => AppGet.toNamed(RouteNames.notifications),
               ),
               Positioned(
                 right: 12,
