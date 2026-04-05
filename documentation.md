@@ -1,521 +1,1203 @@
-APPROVED APP ARCHITECTURE
+# OptiZenqor Social Implementation Documentation
+
+This document converts the requested product feature list into a concrete Flutter implementation plan for the existing OptiZenqor Social codebase.
+
+It is written for the current project structure:
 
 - `lib/core`
-  - `constant/`
-  - `common_widget/`
-  - `data/api/`
-  - `data/service/`
-  - `data/service_model/`
-  - `data/shared_preference/`
 - `lib/feature`
-  - only feature folders
-  - each feature uses only what it needs: `common/`, `model/`, `controller/`, `repository/`, `screen/`
 - `lib/route`
-  - route-only files
+- Flutter + Material 3
+- GetX for routing and feature state standardization
 
-See `ARCHITECTURE.md` for the detailed structure and migration rules.
+This is a product-and-engineering contract, not a redesign request.
+All screens should remain static-first, mock-driven, and fully clickable.
+Every visible button, tile, icon action, card action, chip, tab, bottom sheet item, popup menu item, and long-press action must do something predictable even before backend integration.
 
-I already have an existing Flutter project named "OptiZenqor Social".
-Do NOT rebuild the app from scratch.
-Do NOT replace the architecture blindly.
-Do NOT generate a new unrelated project.
-Your task is to UPGRADE, REFACTOR, STANDARDIZE, and COMPLETE my CURRENT existing project while preserving its working structure and current feature coverage.
+## 1. Delivery Rules
 
-You must work as a senior Flutter architect and product-minded engineer.
-Treat the current codebase as an existing social media platform scaffold that already includes many screens, routes, mock repositories, and placeholder flows.
+### 1.1 Architecture Rule
 
-==================================================
-1. CURRENT PROJECT CONTEXT YOU MUST RESPECT
-==================================================
+Every medium or large feature should follow:
 
-This existing project already has:
-- Flutter + Dart
-- Material 3
-- GetX routing and some controllers
-- mixed state management using GetX + ChangeNotifier + AnimatedBuilder + some plain controller flows
-- feature-first folder structure
-- route coverage for many modules
-- splash, onboarding, login, signup, reset password
-- main shell with bottom navigation and drawer
-- home feed, reels, chat, profile, settings
-- search/discovery, communities, groups, pages, marketplace
-- creator dashboard, subscriptions, premium, wallet, events, live stream
-- report center, safety/privacy, legal/compliance, accessibility, localization
-- bookmarks, saved collections, drafts/scheduling, upload manager
-- user profile, business profile, recruiter profile, seller profile
-- mock repositories and local/in-memory or shared_preferences-backed flows
-- many advanced feature placeholders already added
+```text
+lib/feature/<feature_name>/
+  controller/
+  model/
+  repository/
+  screen/
+  widget/        optional
+  common/        optional
+```
 
-The current codebase is broad but prototype-oriented:
-- many repositories are still mock-based
-- architecture is mixed and not fully standardized
-- navigation is mixed between GetX named routes and Navigator pushes
-- some services are scaffold-level only
-- many advanced modules are UI placeholders awaiting deeper logic
-- current structure already runs and should be preserved, improved, and completed
+Small features may use only:
 
-Your job is to transform this existing project into a cleaner, more scalable, more production-ready app foundation WITHOUT destroying the current product breadth.
+```text
+lib/feature/<feature_name>/
+  controller/
+  screen/
+```
 
-==================================================
-2. PRIMARY GOAL
-==================================================
+### 1.2 GetX Rule
 
-Upgrade the current OptiZenqor Social codebase into a high-quality, scalable, production-style Flutter social media app foundation.
+Use GetX as the standard for:
 
-You must:
-- keep the existing project identity
-- preserve existing feature modules unless there is a very strong architectural reason to merge/refactor
-- improve consistency
-- reduce duplication
-- standardize patterns
-- deepen incomplete modules
-- replace weak placeholders with stronger local/mock logic
-- make the codebase easier for future API integration
-- keep the app runnable
+- named navigation
+- dependency injection
+- feature controllers
+- transient state for mock flows
+- bottom sheets, dialogs, snackbars
 
-This task is a REFACTOR + EXPANSION task, not a blank greenfield generation.
+Do not leave buttons without behavior.
+If a backend action does not exist yet, use one of these static actions:
 
-==================================================
-3. ARCHITECTURE RULES
-==================================================
+- `Get.toNamed(...)`
+- `Get.bottomSheet(...)`
+- `Get.dialog(...)`
+- toggle local `RxBool`, `RxInt`, `RxList`, `RxString`
+- show `Get.snackbar(...)`
+- update mock model in repository
+- show confirmation state inside the same screen
 
-Keep the existing feature-first structure, but improve it consistently.
+### 1.3 Static-Complete Rule
 
-Current top-level intent should remain similar to:
-- lib/core
-- lib/feature
-- lib/route
-- lib/app.dart
-- lib/main.dart
+Every screen must support:
 
-Inside features, standardize toward a consistent structure where appropriate, such as:
-- model/
-- controller/
-- screen/
-- widget/   if needed
+- loading state
+- empty state
+- success state
+- error or blocked state where appropriate
 
-Do not force every feature into unnecessary layers if the feature is very small, but for medium and large features use consistent organization.
+Every form must support:
 
-Standardize the app around:
-- clear models/entities
-- repository abstraction
-- mock/local repository implementation
-- controller/viewmodel logic separation
-- reusable widgets
-- app-wide result/error/loading handling
-- route consistency
-- dependency injection consistency
-- theme consistency
-- local persistence consistency
+- text validation
+- primary button action
+- secondary button action
+- back navigation
+- submit loading
+- submit success feedback
 
-==================================================
-4. STATE MANAGEMENT STANDARDIZATION
-==================================================
+## 2. Screen Contract
 
-The current project uses mixed patterns.
-Do not do a dangerous full rewrite of every feature at once.
+Each screen should define:
 
-Instead:
-- keep GetX for routing and dependency injection
-- keep GetX for high-level shell / app state where it is already used
-- gradually standardize feature state into one predictable pattern
-- prefer GetX controllers for medium/large interactive features
-- reduce unnecessary ChangeNotifier usage where it adds inconsistency
-- keep simple local state local when appropriate
-- remove architectural confusion, not just code lines
+- screen purpose
+- entry route
+- controller owner
+- model inputs
+- static UI states
+- button actions
 
-The final result should feel consistent, even if migration is incremental.
+Minimum screen scaffold contract:
 
-==================================================
-5. ROUTING STANDARDIZATION
-==================================================
+1. App bar title and back behavior
+2. Main content body
+3. Primary CTA
+4. Secondary CTA or contextual action
+5. Empty and error view when relevant
+6. Mock repository data binding
 
-The current project already has many named GetX routes plus some direct Navigator pushes.
-Refactor navigation carefully.
+## 3. Controller Contract
 
-Your task:
-- preserve all working existing route entry points
-- reduce unnecessary mixed navigation
-- move more flows toward a consistent named-route or GetX-navigation approach where helpful
-- keep internal local navigation only where it is cleaner and justified
-- ensure deep screen flows still work properly
-- keep unknown route handling
-- make route definitions cleaner and easier to extend
+Each feature controller should own:
 
-Do not break current module access patterns.
+- screen state
+- selected tab/index/filter
+- form field values or text controllers
+- validation flags
+- loading/submitting flags
+- local mock mutations
+- route transitions
 
-==================================================
-6. FEATURE MODULES YOU MUST PRESERVE AND IMPROVE
-==================================================
+Prefer this shape:
 
-The project already includes many feature areas. Keep them and improve them.
+```dart
+class ExampleController extends GetxController {
+  final isLoading = false.obs;
+  final isSubmitting = false.obs;
+  final items = <ExampleModel>[].obs;
+  final selectedTab = 0.obs;
 
-Preserve and deepen:
-- splash
-- onboarding
-- auth
-- main shell
-- home feed
-- posts
-- create post
-- reels / short video
-- stories
-- chat
-- group chat
-- notifications
-- search / discovery
-- hashtags
-- trending
-- communities
-- groups
-- pages
-- user profile
-- business profile
-- recruiter profile
-- seller profile
-- creator tools
-- subscriptions
-- premium membership
-- wallet / payments
-- marketplace
-- events
-- live stream
-- bookmarks
-- saved collections
-- drafts and scheduling
-- upload manager
-- personalization onboarding
-- safety/privacy
-- report center
-- settings
-- accessibility
-- localization
-- legal compliance
-- invite/referral
-- support/help
-- offline sync
-- verification request
-- account switching
-- blocked/muted accounts
-- activity sessions
-- deep link handler
-- app update flow
+  final ExampleRepository repository;
 
-If new shared abstractions are needed, add them cleanly without damaging current screens.
+  ExampleController({ExampleRepository? repository})
+      : repository = repository ?? ExampleRepository();
 
-==================================================
-7. SETTINGS MODULE: MAKE IT STRONG AND COMPLETE
-==================================================
+  @override
+  void onInit() {
+    super.onInit();
+    loadData();
+  }
 
-The settings area must become one of the strongest parts of the app.
+  Future<void> loadData() async {}
+  void onPrimaryAction() {}
+  void onSecondaryAction() {}
+}
+```
 
-Preserve and improve the existing settings module and make it fully structured with detailed sub-screens for:
+## 4. Repository Contract
 
-- Account
-- Privacy
-- Security
-- Notifications
-- Messages & Calls
-- Feed & Content Preferences
-- Creator / Professional Tools
-- Monetization & Payments
-- Communities & Groups
-- Data & Privacy Center
-- Accessibility
-- Language & Region
-- Connected Apps
-- Help & Safety
-- About
+Each repository should be mock-first and backend-ready.
 
-Deepen current settings with better local logic and cleaner UX for:
-- profile editing
-- username/display name/bio/pronouns/links
-- account type switching
-- verification request entry
-- deactivate/delete/download data
-- privacy visibility controls
-- blocked / muted / restricted users
-- tagging / mention / repost / comment permissions
-- activity status / last seen / read receipts
-- hidden words / sensitive content
-- discoverability and search indexing toggles
-- security checkup
-- active sessions / trusted devices
-- password / 2FA / biometric lock
-- notification category toggles
-- chat/media/download/call preferences
-- feed mode / autoplay / data saver / hidden topics / recommendation reset
-- ad personalization and activity preferences
-- data summary / history / cache clearing / permissions
-- accessibility options
-- support, safety, appeals, account status, strikes, violations
+Repository responsibilities:
 
-Make settings clean, scalable, and role-aware.
+- return mock lists
+- return mock detail objects
+- simulate latency
+- update in-memory state
+- support create/edit/delete/toggle flows
+- isolate data from UI
 
-==================================================
-8. DRAWER AND MAIN SHELL IMPROVEMENT
-==================================================
+Good repository methods:
 
-The current app already has a shell, bottom navigation, and drawer.
-Refine them instead of replacing them.
+- `fetchFeed()`
+- `fetchStories()`
+- `loginWithEmail()`
+- `sendOtp()`
+- `verifyOtp()`
+- `createPost()`
+- `toggleBookmark()`
+- `followUser()`
+- `muteUser()`
+- `fetchSettingsSections()`
 
-Requirements:
-- improve drawer hierarchy
-- group drawer items better
-- make drawer role-aware
-- keep creator/business/admin-only sections conditional
-- improve shell state persistence across tabs
-- improve app bar logic by active tab
-- make navigation feel more professional and less prototype-like
-- preserve existing major entry points like communities, marketplace, creator dashboard, premium, drafts, scheduling, saved posts, archived posts, events, live stream, upload manager
+## 5. Route Standard
 
-Bottom navigation should remain strong and stable.
-Only adjust if a clearly better scalable structure is needed.
+All flows should use named GetX routes.
 
-==================================================
-9. HOME FEED AND CONTENT SYSTEM
-==================================================
+Route naming rules:
 
-The current feed already includes quick composer, stories, tabs, pagination, post cards, recommendation feedback, and drill-down flows.
-Deepen and standardize it.
+- feature root: `/<feature>`
+- nested flow: `/<feature>/<sub-flow>`
+- detail: `/<feature>/detail`
+- create: `/<feature>/create`
+- edit: `/<feature>/edit`
+- settings child: `/settings/<section>`
 
-Improve:
-- feed tab architecture
-- pagination logic
-- refresh behavior
-- post card reuse
-- recommendation feedback system
-- loading, empty, retry, and offline states
-- action handling consistency
-- local post state mutation consistency
-- bookmarking / save state consistency
-- like/comment/share/report/not interested flow consistency
+Example:
 
-Preserve support for:
+```dart
+static const login = '/auth/login';
+static const signupStepOne = '/auth/signup/step-1';
+static const createStory = '/stories/create';
+static const eventDetail = '/events/detail';
+static const marketplaceCreate = '/marketplace/create';
+```
+
+## 6. Global App Flows
+
+### 6.1 Splash Flow
+
+Feature:
+- `lib/feature/splash`
+
+Screens:
+- `SplashScreen`
+
+Controller:
+- decide first route based on mock app state
+
+Static actions:
+- logo tap: show version snackbar
+- retry button on error: reload bootstrap
+- continue button: go to onboarding or login
+
+Suggested route:
+- `/`
+
+### 6.2 Onboarding Flow
+
+Feature:
+- `lib/feature/onboarding`
+
+Screens:
+- `OnboardingScreen`
+
+Required behavior:
+- 3 onboarding pages
+- skip
+- next
+- previous when applicable
+- continue to login/signup
+
+Buttons:
+- `Skip` -> `RouteNames.login`
+- `Next` -> next page
+- `Get Started` -> auth choice screen or login
+
+Suggested models:
+- `OnboardingSlideModel`
+
+### 6.3 Auth Flow
+
+Feature:
+- `lib/feature/auth`
+
+Sub-features:
+- `login`
+- `signup`
+- `forgot_password`
+- `reset_password`
+
+#### Login
+
+Screens:
+- login option screen
+- email or phone login screen
+
+Buttons:
+- `Continue with Google` -> mock Google success bottom sheet, then shell
+- `Continue with Email` -> email login form
+- `Continue with Phone` -> phone login form
+- `Forgot Password` -> forgot password email screen
+- `Sign Up` -> signup step 1
+
+Suggested routes:
+- `/auth/login`
+- `/auth/login/email`
+- `/auth/login/phone`
+
+Models:
+- `LoginModel`
+
+Controller responsibilities:
+- mode switch: email or phone
+- validation
+- mock login
+- remember me
+- role preview if needed
+
+#### Signup
+
+Required 3 screens:
+
+1. account credentials
+2. user basic data
+3. profile type and image data
+
+Buttons:
+- `Next` -> validate and move next
+- `Back` -> previous step
+- `Select Profile Type` -> bottom sheet
+- `Upload Image` -> mock picker action
+- `Create Account` -> success dialog then onboarding completion or shell
+
+Suggested routes:
+- `/auth/signup`
+- `/auth/signup/step-1`
+- `/auth/signup/step-2`
+- `/auth/signup/step-3`
+
+Suggested models:
+- `SignupModel`
+- `ProfileTypeModel`
+
+#### Forgot Password
+
+Required screens:
+
+1. enter email
+2. enter otp
+3. new password
+
+Buttons:
+- `Send Code` -> snackbar + move to otp
+- `Resend Code` -> countdown reset
+- `Verify Code` -> move to reset password
+- `Save Password` -> success dialog + login route
+
+Suggested routes:
+- `/auth/forgot-password`
+- `/auth/otp-verification`
+- `/auth/reset-password`
+
+## 7. Main Shell and Drawer
+
+Feature:
+- `lib/feature/home_feed`
+
+Tabs:
+- Home
+- Reels
+- Create
+- Chat
+- Profile
+
+Drawer sections:
+- create and manage
+- discover
+- professional
+- settings and support
+
+Static behavior:
+- tapping tab switches page
+- tapping create opens create post hub or create tab
+- drawer item always navigates to a valid screen
+- logout opens confirm dialog
+
+Required controller:
+- `MainShellController extends GetxController`
+
+Required mock state:
+- selected tab index
+- current user
+- role-aware drawer items
+
+## 8. Home Flow
+
+Feature:
+- `lib/feature/home_feed`
+
+Screens:
+- feed screen
+- create post screen
+
+Feed content blocks:
+- story ring row
+- composer
+- suggested users
 - text posts
 - image posts
-- carousel posts
-- video/reel preview
-- poll/event/product placeholders where already present
-- mentions, hashtags, location, alt text, audience, sponsored labels, view/share counts, edit history placeholders
+- reels preview cards
+- trending tags section
 
-Make the content model cleaner and more scalable.
+Feed buttons:
+- story avatar -> story viewer
+- create post input -> create post flow
+- like -> toggle liked state
+- comment -> post detail
+- share -> share sheet
+- bookmark -> toggle saved
+- menu -> bottom sheet with hide, report, unfollow, copy link
+- follow button -> toggle follow state
 
-==================================================
-10. CREATE POST / DRAFTS / SCHEDULING
-==================================================
+Required models:
+- `FeedPostModel`
+- `FeedTabModel`
 
-The current project already supports rich create-post metadata, drafts, scheduling split, and placeholders.
-Upgrade this flow into a stronger local-first content composer.
+Required repository methods:
+- `fetchHomeFeed()`
+- `toggleLike(postId)`
+- `toggleBookmark(postId)`
+- `hidePost(postId)`
 
-Requirements:
-- preserve existing create-post flow
-- improve form organization
-- modularize media, audience, tagging, alt text, location, hashtag, co-author, and scheduling sections
-- strengthen local validation
-- improve local draft persistence
-- support draft versioning in a cleaner way
-- make scheduled items clearly separate from drafts
-- make upload manager, drafts, and scheduling feel like one connected ecosystem
+## 9. Story Flow
 
-Do not just scaffold. Make these modules practically usable with mock/local persistence.
+Feature:
+- `lib/feature/stories`
 
-==================================================
-11. CHAT AND INBOX
-==================================================
+Screens:
+- story list inside home
+- create story
+- story viewer
 
-The current chat module already includes inbox, detail, search, pinned, archived, unread, requests, tabs, media/docs/links tabs, disappearing placeholders, reply/thread placeholders, and more.
+Create story types:
+- text story
+- image story
 
-Refine it into a cleaner messaging architecture:
-- improve inbox state handling
-- standardize conversation model usage
-- standardize message model usage
-- improve message action logic
-- keep local/mock-ready real-time structure
-- keep future websocket integration easy
-- improve starred, reply, request, archive, mute, block, search, and unread marker behavior
-- make chat detail UI more consistent and scalable
-- preserve direct chat and group chat separation where helpful
+Viewer behaviors:
+- progress bar
+- next/previous
+- reaction picker
+- quick comment field
+- viewer list static for own story
 
-==================================================
-12. PROFILE SURFACES
-==================================================
+Buttons:
+- `Add Story` -> create story
+- `Text` -> open text story editor
+- `Photo` -> open image picker placeholder
+- `Post Story` -> save mock story and return
+- `React` -> add local reaction
+- `Send Comment` -> append mock comment
+- long press story -> pause
 
-The project already supports user profile and role-based profile variations.
-Preserve and refine:
-- user profile
-- business profile
-- recruiter profile
-- seller profile
+Suggested routes:
+- `/stories/create`
+- `/stories/view`
 
-Unify shared profile foundations while allowing role-based specialization.
+Suggested models:
+- `StoryDraftModel`
+- `StoryReactionModel`
+- `StoryCommentModel`
 
-Improve:
-- profile header consistency
-- tab structure
-- relation states
-- verification/badge rendering
-- pinned and featured content
-- notes/status areas
-- profile share and QR logic placeholders
-- export/deactivate placeholders
-- tagged content history
-- suggested people or related entity sections
+## 10. Post Creation Flow
 
-==================================================
-13. DISCOVERY / COMMUNITIES / PAGES / MARKETPLACE / EVENTS
-==================================================
+Feature:
+- create under `home_feed` or extract `create_post`
 
-These modules already exist. Do not remove them.
+Required create variants:
+- text post with filter
+- image post with filter and songs
+- photo or video post
+- camera capture
+- tag people
+- multiple people search and add
+- location
+- feelings
+- draft
+- schedule
 
-Improve them by:
-- reducing repetitive placeholder code
-- standardizing section cards and list patterns
-- making filters/tabs/search patterns more reusable
-- improving local mock flows
-- preserving moderation/admin/owner action placeholders
-- making list/detail page relationships clearer
-- improving empty/loading states
-- preparing API contract boundaries clearly
+Required screens:
+- create hub
+- text post editor
+- media post editor
+- tag people selector
+- location selector
+- feelings selector
+- draft review
+- schedule picker
+- upload manager
 
-==================================================
-14. SERVICES AND INFRASTRUCTURE
-==================================================
+Buttons:
+- `Text Post` -> text editor
+- `Photo/Video Post` -> media editor
+- `Open Camera` -> camera mock preview
+- `Add Music` -> song bottom sheet
+- `Add Filter` -> filter carousel
+- `Tag People` -> search people selector
+- `Add Location` -> location selector
+- `Feeling` -> feeling bottom sheet
+- `Save Draft` -> store locally
+- `Schedule` -> schedule sheet
+- `Publish` -> success snackbar and back to home
 
-The project already has services such as:
-- theme
-- local storage
-- auth
-- analytics
-- upload
+Suggested routes:
+- `/create`
+- `/create/text`
+- `/create/media`
+- `/create/tag-people`
+- `/create/location`
+- `/create/feeling`
+- `/drafts`
+- `/scheduling`
+- `/upload-manager`
+
+Suggested models:
+- `PostDraftModel`
+- `PostAudienceModel`
+- `TaggedUserModel`
+- `PostLocationModel`
+- `FeelingModel`
+- `SongModel`
+
+## 11. Profile Flow
+
+Primary feature:
+- `lib/feature/user_profile`
+
+Additional role features:
+- `business_profile`
+- `seller_profile`
+- `recruiter_profile`
+
+Required profile modules:
+- profile overview
+- posts tab
+- followers/following
+- edit profile
+- professional tools entry
+- monetization
+- subscriptions
+
+Buttons:
+- `Edit Profile` -> edit profile screen
+- `Follow` -> toggle follow state
+- `Message` -> open chat
+- `Invite Friend` -> invite flow
+- `Wallet Add Money` -> wallet add money
+- `Subscription` -> subscriptions
+- `View Followers` -> follower list
+- `View Following` -> following list
+- profile picture tap -> media viewer
+- three dot -> block, report, share profile, copy link
+
+Suggested routes:
+- `/user-profile`
+- `/user-profile/edit`
+- `/user-profile/followers`
+- `/user-profile/following`
+- `/business-profile`
+- `/seller-profile`
+- `/recruiter-profile`
+
+Suggested models:
+- `UserProfileModel`
+- `ProfileStatsModel`
+- `FollowerModel`
+- `ProfileLinkModel`
+
+## 12. Inbox and Chat Flow
+
+Feature:
+- `lib/feature/chat`
+- `lib/feature/group_chat`
+
+Required screens:
+- inbox
+- chat detail
+- chat settings
+- group chat
+
+Required interactions:
+- 3-dot menu in inbox
+- chat actions
+- long press on message
+- emoji reaction
+- reply
+- copy
+- delete for me
+- mute conversation
+
+Inbox buttons:
+- search -> filter local chats
+- archive -> move item to archive state
+- unread -> toggle unread badge
+- 3-dot -> menu sheet
+
+Chat buttons:
+- send -> append local message
+- attachment -> bottom sheet
+- camera -> open capture placeholder
+- mic -> hold to record mock state
+- call -> call screen or snackbar
+- video call -> video call snackbar
+- long press message -> reaction and action sheet
+
+Suggested routes:
+- `/chat`
+- `/chat/detail`
+- `/chat/settings`
+- `/group-chat`
+- `/calls`
+
+Suggested models:
+- `ChatThreadModel`
+- `MessageModel`
+- `MessageActionModel`
+- `ChatAttachmentModel`
+
+## 13. Reels Flow
+
+Feature:
+- `lib/feature/reels_short_video`
+
+Required interactions:
+- vertical feed
+- follow person
+- comment
+- like on double tap
+- many reactions on long press
+- share
+- save
+
+Buttons:
+- single tap video -> pause or play
+- double tap -> like animation
+- long press like -> reaction picker
+- comment -> open comments sheet
+- follow -> toggle follow state
+- share -> share bottom sheet
+- audio title tap -> song detail placeholder
+
+Suggested routes:
+- `/reels`
+- `/reels/comments`
+
+Suggested models:
+- `ReelModel`
+- `ReelCommentModel`
+- `ReelReactionModel`
+
+## 14. Drawer and Utility Flows
+
+Feature groups:
+- pages
+- jobs networking
+- marketplace
+- bookmarks
+- saved collections
+- creator tools
+- wallet payments
+- subscriptions
+- premium membership
+- events
+- communities
+- invite referral
+- support help
+
+Every drawer destination must open a working static screen with:
+
+- list content
+- item detail or modal
+- create CTA if applicable
+- empty state
+
+## 15. Pages Flow
+
+Feature:
+- `lib/feature/pages`
+
+Required modules:
+- my pages
+- followed pages
+- page posts
+
+Buttons:
+- `Create Page` -> page create form
+- `Follow Page` -> toggle follow
+- `View Posts` -> page feed
+- `Invite` -> invite members sheet
+
+Suggested routes:
+- `/pages`
+- `/pages/my`
+- `/pages/followed`
+- `/pages/detail`
+- `/pages/create`
+
+## 16. Jobs Flow
+
+Feature:
+- `lib/feature/jobs_networking`
+
+Required modules:
+- add job post
+- view job post
+- search job post
+- apply job post
+
+Buttons:
+- `Post Job` -> create job form
+- `Search` -> filter result list
+- `Apply` -> apply bottom sheet
+- `Save Job` -> bookmark state
+- `Share Job` -> share sheet
+
+Suggested routes:
+- `/jobs`
+- `/jobs/create`
+- `/jobs/detail`
+- `/jobs/search`
+- `/jobs/apply`
+
+Suggested models:
+- `JobModel`
+- `JobApplicationModel`
+- `JobFilterModel`
+
+## 17. Marketplace Flow
+
+Feature:
+- `lib/feature/marketplace`
+
+Required modules:
+- add sell post
+- view product
+- search product
+- buy product
+
+Buttons:
+- `Sell Item` -> create listing
+- `Search Product` -> search screen
+- `Filter` -> filter sheet
+- `Buy Now` -> purchase summary dialog
+- `Chat Seller` -> seller chat
+- `Save` -> bookmark listing
+
+Suggested routes:
+- `/marketplace`
+- `/marketplace/create`
+- `/marketplace/detail`
+- `/marketplace/search`
+- `/marketplace/checkout`
+
+Suggested models:
+- `MarketplaceItemModel`
+- `MarketplaceFilterModel`
+- `PurchaseSummaryModel`
+
+## 18. Drafts, Scheduling, Upload Manager
+
+Feature:
+- `lib/feature/drafts_and_scheduling`
+- `lib/feature/upload_manager`
+
+Required screens:
+- all drafts
+- schedule queue
+- upload manager
+- upload detail
+
+Buttons:
+- `Edit Draft` -> open create editor with prefilled data
+- `Delete Draft` -> confirmation dialog
+- `Reschedule` -> date picker
+- `Retry Upload` -> set uploading then success
+- `Cancel Upload` -> set canceled state
+- `View Upload` -> upload detail screen
+
+Suggested models:
+- `DraftItemModel`
+- `ScheduledPostModel`
+- `UploadTaskModel`
+
+## 19. Bookmark and Saved Posts
+
+Features:
+- `bookmarks`
+- `saved_collections`
+
+Required modules:
+- all saved posts
+- collection view
+- view saved post detail
+
+Buttons:
+- `Save` -> add or remove bookmark
+- `Move to Collection` -> collection picker
+- `Open Post` -> post detail
+- `Remove` -> unsave
+
+Suggested routes:
+- `/bookmarks`
+- `/saved-collections`
+- `/saved-collections/detail`
+
+## 20. Professional, Monetization, Wallet, Subscription, Premium
+
+Features:
+- `creator_tools`
+- `wallet_payments`
+- `subscriptions`
+- `premium_membership`
+
+Required modules:
+- creator dashboard
+- creator and professional tools
+- monetization and payment
+- wallet and payment
+- subscription management
+- premium membership plan list
+
+Buttons:
+- `Add Money` -> amount sheet + success state
+- `Withdraw` -> mock withdrawal request
+- `View Earnings` -> earnings summary
+- `Create Subscription Plan` -> plan form
+- `Upgrade Premium` -> mock checkout
+- `View Insights` -> chart detail placeholder
+
+Suggested routes:
+- `/creator-dashboard`
+- `/creator-tools`
+- `/wallet-payments`
+- `/wallet-payments/add-money`
+- `/subscriptions`
+- `/subscriptions/create`
+- `/premium`
+
+Suggested models:
+- `WalletTransactionModel`
+- `WalletBalanceModel`
+- `SubscriptionPlanModel`
+- `CreatorMetricModel`
+- `PremiumPlanModel`
+
+## 21. Event Flow
+
+Feature:
+- `lib/feature/events`
+
+Required modules:
+- view event
+- search event
+- filter event
+- add event
+
+Buttons:
+- `Create Event` -> event create form
+- `Join` -> toggle joined
+- `Interested` -> toggle interested
+- `Search` -> search result list
+- `Filter` -> event filter bottom sheet
+- `Share` -> share sheet
+
+Suggested routes:
+- `/events`
+- `/events/create`
+- `/events/detail`
+- `/events/search`
+
+Suggested models:
+- `EventModel`
+- `EventFilterModel`
+- `EventAttendeeModel`
+
+## 22. Hide, Block, Report
+
+These actions should be available across posts, profiles, chats, reels, and pages.
+
+Required static actions:
+
+- `Hide Post` -> remove from current feed and show undo snackbar
+- `Remove Hide` -> restore hidden post from hidden list
+- `Block` -> move user to blocked list
+- `Mute` -> set muted status
+- `Report` -> open category sheet and success confirmation
+
+Suggested shared model:
+- `ModerationActionModel`
+
+Suggested shared repository:
+- `SafetyRepository`
+
+## 23. Help and Support
+
+Feature:
+- `lib/feature/support_help`
+
+Required modules:
+- faq
+- support chat
+- support mail
+- report issue
+
+Buttons:
+- `Open FAQ` -> faq detail
+- `Start Chat` -> support chat thread
+- `Send Mail` -> mock mail compose success
+- `Submit Issue` -> confirmation screen
+
+Suggested routes:
+- `/support-help`
+- `/support-help/faq`
+- `/support-help/chat`
+- `/support-help/mail`
+
+## 24. Communities and Discovery
+
+Features:
+- `communities`
+- `groups`
+- `search_discovery`
+- `hashtags`
+- `trending`
+- `explore_recommendation`
+
+Required modules:
+- communities list
+- group list and detail
+- joined groups
+- discovery search
+- hashtag feed
+- trending feed
+
+Buttons:
+- `Join Community` -> toggle joined
+- `Create Group` -> create group form
+- `Search` -> filter mock content
+- `Open Hashtag` -> hashtag detail
+- `Follow Topic` -> toggle follow
+
+Suggested routes:
+- `/communities`
+- `/groups`
+- `/groups/detail`
+- `/search-discovery`
+- `/hashtags`
+- `/trending`
+- `/explore-recommendation`
+
+## 25. Connected App, Deep Link, Invite, About, Update, Legal, Maintenance, Logout
+
+Features:
+- `connected_apps`
+- `deep_link_handler`
+- `invite_referral`
+- `about_settings`
+- `app_update_flow`
+- `legal_compliance`
+- `maintenance_mode`
+
+Buttons:
+- `Connect App` -> local connected state
+- `Disconnect` -> confirmation dialog
+- `Test Deep Link` -> navigate to selected route preview
+- `Copy Invite Code` -> snackbar
+- `Share Invite` -> share sheet
+- `Check for Updates` -> update available state
+- `View Terms` -> legal detail
+- `Preview Maintenance` -> maintenance screen
+- `Logout` -> confirmation then auth route
+
+## 26. Settings Flow
+
+Feature:
+- `lib/feature/settings`
+
+Settings root must be one of the strongest modules in the app.
+
+Required sections:
+
+1. Account
+2. Password and security
+3. Device and sessions
+4. Verification request
+5. Account switching
+6. Archive center
+7. Privacy
+8. Advance privacy control
+9. Block and mute user
+10. Safety and privacy
+11. Report center
+12. Help and safety
+13. Notification
+14. Notification categories
+15. Msg and call
+16. Activity session
+17. Feed and content preference
+18. Explore recommendations
+19. Theme
+20. Language and accessibility
+21. Language and region
+22. Accessibility
+23. Localization support
+24. Accessibility support
+25. Data and privacy center
+26. Offline sync
+27. Connected apps
+28. Creator and professional tools
+29. Monetization & payment
+30. Wallet and payment
+31. Subscription
+32. Premium membership
+33. Communities and group
+34. Support and help
+35. About
+36. App update flow
+37. Legal and compliance
+38. Maintenance mode preview
+39. Logout
+
+### 26.1 Account Settings
+
+Must include:
+
+- name
+- username
+- bio
+- pronouns
+- website
+- email
+- phone
+- profile type
+- profile image
+
+Buttons:
+- `Edit` -> open editable mode
+- `Save` -> persist mock profile
+- `Change Username` -> validation + success snackbar
+- `Switch Account Type` -> modal selector
+- `Deactivate Account` -> confirm dialog
+- `Delete Account` -> danger confirm dialog
+
+### 26.2 Password and Security
+
+Must include:
+
+- change password
+- two factor auth toggle
+- biometric lock toggle
+- login alerts toggle
+- trusted device list
+
+Buttons:
+- `Change Password` -> change password form
+- `Enable 2FA` -> toggle and show success
+- `Enable Biometrics` -> toggle
+- `Run Security Checkup` -> progress then result screen
+
+### 26.3 Device and Sessions
+
+Must include:
+
+- current device
+- recent login sessions
+- revoke session
+
+Buttons:
+- `Log Out This Device` -> confirm
+- `Log Out Other Devices` -> confirm
+- `View Device` -> device detail bottom sheet
+
+### 26.4 Privacy and Safety
+
+Must include:
+
+- profile visibility
+- last seen
+- read receipts
+- tag permissions
+- mention permissions
+- comment permissions
+- repost permissions
+- hidden words
+- sensitive content
+- discoverability
+
+Buttons:
+- each toggle updates local repository immediately
+- `Manage Hidden Words` -> editor screen
+- `Reset Privacy Defaults` -> confirm dialog
+
+### 26.5 Notifications, Messages, Calls
+
+Must include:
+
+- push toggles
+- email toggles
+- in-app toggles
+- category toggles
+- chat preview toggle
+- media auto-download
+- call permissions
+
+Buttons:
+- toggle updates instantly
+- `Preview Notification` -> show sample snackbar
+- `Reset Categories` -> restore defaults
+
+### 26.6 Feed, Theme, Language, Accessibility, Data
+
+Must include:
+
+- theme selector
+- autoplay toggle
+- data saver
+- recommendation reset
+- language picker
+- region picker
+- text scale
+- reduced motion
+- captions
+- export data
+- clear cache
+- storage usage
+- offline sync queue
+
+Buttons:
+- `Theme` -> bottom sheet
+- `Reset Recommendations` -> confirm
+- `Export Data` -> fake export progress and success
+- `Clear Cache` -> success snackbar
+- `Retry Sync` -> replay pending actions
+
+## 27. Feature-to-Route Planning Map
+
+Use the current route set where already available.
+Add missing routes using this naming plan:
+
+```text
+/auth/login/email
+/auth/login/phone
+/auth/signup/step-1
+/auth/signup/step-2
+/auth/signup/step-3
+/stories/create
+/stories/view
+/create
+/create/text
+/create/media
+/create/tag-people
+/create/location
+/create/feeling
+/user-profile/edit
+/user-profile/followers
+/user-profile/following
+/chat/detail
+/chat/settings
+/reels
+/pages/create
+/pages/detail
+/jobs/create
+/jobs/detail
+/jobs/apply
+/marketplace/create
+/marketplace/detail
+/marketplace/checkout
+/events/create
+/events/detail
+/support-help/faq
+/support-help/chat
+/support-help/mail
+```
+
+## 28. Shared Static Action Patterns
+
+When backend is not ready, use these default outcomes:
+
+- create action -> add new item to top of list
+- edit action -> update local item and show snackbar
+- delete action -> remove item and show undo snackbar
+- like/follow/save -> optimistic local toggle
+- report/block/hide -> remove current item and log to repository
+- payment action -> fake success after delay
+- upload action -> `queued -> uploading -> completed`
+- otp flow -> accept `123456`
+- login flow -> accept any valid-looking input
+
+## 29. Required Mock Data Coverage
+
+Mock data should exist for:
+
+- users
+- stories
+- posts
+- comments
+- reels
+- chats
+- pages
+- jobs
+- marketplace products
+- events
+- wallets
+- subscriptions
+- settings values
 - notifications
-- connectivity
-- deep links
-- media picker
-- API client
+- reports
+- blocked users
+- drafts
+- uploads
 
-Improve these carefully:
-- do not overengineer fake production integrations
-- make interfaces and responsibilities clearer
-- keep them as strong scaffolds for future real integration
-- improve local storage keys and typed access patterns
-- improve mock upload and background-task simulation
-- improve connectivity/offline action structure
-- improve analytics event abstraction
-- improve API client abstraction even if still mock-based
+## 30. Recommended Implementation Order
 
-==================================================
-15. DESIGN SYSTEM AND UI CONSISTENCY
-==================================================
+1. standardize routes and route names
+2. standardize GetX controllers for auth, shell, home, settings
+3. complete static button behavior on every existing screen
+4. complete missing auth and onboarding screens
+5. complete create post, stories, reels, chat interactions
+6. complete profile, marketplace, jobs, events
+7. complete settings sub-screens and local persistence
+8. complete support, legal, maintenance, invite, connected apps
 
-The app already uses Material 3 and shared theme files.
-Refine the visual system across the app.
+## 31. Definition of Done
 
-Requirements:
-- unify spacing
-- unify cards, chips, pills, avatars, badges, section headers
-- unify empty states, loading states, and error states
-- unify bottom sheet patterns
-- unify action menus
-- improve list/detail consistency
-- improve role badges and verification visuals
-- improve creator/business visual differentiation
-- keep light and dark themes both polished
-- preserve the current project feel but make it more premium and coherent
+A feature is done only when:
 
-Do not create a random completely new design language.
-Evolve the existing app into a better product system.
+- screen exists
+- route exists
+- controller exists
+- mock data exists
+- button actions exist
+- loading and empty states exist
+- navigation is connected
+- no dead UI element remains
 
-==================================================
-16. TESTING AND CODE HEALTH
-==================================================
+## 32. Final Engineering Direction
 
-The project already passes analyze and test according to documentation.
-Do not break that.
-
-Improve code health by:
-- keeping flutter analyze clean
-- keeping flutter test passing
-- reducing duplication
-- improving naming
-- removing dead or confusing code when safe
-- adding targeted tests for critical local flows where valuable
-- keeping files reasonably sized
-- extracting reusable widgets when repeated
-- using comments only where useful
-
-==================================================
-17. DELIVERABLE FORMAT
-==================================================
-
-You must produce real code changes, not just explanations.
-
-Work in this order:
-
-Step 1:
-Audit the current project structure and identify the highest-value refactor targets without deleting breadth.
-
-Step 2:
-Standardize shared foundations:
-- route organization
-- dependency setup
-- reusable widgets
-- result/loading/error patterns
-- shared models where obvious duplication exists
-
-Step 3:
-Refine the main app shell, drawer, and settings architecture.
-
-Step 4:
-Refine core social flows:
-- home feed
-- create post
-- drafts/scheduling/upload manager
-- chat/inbox
-- profile system
-
-Step 5:
-Refine supporting feature modules without breaking current route coverage.
-
-Step 6:
-Ensure the app still runs cleanly with mock/local data.
-
-==================================================
-18. IMPORTANT CONSTRAINTS
-==================================================
-
-- Do not rebuild from scratch
-- Do not delete large feature surfaces just because backend is missing
-- Do not replace everything with generic placeholders
-- Do not collapse the project into a tiny MVP
-- Do not destroy existing routes
-- Do not create a new architecture that ignores the current project
-- Do not give only advice; make real implementation improvements
-- Do not reduce feature breadth
-
-Instead:
-- preserve breadth
-- improve depth
-- improve consistency
-- improve scalability
-- improve maintainability
-- improve local/mock realism
-- prepare for future backend integration
-
-==================================================
-19. FINAL EXPECTATION
-==================================================
-
-The result should feel like:
-- the same OptiZenqor Social project
-- but cleaner
-- more organized
-- more consistent
-- more polished
-- more professional
-- more scalable
-- more complete
-
-Do not output only a plan.
-Do actual repository-quality implementation.
-If the task is too large for one pass, start by making the highest-value architectural and feature improvements first, while keeping the app runnable and preserving the existing product surface.
+Build every requested feature as a static-complete mock product first.
+Do not leave placeholder buttons.
+Do not block progress waiting for APIs.
+Use GetX consistently for routes, controllers, dialogs, snackbars, and local feature state.
+Follow the existing feature-first structure.
+Keep each feature implementation ready for future repository replacement with real backend services.
