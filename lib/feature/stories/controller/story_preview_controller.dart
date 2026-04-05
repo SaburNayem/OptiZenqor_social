@@ -4,9 +4,9 @@ import '../model/story_preview_model.dart';
 
 class StoryPreviewController extends ChangeNotifier {
   StoryPreviewController(this.preview)
-      : textController = TextEditingController(text: preview.initialText),
-        textFocusNode = FocusNode(),
-        _selectedMusic = preview.initialMusic;
+    : textController = TextEditingController(text: preview.initialText),
+      textFocusNode = FocusNode(),
+      _selectedMusic = preview.initialMusic;
 
   static const List<String> musicOptions = <String>[
     'Late Night Drive',
@@ -15,16 +15,27 @@ class StoryPreviewController extends ChangeNotifier {
     'Soft Horizon',
   ];
 
+  static const List<Color> textColors = <Color>[
+    Colors.white,
+    Color(0xFFFFF176),
+    Color(0xFF80DEEA),
+    Color(0xFFFFAB91),
+    Color(0xFFC5E1A5),
+  ];
+
   final StoryPreviewModel preview;
   final TextEditingController textController;
   final FocusNode textFocusNode;
 
   String _selectedMusic;
   bool _isEditingText = false;
+  int _textColorIndex = 0;
 
   String get selectedMusic => _selectedMusic;
   bool get isEditingText => _isEditingText;
+  Color get selectedTextColor => textColors[_textColorIndex];
   bool get hasText => textController.text.trim().isNotEmpty;
+  String get currentText => textController.text.trim();
 
   void startTextEditing() {
     _isEditingText = true;
@@ -43,6 +54,11 @@ class StoryPreviewController extends ChangeNotifier {
 
   void setMusic(String music) {
     _selectedMusic = music;
+    notifyListeners();
+  }
+
+  void cycleTextColor() {
+    _textColorIndex = (_textColorIndex + 1) % textColors.length;
     notifyListeners();
   }
 

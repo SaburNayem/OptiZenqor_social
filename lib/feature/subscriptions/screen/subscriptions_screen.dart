@@ -1,63 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/app_loader.dart';
 import '../controller/subscriptions_controller.dart';
 
-class SubscriptionsScreen extends StatefulWidget {
+class SubscriptionsScreen extends StatelessWidget {
   const SubscriptionsScreen({super.key});
 
   @override
-  State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
-}
-
-class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
-  final SubscriptionsController _controller = SubscriptionsController();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.load();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Subscriptions')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, _) {
-          if (_controller.isLoading) {
-            return const Center(child: AppLoader());
+    return BlocProvider<SubscriptionsController>(
+      create: (_) => SubscriptionsController()..load(),
+      child: BlocBuilder<SubscriptionsController, SubscriptionsState>(
+        builder: (context, state) {
+          final controller = context.read<SubscriptionsController>();
+          if (state.isLoading) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Subscriptions')),
+              body: const Center(child: AppLoader()),
+            );
           }
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: _controller.plans
-                .map(
-                  (plan) => Card(
-                    child: ListTile(
-                      title: Text(plan.name),
-                      subtitle: Text(
-                        '\$${plan.price.toStringAsFixed(2)} / month',
-                      ),
-                      trailing: FilledButton(
-                        onPressed: () => _controller.upgradeOrDowngrade(plan.id),
-                        child: Text(
-                          _controller.activePlanId == plan.id
-                              ? 'Active'
-                              : 'Select',
+          return Scaffold(
+            appBar: AppBar(title: const Text('Subscriptions')),
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: state.plans
+                  .map(
+                    (plan) => Card(
+                      child: ListTile(
+                        title: Text(plan.name),
+                        subtitle: Text(
+                          '\$${plan.price.toStringAsFixed(2)} / month',
+                        ),
+                        trailing: FilledButton(
+                          onPressed: () =>
+                              controller.upgradeOrDowngrade(plan.id),
+                          child: Text(
+                            state.activePlanId == plan.id ? 'Active' : 'Select',
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                )
-                .toList(),
+                  )
+                  .toList(),
+            ),
           );
         },
       ),

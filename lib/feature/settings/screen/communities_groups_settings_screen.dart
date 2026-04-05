@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/widgets/app_loader.dart';
@@ -7,87 +8,81 @@ import '../controller/settings_state_controller.dart';
 import '../model/settings_keys.dart';
 import '../widget/settings_tiles.dart';
 
-class CommunitiesGroupsSettingsScreen extends StatefulWidget {
+class CommunitiesGroupsSettingsScreen extends StatelessWidget {
   const CommunitiesGroupsSettingsScreen({super.key});
 
   @override
-  State<CommunitiesGroupsSettingsScreen> createState() =>
-      _CommunitiesGroupsSettingsScreenState();
-}
-
-class _CommunitiesGroupsSettingsScreenState
-    extends State<CommunitiesGroupsSettingsScreen> {
-  final SettingsStateController _controller = SettingsStateController();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.load();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Communities & Groups')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          if (!_controller.loaded) {
-            return const Center(child: AppLoader());
+    return BlocProvider<SettingsStateController>(
+      create: (_) => SettingsStateController()..load(),
+      child: BlocBuilder<SettingsStateController, SettingsState>(
+        builder: (context, state) {
+          final controller = context.read<SettingsStateController>();
+          if (!state.loaded) {
+            return Scaffold(
+              appBar: AppBar(title: Text('Communities & Groups')),
+              body: Center(child: AppLoader()),
+            );
           }
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              SettingsSwitchTile(
-                title: 'Community invites',
-                subtitle: 'Allow invites to new communities',
-                icon: Icons.forum_outlined,
-                value: _controller.getBool(SettingsKeys.communityInvites, fallback: true),
-                onChanged: (value) =>
-                    _controller.setBool(SettingsKeys.communityInvites, value),
-              ),
-              SettingsSwitchTile(
-                title: 'Group mentions',
-                subtitle: 'Notify me when mentioned in groups',
-                icon: Icons.alternate_email_outlined,
-                value: _controller.getBool(SettingsKeys.groupMentions, fallback: true),
-                onChanged: (value) =>
-                    _controller.setBool(SettingsKeys.groupMentions, value),
-              ),
-              SettingsSwitchTile(
-                title: 'Event reminders',
-                subtitle: 'Notify me about upcoming events',
-                icon: Icons.event_outlined,
-                value: _controller.getBool(SettingsKeys.eventsReminders, fallback: true),
-                onChanged: (value) =>
-                    _controller.setBool(SettingsKeys.eventsReminders, value),
-              ),
-              const SizedBox(height: 12),
-              SettingsNavigationTile(
-                title: 'Communities',
-                subtitle: 'Browse and manage communities',
-                icon: Icons.groups_outlined,
-                onTap: () => AppGet.toNamed(RouteNames.communities),
-              ),
-              SettingsNavigationTile(
-                title: 'Groups',
-                subtitle: 'Manage group memberships',
-                icon: Icons.group_work_outlined,
-                onTap: () => AppGet.toNamed(RouteNames.groups),
-              ),
-              SettingsNavigationTile(
-                title: 'Events',
-                subtitle: 'Upcoming events and reminders',
-                icon: Icons.calendar_today_outlined,
-                onTap: () => AppGet.toNamed(RouteNames.events),
-              ),
-            ],
+          return Scaffold(
+            appBar: AppBar(title: const Text('Communities & Groups')),
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                SettingsSwitchTile(
+                  title: 'Community invites',
+                  subtitle: 'Allow invites to new communities',
+                  icon: Icons.forum_outlined,
+                  value: state.getBool(
+                    SettingsKeys.communityInvites,
+                    fallback: true,
+                  ),
+                  onChanged: (value) =>
+                      controller.setBool(SettingsKeys.communityInvites, value),
+                ),
+                SettingsSwitchTile(
+                  title: 'Group mentions',
+                  subtitle: 'Notify me when mentioned in groups',
+                  icon: Icons.alternate_email_outlined,
+                  value: state.getBool(
+                    SettingsKeys.groupMentions,
+                    fallback: true,
+                  ),
+                  onChanged: (value) =>
+                      controller.setBool(SettingsKeys.groupMentions, value),
+                ),
+                SettingsSwitchTile(
+                  title: 'Event reminders',
+                  subtitle: 'Notify me about upcoming events',
+                  icon: Icons.event_outlined,
+                  value: state.getBool(
+                    SettingsKeys.eventsReminders,
+                    fallback: true,
+                  ),
+                  onChanged: (value) =>
+                      controller.setBool(SettingsKeys.eventsReminders, value),
+                ),
+                const SizedBox(height: 12),
+                SettingsNavigationTile(
+                  title: 'Communities',
+                  subtitle: 'Browse and manage communities',
+                  icon: Icons.groups_outlined,
+                  onTap: () => AppGet.toNamed(RouteNames.communities),
+                ),
+                SettingsNavigationTile(
+                  title: 'Groups',
+                  subtitle: 'Manage group memberships',
+                  icon: Icons.group_work_outlined,
+                  onTap: () => AppGet.toNamed(RouteNames.groups),
+                ),
+                SettingsNavigationTile(
+                  title: 'Events',
+                  subtitle: 'Upcoming events and reminders',
+                  icon: Icons.calendar_today_outlined,
+                  onTap: () => AppGet.toNamed(RouteNames.events),
+                ),
+              ],
+            ),
           );
         },
       ),

@@ -1,54 +1,52 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/data/models/form_state_model.dart';
-import '../../../../core/enums/user_role.dart';
 import '../../../../core/data/service/analytics_service.dart';
+import '../../../../core/enums/user_role.dart';
 import '../../../../route/route_names.dart';
 import '../../repository/auth_repository.dart';
 
-class LoginController extends ChangeNotifier {
+class LoginController extends Cubit<FormStateModel> {
   LoginController({
     AuthRepository? authRepository,
     AnalyticsService? analyticsService,
   }) : _authRepository = authRepository ?? AuthRepository(),
-       _analyticsService = analyticsService ?? AnalyticsService();
+       _analyticsService = analyticsService ?? AnalyticsService(),
+       super(const FormStateModel());
 
   final AuthRepository _authRepository;
   final AnalyticsService _analyticsService;
 
-  FormStateModel formState = const FormStateModel();
   UserRole selectedRole = UserRole.user;
 
   Future<void> login() async {
-    formState = formState.copyWith(isSubmitting: true, errorMessage: null);
-    notifyListeners();
+    emit(state.copyWith(isSubmitting: true, errorMessage: null));
     try {
       await _authRepository.login(selectedRole);
       await _analyticsService.logEvent(
         'login_success',
         params: <String, dynamic>{'role': selectedRole.name},
       );
-      formState = formState.copyWith(
-        isSubmitting: false,
-        successMessage: 'Login successful',
+      emit(
+        state.copyWith(isSubmitting: false, successMessage: 'Login successful'),
       );
-      notifyListeners();
       AppGet.offNamed(RouteNames.shell);
     } catch (e, st) {
       debugPrint('[Login] Failed: $e');
       debugPrint('$st');
-      formState = formState.copyWith(
-        isSubmitting: false,
-        isValid: false,
-        errorMessage: 'Unable to continue. Please try again.',
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          isValid: false,
+          errorMessage: 'Unable to continue. Please try again.',
+        ),
       );
-      notifyListeners();
     }
   }
 
   void updateRole(UserRole role) {
     selectedRole = role;
-    notifyListeners();
   }
 }

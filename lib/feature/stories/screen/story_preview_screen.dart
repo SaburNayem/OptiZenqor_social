@@ -9,10 +9,7 @@ import '../controller/story_preview_controller.dart';
 import '../model/story_preview_model.dart';
 
 class StoryPreviewScreen extends StatefulWidget {
-  const StoryPreviewScreen({
-    required this.preview,
-    super.key,
-  });
+  const StoryPreviewScreen({required this.preview, super.key});
 
   final StoryPreviewModel preview;
 
@@ -40,75 +37,78 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (BuildContext context, _) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              _buildMedia(),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: <Color>[
-                      Colors.black.withValues(alpha: 0.28),
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.34),
-                    ],
+      body: SizedBox.expand(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (BuildContext context, _) {
+            return Stack(
+              children: [
+                Positioned.fill(child: _buildMedia()),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: <Color>[
+                          Colors.black.withValues(alpha: 0.28),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.34),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
-                  child: Column(
-                    children: [
-                      Row(
+                Positioned.fill(
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+                      child: Column(
                         children: [
-                          _buildTopButton(
-                            icon: Icons.arrow_back_ios_new_rounded,
-                            onTap: () => AppGet.back<void>(),
+                          Row(
+                            children: [
+                              _buildTopButton(
+                                icon: Icons.arrow_back_ios_new_rounded,
+                                onTap: () => AppGet.back<void>(),
+                              ),
+                              const Spacer(),
+                              FilledButton(
+                                onPressed: _isSharing ? null : _sharePreview,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.splashBackground,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: _isSharing
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text('Share'),
+                              ),
+                            ],
                           ),
                           const Spacer(),
-                          FilledButton(
-                            onPressed: _isSharing ? null : _sharePreview,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.splashBackground,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: _isSharing
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text('Share'),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(child: _buildTextOverlay()),
+                              const SizedBox(width: 12),
+                              _buildRightTools(),
+                            ],
                           ),
                         ],
                       ),
-                      const Spacer(),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: _buildTextOverlay(),
-                          ),
-                          const SizedBox(width: 12),
-                          _buildRightTools(),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -133,16 +133,10 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     }
 
     if (widget.preview.isLocalFile) {
-      return Image.file(
-        File(widget.preview.mediaPath),
-        fit: BoxFit.cover,
-      );
+      return Image.file(File(widget.preview.mediaPath), fit: BoxFit.cover);
     }
 
-    return Image.network(
-      widget.preview.mediaPath,
-      fit: BoxFit.cover,
-    );
+    return Image.network(widget.preview.mediaPath, fit: BoxFit.cover);
   }
 
   Widget _buildTextOverlay() {
@@ -161,9 +155,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.18),
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,34 +176,47 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            TextField(
-              controller: _controller.textController,
-              focusNode: _controller.textFocusNode,
-              onTap: _controller.startTextEditing,
-              onChanged: (_) => _controller.onTextChanged(),
-              maxLines: 5,
-              minLines: 1,
-              textAlign: TextAlign.left,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                height: 1.15,
-              ),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: _controller.hasText ? null : 'Add text',
-                hintStyle: const TextStyle(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
+            if (_controller.hasText)
+              Text(
+                _controller.currentText,
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  color: _controller.selectedTextColor,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
                 ),
-                isCollapsed: true,
-                suffixIcon: _controller.isEditingText
-                    ? IconButton(
-                        onPressed: _controller.stopTextEditing,
-                        icon: const Icon(Icons.check_rounded, color: Colors.white),
-                      )
-                    : null,
+              )
+            else
+              const Text(
+                'Add text',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  height: 1.15,
+                ),
+              ),
+            Offstage(
+              offstage: true,
+              child: TextField(
+                controller: _controller.textController,
+                focusNode: _controller.textFocusNode,
+                onTap: _controller.startTextEditing,
+                onChanged: (_) => _controller.onTextChanged(),
+                maxLines: 5,
+                minLines: 1,
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  color: _controller.selectedTextColor,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  height: 1.15,
+                ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isCollapsed: true,
+                ),
               ),
             ),
           ],
@@ -235,6 +240,12 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
               }
             });
           },
+        ),
+        const SizedBox(height: 12),
+        _buildToolButton(
+          icon: Icons.palette_outlined,
+          label: 'Color',
+          onTap: _controller.cycleTextColor,
         ),
         const SizedBox(height: 12),
         _buildToolButton(

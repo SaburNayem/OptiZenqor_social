@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/widgets/app_loader.dart';
 import '../controller/settings_state_controller.dart';
 import '../model/settings_keys.dart';
 
-class ConnectedAppsScreen extends StatefulWidget {
+class ConnectedAppsScreen extends StatelessWidget {
   const ConnectedAppsScreen({super.key});
-
-  @override
-  State<ConnectedAppsScreen> createState() => _ConnectedAppsScreenState();
-}
-
-class _ConnectedAppsScreenState extends State<ConnectedAppsScreen> {
-  final SettingsStateController _controller = SettingsStateController();
 
   final Map<String, String> _apps = const {
     'Figma Social Kit': 'Design templates and analytics',
@@ -22,43 +16,37 @@ class _ConnectedAppsScreenState extends State<ConnectedAppsScreen> {
   };
 
   @override
-  void initState() {
-    super.initState();
-    _controller.load();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Connected Apps')),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          if (!_controller.loaded) {
-            return const Center(child: AppLoader());
+    return BlocProvider<SettingsStateController>(
+      create: (_) => SettingsStateController()..load(),
+      child: BlocBuilder<SettingsStateController, SettingsState>(
+        builder: (context, state) {
+          final controller = context.read<SettingsStateController>();
+          if (!state.loaded) {
+            return Scaffold(
+              appBar: AppBar(title: Text('Connected Apps')),
+              body: Center(child: AppLoader()),
+            );
           }
-          final saved = _controller.getMap(SettingsKeys.connectedApps);
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: _apps.entries.map((entry) {
-              final isConnected = (saved[entry.key] as bool?) ?? false;
-              return SwitchListTile(
-                title: Text(entry.key),
-                subtitle: Text(entry.value),
-                value: isConnected,
-                onChanged: (value) {
-                  final updated = Map<String, dynamic>.from(saved);
-                  updated[entry.key] = value;
-                  _controller.setMap(SettingsKeys.connectedApps, updated);
-                },
-              );
-            }).toList(),
+          final saved = state.getMap(SettingsKeys.connectedApps);
+          return Scaffold(
+            appBar: AppBar(title: const Text('Connected Apps')),
+            body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: _apps.entries.map((entry) {
+                final isConnected = (saved[entry.key] as bool?) ?? false;
+                return SwitchListTile(
+                  title: Text(entry.key),
+                  subtitle: Text(entry.value),
+                  value: isConnected,
+                  onChanged: (value) {
+                    final updated = Map<String, dynamic>.from(saved);
+                    updated[entry.key] = value;
+                    controller.setMap(SettingsKeys.connectedApps, updated);
+                  },
+                );
+              }).toList(),
+            ),
           );
         },
       ),

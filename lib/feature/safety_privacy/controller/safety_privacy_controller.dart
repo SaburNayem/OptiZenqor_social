@@ -1,23 +1,21 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../model/safety_privacy_model.dart';
 import '../repository/safety_privacy_repository.dart';
 
-class SafetyPrivacyController extends ChangeNotifier {
+class SafetyPrivacyController extends Cubit<SafetyPrivacyModel> {
   SafetyPrivacyController({SafetyPrivacyRepository? repository})
-      : _repository = repository ?? SafetyPrivacyRepository();
+    : _repository = repository ?? SafetyPrivacyRepository(),
+      super(const SafetyPrivacyModel());
 
   final SafetyPrivacyRepository _repository;
-  SafetyPrivacyModel settings = const SafetyPrivacyModel();
 
   Future<void> load() async {
-    settings = await _repository.load();
-    notifyListeners();
+    emit(await _repository.load());
   }
 
   Future<void> update(SafetyPrivacyModel value) async {
-    settings = value;
     await _repository.save(value);
-    notifyListeners();
+    emit(value);
   }
 }

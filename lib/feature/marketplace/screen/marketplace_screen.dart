@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class MarketplaceScreen extends StatefulWidget {
+class MarketplaceScreen extends StatelessWidget {
   const MarketplaceScreen({super.key});
-
-  @override
-  State<MarketplaceScreen> createState() => _MarketplaceScreenState();
-}
-
-class _MarketplaceScreenState extends State<MarketplaceScreen> {
   static const List<_MarketplaceItem> _allItems = <_MarketplaceItem>[
     _MarketplaceItem(
       title: 'Creator Camera Rig',
@@ -35,112 +30,135 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     ),
   ];
 
-  String _query = '';
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<_MarketplaceCubit>(
+      create: (_) => _MarketplaceCubit(),
+      child: BlocBuilder<_MarketplaceCubit, String>(
+        builder: (context, query) {
+          final visibleItems = _visibleItems(query);
+          return Scaffold(
+            appBar: AppBar(title: const Text('Marketplace')),
+            body: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Search products',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: context.read<_MarketplaceCubit>().updateQuery,
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          Chip(label: Text('Cart placeholder')),
+                          Chip(label: Text('Checkout placeholder')),
+                          Chip(label: Text('Saved addresses')),
+                          Chip(label: Text('Order history')),
+                          Chip(label: Text('Order status')),
+                          Chip(label: Text('Return/refund')),
+                          Chip(label: Text('Wishlist')),
+                          Chip(label: Text('Nearby marketplace items')),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: visibleItems.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.78,
+                        ),
+                    itemBuilder: (context, index) {
+                      final item = visibleItems[index];
+                      return Card(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(12),
+                                  ),
+                                ),
+                                child: Icon(
+                                  item.icon,
+                                  size: 52,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(item.price),
+                                  Text(item.location),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
-  List<_MarketplaceItem> get _visibleItems {
-    final term = _query.trim().toLowerCase();
+  List<_MarketplaceItem> _visibleItems(String query) {
+    final term = query.trim().toLowerCase();
     if (term.isEmpty) {
       return _allItems;
     }
     return _allItems
-        .where((item) =>
-            item.title.toLowerCase().contains(term) ||
-            item.location.toLowerCase().contains(term))
+        .where(
+          (item) =>
+              item.title.toLowerCase().contains(term) ||
+              item.location.toLowerCase().contains(term),
+        )
         .toList();
   }
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Marketplace')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search products',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (value) => setState(() => _query = value),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Card(
-              child: Padding(
-                padding: EdgeInsets.all(12),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    Chip(label: Text('Cart placeholder')),
-                    Chip(label: Text('Checkout placeholder')),
-                    Chip(label: Text('Saved addresses')),
-                    Chip(label: Text('Order history')),
-                    Chip(label: Text('Order status')),
-                    Chip(label: Text('Return/refund')),
-                    Chip(label: Text('Wishlist')),
-                    Chip(label: Text('Nearby marketplace items')),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _visibleItems.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.78,
-              ),
-              itemBuilder: (context, index) {
-                final item = _visibleItems[index];
-                return Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer,
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(12),
-                            ),
-                          ),
-                          child: Icon(
-                            item.icon,
-                            size: 52,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 4),
-                            Text(item.price),
-                            Text(item.location),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+class _MarketplaceCubit extends Cubit<String> {
+  _MarketplaceCubit() : super('');
+
+  void updateQuery(String value) => emit(value);
 }
 
 class _MarketplaceItem {

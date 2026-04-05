@@ -7,15 +7,13 @@ import '../controller/story_text_composer_controller.dart';
 import '../model/story_text_composer_model.dart';
 
 class StoryTextComposerScreen extends StatefulWidget {
-  const StoryTextComposerScreen({
-    required this.config,
-    super.key,
-  });
+  const StoryTextComposerScreen({required this.config, super.key});
 
   final StoryTextComposerModel config;
 
   @override
-  State<StoryTextComposerScreen> createState() => _StoryTextComposerScreenState();
+  State<StoryTextComposerScreen> createState() =>
+      _StoryTextComposerScreenState();
 }
 
 class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
@@ -42,7 +40,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: Colors.black,
       body: AnimatedBuilder(
         animation: _controller,
         builder: (BuildContext context, _) {
@@ -52,14 +50,11 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
             behavior: HitTestBehavior.opaque,
             onTap: () => _controller.textFocusNode.requestFocus(),
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: <Color>[
-                    Color(0xFFF8FAFD),
-                    AppColors.lightBackground,
-                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: <Color>[Color(gradient[0]), Color(gradient[1])],
                 ),
               ),
               child: SafeArea(
@@ -73,15 +68,21 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                             onPressed: () => AppGet.back<void>(),
                             icon: const Icon(
                               Icons.arrow_back_ios_new_rounded,
-                              color: Colors.black87,
+                              color: Colors.white,
                             ),
                           ),
                           const Spacer(),
                           FilledButton(
                             onPressed: _isSharing ? null : _shareStory,
                             style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.splashBackground,
-                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppColors.primary,
+                              minimumSize: const Size(0, 40),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 10,
+                              ),
                             ),
                             child: _isSharing
                                 ? const SizedBox(
@@ -98,133 +99,144 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                       ),
                       const SizedBox(height: 12),
                       Expanded(
-                        child: Center(
-                          child: Container(
-                            width: double.infinity,
-                            constraints: const BoxConstraints(maxWidth: 420),
-                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: <Color>[
-                                  Color(gradient[0]),
-                                  Color(gradient[1]),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: const SizedBox.shrink(),
+                                  ),
+                                  const Spacer(),
+                                  if (_controller.showMusic)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.18,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.music_note_rounded,
+                                            color: Colors.white,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            _controller.selectedMusic,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  const SizedBox(height: 18),
+                                  GestureDetector(
+                                    onTap: () => _controller.textFocusNode
+                                        .requestFocus(),
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        minHeight: 120,
+                                      ),
+                                      child: Center(
+                                        child: _controller.hasText
+                                            ? Text(
+                                                _controller.currentText,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: _controller
+                                                      .selectedTextColor,
+                                                  fontSize: 34,
+                                                  fontWeight: FontWeight.w700,
+                                                  height: 1.15,
+                                                ),
+                                              )
+                                            : const Text(
+                                                'Share your story',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 34,
+                                                  fontWeight: FontWeight.w600,
+                                                  height: 1.15,
+                                                ),
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                  Offstage(
+                                    offstage: true,
+                                    child: TextField(
+                                      controller: _controller.textController,
+                                      focusNode: _controller.textFocusNode,
+                                      onTap: () => _controller.textFocusNode
+                                          .requestFocus(),
+                                      onChanged: (_) =>
+                                          _controller.onTextChanged(),
+                                      maxLines: 6,
+                                      minLines: 1,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: _controller.selectedTextColor,
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1.15,
+                                      ),
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: <BoxShadow>[
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.12),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 12),
-                                ),
-                              ],
                             ),
-                            child: Column(
-                              children: [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    widget.config.startWithMusic
-                                        ? 'Music story'
-                                        : 'Text story',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                            const SizedBox(width: 12),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildSideTool(
+                                    icon: Icons.palette_outlined,
+                                    label: 'Theme',
+                                    onTap: _controller.cycleBackground,
                                   ),
-                                ),
-                                const Spacer(),
-                                if (_controller.showMusic)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.18),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.music_note_rounded,
-                                          color: Colors.white,
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          _controller.selectedMusic,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  const SizedBox(height: 12),
+                                  _buildSideTool(
+                                    icon: Icons.text_fields_rounded,
+                                    label: 'Text',
+                                    onTap: () => _controller.textFocusNode
+                                        .requestFocus(),
                                   ),
-                                const SizedBox(height: 18),
-                                TextField(
-                                  controller: _controller.textController,
-                                  focusNode: _controller.textFocusNode,
-                                  onTap: () => _controller.textFocusNode.requestFocus(),
-                                  onChanged: (_) => _controller.onTextChanged(),
-                                  maxLines: 6,
-                                  minLines: 1,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.15,
+                                  const SizedBox(height: 12),
+                                  _buildSideTool(
+                                    icon: Icons.palette_outlined,
+                                    label: 'Color',
+                                    onTap: _controller.cycleTextColor,
                                   ),
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Share your story',
-                                    hintStyle: TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  const SizedBox(height: 12),
+                                  _buildSideTool(
+                                    icon: Icons.music_note_outlined,
+                                    label: 'Music',
+                                    onTap: _showMusicPicker,
                                   ),
-                                ),
-                                const Spacer(),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        onPressed: _controller.cycleBackground,
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: Colors.white,
-                                          side: BorderSide(
-                                            color: Colors.white.withValues(alpha: 0.4),
-                                          ),
-                                        ),
-                                        icon: const Icon(Icons.palette_outlined),
-                                        label: const Text('Background'),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        onPressed: _showMusicPicker,
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: Colors.white,
-                                          side: BorderSide(
-                                            color: Colors.white.withValues(alpha: 0.4),
-                                          ),
-                                        ),
-                                        icon: const Icon(Icons.music_note_outlined),
-                                        label: const Text('Music'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
@@ -238,6 +250,38 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     );
   }
 
+  Widget _buildSideTool({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 72,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _showMusicPicker() async {
     final String? next = await showModalBottomSheet<String>(
       context: context,
@@ -246,7 +290,9 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
         return SafeArea(
           child: ListView(
             shrinkWrap: true,
-            children: StoryTextComposerController.musicOptions.map((String track) {
+            children: StoryTextComposerController.musicOptions.map((
+              String track,
+            ) {
               return ListTile(
                 leading: const Icon(Icons.music_note_rounded),
                 title: Text(track),

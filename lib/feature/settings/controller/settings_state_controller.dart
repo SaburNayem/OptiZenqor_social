@@ -1,28 +1,25 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../repository/settings_preferences_repository.dart';
 
-class SettingsStateController extends ChangeNotifier {
-  SettingsStateController({SettingsPreferencesRepository? repository})
-      : _repository = repository ?? SettingsPreferencesRepository();
+class SettingsState {
+  const SettingsState({
+    this.values = const <String, dynamic>{},
+    this.loaded = false,
+  });
 
-  final SettingsPreferencesRepository _repository;
-  Map<String, dynamic> _state = <String, dynamic>{};
-  bool _loaded = false;
+  final Map<String, dynamic> values;
+  final bool loaded;
 
-  bool get loaded => _loaded;
-
-  Future<void> load() async {
-    if (_loaded) {
-      return;
-    }
-    _state = await _repository.readAll();
-    _loaded = true;
-    notifyListeners();
+  SettingsState copyWith({Map<String, dynamic>? values, bool? loaded}) {
+    return SettingsState(
+      values: values ?? this.values,
+      loaded: loaded ?? this.loaded,
+    );
   }
 
   bool getBool(String key, {bool fallback = false}) {
-    final value = _state[key];
+    final value = values[key];
     if (value is bool) {
       return value;
     }
@@ -30,7 +27,7 @@ class SettingsStateController extends ChangeNotifier {
   }
 
   String getString(String key, {String fallback = ''}) {
-    final value = _state[key];
+    final value = values[key];
     if (value is String) {
       return value;
     }
@@ -38,7 +35,7 @@ class SettingsStateController extends ChangeNotifier {
   }
 
   Map<String, dynamic> getMap(String key) {
-    final value = _state[key];
+    final value = values[key];
     if (value is Map<String, dynamic>) {
       return value;
     }
@@ -47,22 +44,37 @@ class SettingsStateController extends ChangeNotifier {
     }
     return <String, dynamic>{};
   }
+}
+
+class SettingsStateController extends Cubit<SettingsState> {
+  SettingsStateController({SettingsPreferencesRepository? repository})
+    : _repository = repository ?? SettingsPreferencesRepository(),
+      super(const SettingsState());
+
+  final SettingsPreferencesRepository _repository;
+
+  Future<void> load() async {
+    if (state.loaded) {
+      return;
+    }
+    final values = await _repository.readAll();
+    emit(SettingsState(values: values, loaded: true));
+  }
 
   Future<void> setBool(String key, bool value) async {
-    _state[key] = value;
-    notifyListeners();
-    await _repository.writeAll(_state);
+    await _write(<String, dynamic>{...state.values, key: value});
   }
 
   Future<void> setString(String key, String value) async {
-    _state[key] = value;
-    notifyListeners();
-    await _repository.writeAll(_state);
+    await _write(<String, dynamic>{...state.values, key: value});
   }
 
   Future<void> setMap(String key, Map<String, dynamic> value) async {
-    _state[key] = value;
-    notifyListeners();
-    await _repository.writeAll(_state);
+    await _write(<String, dynamic>{...state.values, key: value});
+  }
+
+  Future<void> _write(Map<String, dynamic> values) async {
+    emit(state.copyWith(values: values));
+    await _repository.writeAll(values);
   }
 }
