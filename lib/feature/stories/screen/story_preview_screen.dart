@@ -245,7 +245,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         _buildToolButton(
           icon: Icons.palette_outlined,
           label: 'Color',
-          onTap: _controller.cycleTextColor,
+          onTap: _showTextColorPicker,
         ),
         const SizedBox(height: 12),
         _buildToolButton(
@@ -336,6 +336,147 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     }
 
     _controller.setMusic(next);
+  }
+
+  Future<void> _showTextColorPicker() async {
+    HSVColor tempColor = HSVColor.fromColor(_controller.selectedTextColor);
+    final Color? next = await showDialog<Color>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setPickerState) {
+              void updateColor(Offset localPosition, Size size) {
+                final double dx = localPosition.dx.clamp(0, size.width);
+                final double dy = localPosition.dy.clamp(0, size.height);
+                setPickerState(() {
+                  tempColor = HSVColor.fromAHSV(
+                    1,
+                    (dx / size.width) * 360,
+                    1,
+                    1 - (dy / size.height),
+                  );
+                });
+              }
+
+              return Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.82),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        const double pickerHeight = 180;
+                        final double pickerWidth = constraints.maxWidth;
+                        final double knobLeft =
+                            (tempColor.hue / 360) * pickerWidth;
+                        final double knobTop =
+                            (1 - tempColor.value) * pickerHeight;
+
+                        return GestureDetector(
+                          onTapDown: (details) => updateColor(
+                            details.localPosition,
+                            Size(pickerWidth, pickerHeight),
+                          ),
+                          onPanDown: (details) => updateColor(
+                            details.localPosition,
+                            Size(pickerWidth, pickerHeight),
+                          ),
+                          onPanUpdate: (details) => updateColor(
+                            details.localPosition,
+                            Size(pickerWidth, pickerHeight),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: SizedBox(
+                              height: pickerHeight,
+                              width: double.infinity,
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: <Color>[
+                                          Color(0xFFFF0000),
+                                          Color(0xFFFFFF00),
+                                          Color(0xFF00FF00),
+                                          Color(0xFF00FFFF),
+                                          Color(0xFF0000FF),
+                                          Color(0xFFFF00FF),
+                                          Color(0xFFFF0000),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: <Color>[
+                                          Colors.transparent,
+                                          Colors.black,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    left: knobLeft.clamp(10, pickerWidth - 10) - 10,
+                                    top: knobTop.clamp(10, pickerHeight - 10) - 10,
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        color: tempColor.toColor(),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: tempColor.toColor(),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    FilledButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(tempColor.toColor()),
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    if (next == null) {
+      return;
+    }
+    _controller.setTextColor(next);
   }
 
   Future<void> _sharePreview() async {

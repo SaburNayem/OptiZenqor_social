@@ -35,14 +35,46 @@ class StoryTextComposerController extends ChangeNotifier {
 
   String _selectedMusic;
   int _gradientIndex = 0;
-  int _textColorIndex = 0;
+  Color _selectedTextColor = textColors.first;
+  int _textStyleIndex = 0;
 
   String get selectedMusic => _selectedMusic;
   int get gradientIndex => _gradientIndex;
-  Color get selectedTextColor => textColors[_textColorIndex];
+  Color get selectedTextColor => _selectedTextColor;
+  int get textStyleIndex => _textStyleIndex;
   bool get hasText => textController.text.trim().isNotEmpty;
   bool get showMusic => config.startWithMusic || _selectedMusic.isNotEmpty;
   String get currentText => textController.text.trim();
+
+  FontWeight get selectedFontWeight {
+    switch (_textStyleIndex) {
+      case 1:
+        return FontWeight.w500;
+      case 2:
+        return FontWeight.w800;
+      default:
+        return FontWeight.w700;
+    }
+  }
+
+  FontStyle get selectedFontStyle {
+    return _textStyleIndex == 1 ? FontStyle.italic : FontStyle.normal;
+  }
+
+  String? get selectedFontFamily {
+    switch (_textStyleIndex) {
+      case 1:
+        return 'serif';
+      case 2:
+        return 'monospace';
+      default:
+        return null;
+    }
+  }
+
+  double get selectedLetterSpacing {
+    return _textStyleIndex == 2 ? 1.2 : 0;
+  }
 
   void cycleBackground() {
     _gradientIndex = (_gradientIndex + 1) % gradients.length;
@@ -61,7 +93,19 @@ class StoryTextComposerController extends ChangeNotifier {
   }
 
   void cycleTextColor() {
-    _textColorIndex = (_textColorIndex + 1) % textColors.length;
+    final int currentIndex = textColors.indexOf(_selectedTextColor);
+    final int safeIndex = currentIndex < 0 ? 0 : currentIndex;
+    _selectedTextColor = textColors[(safeIndex + 1) % textColors.length];
+    notifyListeners();
+  }
+
+  void setTextColor(Color color) {
+    _selectedTextColor = color;
+    notifyListeners();
+  }
+
+  void cycleTextStyle() {
+    _textStyleIndex = (_textStyleIndex + 1) % 3;
     notifyListeners();
   }
 

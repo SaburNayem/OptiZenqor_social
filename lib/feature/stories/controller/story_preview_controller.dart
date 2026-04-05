@@ -29,11 +29,11 @@ class StoryPreviewController extends ChangeNotifier {
 
   String _selectedMusic;
   bool _isEditingText = false;
-  int _textColorIndex = 0;
+  Color _selectedTextColor = textColors.first;
 
   String get selectedMusic => _selectedMusic;
   bool get isEditingText => _isEditingText;
-  Color get selectedTextColor => textColors[_textColorIndex];
+  Color get selectedTextColor => _selectedTextColor;
   bool get hasText => textController.text.trim().isNotEmpty;
   String get currentText => textController.text.trim();
 
@@ -58,7 +58,14 @@ class StoryPreviewController extends ChangeNotifier {
   }
 
   void cycleTextColor() {
-    _textColorIndex = (_textColorIndex + 1) % textColors.length;
+    final int currentIndex = textColors.indexOf(_selectedTextColor);
+    final int safeIndex = currentIndex < 0 ? 0 : currentIndex;
+    _selectedTextColor = textColors[(safeIndex + 1) % textColors.length];
+    notifyListeners();
+  }
+
+  void setTextColor(Color color) {
+    _selectedTextColor = color;
     notifyListeners();
   }
 
