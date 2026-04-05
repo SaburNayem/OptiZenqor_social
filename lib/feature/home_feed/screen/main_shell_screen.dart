@@ -41,27 +41,45 @@ class MainShellScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: Colors.white,
-          appBar: controller.index == 1 ? null : AppBar(
+          appBar: controller.index == 0 ? AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
-            leading: Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu, color: Colors.black87),
-                onPressed: () => Scaffold.of(context).openDrawer(),
+            titleSpacing: 16,
+            title: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => AppGet.toNamed(RouteNames.searchDiscovery),
+              child: Container(
+                height: 42,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4F6F8),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.search_rounded, color: Colors.grey.shade600),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Search',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            title: const Text(''),
             actions: <Widget>[
-              IconButton(
-                onPressed: () => AppGet.toNamed(RouteNames.searchDiscovery),
-                icon: const Icon(Icons.search_rounded, color: Colors.black87),
-              ),
               Stack(
                 alignment: Alignment.center,
                 children: [
                   IconButton(
                     onPressed: () => AppGet.toNamed(RouteNames.notifications),
-                    icon: const Icon(Icons.notifications_none_rounded, color: Colors.black87),
+                    icon: const Icon(
+                      Icons.notifications_none_rounded,
+                      color: Colors.black87,
+                    ),
                   ),
                   Positioned(
                     right: 12,
@@ -80,15 +98,9 @@ class MainShellScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 12.0),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundImage: NetworkImage(currentUser.avatar),
-                ),
-              ),
+             
             ],
-          ),
+          ) : null,
           drawer: Drawer(
             child: SafeArea(
               child: Column(

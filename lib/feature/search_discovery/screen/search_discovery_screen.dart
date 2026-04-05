@@ -42,11 +42,6 @@ class _SearchDiscoveryScreenState extends State<SearchDiscoveryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        toolbarHeight: 0, // Hidden appBar to use custom search bar
-      ),
       body: SafeArea(
         child: Column(
           children: [

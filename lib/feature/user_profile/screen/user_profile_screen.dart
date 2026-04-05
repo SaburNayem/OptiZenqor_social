@@ -33,21 +33,6 @@ class UserProfileScreen extends StatelessWidget {
                     height: 120,
                     width: double.infinity,
                     color: const Color(0xFF26C6DA),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: 10,
-                          right: 16,
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.settings_outlined,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => AppGet.toNamed(RouteNames.settings),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                   Positioned(
                     bottom: -50,
@@ -100,9 +85,8 @@ class UserProfileScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () => AppGet.snackbar(
-                        'Edit Profile',
-                        'Static edit profile flow opened',
+                      onPressed: () => AppGet.toNamed(
+                        RouteNames.accountSettings,
                       ),
                       icon: const Icon(
                         Icons.edit_outlined,
