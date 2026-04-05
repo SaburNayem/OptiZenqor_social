@@ -72,6 +72,8 @@ import '../feature/settings/screen/privacy_settings_screen.dart';
 import '../feature/settings/screen/settings_screen.dart';
 import '../feature/share_repost_system/screen/share_repost_system_screen.dart';
 import '../feature/splash/screen/splash_screen.dart';
+import '../feature/stories/screen/add_story_screen.dart';
+import '../feature/stories/screen/story_view_screen.dart';
 import '../feature/subscriptions/screen/subscriptions_screen.dart';
 import '../feature/support_help/screen/support_help_screen.dart';
 import '../feature/trending/screen/trending_screen.dart';
@@ -79,6 +81,7 @@ import '../feature/upload_manager/screen/upload_manager_screen.dart';
 import '../feature/user_profile/screen/user_profile_screen.dart';
 import '../feature/verification_request/screen/verification_request_screen.dart';
 import '../feature/wallet_payments/screen/wallet_payments_screen.dart';
+import '../core/data/mock/mock_data.dart';
 import 'route_names.dart';
 
 typedef AppPageBuilder = Widget Function();
@@ -181,6 +184,13 @@ class AppPages {
         RouteNames.userProfile: () =>
             UserProfileScreen(userId: Get.parameters['id']),
         RouteNames.chat: () => ChatScreen(),
+        RouteNames.storiesCreate: () => const AddStoryScreen(),
+        RouteNames.storiesView: () => StoryViewScreen(
+          stories: MockData.stories,
+          users: MockData.users,
+          initialStoryId:
+              Get.parameters['id'] ?? MockData.stories.first.id,
+        ),
       };
 
   static List<GetPage<dynamic>> get routes {

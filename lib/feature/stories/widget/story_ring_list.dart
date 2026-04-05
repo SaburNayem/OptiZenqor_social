@@ -28,7 +28,8 @@ class StoryRingList extends StatelessWidget {
         itemBuilder: (_, index) {
           if (index == 0) {
             // Your Story
-            return InkWell(
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
@@ -76,11 +77,12 @@ class StoryRingList extends StatelessWidget {
           final user = users.where((e) => e.id == story.userId).firstOrNull;
           if (user == null) return const SizedBox.shrink();
 
-          return InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => StoryViewScreen(
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => StoryViewScreen(
                     stories: stories,
                     users: users,
                     initialStoryId: story.id,

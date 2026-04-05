@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../core/constants/app_colors.dart';
+import '../../../core/data/service/media_picker_service.dart';
+import '../../../core/functions/app_feedback.dart';
+
+enum StoryComposerMode { gallery, text, music, collage }
+
 class AddStoryScreen extends StatefulWidget {
   const AddStoryScreen({super.key});
 
@@ -9,198 +15,178 @@ class AddStoryScreen extends StatefulWidget {
 }
 
 class _AddStoryScreenState extends State<AddStoryScreen> {
-  bool _isTypeMode = false;
+  final MediaPickerService _mediaPickerService = MediaPickerService();
+  bool _isMultiSelectEnabled = false;
+  
+  // Dummy data for gallery
+  final List<String> _galleryItems = List.generate(
+    12,
+    (index) => 'https://picsum.photos/seed/${index + 50}/400/600',
+  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
+      backgroundColor: Colors.white,
+      appBar: _buildAppBar(),
+      body: Column(
         children: [
-          // Camera Preview Placeholder
-          _isTypeMode
-              ? Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFE57373), Color(0xFFF06292)],
-                    ),
-                  ),
-                )
-              : Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=1200',
-                    fit: BoxFit.cover,
-                  ),
-                ),
+          const SizedBox(height: 16),
+          _buildComposerOptions(),
+          const SizedBox(height: 24),
+          _buildGalleryHeader(),
+          const SizedBox(height: 12),
+          Expanded(child: _buildGalleryGrid()),
+        ],
+      ),
+      floatingActionButton: _buildCameraButton(),
+    );
+  }
 
-          // Top UI
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () => Get.back(),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.arrow_back_ios_new,
-                          color: Colors.white, size: 20),
-                    ),
-                  ),
-                  if (!_isTypeMode)
-                    Row(
-                      children: [
-                        _buildTopAction(Icons.flash_on),
-                        const SizedBox(width: 16),
-                        _buildTopAction(Icons.settings_outlined),
-                      ],
-                    ),
-                ],
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.close, color: Colors.black, size: 28),
+        onPressed: () => Get.back(),
+      ),
+      title: const Text(
+        'Create story',
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      centerTitle: true,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.settings_outlined, color: Colors.black, size: 28),
+          onPressed: () {
+            AppFeedback.showSnackbar(
+              title: 'Settings',
+              message: 'Story settings coming soon',
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildComposerOptions() {
+    return SizedBox(
+      height: 110,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          _buildOptionCard(
+            child: const Text(
+              'Aa',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            label: 'Text',
+            onTap: () {},
+          ),
+          _buildOptionCard(
+            icon: Icons.music_note_outlined,
+            label: 'Music',
+            onTap: () {},
+          ),
+          _buildOptionCard(
+            icon: Icons.auto_awesome_mosaic_outlined,
+            label: 'Collage',
+            onTap: () {},
+          ),
+          _buildOptionCard(
+            icon: Icons.videocam_outlined,
+            label: 'Selfie',
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionCard({
+    IconData? icon,
+    Widget? child,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 130,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (child != null) child else Icon(icon, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGalleryHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Gallery',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+              const Icon(Icons.keyboard_arrow_down, size: 28),
+            ],
           ),
-
-          // Bottom Controls
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Gallery / Filter
-                    _isTypeMode
-                        ? _buildRoundButton(
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: [Colors.redAccent, Colors.pinkAccent],
-                                ),
-                              ),
-                            ),
-                          )
-                        : _buildRoundButton(
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(4),
-                                image: const DecorationImage(
-                                  image: NetworkImage(
-                                      'https://picsum.photos/seed/gallery/100/100'),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
-                    const SizedBox(width: 30),
-
-                    // Main Capture / Type Button
-                    _isTypeMode
-                        ? Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
-                                  width: 15),
-                            ),
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'Aa',
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                        : Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                    const SizedBox(width: 30),
-
-                    // Camera Switch / Drawing
-                    _isTypeMode
-                        ? _buildRoundButton(
-                            child: const Icon(Icons.gesture,
-                                color: Colors.black87, size: 28),
-                          )
-                        : _buildRoundButton(
-                            child: const Icon(Icons.flip_camera_ios_outlined,
-                                color: Colors.black87, size: 28),
-                          ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () => setState(() => _isTypeMode = true),
-                      child: Text(
-                        'TYPE',
-                        style: TextStyle(
-                          color: _isTypeMode ? Colors.white : Colors.white60,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 30),
-                    GestureDetector(
-                      onTap: () => setState(() => _isTypeMode = false),
-                      child: Text(
-                        'PHOTO',
-                        style: TextStyle(
-                          color: !_isTypeMode ? Colors.white : Colors.white60,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          OutlinedButton.icon(
+            onPressed: () {
+              setState(() {
+                _isMultiSelectEnabled = !_isMultiSelectEnabled;
+              });
+            },
+            icon: const Icon(Icons.collections_outlined, size: 20),
+            label: Text(
+              _isMultiSelectEnabled ? 'Multiple on' : 'Select multiple',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.black,
+              side: const BorderSide(color: Colors.black, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
           ),
         ],
@@ -208,26 +194,83 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     );
   }
 
-  Widget _buildTopAction(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3),
-        shape: BoxShape.circle,
+  Widget _buildGalleryGrid() {
+    return GridView.builder(
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 1,
+        mainAxisSpacing: 1,
+        childAspectRatio: 0.8,
       ),
-      child: Icon(icon, color: Colors.white, size: 22),
+      itemCount: _galleryItems.length,
+      itemBuilder: (context, index) {
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              _galleryItems[index],
+              fit: BoxFit.cover,
+            ),
+            if (index == 0)
+              Positioned(
+                left: 8,
+                bottom: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    '00:06',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            if (index == 1) // Mocking a selected item
+              Container(
+                color: Colors.black12,
+                child: const Center(
+                  child: Icon(
+                    Icons.check_circle,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildRoundButton({required Widget child}) {
+  Widget _buildCameraButton() {
     return Container(
-      width: 50,
-      height: 50,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
+      margin: const EdgeInsets.only(bottom: 16, right: 0),
+      child: FloatingActionButton(
+        onPressed: () async {
+          final path = await _mediaPickerService.captureImage();
+          if (path != null) {
+            AppFeedback.showSnackbar(
+              title: 'Success',
+              message: 'Captured image: $path',
+            );
+          }
+        },
+        backgroundColor: Colors.white,
+        elevation: 8,
+        shape: const CircleBorder(),
+        child: const Icon(
+          Icons.camera_alt,
+          color: Color(0xFF2E6FF1), // Blue color from the image
+          size: 28,
+        ),
       ),
-      child: Center(child: child),
     );
   }
 }

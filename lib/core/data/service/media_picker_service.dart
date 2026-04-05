@@ -8,6 +8,11 @@ class MediaPickerService {
     return file?.path;
   }
 
+  Future<String?> captureImage() async {
+    final file = await _picker.pickImage(source: ImageSource.camera);
+    return file?.path;
+  }
+
   Future<String?> pickVideo() async {
     final file = await _picker.pickVideo(source: ImageSource.gallery);
     return file?.path;
