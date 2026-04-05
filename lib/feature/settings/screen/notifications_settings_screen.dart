@@ -13,10 +13,8 @@ class NotificationsSettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<SettingsStateController>(
-      create: (_) => SettingsStateController()..load(),
-      child: BlocBuilder<SettingsStateController, SettingsState>(
-        builder: (context, state) {
+    return BlocBuilder<SettingsStateController, SettingsState>(
+      builder: (context, state) {
           final controller = context.read<SettingsStateController>();
           if (!state.loaded) {
             return Scaffold(
@@ -81,8 +79,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
               ],
             ),
           );
-        },
-      ),
+      },
     );
   }
 }

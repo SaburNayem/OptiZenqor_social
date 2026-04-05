@@ -1,7 +1,32 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 
 class MediaPickerService {
   final ImagePicker _picker = ImagePicker();
+
+  Future<List<String>> pickPostMedia() async {
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowMultiple: true,
+      allowedExtensions: <String>[
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'mp4',
+        'mov',
+        'm4v',
+        'webm',
+      ],
+    );
+    if (result == null) {
+      return <String>[];
+    }
+    return result.files
+        .map((file) => file.path)
+        .whereType<String>()
+        .toList(growable: false);
+  }
 
   Future<List<String>> pickImages() async {
     final files = await _picker.pickMultiImage();

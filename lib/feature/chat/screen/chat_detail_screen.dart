@@ -10,6 +10,9 @@ import 'package:record/record.dart';
 
 import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../calls/screen/audio_call_screen.dart';
+import '../../calls/screen/video_call_screen.dart';
+import 'chat_settings_screen.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   const ChatDetailScreen({
@@ -207,15 +210,42 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => AudioCallScreen(
+                    name: widget.user.name,
+                    avatarUrl: widget.user.avatar,
+                  ),
+                ),
+              );
+            },
             icon: const Icon(Icons.call_outlined, color: Colors.grey),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => VideoCallScreen(
+                    name: widget.user.name,
+                    avatarUrl: widget.user.avatar,
+                  ),
+                ),
+              );
+            },
             icon: const Icon(Icons.videocam_outlined, color: Colors.grey),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ChatSettingsScreen(
+                    chatId: widget.initialMessage.chatId,
+                    title: widget.user.name,
+                  ),
+                ),
+              );
+            },
             icon: const Icon(Icons.more_vert, color: Colors.grey),
           ),
         ],

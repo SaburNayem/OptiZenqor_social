@@ -208,7 +208,7 @@ class HomeFeedController extends Cubit<int> {
 
   Future<void> createLocalPost({
     required String caption,
-    String? mediaUrl,
+    List<String> mediaPaths = const <String>[],
     bool isVideo = false,
     String audience = 'Everyone',
     String? location,
@@ -218,18 +218,15 @@ class HomeFeedController extends Cubit<int> {
     List<String> editHistory = const <String>[],
   }) async {
     final text = caption.trim();
-    if (text.isEmpty) {
+    final List<String> trimmedMediaPaths = mediaPaths
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+    if (text.isEmpty && trimmedMediaPaths.isEmpty) {
       return;
     }
 
-    final media = <String>[];
-    if (mediaUrl != null && mediaUrl.trim().isNotEmpty) {
-      media.add(mediaUrl.trim());
-    } else if (isVideo) {
-      media.add('https://example.com/sample.mp4');
-    } else {
-      media.add('https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200');
-    }
+    final List<String> media = trimmedMediaPaths;
 
     final post = PostModel(
       id: 'local_${DateTime.now().millisecondsSinceEpoch}',

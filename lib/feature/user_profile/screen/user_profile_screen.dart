@@ -86,7 +86,7 @@ class UserProfileScreen extends StatelessWidget {
                   children: [
                     OutlinedButton.icon(
                       onPressed: () => AppGet.toNamed(
-                        RouteNames.accountSettings,
+                        RouteNames.userProfileEdit,
                       ),
                       icon: const Icon(
                         Icons.edit_outlined,
@@ -372,57 +372,7 @@ class UserProfileScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black87),
-            onPressed: () => AppGet.toNamed(RouteNames.searchDiscovery),
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_none,
-                  color: Colors.black87,
-                ),
-                onPressed: () => AppGet.toNamed(RouteNames.notifications),
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage: NetworkImage(
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500',
-              ),
-            ),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Profile')),
       body: profileContent,
     );
   }

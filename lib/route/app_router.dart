@@ -79,6 +79,7 @@ import '../feature/support_help/screen/support_help_screen.dart';
 import '../feature/trending/screen/trending_screen.dart';
 import '../feature/upload_manager/screen/upload_manager_screen.dart';
 import '../feature/user_profile/screen/user_profile_screen.dart';
+import '../feature/user_profile/screen/edit_profile_screen.dart';
 import '../feature/verification_request/screen/verification_request_screen.dart';
 import '../feature/wallet_payments/screen/wallet_payments_screen.dart';
 import 'route_names.dart';
@@ -262,6 +263,8 @@ class AppRouter {
         return SupportHelpScreen();
       case RouteNames.userProfile:
         return UserProfileScreen(userId: params['id']);
+      case RouteNames.userProfileEdit:
+        return const EditProfileScreen();
       case RouteNames.chat:
         return ChatScreen();
       case RouteNames.storiesCreate:

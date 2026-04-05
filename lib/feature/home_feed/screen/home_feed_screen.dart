@@ -7,37 +7,49 @@ import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/post_card.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
-import '../../user_profile/screen/user_profile_screen.dart';
 import '../../stories/widget/story_ring_list.dart';
+import '../../user_profile/screen/user_profile_screen.dart';
 import '../controller/home_feed_controller.dart';
-import 'create_post_screen.dart';
 
-class HomeFeedScreen extends StatelessWidget {
-  HomeFeedScreen({super.key}) {
-    _controller.loadInitial();
-    _scrollController.addListener(_onScroll);
+class HomeFeedScreen extends StatefulWidget {
+  const HomeFeedScreen({super.key});
+
+  @override
+  State<HomeFeedScreen> createState() => _HomeFeedScreenState();
+}
+
+class _HomeFeedScreenState extends State<HomeFeedScreen> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController()..addListener(_onScroll);
   }
 
-  final HomeFeedController _controller = HomeFeedController();
-  final ScrollController _scrollController = ScrollController();
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
 
   void _onScroll() {
     if (!_scrollController.hasClients) {
       return;
     }
-    final position = _scrollController.position;
+    final ScrollPosition position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - 240) {
-      _controller.loadNextPage();
+      context.read<HomeFeedController>().loadNextPage();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<HomeFeedController>.value(
-      value: _controller,
-      child: BlocBuilder<HomeFeedController, int>(
-        builder: (context, _) {
-          final controller = _controller;
+    return BlocBuilder<HomeFeedController, int>(
+      builder: (context, _) {
+        final HomeFeedController controller = context.read<HomeFeedController>();
         if (controller.isLoading) {
           return const AppLoader(label: 'Preparing your personalized feed');
         }
@@ -64,7 +76,7 @@ class HomeFeedScreen extends StatelessWidget {
               StoryRingList(
                 stories: controller.stories,
                 users: MockData.users,
-                onStoryAdded: (stories) => controller.addLocalStories(stories),
+                onStoryAdded: controller.addLocalStories,
               ),
               const Divider(height: 32, thickness: 0.5),
               ...controller.visiblePosts.map((post) {
@@ -83,9 +95,7 @@ class HomeFeedScreen extends StatelessWidget {
                   onAuthorTap: () => _openOtherProfile(context, user.id),
                   onMoreTap: () => _showPostActions(context, post.id),
                   onLikeTap: () => controller.likePost(post.id),
-                  onCommentTap: () {
-                    _openPostDetail(context, post.id);
-                  },
+                  onCommentTap: () => _openPostDetail(context, post.id),
                   onBookmarkTap: () => _showFeedback(context, 'Saved to bookmarks'),
                 );
               }),
@@ -96,8 +106,7 @@ class HomeFeedScreen extends StatelessWidget {
             ],
           ),
         );
-        },
-      ),
+      },
     );
   }
 

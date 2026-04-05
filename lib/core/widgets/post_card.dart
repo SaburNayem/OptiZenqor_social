@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../data/models/post_model.dart';
@@ -96,13 +98,47 @@ class PostCard extends StatelessWidget {
                         lower.endsWith('.mov') ||
                         lower.endsWith('.webm') ||
                         lower.endsWith('.m4v');
+                    final isNetworkMedia =
+                        media.startsWith('http://') || media.startsWith('https://');
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(24),
-                      child: AspectRatio(
-                        aspectRatio: 1, // Instagram-like square or 4:5
-                        child: isVideo
-                            ? InlineVideoPlayer(networkUrl: media, autoPlay: true)
-                            : Image.network(media, fit: BoxFit.cover),
+                      child: Stack(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: isVideo
+                                ? InlineVideoPlayer(
+                                    networkUrl: isNetworkMedia ? media : null,
+                                    filePath: isNetworkMedia ? null : media,
+                                    autoPlay: true,
+                                  )
+                                : isNetworkMedia
+                                    ? Image.network(media, fit: BoxFit.cover)
+                                    : Image.file(File(media), fit: BoxFit.cover),
+                          ),
+                          if (post.media.length > 1)
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.55),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  '${post.media.length} items',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   },

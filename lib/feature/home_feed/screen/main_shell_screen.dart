@@ -8,35 +8,33 @@ import '../../../route/route_names.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
+import '../controller/home_feed_controller.dart';
 import '../controller/main_shell_controller.dart';
 import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
 
 class MainShellScreen extends StatelessWidget {
   MainShellScreen({super.key, this.arguments}) {
-    _controller = MainShellController(arguments: arguments);
     _connectivity = ConnectivityService();
   }
 
   final Object? arguments;
-  late final MainShellController _controller;
   late final ConnectivityService _connectivity;
 
   @override
   Widget build(BuildContext context) {
     final currentUser = MockData.users.first;
+    final MainShellController controller = context.read<MainShellController>();
+    controller.syncArguments(arguments);
 
-    return BlocProvider<MainShellController>.value(
-      value: _controller,
-      child: BlocBuilder<MainShellController, int>(
-        builder: (context, _) {
-        final controller = _controller;
+    return BlocBuilder<MainShellController, int>(
+      builder: (context, _) {
         final tabs = <Widget>[
           HomeFeedScreen(),
           ReelsScreen(),
           const SizedBox.shrink(), // Placeholder for center FAB action
           ChatScreen(),
-          UserProfileScreen(showAppBar: false),
+          UserProfileScreen(),
         ];
 
         return Scaffold(
@@ -222,8 +220,7 @@ class MainShellScreen extends StatelessWidget {
             ),
           ),
         );
-        },
-      ),
+      },
     );
   }
 
@@ -246,6 +243,7 @@ class MainShellScreen extends StatelessWidget {
   }
 
   Future<void> _openCreateScreen(BuildContext context) async {
+    final homeFeedController = context.read<HomeFeedController>();
     final CreatePostResult? result =
         await Navigator.of(context).push<CreatePostResult>(
       MaterialPageRoute<CreatePostResult>(
@@ -253,6 +251,17 @@ class MainShellScreen extends StatelessWidget {
       ),
     );
     if (result != null && context.mounted) {
+      await homeFeedController.createLocalPost(
+        caption: result.caption,
+        mediaPaths: result.mediaPaths,
+        isVideo: result.isVideo,
+        audience: result.audience,
+        location: result.location,
+        taggedPeople: result.taggedPeople,
+        coAuthors: result.coAuthors,
+        altText: result.altText,
+        editHistory: result.editHistory,
+      );
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(const SnackBar(content: Text('Post created')));

@@ -5,6 +5,8 @@ import '../../../core/data/mock/mock_data.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../controller/chat_controller.dart';
 import 'chat_detail_screen.dart';
+import 'inbox_settings_screen.dart';
+import 'chat_settings_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -24,8 +26,34 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = MockData.users.first;
+
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text('Chats'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => InboxSettingsScreen(),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage(currentUser.avatar),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
@@ -371,12 +399,25 @@ class _ChatScreenState extends State<ChatScreen> {
                                       'Mute',
                                       '${user.name} conversation muted',
                                     );
+                                  } else if (value == 'settings') {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => ChatSettingsScreen(
+                                          chatId: message.chatId,
+                                          title: user.name,
+                                        ),
+                                      ),
+                                    );
                                   }
                                 },
                                 itemBuilder: (context) => const [
                                   PopupMenuItem(
                                     value: 'pin',
                                     child: Text('Pin'),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'settings',
+                                    child: Text('Chat settings'),
                                   ),
                                   PopupMenuItem(
                                     value: 'archive',
@@ -430,6 +471,21 @@ class _ChatScreenState extends State<ChatScreen> {
               onTap: () {
                 AppGet.back();
                 AppGet.snackbar('Mute', '$name conversation muted');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('Chat settings'),
+              onTap: () {
+                AppGet.back();
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ChatSettingsScreen(
+                      chatId: chatId,
+                      title: name,
+                    ),
+                  ),
+                );
               },
             ),
           ],

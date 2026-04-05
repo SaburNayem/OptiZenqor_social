@@ -15,22 +15,16 @@ class MainShellController extends Cubit<int> {
     AuthRepository? authRepository,
     Object? arguments,
   }) : _authRepository = authRepository ?? AuthRepository(),
-       _arguments = arguments,
        super(0) {
     currentUser = MockData.users.first;
-    if (_arguments is Map && (_arguments as Map)['tabIndex'] is int) {
-      final tabIndex = (_arguments as Map)['tabIndex'] as int;
-      if (tabIndex >= 0 && tabIndex < destinations.length) {
-        index = tabIndex;
-      }
-    }
+    syncArguments(arguments);
   }
 
   int index = 0;
   bool isSigningOut = false;
 
   final AuthRepository _authRepository;
-  final Object? _arguments;
+  Object? _lastArguments;
 
   final List<MainShellDestinationModel> destinations =
       const <MainShellDestinationModel>[
@@ -72,6 +66,20 @@ class MainShellController extends Cubit<int> {
   String get currentTitle => destinations[index].title;
 
   bool get showCreateAction => index == 0;
+
+  void syncArguments(Object? arguments) {
+    if (identical(_lastArguments, arguments)) {
+      return;
+    }
+    _lastArguments = arguments;
+    if (arguments is Map && arguments['tabIndex'] is int) {
+      final int tabIndex = arguments['tabIndex'] as int;
+      if (tabIndex >= 0 && tabIndex < destinations.length && tabIndex != index) {
+        index = tabIndex;
+        emit(index);
+      }
+    }
+  }
 
   List<MainShellDrawerSectionModel> get drawerSections {
     return <MainShellDrawerSectionModel>[
