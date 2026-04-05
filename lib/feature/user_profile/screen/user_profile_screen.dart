@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../core/data/mock/mock_data.dart';
-import '../../../core/helpers/format_helper.dart';
 import '../../../route/route_names.dart';
 import '../controller/user_profile_controller.dart';
 
@@ -41,7 +39,10 @@ class UserProfileScreen extends StatelessWidget {
                           top: 10,
                           right: 16,
                           child: IconButton(
-                            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                            icon: const Icon(
+                              Icons.settings_outlined,
+                              color: Colors.white,
+                            ),
                             onPressed: () => Get.toNamed(RouteNames.settings),
                           ),
                         ),
@@ -51,33 +52,40 @@ class UserProfileScreen extends StatelessWidget {
                   Positioned(
                     bottom: -50,
                     left: 16,
-                    child: Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage: NetworkImage(user.avatar),
-                          ),
-                        ),
-                        Positioned(
-                          right: 4,
-                          bottom: 4,
-                          child: Container(
-                            width: 24,
-                            height: 24,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF26C6DA),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(54),
+                      onTap: () => Get.toNamed(RouteNames.mediaViewer),
+                      child: Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
+                            ),
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: NetworkImage(user.avatar),
                             ),
                           ),
-                        ),
-                      ],
+                          Positioned(
+                            right: 4,
+                            bottom: 4,
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF26C6DA),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -92,18 +100,36 @@ class UserProfileScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF26C6DA)),
-                      label: const Text('Edit', style: TextStyle(color: Color(0xFF26C6DA))),
+                      onPressed: () => Get.snackbar(
+                        'Edit Profile',
+                        'Static edit profile flow opened',
+                      ),
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                        size: 18,
+                        color: Color(0xFF26C6DA),
+                      ),
+                      label: const Text(
+                        'Edit',
+                        style: TextStyle(color: Color(0xFF26C6DA)),
+                      ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFF26C6DA)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.share_outlined, color: Colors.grey),
+                      onPressed: () => Get.snackbar(
+                        'Share Profile',
+                        'Static share profile sheet opened',
+                      ),
+                      icon: const Icon(
+                        Icons.share_outlined,
+                        color: Colors.grey,
+                      ),
                     ),
                   ],
                 ),
@@ -121,30 +147,47 @@ class UserProfileScreen extends StatelessWidget {
                       children: [
                         Text(
                           user.name,
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE0F7FA),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
                             'creator',
-                            style: TextStyle(color: Color(0xFF00ACC1), fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Color(0xFF00ACC1),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     Text(
                       '@${user.username}',
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Digital nomad & visual storyteller. Exploring the world one pixel at a time. 📸✈️',
-                      style: TextStyle(color: Colors.grey.shade700, fontSize: 14, height: 1.4),
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -156,11 +199,29 @@ class UserProfileScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatColumn('142', 'Posts'),
+                  _buildStatColumn(
+                    '142',
+                    'Posts',
+                    onTap: () => _controller.selectTab(0),
+                  ),
                   _buildStatDivider(),
-                  _buildStatColumn('12.4 K', 'Followers'),
+                  _buildStatColumn(
+                    '12.4 K',
+                    'Followers',
+                    onTap: () => Get.snackbar(
+                      'Followers',
+                      'Static followers list opened',
+                    ),
+                  ),
                   _buildStatDivider(),
-                  _buildStatColumn('342', 'Following'),
+                  _buildStatColumn(
+                    '342',
+                    'Following',
+                    onTap: () => Get.snackbar(
+                      'Following',
+                      'Static following list opened',
+                    ),
+                  ),
                 ],
               ),
 
@@ -186,8 +247,20 @@ class UserProfileScreen extends StatelessWidget {
                       const Color(0xFF1E88E5),
                       onTap: () => Get.toNamed(RouteNames.walletPayments),
                     ),
-                    _buildUtilityIcon(Icons.calendar_today_outlined, 'Events', const Color(0xFFF3E5F5), const Color(0xFF8E24AA)),
-                    _buildUtilityIcon(Icons.bar_chart_outlined, 'Polls', const Color(0xFFE1F5FE), const Color(0xFF039BE5)),
+                    _buildUtilityIcon(
+                      Icons.calendar_today_outlined,
+                      'Events',
+                      const Color(0xFFF3E5F5),
+                      const Color(0xFF8E24AA),
+                      onTap: () => Get.toNamed(RouteNames.events),
+                    ),
+                    _buildUtilityIcon(
+                      Icons.bar_chart_outlined,
+                      'Polls',
+                      const Color(0xFFE1F5FE),
+                      const Color(0xFF039BE5),
+                      onTap: () => Get.toNamed(RouteNames.pollsSurveys),
+                    ),
                     _buildUtilityIcon(
                       Icons.workspace_premium_outlined,
                       'Plans',
@@ -195,7 +268,13 @@ class UserProfileScreen extends StatelessWidget {
                       const Color(0xFFFB8C00),
                       onTap: () => Get.toNamed(RouteNames.premium),
                     ),
-                    _buildUtilityIcon(Icons.card_giftcard, 'Invite', const Color(0xFFE8F5E9), const Color(0xFF43A047)),
+                    _buildUtilityIcon(
+                      Icons.card_giftcard,
+                      'Invite',
+                      const Color(0xFFE8F5E9),
+                      const Color(0xFF43A047),
+                      onTap: () => Get.toNamed(RouteNames.inviteReferral),
+                    ),
                   ],
                 ),
               ),
@@ -205,9 +284,21 @@ class UserProfileScreen extends StatelessWidget {
               // Tab Selector
               Row(
                 children: [
-                  _buildTabItem(Icons.grid_view_rounded, true),
-                  _buildTabItem(Icons.play_circle_outline, false),
-                  _buildTabItem(Icons.person_pin_outlined, false),
+                  _buildTabItem(
+                    Icons.grid_view_rounded,
+                    _controller.selectedTabIndex == 0,
+                    () => _controller.selectTab(0),
+                  ),
+                  _buildTabItem(
+                    Icons.play_circle_outline,
+                    _controller.selectedTabIndex == 1,
+                    () => _controller.selectTab(1),
+                  ),
+                  _buildTabItem(
+                    Icons.person_pin_outlined,
+                    _controller.selectedTabIndex == 2,
+                    () => _controller.selectTab(2),
+                  ),
                 ],
               ),
 
@@ -234,35 +325,56 @@ class UserProfileScreen extends StatelessWidget {
                     'https://picsum.photos/seed/p8/400/400',
                     'https://picsum.photos/seed/p9/400/400',
                   ];
-                  final List<String> likes = ['1k+', '856', '342', '', '', '', '', '', ''];
+                  final List<String> likes = [
+                    '1k+',
+                    '856',
+                    '342',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                  ];
 
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.network(images[index], fit: BoxFit.cover),
-                      if (likes[index].isNotEmpty)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: Container(
-                            alignment: Alignment.center,
-                            color: Colors.black.withOpacity(0.1),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.favorite, color: Colors.white, size: 16),
-                                const SizedBox(width: 4),
-                                Text(
-                                  likes[index],
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                ),
-                              ],
+                  return InkWell(
+                    onTap: () => Get.toNamed(RouteNames.postDetail),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(images[index], fit: BoxFit.cover),
+                        if (likes[index].isNotEmpty)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: Container(
+                              alignment: Alignment.center,
+                              color: Colors.black.withOpacity(0.1),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.favorite,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    likes[index],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               ),
@@ -290,14 +402,17 @@ class UserProfileScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () => Get.toNamed(RouteNames.searchDiscovery),
           ),
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.black87),
-                onPressed: () {},
+                icon: const Icon(
+                  Icons.notifications_none,
+                  color: Colors.black87,
+                ),
+                onPressed: () => Get.toNamed(RouteNames.notifications),
               ),
               Positioned(
                 right: 12,
@@ -317,7 +432,9 @@ class UserProfileScreen extends StatelessWidget {
             padding: EdgeInsets.only(right: 12.0),
             child: CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500'),
+              backgroundImage: NetworkImage(
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500',
+              ),
             ),
           ),
         ],
@@ -326,13 +443,26 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatColumn(String value, String label) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-      ],
+  Widget _buildStatColumn(String value, String label, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -340,7 +470,13 @@ class UserProfileScreen extends StatelessWidget {
     return Container(height: 24, width: 1, color: Colors.grey.shade200);
   }
 
-  Widget _buildUtilityIcon(IconData icon, String label, Color bgColor, Color iconColor, {VoidCallback? onTap}) {
+  Widget _buildUtilityIcon(
+    IconData icon,
+    String label,
+    Color bgColor,
+    Color iconColor, {
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -349,26 +485,41 @@ class UserProfileScreen extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTabItem(IconData icon, bool isSelected) {
+  Widget _buildTabItem(IconData icon, bool isSelected, VoidCallback onTap) {
     return Expanded(
       child: Column(
         children: [
           IconButton(
-            onPressed: () {},
-            icon: Icon(icon, color: isSelected ? const Color(0xFF26C6DA) : Colors.grey.shade400),
+            onPressed: onTap,
+            icon: Icon(
+              icon,
+              color: isSelected
+                  ? const Color(0xFF26C6DA)
+                  : Colors.grey.shade400,
+            ),
           ),
           if (isSelected)
-            Container(height: 2, width: double.infinity, color: const Color(0xFF26C6DA)),
+            Container(
+              height: 2,
+              width: double.infinity,
+              color: const Color(0xFF26C6DA),
+            ),
         ],
       ),
     );

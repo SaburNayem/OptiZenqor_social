@@ -7,11 +7,9 @@ import '../model/chat_inbox_filter_model.dart';
 import '../repository/chat_repository.dart';
 
 class ChatController extends ChangeNotifier {
-  ChatController({
-    ChatRepository? repository,
-    AnalyticsService? analytics,
-  })  : _repository = repository ?? ChatRepository(),
-        _analytics = analytics ?? AnalyticsService();
+  ChatController({ChatRepository? repository, AnalyticsService? analytics})
+    : _repository = repository ?? ChatRepository(),
+      _analytics = analytics ?? AnalyticsService();
 
   final ChatRepository _repository;
   final AnalyticsService _analytics;
@@ -21,8 +19,9 @@ class ChatController extends ChangeNotifier {
   final Set<String> _pinnedChatIds = <String>{};
   final Set<String> _archivedChatIds = <String>{};
   final Set<String> _retryChatIds = <String>{};
-  ChatInboxFilterModel filter =
-      const ChatInboxFilterModel(filter: ChatInboxFilter.all);
+  ChatInboxFilterModel filter = const ChatInboxFilterModel(
+    filter: ChatInboxFilter.all,
+  );
 
   bool get isLoading => state.isLoading;
   bool get hasError => state.hasError;
@@ -81,10 +80,13 @@ class ChatController extends ChangeNotifier {
     } else {
       _pinnedChatIds.add(chatId);
     }
-    _analytics.logEvent('chat_pin_toggle', params: <String, dynamic>{
-      'chatId': chatId,
-      'pinned': _pinnedChatIds.contains(chatId),
-    });
+    _analytics.logEvent(
+      'chat_pin_toggle',
+      params: <String, dynamic>{
+        'chatId': chatId,
+        'pinned': _pinnedChatIds.contains(chatId),
+      },
+    );
     notifyListeners();
   }
 
@@ -94,10 +96,13 @@ class ChatController extends ChangeNotifier {
     } else {
       _archivedChatIds.add(chatId);
     }
-    _analytics.logEvent('chat_archive_toggle', params: <String, dynamic>{
-      'chatId': chatId,
-      'archived': _archivedChatIds.contains(chatId),
-    });
+    _analytics.logEvent(
+      'chat_archive_toggle',
+      params: <String, dynamic>{
+        'chatId': chatId,
+        'archived': _archivedChatIds.contains(chatId),
+      },
+    );
     notifyListeners();
   }
 
@@ -107,6 +112,14 @@ class ChatController extends ChangeNotifier {
   }
 
   void retry(String chatId) {
+    _retryChatIds.remove(chatId);
+    notifyListeners();
+  }
+
+  void deleteConversation(String chatId) {
+    messages = messages.where((message) => message.chatId != chatId).toList();
+    _pinnedChatIds.remove(chatId);
+    _archivedChatIds.remove(chatId);
     _retryChatIds.remove(chatId);
     notifyListeners();
   }

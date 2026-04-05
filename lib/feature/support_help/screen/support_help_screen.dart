@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import '../../../core/constants/app_colors.dart';
+import '../../../route/route_names.dart';
 
 class SupportHelpScreen extends StatelessWidget {
   const SupportHelpScreen({super.key});
@@ -26,7 +29,9 @@ class SupportHelpScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black54),
-            onPressed: () {},
+            onPressed: () {
+              Get.snackbar('Search', 'Static help search opened');
+            },
           ),
           Stack(
             alignment: Alignment.center,
@@ -36,7 +41,9 @@ class SupportHelpScreen extends StatelessWidget {
                   Icons.notifications_none_outlined,
                   color: Colors.black54,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Get.toNamed(RouteNames.notifications);
+                },
               ),
               Positioned(
                 right: 12,
@@ -208,8 +215,10 @@ class SupportHelpScreen extends StatelessWidget {
                             ),
                             Text(
                               'Our team is here for you',
-                              style:
-                                  TextStyle(fontSize: 12, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -220,7 +229,12 @@ class SupportHelpScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 50,
                       child: FilledButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.snackbar(
+                            'Support Chat',
+                            'Static support chat opened',
+                          );
+                        },
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.secondary,
                           shape: RoundedRectangleBorder(
@@ -238,7 +252,12 @@ class SupportHelpScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 50,
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.snackbar(
+                            'Email Support',
+                            'Static email support compose opened',
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFE0F2F1)),
                           backgroundColor: const Color(0xFFF4FDFA),
@@ -275,8 +294,12 @@ class SupportHelpScreen extends StatelessWidget {
         selectedItemColor: AppColors.secondary,
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
+        onTap: _handleBottomNavTap,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.play_circle_outline),
             label: 'Reels',
@@ -285,7 +308,10 @@ class SupportHelpScreen extends StatelessWidget {
             icon: Icon(Icons.add_circle, size: 40, color: AppColors.secondary),
             label: '',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_outlined), label: 'Chat'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_outlined),
+            label: 'Chat',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             label: 'Profile',
@@ -295,38 +321,65 @@ class SupportHelpScreen extends StatelessWidget {
     );
   }
 
+  void _handleBottomNavTap(int index) {
+    if (index == 2) {
+      Get.toNamed(RouteNames.create);
+      return;
+    }
+
+    final tabIndexMap = <int, int>{0: 0, 1: 1, 3: 3, 4: 4};
+    final tabIndex = tabIndexMap[index];
+    if (tabIndex == null) {
+      return;
+    }
+
+    Get.offNamed(
+      RouteNames.shell,
+      arguments: <String, dynamic>{'tabIndex': tabIndex},
+    );
+  }
+
   Widget _buildCategoryCard(
     String title,
     IconData icon,
     Color bgColor,
     Color iconColor,
   ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF0F0F0)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
-            child: Icon(icon, color: iconColor, size: 28),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-        ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () {
+        Get.snackbar(title, 'Static $title help category opened');
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFF0F0F0)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+              child: Icon(icon, color: iconColor, size: 28),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildArticleTile(String title, String tag, Color tagBgColor) {
     return ListTile(
+      onTap: () {
+        Get.snackbar(title, 'Static article opened');
+      },
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -361,8 +414,11 @@ class SupportHelpScreen extends StatelessWidget {
           ),
         ],
       ),
-      trailing:
-          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+      trailing: const Icon(
+        Icons.arrow_forward_ios,
+        size: 14,
+        color: Colors.grey,
+      ),
     );
   }
 }

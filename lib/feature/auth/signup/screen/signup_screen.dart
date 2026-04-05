@@ -64,7 +64,9 @@ class _SignupScreenState extends State<SignupScreen> {
               child: LinearProgressIndicator(
                 value: _currentStep / 3,
                 backgroundColor: const Color(0xFFF2F4F7),
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.splashBackground),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.splashBackground,
+                ),
                 minHeight: 6,
               ),
             ),
@@ -132,10 +134,7 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 12),
         const Text(
           'Let\'s get you started on Connecta',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF667085),
-          ),
+          style: TextStyle(fontSize: 16, color: Color(0xFF667085)),
         ),
         const SizedBox(height: 40),
         _buildLabel('Full Name'),
@@ -149,9 +148,12 @@ class _SignupScreenState extends State<SignupScreen> {
           hint: 'Create a password',
           obscureText: _obscurePassword,
           suffixIcon: IconButton(
-            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
             icon: Icon(
-              _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              _obscurePassword
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
               color: const Color(0xFF98A2B3),
             ),
           ),
@@ -162,9 +164,13 @@ class _SignupScreenState extends State<SignupScreen> {
           hint: 'Repeat password',
           obscureText: _obscureConfirmPassword,
           suffixIcon: IconButton(
-            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            onPressed: () => setState(
+              () => _obscureConfirmPassword = !_obscureConfirmPassword,
+            ),
             icon: Icon(
-              _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              _obscureConfirmPassword
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
               color: const Color(0xFF98A2B3),
             ),
           ),
@@ -190,10 +196,7 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 12),
         const Text(
           'How do you want to use Connecta?',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF667085),
-          ),
+          style: TextStyle(fontSize: 16, color: Color(0xFF667085)),
         ),
         const SizedBox(height: 32),
         _roleCard(
@@ -230,7 +233,7 @@ class _SignupScreenState extends State<SignupScreen> {
               color: Colors.black.withOpacity(0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
           border: Border.all(
             color: isSelected ? AppColors.splashBackground : Colors.transparent,
@@ -245,7 +248,13 @@ class _SignupScreenState extends State<SignupScreen> {
                 color: const Color(0xFFF9FAFB),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, size: 32, color: isSelected ? AppColors.splashBackground : const Color(0xFF475467)),
+              child: Icon(
+                icon,
+                size: 32,
+                color: isSelected
+                    ? AppColors.splashBackground
+                    : const Color(0xFF475467),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -277,7 +286,9 @@ class _SignupScreenState extends State<SignupScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.splashBackground : const Color(0xFFEAECF0),
+                  color: isSelected
+                      ? AppColors.splashBackground
+                      : const Color(0xFFEAECF0),
                   width: 2,
                 ),
                 color: isSelected ? AppColors.splashBackground : Colors.white,
@@ -308,10 +319,7 @@ class _SignupScreenState extends State<SignupScreen> {
         const SizedBox(height: 12),
         const Text(
           'Tell us a bit about yourself',
-          style: TextStyle(
-            fontSize: 16,
-            color: Color(0xFF667085),
-          ),
+          style: TextStyle(fontSize: 16, color: Color(0xFF667085)),
         ),
         const SizedBox(height: 32),
         Center(
@@ -324,11 +332,21 @@ class _SignupScreenState extends State<SignupScreen> {
                   color: Color(0xFFF9FAFB),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.camera_alt_outlined, size: 36, color: Color(0xFF98A2B3)),
+                child: const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 36,
+                  color: Color(0xFF98A2B3),
+                ),
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Get.snackbar(
+                    'Upload Photo',
+                    'Static profile photo picker opened',
+                    snackPosition: SnackPosition.BOTTOM,
+                  );
+                },
                 child: Text(
                   'Upload Photo',
                   style: TextStyle(
@@ -367,10 +385,18 @@ class _SignupScreenState extends State<SignupScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _interestChip('Art'), _interestChip('Music'), _interestChip('Tech'),
-            _interestChip('Travel'), _interestChip('Food'), _interestChip('Fashion'),
-            _interestChip('Sports'), _interestChip('Gaming'), _interestChip('Photography'),
-            _interestChip('Design'), _interestChip('Writing'), _interestChip('Film'),
+            _interestChip('Art'),
+            _interestChip('Music'),
+            _interestChip('Tech'),
+            _interestChip('Travel'),
+            _interestChip('Food'),
+            _interestChip('Fashion'),
+            _interestChip('Sports'),
+            _interestChip('Gaming'),
+            _interestChip('Photography'),
+            _interestChip('Design'),
+            _interestChip('Writing'),
+            _interestChip('Film'),
           ],
         ),
         const SizedBox(height: 32),
@@ -411,7 +437,11 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildTextField({required String hint, bool obscureText = false, Widget? suffixIcon}) {
+  Widget _buildTextField({
+    required String hint,
+    bool obscureText = false,
+    Widget? suffixIcon,
+  }) {
     return TextFormField(
       obscureText: obscureText,
       decoration: InputDecoration(

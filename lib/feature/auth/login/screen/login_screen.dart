@@ -154,7 +154,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 32),
                     OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Get.snackbar(
+                          'Google Login',
+                          'Static Google login success',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                        Get.offNamed(RouteNames.shell);
+                      },
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(56),
                         side: BorderSide(color: Colors.grey.shade200),

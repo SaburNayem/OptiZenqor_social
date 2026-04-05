@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../route/route_names.dart';
 import '../controller/jobs_networking_controller.dart';
 import '../model/job_model.dart';
 
@@ -43,7 +45,9 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black54),
-            onPressed: () {},
+            onPressed: () {
+              Get.snackbar('Search', 'Static job search opened');
+            },
           ),
           Stack(
             alignment: Alignment.center,
@@ -53,7 +57,9 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
                   Icons.notifications_none_outlined,
                   color: Colors.black54,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Get.toNamed(RouteNames.notifications);
+                },
               ),
               Positioned(
                 right: 12,
@@ -119,23 +125,52 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
         selectedItemColor: AppColors.splashBackground,
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
+        onTap: _handleBottomNavTap,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.play_circle_outline),
             label: 'Reels',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle, size: 40, color: AppColors.splashBackground),
+            icon: Icon(
+              Icons.add_circle,
+              size: 40,
+              color: AppColors.splashBackground,
+            ),
             label: '',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_outlined), label: 'Chat'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_outlined),
+            label: 'Chat',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             label: 'Profile',
           ),
         ],
       ),
+    );
+  }
+
+  void _handleBottomNavTap(int index) {
+    if (index == 2) {
+      Get.toNamed(RouteNames.create);
+      return;
+    }
+
+    final tabIndexMap = <int, int>{0: 0, 1: 1, 3: 3, 4: 4};
+    final tabIndex = tabIndexMap[index];
+    if (tabIndex == null) {
+      return;
+    }
+
+    Get.offNamed(
+      RouteNames.shell,
+      arguments: <String, dynamic>{'tabIndex': tabIndex},
     );
   }
 
@@ -198,7 +233,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                 ),
+                    ),
                   ),
                 ),
               ),
@@ -217,15 +252,21 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
                     const SizedBox(height: 4),
                     Text(
                       job.company,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.bookmark_border, color: Colors.grey, size: 24),
+              IconButton(
+                onPressed: () {
+                  Get.snackbar('Saved', '${job.title} saved to bookmarks');
+                },
+                icon: const Icon(
+                  Icons.bookmark_border,
+                  color: Colors.grey,
+                  size: 24,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -257,7 +298,12 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
               SizedBox(
                 height: 36,
                 child: FilledButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Get.snackbar(
+                      'Apply',
+                      'Static apply flow started for ${job.title}',
+                    );
+                  },
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.splashBackground,
                     shape: RoundedRectangleBorder(
@@ -267,10 +313,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
                   ),
                   child: const Text(
                     'Apply',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

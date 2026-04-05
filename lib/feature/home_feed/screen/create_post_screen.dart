@@ -72,10 +72,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   backgroundColor: const Color(0xFF26C6DA).withOpacity(0.5),
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   padding: EdgeInsets.zero,
                 ),
-                child: const Text('Share', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Share',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ),
@@ -103,7 +108,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           maxLines: null,
                           decoration: const InputDecoration(
                             hintText: "What's on your mind?",
-                            hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+                            hintStyle: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 16,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
@@ -119,28 +127,56 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       border: Border.all(
                         color: Colors.grey.shade200,
                         width: 1.5,
-                        style: BorderStyle.solid, // Note: standard Border doesn't support dotted easily
+                        style: BorderStyle
+                            .solid, // Note: standard Border doesn't support dotted easily
                       ),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.add_photo_alternate_outlined, size: 48, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.add_photo_alternate_outlined,
+                          size: 48,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'Tap to add photo or video',
-                          style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 32),
                   // List of Options
-                  _buildOptionItem(Icons.add_photo_alternate, 'Photo / Video', const Color(0xFFE8F5E9), const Color(0xFF4CAF50)),
-                  _buildOptionItem(Icons.videocam_outlined, 'Go Live', const Color(0xFFFFF3E0), const Color(0xFFFF5252)),
-                  _buildOptionItem(Icons.location_on_outlined, 'Check in', const Color(0xFFE3F2FD), const Color(0xFF42A5F5)),
-                  _buildOptionItem(Icons.sentiment_satisfied_alt_outlined, 'Feeling / Activity', const Color(0xFFFFFDE7), const Color(0xFFFFD600)),
+                  _buildOptionItem(
+                    Icons.add_photo_alternate,
+                    'Photo / Video',
+                    const Color(0xFFE8F5E9),
+                    const Color(0xFF4CAF50),
+                  ),
+                  _buildOptionItem(
+                    Icons.videocam_outlined,
+                    'Go Live',
+                    const Color(0xFFFFF3E0),
+                    const Color(0xFFFF5252),
+                  ),
+                  _buildOptionItem(
+                    Icons.location_on_outlined,
+                    'Check in',
+                    const Color(0xFFE3F2FD),
+                    const Color(0xFF42A5F5),
+                  ),
+                  _buildOptionItem(
+                    Icons.sentiment_satisfied_alt_outlined,
+                    'Feeling / Activity',
+                    const Color(0xFFFFFDE7),
+                    const Color(0xFFFFD600),
+                  ),
                 ],
               ),
             ),
@@ -154,11 +190,35 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             ),
             child: Row(
               children: [
-                IconButton(icon: const Icon(Icons.add_photo_alternate_outlined, color: Color(0xFF26C6DA)), onPressed: () {}),
-                IconButton(icon: const Icon(Icons.tag, color: Color(0xFF26C6DA)), onPressed: () {}),
-                IconButton(icon: const Icon(Icons.sentiment_satisfied_alt_outlined, color: Color(0xFF26C6DA)), onPressed: () {}),
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_photo_alternate_outlined,
+                    color: Color(0xFF26C6DA),
+                  ),
+                  onPressed: () {
+                    Get.snackbar('Media', 'Static media picker opened');
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.tag, color: Color(0xFF26C6DA)),
+                  onPressed: () {
+                    Get.snackbar('Tag People', 'Static tag people flow opened');
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.sentiment_satisfied_alt_outlined,
+                    color: Color(0xFF26C6DA),
+                  ),
+                  onPressed: () {
+                    Get.snackbar('Feeling', 'Static feeling selector opened');
+                  },
+                ),
                 const Spacer(),
-                const Text('0 / 280', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                const Text(
+                  '0 / 280',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -167,20 +227,32 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildOptionItem(IconData icon, String label, Color bgColor, Color iconColor) {
+  Widget _buildOptionItem(
+    IconData icon,
+    String label,
+    Color bgColor,
+    Color iconColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24, left: 8),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 16),
           Text(
             label,
-            style: const TextStyle(fontSize: 15, color: Colors.black54, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 15,
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -190,10 +262,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void _submit() {
     final caption = _captionController.text.trim();
     if (caption.isEmpty) return;
-    Get.back(
-      result: CreatePostResult(
-        caption: caption,
-      ),
-    );
+    Get.back(result: CreatePostResult(caption: caption));
   }
 }

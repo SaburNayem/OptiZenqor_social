@@ -58,6 +58,13 @@ class MainShellController extends GetxController {
   void onInit() {
     super.onInit();
     currentUser = MockData.users.first;
+    final arguments = Get.arguments;
+    if (arguments is Map && arguments['tabIndex'] is int) {
+      final tabIndex = arguments['tabIndex'] as int;
+      if (tabIndex >= 0 && tabIndex < destinations.length) {
+        index = tabIndex;
+      }
+    }
   }
 
   String get currentTitle => destinations[index].title;

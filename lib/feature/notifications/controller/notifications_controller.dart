@@ -15,9 +15,9 @@ class NotificationsController extends ChangeNotifier {
     NotificationsRepository? repository,
     DeepLinkService? deepLinkService,
     AnalyticsService? analytics,
-  })  : _repository = repository ?? NotificationsRepository(),
-        _deepLinkService = deepLinkService ?? DeepLinkService(),
-        _analytics = analytics ?? AnalyticsService();
+  }) : _repository = repository ?? NotificationsRepository(),
+       _deepLinkService = deepLinkService ?? DeepLinkService(),
+       _analytics = analytics ?? AnalyticsService();
 
   final NotificationsRepository _repository;
   final DeepLinkService _deepLinkService;
@@ -47,7 +47,8 @@ class NotificationsController extends ChangeNotifier {
     }
   }
 
-  bool isUnread(NotificationModel item) => item.unread && !_readIds.contains(item.id);
+  bool isUnread(NotificationModel item) =>
+      item.unread && !_readIds.contains(item.id);
   int get unreadCount =>
       notifications.where((NotificationModel n) => isUnread(n)).length;
 
@@ -74,20 +75,36 @@ class NotificationsController extends ChangeNotifier {
 
   Future<void> setFilter(NotificationFilter filter) async {
     activeFilter = filter;
-    await _analytics.logEvent('notification_filter', params: <String, dynamic>{
-      'filter': filter.name,
-    });
+    await _analytics.logEvent(
+      'notification_filter',
+      params: <String, dynamic>{'filter': filter.name},
+    );
+    notifyListeners();
+  }
+
+  void markAllAsRead() {
+    _readIds.addAll(notifications.map((item) => item.id));
+    notifyListeners();
+  }
+
+  void removeNotification(String notificationId) {
+    notifications = notifications
+        .where((item) => item.id != notificationId)
+        .toList();
     notifyListeners();
   }
 
   Future<String?> handleTap(NotificationModel item) async {
     _readIds.add(item.id);
     notifyListeners();
-    await _analytics.logEvent('notification_tap', params: <String, dynamic>{
-      'notificationId': item.id,
-      'title': item.title,
-      'type': item.payload.type.name,
-    });
+    await _analytics.logEvent(
+      'notification_tap',
+      params: <String, dynamic>{
+        'notificationId': item.id,
+        'title': item.title,
+        'type': item.payload.type.name,
+      },
+    );
     final route = item.payload.routeName;
     final resolvedRoute = await _deepLinkService.open(route);
     if (resolvedRoute != null && resolvedRoute.isNotEmpty) {
