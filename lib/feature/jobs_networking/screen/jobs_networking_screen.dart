@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:optizenqor_social/core/navigation/app_get.dart';
+import 'package:optizenqor_social/route/route_names.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../route/route_names.dart';
+import '../../../core/navigation/app_get.dart';
 import '../controller/jobs_networking_controller.dart';
+import '../model/job_filter_model.dart';
 import '../model/job_model.dart';
+import '../widget/job_card.dart';
+import 'applicant_management_screen.dart';
+import 'career_profile_screen.dart';
+import 'create_job_screen.dart';
+import 'employer_dashboard_screen.dart';
+import 'job_application_flow_screen.dart';
+import 'job_details_screen.dart';
 
 class JobsNetworkingScreen extends StatefulWidget {
   const JobsNetworkingScreen({super.key});
@@ -13,338 +20,845 @@ class JobsNetworkingScreen extends StatefulWidget {
   State<JobsNetworkingScreen> createState() => _JobsNetworkingScreenState();
 }
 
-class _JobsNetworkingScreenState extends State<JobsNetworkingScreen> {
+class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
+    with SingleTickerProviderStateMixin {
   final JobsNetworkingController _controller = JobsNetworkingController();
-  String _selectedFilter = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 5, vsync: this);
     _controller.load();
+    _searchController.addListener(() {
+      _controller.updateSearch(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchController.dispose();
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Jobs',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black54),
-            onPressed: () {
-              AppGet.snackbar('Search', 'Static job search opened');
-            },
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_none_outlined,
-                  color: Colors.black54,
-                ),
-                onPressed: () {
-                  AppGet.toNamed(RouteNames.notifications);
-                },
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
-                ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.only(right: 16.0, left: 8),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage: NetworkImage(
-                'https://i.pravatar.cc/150?u=myprofile',
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Filter Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              children: [
-                _buildFilterChip('All'),
-                _buildFilterChip('Remote'),
-                _buildFilterChip('Full-time'),
-                _buildFilterChip('Part-time'),
-              ],
-            ),
-          ),
-          // Jobs List
-          Expanded(
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _controller.jobs.length,
-                  itemBuilder: (context, index) {
-                    return _buildJobCard(_controller.jobs[index]);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        selectedItemColor: AppColors.splashBackground,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        onTap: _handleBottomNavTap,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.play_circle_outline),
-            label: 'Reels',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.add_circle,
-              size: 40,
-              color: AppColors.splashBackground,
-            ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_outlined),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _handleBottomNavTap(int index) {
-    if (index == 2) {
-      AppGet.toNamed(RouteNames.create);
-      return;
-    }
-
-    final tabIndexMap = <int, int>{0: 0, 1: 1, 3: 3, 4: 4};
-    final tabIndex = tabIndexMap[index];
-    if (tabIndex == null) {
-      return;
-    }
-
-    AppGet.offNamed(
-      RouteNames.shell,
-      arguments: <String, dynamic>{'tabIndex': tabIndex},
-    );
-  }
-
-  Widget _buildFilterChip(String label) {
-    final isSelected = _selectedFilter == label;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (selected) {
-          setState(() {
-            _selectedFilter = label;
-          });
-        },
-        selectedColor: AppColors.splashBackground,
-        backgroundColor: Colors.white,
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
-          fontSize: 13,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isSelected ? Colors.transparent : Colors.grey.shade300,
-          ),
-        ),
-        showCheckmark: false,
-      ),
-    );
-  }
-
-  Widget _buildJobCard(JobModel job) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF0F0F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: job.logoColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    job.logoInitial,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Scaffold(
+          body: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  pinned: true,
+                  floating: true,
+                  title: const Text('Jobs'),
+                  actions: [
+                    IconButton(
+                      onPressed: _showFilterSheet,
+                      icon: const Icon(Icons.tune_rounded),
+                    ),
+                    IconButton(
+                      onPressed: () => _openSavedJobs(),
+                      icon: const Icon(Icons.bookmark_border_rounded),
+                    ),
+                    IconButton(
+                      onPressed: () => AppGet.toNamed(RouteNames.notifications),
+                      icon: const Icon(Icons.notifications_none_rounded),
+                    ),
+                  ],
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(122),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Search jobs, company, keyword',
+                              prefixIcon: const Icon(Icons.search_rounded),
+                              filled: true,
+                              fillColor: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(18),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                        TabBar(
+                          controller: _tabController,
+                          isScrollable: true,
+                          tabs: const [
+                            Tab(text: 'Discover'),
+                            Tab(text: 'My Jobs'),
+                            Tab(text: 'Applications'),
+                            Tab(text: 'Saved'),
+                            Tab(text: 'Alerts'),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
+              ];
+            },
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                _discoverTab(),
+                _myJobsTab(),
+                _applicationsTab(),
+                _savedTab(),
+                _alertsTab(),
+              ],
+            ),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: _openCreateJob,
+            icon: const Icon(Icons.add_business_rounded),
+            label: const Text('Post job'),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _discoverTab() {
+    final jobs = _controller.filteredJobs;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+      children: [
+        SizedBox(
+          height: 42,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children:
+                ['Remote', 'Full-time', 'Part-time', 'Freelance', 'Internship']
+                    .map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(item),
+                          selected: _controller.category == item,
+                          onSelected: (_) => _controller.setCategory(item),
+                        ),
+                      ),
+                    )
+                    .toList(growable: false),
+          ),
+        ),
+        const SizedBox(height: 20),
+        _sectionHeader('Recommended jobs'),
+        ..._controller.recommendedJobs.map(
+          (job) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: JobCard(
+              job: job,
+              onTap: () => _openJobDetails(job),
+              onSave: () => _controller.toggleSave(job.id),
+              onApply: () => _applyToJob(job),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _sectionHeader('Featured companies'),
+        SizedBox(
+          height: 168,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _controller.companies.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final company = _controller.companies[index];
+              return Container(
+                width: 220,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Color(company.colorValue),
+                      child: Text(company.logoInitial),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            company.name,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        if (company.verified)
+                          const Icon(
+                            Icons.verified_rounded,
+                            size: 18,
+                            color: Color(0xFF2563EB),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 0),
+                    Text(company.tagline),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Text('${company.followers} followers'),
+                        const Spacer(),
+                        FilledButton.tonal(
+                          onPressed: () =>
+                              _controller.toggleCompanyFollow(company.id),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 40),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                          ),
+                          child: Text(
+                            company.followed ? 'Following' : 'Follow',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
+        _sectionHeader('Latest jobs'),
+        ...jobs.map(
+          (job) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: JobCard(
+              job: job,
+              onTap: () => _openJobDetails(job),
+              onSave: () => _controller.toggleSave(job.id),
+              onApply: () => _applyToJob(job),
+              compact: true,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          children: const [
+            Chip(label: Text('Recently viewed jobs')),
+            Chip(label: Text('Trending jobs')),
+            Chip(label: Text('Referral system')),
+            Chip(label: Text('Scam detection')),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _myJobsTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+      children: [
+        if (_controller.employerStats != null) _dashboardCard(),
+        const SizedBox(height: 18),
+        _sectionHeader('Jobs posted by me'),
+        ..._controller.myPostedJobs.map((job) => _employerJobTile(job)),
+        const SizedBox(height: 18),
+        _sectionHeader('Active jobs'),
+        ..._controller.activeJobs.map((job) => _employerJobTile(job)),
+        const SizedBox(height: 18),
+        _sectionHeader('Closed jobs'),
+        ..._controller.closedJobs.map((job) => _employerJobTile(job)),
+        const SizedBox(height: 18),
+        _sectionHeader('Draft jobs'),
+        ..._controller.draftJobs.map((job) => _employerJobTile(job)),
+      ],
+    );
+  }
+
+  Widget _applicationsTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+      children: _controller.applications
+          .map((application) {
+            final job = _controller.jobs.firstWhere(
+              (item) => item.id == application.jobId,
+              orElse: () => _controller.jobs.first,
+            );
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       job.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      job.company,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    Text('${job.company} • ${application.appliedDate}'),
+                    const SizedBox(height: 10),
+                    Chip(label: Text(_applicationStatus(application.status))),
+                    const SizedBox(height: 10),
+                    ...application.timeline.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• '),
+                            Expanded(child: Text(item)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () =>
+                          _controller.withdrawApplication(application.id),
+                      child: const Text('Withdraw application'),
                     ),
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: () {
-                  AppGet.snackbar('Saved', '${job.title} saved to bookmarks');
-                },
-                icon: const Icon(
-                  Icons.bookmark_border,
-                  color: Colors.grey,
-                  size: 24,
-                ),
+            );
+          })
+          .toList(growable: false),
+    );
+  }
+
+  Widget _savedTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+      children: _controller.savedJobs
+          .map((job) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: JobCard(
+                job: job,
+                onTap: () => _openJobDetails(job),
+                onSave: () => _controller.toggleSave(job.id),
+                onApply: () => _applyToJob(job),
               ),
-            ],
+            );
+          })
+          .toList(growable: false),
+    );
+  }
+
+  Widget _alertsTab() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+      children: [
+        FilledButton.tonalIcon(
+          onPressed: _createAlert,
+          icon: const Icon(Icons.add_alert_rounded),
+          label: const Text('Create job alert'),
+        ),
+        const SizedBox(height: 18),
+        ..._controller.alerts.map(
+          (alert) => SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: alert.enabled,
+            onChanged: (_) => _controller.toggleAlert(alert.id),
+            title: Text(alert.keyword),
+            subtitle: Text(
+              '${alert.location} • ${_alertFrequency(alert.frequency)}',
+            ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildJobTag(Icons.location_on_outlined, job.location),
-              const SizedBox(width: 8),
-              _buildJobTag(Icons.work_outline, job.type),
-              const SizedBox(width: 8),
-              _buildJobTag(Icons.attach_money, job.salary),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFF0F0F0)),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    job.postedTime,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 36,
-                child: FilledButton(
-                  onPressed: () {
-                    AppGet.snackbar(
-                      'Apply',
-                      'Static apply flow started for ${job.title}',
-                    );
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.splashBackground,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+        ),
+      ],
+    );
+  }
+
+  Widget _dashboardCard() {
+    final stats = _controller.employerStats!;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Employer dashboard',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _metric('Total jobs', '${stats.totalJobs}'),
+                _metric('Applicants', '${stats.totalApplicants}'),
+                _metric('Shortlisted', '${stats.shortlistedCandidates}'),
+                _metric('Messages', '${stats.messages}'),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => EmployerDashboardScreen(stats: stats),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
                   ),
-                  child: const Text(
-                    'Apply',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
+                  child: const Text('Open dashboard'),
                 ),
-              ),
-            ],
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ApplicantManagementScreen(
+                        applicants: _controller.applicants,
+                        onStatusChanged: _controller.updateApplicantStatus,
+                      ),
+                    ),
+                  ),
+                  child: const Text('View applicants'),
+                ),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CareerProfileScreen(
+                        profile: _controller.careerProfile!,
+                      ),
+                    ),
+                  ),
+                  child: const Text('Career profile'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _metric(String label, String value) {
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
           ),
+          const SizedBox(height: 6),
+          Text(label),
         ],
       ),
     );
   }
 
-  Widget _buildJobTag(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4FDFA),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 14, color: AppColors.secondary),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.secondary,
-              fontWeight: FontWeight.w500,
+  Widget _employerJobTile(JobModel job) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    job.title,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                if (job.draft) const Chip(label: Text('Draft')),
+                if (job.closed) const Chip(label: Text('Closed')),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text('${job.company} • ${job.location}'),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: () => _showSnack('Edit ${job.title}'),
+                  child: const Text('Edit'),
+                ),
+                OutlinedButton(
+                  onPressed: () => _controller.deleteMyJob(job.id),
+                  child: const Text('Delete'),
+                ),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ApplicantManagementScreen(
+                        applicants: _controller.applicants,
+                        onStatusChanged: _controller.updateApplicantStatus,
+                      ),
+                    ),
+                  ),
+                  child: const Text('View applicants'),
+                ),
+                OutlinedButton(
+                  onPressed: () => _showSnack('Promote ${job.title}'),
+                  child: const Text('Promote'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _sectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
+  Future<void> _openJobDetails(JobModel job) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => JobDetailsScreen(
+          job: job,
+          onSave: () => _controller.toggleSave(job.id),
+          onApply: () => _applyToJob(job),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _applyToJob(JobModel job) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => JobApplicationFlowScreen(
+          job: job,
+          onSubmit: (coverLetter, portfolioLink) {
+            _controller.applyToJob(
+              job.id,
+              coverLetter: coverLetter,
+              portfolioLink: portfolioLink,
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openCreateJob() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CreateJobScreen(onCreate: _controller.addPostedJob),
+      ),
+    );
+  }
+
+  void _openSavedJobs() {
+    _tabController.animateTo(3);
+  }
+
+  Future<void> _showFilterSheet() async {
+    JobFilterModel draft = _controller.filter;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 8,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Job filters',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Location'),
+                      controller: TextEditingController(text: draft.location),
+                      onChanged: (value) =>
+                          draft = draft.copyWith(location: value),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<JobType?>(
+                      value: draft.jobType,
+                      decoration: const InputDecoration(labelText: 'Job type'),
+                      items: [
+                        const DropdownMenuItem<JobType?>(
+                          value: null,
+                          child: Text('Any'),
+                        ),
+                        ...JobType.values.map(
+                          (item) => DropdownMenuItem<JobType?>(
+                            value: item,
+                            child: Text(_jobTypeLabel(item)),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) => setModalState(
+                        () => draft = draft.copyWith(
+                          jobType: value,
+                          clearJobType: value == null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<ExperienceLevel?>(
+                      value: draft.experienceLevel,
+                      decoration: const InputDecoration(
+                        labelText: 'Experience level',
+                      ),
+                      items: [
+                        const DropdownMenuItem<ExperienceLevel?>(
+                          value: null,
+                          child: Text('Any'),
+                        ),
+                        ...ExperienceLevel.values.map(
+                          (item) => DropdownMenuItem<ExperienceLevel?>(
+                            value: item,
+                            child: Text(_experienceLabel(item)),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) => setModalState(
+                        () => draft = draft.copyWith(
+                          experienceLevel: value,
+                          clearExperience: value == null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: draft.workMode,
+                      decoration: const InputDecoration(
+                        labelText: 'Remote / Onsite',
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'Any', child: Text('Any')),
+                        DropdownMenuItem(
+                          value: 'Remote',
+                          child: Text('Remote'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Hybrid',
+                          child: Text('Hybrid'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Onsite',
+                          child: Text('Onsite'),
+                        ),
+                      ],
+                      onChanged: (value) => setModalState(
+                        () => draft = draft.copyWith(workMode: value),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: draft.companySize,
+                      decoration: const InputDecoration(
+                        labelText: 'Company size',
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'Any', child: Text('Any')),
+                        DropdownMenuItem(value: '1-50', child: Text('1-50')),
+                        DropdownMenuItem(
+                          value: '51-200',
+                          child: Text('51-200'),
+                        ),
+                        DropdownMenuItem(value: '200+', child: Text('200+')),
+                      ],
+                      onChanged: (value) => setModalState(
+                        () => draft = draft.copyWith(companySize: value),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () {
+                          _controller.updateFilter(draft);
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Apply filters'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _createAlert() async {
+    final keyword = TextEditingController();
+    final location = TextEditingController(text: 'Remote');
+    AlertFrequency frequency = AlertFrequency.daily;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Create alert',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: keyword,
+                    decoration: const InputDecoration(labelText: 'Keyword'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: location,
+                    decoration: const InputDecoration(labelText: 'Location'),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<AlertFrequency>(
+                    value: frequency,
+                    decoration: const InputDecoration(
+                      labelText: 'Notification frequency',
+                    ),
+                    items: AlertFrequency.values
+                        .map(
+                          (item) => DropdownMenuItem(
+                            value: item,
+                            child: Text(_alertFrequency(item)),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged: (value) =>
+                        setModalState(() => frequency = value ?? frequency),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        _controller.createAlert(
+                          keyword: keyword.text.trim().isEmpty
+                              ? 'New jobs'
+                              : keyword.text.trim(),
+                          location: location.text.trim().isEmpty
+                              ? 'Remote'
+                              : location.text.trim(),
+                          frequency: frequency,
+                        );
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Create alert'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _applicationStatus(ApplicationStatus status) {
+    switch (status) {
+      case ApplicationStatus.pending:
+        return 'Pending';
+      case ApplicationStatus.viewed:
+        return 'Viewed';
+      case ApplicationStatus.shortlisted:
+        return 'Shortlisted';
+      case ApplicationStatus.rejected:
+        return 'Rejected';
+    }
+  }
+
+  String _alertFrequency(AlertFrequency frequency) {
+    switch (frequency) {
+      case AlertFrequency.instant:
+        return 'Instant';
+      case AlertFrequency.daily:
+        return 'Daily';
+      case AlertFrequency.weekly:
+        return 'Weekly';
+    }
+  }
+
+  String _jobTypeLabel(JobType type) {
+    switch (type) {
+      case JobType.remote:
+        return 'Remote';
+      case JobType.fullTime:
+        return 'Full-time';
+      case JobType.partTime:
+        return 'Part-time';
+      case JobType.freelance:
+        return 'Freelance';
+      case JobType.internship:
+        return 'Internship';
+      case JobType.contract:
+        return 'Contract';
+      case JobType.hybrid:
+        return 'Hybrid';
+      case JobType.onsite:
+        return 'On-site';
+    }
+  }
+
+  String _experienceLabel(ExperienceLevel level) {
+    switch (level) {
+      case ExperienceLevel.entry:
+        return 'Entry';
+      case ExperienceLevel.mid:
+        return 'Mid';
+      case ExperienceLevel.senior:
+        return 'Senior';
+      case ExperienceLevel.lead:
+        return 'Lead';
+    }
+  }
+
+  void _showSnack(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
   }
 }

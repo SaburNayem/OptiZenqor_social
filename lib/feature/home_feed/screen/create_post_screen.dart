@@ -6,6 +6,8 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/service/media_picker_service.dart';
 import '../../../core/widgets/inline_video_player.dart';
+import '../../live_stream/model/live_stream_model.dart';
+import '../../live_stream/screen/live_broadcast_screen.dart';
 
 class CreatePostResult {
   const CreatePostResult({
@@ -135,14 +137,73 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.grey.shade200),
                   ),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(currentUser.avatar),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundImage: NetworkImage(currentUser.avatar),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  currentUser.name,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                InkWell(
+                                  onTap: _pickPrivacy,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.public_rounded,
+                                          size: 14,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          _audience,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(
+                                          Icons.keyboard_arrow_down_rounded,
+                                          size: 16,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(height: 14),
                       Expanded(
                         child: TextField(
                           controller: _captionController,
@@ -157,6 +218,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                               fontSize: 16,
                             ),
                             border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                       ),
@@ -252,13 +314,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     color: Color(0xFF26C6DA),
                   ),
                   onPressed: _pickFeeling,
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.location_on_outlined,
-                    color: Color(0xFF26C6DA),
-                  ),
-                  onPressed: _pickLocation,
                 ),
                 const Spacer(),
                 Text(
@@ -672,47 +727,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
+  Future<void> _pickPrivacy() async {
+    final String? audience = await _showSimpleOptionSheet(
+      title: 'Choose privacy',
+      options: const <String>['Everyone', 'Followers', 'Close Friends'],
+    );
+    if (audience == null) {
+      return;
+    }
+    setState(() {
+      _audience = audience;
+    });
+  }
+
   Future<void> _submit() async {
     final String caption = _captionController.text.trim();
     if (!_canShare) {
       return;
     }
-    final String? audience = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        const options = <String>['Everyone', 'Followers', 'Close Friends'];
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
-                child: Text(
-                  'Choose privacy',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ...options.map(
-                (option) => ListTile(
-                  leading: Icon(
-                    option == _audience
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                  ),
-                  title: Text(option),
-                  onTap: () => Navigator.of(context).pop(option),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    if (audience == null) {
-      return;
-    }
-    _audience = audience;
     AppGet.back(
       result: CreatePostResult(
         caption: caption,
@@ -736,11 +768,45 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         lower.endsWith('.m4v') ||
         lower.endsWith('.webm');
   }
+
   Future<void> _goLive() async {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Static Go Live screen will open here')),
-      );
+    if (_mediaPaths.length > 1) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Go Live allows only one photo.')),
+        );
+      return;
+    }
+    if (_hasAnyVideo) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Video is not allowed for Go Live.')),
+        );
+      return;
+    }
+    final currentUser = MockData.users.first;
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LiveBroadcastScreen(
+          initialTitle: _captionController.text.trim().isEmpty
+              ? '${currentUser.name} is going live'
+              : _captionController.text.trim(),
+          initialPhotoPath: _mediaPaths.isEmpty ? null : _mediaPaths.first,
+          initialAudience: _mapAudience(_audience),
+        ),
+      ),
+    );
+  }
+
+  LiveAudienceVisibility _mapAudience(String value) {
+    switch (value) {
+      case 'Followers':
+      case 'Close Friends':
+        return LiveAudienceVisibility.friends;
+      default:
+        return LiveAudienceVisibility.public;
+    }
   }
 }
