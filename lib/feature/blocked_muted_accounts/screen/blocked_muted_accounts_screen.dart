@@ -163,7 +163,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                                     onPressed: () => _controller.unblock(user.handle),
                                     style: OutlinedButton.styleFrom(
                                       side: const BorderSide(
-                                        color: AppColors.secondary,
+                                        color: AppColors.primary,
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(18),
@@ -173,7 +173,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                                     child: const Text(
                                       'Unblock',
                                       style: TextStyle(
-                                        color: AppColors.secondary,
+                                        color: AppColors.primary,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                       ),

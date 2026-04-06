@@ -198,7 +198,7 @@ class SupportHelpScreen extends StatelessWidget {
                           ),
                           child: const Icon(
                             Icons.headset_mic_outlined,
-                            color: AppColors.secondary,
+                            color: AppColors.primary,
                             size: 24,
                           ),
                         ),
@@ -236,7 +236,7 @@ class SupportHelpScreen extends StatelessWidget {
                           );
                         },
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.secondary,
+                          backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -268,7 +268,7 @@ class SupportHelpScreen extends StatelessWidget {
                         child: const Text(
                           'Email Support',
                           style: TextStyle(
-                            color: AppColors.secondary,
+                            color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -291,7 +291,7 @@ class SupportHelpScreen extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: true,
         showUnselectedLabels: true,
-        selectedItemColor: AppColors.secondary,
+        selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         currentIndex: 0,
         onTap: _handleBottomNavTap,
@@ -305,7 +305,7 @@ class SupportHelpScreen extends StatelessWidget {
             label: 'Reels',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle, size: 40, color: AppColors.secondary),
+            icon: Icon(Icons.add_circle, size: 40, color: AppColors.primary),
             label: '',
           ),
           BottomNavigationBarItem(
@@ -407,7 +407,7 @@ class SupportHelpScreen extends StatelessWidget {
               tag,
               style: const TextStyle(
                 fontSize: 10,
-                color: AppColors.secondary,
+                color: AppColors.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),

@@ -106,7 +106,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         ),
                         child: CircleAvatar(
                           radius: 18,
-                          backgroundColor: AppColors.secondary,
+                          backgroundColor: AppColors.primary,
                           child: const Icon(
                             Icons.camera_alt_outlined,
                             color: Colors.white,
@@ -168,7 +168,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 child: FilledButton(
                   onPressed: () {},
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.secondary,
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),

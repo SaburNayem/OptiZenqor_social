@@ -81,7 +81,7 @@ class InviteReferralScreen extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.card_giftcard_outlined,
-                color: AppColors.secondary,
+                color: AppColors.primary,
                 size: 40,
               ),
             ),
@@ -124,7 +124,7 @@ class InviteReferralScreen extends StatelessWidget {
                       color: const Color(0xFFF4FDFA),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.secondary.withOpacity(0.3),
+                        color: AppColors.primary.withOpacity(0.3),
                         style: BorderStyle.solid,
                       ),
                     ),
@@ -134,7 +134,7 @@ class InviteReferralScreen extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.secondary,
+                          color: AppColors.primary,
                           letterSpacing: 1.5,
                         ),
                       ),
@@ -154,18 +154,18 @@ class InviteReferralScreen extends StatelessWidget {
                       icon: const Icon(
                         Icons.copy_outlined,
                         size: 18,
-                        color: AppColors.secondary,
+                        color: AppColors.primary,
                       ),
                       label: const Text(
                         'Copy Code',
                         style: TextStyle(
-                          color: AppColors.secondary,
+                          color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
-                          color: AppColors.secondary.withOpacity(0.3),
+                          color: AppColors.primary.withOpacity(0.3),
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(24),
@@ -206,7 +206,7 @@ class InviteReferralScreen extends StatelessWidget {
                   '${model.currentInvites} of ${model.totalMilestone} invites',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: AppColors.secondary,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -220,7 +220,7 @@ class InviteReferralScreen extends StatelessWidget {
                 minHeight: 8,
                 backgroundColor: const Color(0xFFF0F0F0),
                 valueColor:
-                    const AlwaysStoppedAnimation<Color>(AppColors.secondary),
+                    const AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
             ),
             const SizedBox(height: 16),
@@ -335,7 +335,7 @@ class InviteReferralScreen extends StatelessWidget {
             child: Icon(
               icon,
               color: bgColor == const Color(0xFFE0F2F1)
-                  ? AppColors.secondary
+                  ? AppColors.primary
                   : Colors.grey,
               size: 20,
             ),
