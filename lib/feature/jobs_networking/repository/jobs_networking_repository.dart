@@ -15,12 +15,22 @@ class JobsNetworkingRepository {
         postedTime: '2 hours ago',
         logoInitial: 'N',
         logoColorValue: 0xFF2563EB,
-        description: 'Lead end-to-end product design for creator tools and premium growth surfaces.',
-        responsibilities: ['Design end-to-end flows', 'Run design reviews', 'Partner with PM and engineering'],
-        requirements: ['5+ years experience', 'Strong systems thinking', 'Portfolio with shipped work'],
+        description:
+            'Lead end-to-end product design for creator tools and premium growth surfaces.',
+        responsibilities: [
+          'Design end-to-end flows',
+          'Run design reviews',
+          'Partner with PM and engineering',
+        ],
+        requirements: [
+          '5+ years experience',
+          'Strong systems thinking',
+          'Portfolio with shipped work',
+        ],
         skills: ['Figma', 'Design systems', 'Prototyping'],
         benefits: ['Remote stipend', 'Healthcare', 'Learning budget'],
-        aboutCompany: 'Northstar Labs builds growth products for modern social platforms.',
+        aboutCompany:
+            'Northstar Labs builds growth products for modern social platforms.',
         quickApplyEnabled: true,
         verifiedEmployer: true,
         featured: true,
@@ -38,12 +48,22 @@ class JobsNetworkingRepository {
         postedTime: '5 hours ago',
         logoInitial: 'P',
         logoColorValue: 0xFF7C3AED,
-        description: 'Build polished mobile social experiences with scalable architecture and production-ready UI.',
-        responsibilities: ['Ship mobile features', 'Review code', 'Improve performance'],
-        requirements: ['3+ years in Flutter', 'State management experience', 'API integration'],
+        description:
+            'Build polished mobile social experiences with scalable architecture and production-ready UI.',
+        responsibilities: [
+          'Ship mobile features',
+          'Review code',
+          'Improve performance',
+        ],
+        requirements: [
+          '3+ years in Flutter',
+          'State management experience',
+          'API integration',
+        ],
         skills: ['Flutter', 'Dart', 'Bloc'],
         benefits: ['Hybrid work', 'Bonus', 'Device allowance'],
-        aboutCompany: 'Pixel Harbor creates mobile products for creators and communities.',
+        aboutCompany:
+            'Pixel Harbor creates mobile products for creators and communities.',
         quickApplyEnabled: true,
         verifiedEmployer: true,
         remoteFriendly: false,
@@ -59,12 +79,18 @@ class JobsNetworkingRepository {
         postedTime: '1 day ago',
         logoInitial: 'C',
         logoColorValue: 0xFFF97316,
-        description: 'Support community growth, moderation, and live event operations for a global creator network.',
+        description:
+            'Support community growth, moderation, and live event operations for a global creator network.',
         responsibilities: ['Help moderators', 'Track trends', 'Support events'],
-        requirements: ['Strong communication', 'Curious mindset', 'Availability 20 hrs/week'],
+        requirements: [
+          'Strong communication',
+          'Curious mindset',
+          'Availability 20 hrs/week',
+        ],
         skills: ['Community ops', 'Content review', 'Scheduling'],
         benefits: ['Mentorship', 'Certificate', 'Flexible hours'],
-        aboutCompany: 'Circle Hive runs creator and founder communities across multiple regions.',
+        aboutCompany:
+            'Circle Hive runs creator and founder communities across multiple regions.',
         quickApplyEnabled: true,
         verifiedEmployer: false,
         featured: true,
@@ -81,12 +107,22 @@ class JobsNetworkingRepository {
         postedTime: '2 days ago',
         logoInitial: 'M',
         logoColorValue: 0xFFEC4899,
-        description: 'Produce launch videos, tutorials, and short-form social content.',
-        responsibilities: ['Plan shoots', 'Edit reels', 'Collaborate with brand'],
-        requirements: ['Strong editing reel', 'Motion sense', 'Camera workflow'],
+        description:
+            'Produce launch videos, tutorials, and short-form social content.',
+        responsibilities: [
+          'Plan shoots',
+          'Edit reels',
+          'Collaborate with brand',
+        ],
+        requirements: [
+          'Strong editing reel',
+          'Motion sense',
+          'Camera workflow',
+        ],
         skills: ['Premiere Pro', 'After Effects', 'Storyboarding'],
         benefits: ['Creative budget', 'Travel support'],
-        aboutCompany: 'Motion Arc turns product launches into memorable campaigns.',
+        aboutCompany:
+            'Motion Arc turns product launches into memorable campaigns.',
         quickApplyEnabled: false,
         verifiedEmployer: true,
         externalApplyEnabled: true,
@@ -103,12 +139,22 @@ class JobsNetworkingRepository {
         postedTime: '3 days ago',
         logoInitial: 'W',
         logoColorValue: 0xFF059669,
-        description: 'Own performance, lifecycle, and referral growth across emerging markets.',
-        responsibilities: ['Drive acquisition', 'Build referral loops', 'Lead experiments'],
-        requirements: ['Performance marketing depth', 'Lifecycle knowledge', 'Leadership experience'],
+        description:
+            'Own performance, lifecycle, and referral growth across emerging markets.',
+        responsibilities: [
+          'Drive acquisition',
+          'Build referral loops',
+          'Lead experiments',
+        ],
+        requirements: [
+          'Performance marketing depth',
+          'Lifecycle knowledge',
+          'Leadership experience',
+        ],
         skills: ['Growth', 'Analytics', 'Lifecycle'],
         benefits: ['Bonus', 'Equity', 'Flexible team'],
-        aboutCompany: 'Wave Commerce helps social sellers and creators monetize at scale.',
+        aboutCompany:
+            'Wave Commerce helps social sellers and creators monetize at scale.',
         quickApplyEnabled: true,
         verifiedEmployer: true,
       ),
@@ -205,10 +251,16 @@ class JobsNetworkingRepository {
       name: 'Maya Quinn',
       title: 'Product Designer',
       skills: ['Product Design', 'Design Systems', 'User Research', 'Figma'],
-      experience: ['Senior Product Designer at North Peak', 'UI Designer at Delta Studio'],
+      experience: [
+        'Senior Product Designer at North Peak',
+        'UI Designer at Delta Studio',
+      ],
       education: ['B.Des in Interaction Design'],
       resumeLabel: 'maya_quinn_resume.pdf',
-      portfolioLinks: ['https://portfolio.maya.local', 'https://dribbble.com/mayaquinn'],
+      portfolioLinks: [
+        'https://portfolio.maya.local',
+        'https://dribbble.com/mayaquinn',
+      ],
       availability: 'Open to work',
     );
   }
@@ -219,6 +271,31 @@ class JobsNetworkingRepository {
       totalApplicants: 124,
       shortlistedCandidates: 19,
       messages: 12,
+    );
+  }
+
+  EmployerProfileModel employerProfile() {
+    return const EmployerProfileModel(
+      companyName: 'North Peak Hiring Studio',
+      hiringTitle: 'Talent Partner and Job Provider',
+      about:
+          'Hiring product, engineering, and creator-operations talent for fast-growing social and commerce teams.',
+      location: 'Dhaka, Bangladesh',
+      hiringFocus: [
+        'Flutter and mobile engineering',
+        'Product design and UX research',
+        'Creator growth and partnerships',
+      ],
+      openRoles: [
+        'Senior Flutter Engineer',
+        'Product Designer',
+        'Community Operations Specialist',
+      ],
+      teamHighlights: [
+        'Fast review cycle',
+        'Candidate feedback within 5 days',
+        'Remote-friendly hiring',
+      ],
     );
   }
 

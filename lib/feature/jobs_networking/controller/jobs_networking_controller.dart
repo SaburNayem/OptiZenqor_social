@@ -7,7 +7,7 @@ import '../repository/jobs_networking_repository.dart';
 
 class JobsNetworkingController extends ChangeNotifier {
   JobsNetworkingController({JobsNetworkingRepository? repository})
-      : _repository = repository ?? JobsNetworkingRepository();
+    : _repository = repository ?? JobsNetworkingRepository();
 
   final JobsNetworkingRepository _repository;
 
@@ -19,9 +19,11 @@ class JobsNetworkingController extends ChangeNotifier {
   List<ApplicantModel> applicants = <ApplicantModel>[];
   CareerProfileModel? careerProfile;
   EmployerStatsModel? employerStats;
+  EmployerProfileModel? employerProfile;
   JobFilterModel filter = const JobFilterModel();
   String category = 'Remote';
   String searchQuery = '';
+  JobsUserRole? selectedRole;
 
   void load() {
     jobs = _repository.listJobs();
@@ -32,47 +34,61 @@ class JobsNetworkingController extends ChangeNotifier {
     applicants = _repository.applicants();
     careerProfile = _repository.profile();
     employerStats = _repository.employerStats();
+    employerProfile = _repository.employerProfile();
     notifyListeners();
   }
 
   List<JobModel> get filteredJobs {
-    return jobs.where((job) {
-      final query = searchQuery.trim().toLowerCase();
-      final matchesQuery = query.isEmpty ||
-          job.title.toLowerCase().contains(query) ||
-          job.company.toLowerCase().contains(query) ||
-          job.skills.any((skill) => skill.toLowerCase().contains(query));
-      final matchesCategory = switch (category) {
-        'Remote' => job.remoteFriendly || job.type == JobType.remote,
-        'Full-time' => job.type == JobType.fullTime,
-        'Part-time' => job.type == JobType.partTime,
-        'Freelance' => job.type == JobType.freelance || job.type == JobType.contract,
-        'Internship' => job.type == JobType.internship,
-        _ => true,
-      };
-      final matchesLocation = filter.location == 'Any' ||
-          job.location.toLowerCase().contains(filter.location.toLowerCase());
-      final matchesJobType = filter.jobType == null || job.type == filter.jobType;
-      final matchesExperience =
-          filter.experienceLevel == null || job.experienceLevel == filter.experienceLevel;
-      final matchesWorkMode = filter.workMode == 'Any' ||
-          (filter.workMode == 'Remote' && job.remoteFriendly) ||
-          job.location.toLowerCase().contains(filter.workMode.toLowerCase());
-      return matchesQuery &&
-          matchesCategory &&
-          matchesLocation &&
-          matchesJobType &&
-          matchesExperience &&
-          matchesWorkMode;
-    }).toList(growable: false);
+    return jobs
+        .where((job) {
+          final query = searchQuery.trim().toLowerCase();
+          final matchesQuery =
+              query.isEmpty ||
+              job.title.toLowerCase().contains(query) ||
+              job.company.toLowerCase().contains(query) ||
+              job.skills.any((skill) => skill.toLowerCase().contains(query));
+          final matchesCategory = switch (category) {
+            'Remote' => job.remoteFriendly || job.type == JobType.remote,
+            'Full-time' => job.type == JobType.fullTime,
+            'Part-time' => job.type == JobType.partTime,
+            'Freelance' =>
+              job.type == JobType.freelance || job.type == JobType.contract,
+            'Internship' => job.type == JobType.internship,
+            _ => true,
+          };
+          final matchesLocation =
+              filter.location == 'Any' ||
+              job.location.toLowerCase().contains(
+                filter.location.toLowerCase(),
+              );
+          final matchesJobType =
+              filter.jobType == null || job.type == filter.jobType;
+          final matchesExperience =
+              filter.experienceLevel == null ||
+              job.experienceLevel == filter.experienceLevel;
+          final matchesWorkMode =
+              filter.workMode == 'Any' ||
+              (filter.workMode == 'Remote' && job.remoteFriendly) ||
+              job.location.toLowerCase().contains(
+                filter.workMode.toLowerCase(),
+              );
+          return matchesQuery &&
+              matchesCategory &&
+              matchesLocation &&
+              matchesJobType &&
+              matchesExperience &&
+              matchesWorkMode;
+        })
+        .toList(growable: false);
   }
 
   List<JobModel> get recommendedJobs =>
       filteredJobs.where((job) => job.featured).toList(growable: false);
   List<JobModel> get savedJobs =>
       jobs.where((job) => job.saved).toList(growable: false);
-  List<JobModel> get activeJobs =>
-      myPostedJobs.where((job) => !job.closed && !job.draft).toList(growable: false);
+  List<JobModel> get activeJobs => myPostedJobs
+      .where((job) => !job.closed && !job.draft)
+      .toList(growable: false);
   List<JobModel> get closedJobs =>
       myPostedJobs.where((job) => job.closed).toList(growable: false);
   List<JobModel> get draftJobs =>
@@ -103,11 +119,17 @@ class JobsNetworkingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void applyToJob(String jobId, {String coverLetter = '', String portfolioLink = ''}) {
+  void applyToJob(
+    String jobId, {
+    String coverLetter = '',
+    String portfolioLink = '',
+  }) {
     jobs = jobs
         .map((job) => job.id == jobId ? job.copyWith(applied: true) : job)
         .toList(growable: false);
-    final exists = applications.any((application) => application.jobId == jobId);
+    final exists = applications.any(
+      (application) => application.jobId == jobId,
+    );
     if (!exists) {
       applications = <JobApplicationModel>[
         JobApplicationModel(
@@ -131,13 +153,19 @@ class JobsNetworkingController extends ChangeNotifier {
   }
 
   void withdrawApplication(String id) {
-    applications = applications.where((item) => item.id != id).toList(growable: false);
+    applications = applications
+        .where((item) => item.id != id)
+        .toList(growable: false);
     notifyListeners();
   }
 
   void toggleCompanyFollow(String id) {
     companies = companies
-        .map((company) => company.id == id ? company.copyWith(followed: !company.followed) : company)
+        .map(
+          (company) => company.id == id
+              ? company.copyWith(followed: !company.followed)
+              : company,
+        )
         .toList(growable: false);
     notifyListeners();
   }
@@ -161,13 +189,18 @@ class JobsNetworkingController extends ChangeNotifier {
 
   void toggleAlert(String id) {
     alerts = alerts
-        .map((alert) => alert.id == id ? alert.copyWith(enabled: !alert.enabled) : alert)
+        .map(
+          (alert) =>
+              alert.id == id ? alert.copyWith(enabled: !alert.enabled) : alert,
+        )
         .toList(growable: false);
     notifyListeners();
   }
 
   void deleteMyJob(String id) {
-    myPostedJobs = myPostedJobs.where((job) => job.id != id).toList(growable: false);
+    myPostedJobs = myPostedJobs
+        .where((job) => job.id != id)
+        .toList(growable: false);
     notifyListeners();
   }
 
@@ -178,8 +211,17 @@ class JobsNetworkingController extends ChangeNotifier {
 
   void updateApplicantStatus(String id, ApplicationStatus status) {
     applicants = applicants
-        .map((applicant) => applicant.id == id ? applicant.copyWith(status: status) : applicant)
+        .map(
+          (applicant) => applicant.id == id
+              ? applicant.copyWith(status: status)
+              : applicant,
+        )
         .toList(growable: false);
+    notifyListeners();
+  }
+
+  void selectRole(JobsUserRole role) {
+    selectedRole = role;
     notifyListeners();
   }
 }

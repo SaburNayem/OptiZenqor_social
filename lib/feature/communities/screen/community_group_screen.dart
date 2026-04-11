@@ -62,30 +62,39 @@ class _CommunityGroupScreenState extends State<CommunityGroupScreen> {
                           flexibleSpace: FlexibleSpaceBar(
                             background: _buildHeader(context),
                           ),
-                          bottom: const TabBar(
-                            isScrollable: true,
-                            tabs: [
-                              Tab(text: 'Home'),
-                              Tab(text: 'Posts'),
-                              Tab(text: 'Media'),
-                              Tab(text: 'Events'),
-                              Tab(text: 'Members'),
-                              Tab(text: 'About'),
-                            ],
-                          ),
                         ),
                       ];
                     },
                     body: Padding(
-                      padding: const EdgeInsets.only(bottom: 98),
-                      child: TabBarView(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      child: Column(
                         children: [
-                          _buildHomeTab(),
-                          _buildPostsTab(),
-                          _buildMediaTab(),
-                          _buildEventsTab(),
-                          _buildMembersTab(),
-                          _buildAboutTab(),
+                          const Material(
+                            color: Colors.white,
+                            child: TabBar(
+                              isScrollable: true,
+                              tabs: [
+                                Tab(text: 'Home'),
+                                Tab(text: 'Posts'),
+                                Tab(text: 'Media'),
+                                Tab(text: 'Events'),
+                                Tab(text: 'Members'),
+                                Tab(text: 'About'),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                _buildHomeTab(),
+                                _buildPostsTab(),
+                                _buildMediaTab(),
+                                _buildEventsTab(),
+                                _buildMembersTab(),
+                                _buildAboutTab(),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -107,19 +116,22 @@ class _CommunityGroupScreenState extends State<CommunityGroupScreen> {
 
   Widget _buildHeader(BuildContext context) {
     final group = _controller.group;
+    final lightCoverColors = group.coverColors
+        .map((value) => Color.alphaBlend(Colors.white70, Color(value)))
+        .toList(growable: false);
+
     return Stack(
       fit: StackFit.expand,
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: group.coverColors.map(Color.new).toList(growable: false),
+              begin: Alignment.bottomRight,
+              end: Alignment.topLeft,
+              colors: lightCoverColors,
             ),
           ),
         ),
-        Container(color: Colors.black.withValues(alpha: 0.24)),
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(18, 68, 18, 14),
@@ -243,6 +255,8 @@ class _CommunityGroupScreenState extends State<CommunityGroupScreen> {
   }
 
   Widget _buildPostsTab() {
+    const filters = ['Recent', 'Popular', 'Media only'];
+
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification.metrics.pixels >
@@ -251,37 +265,48 @@ class _CommunityGroupScreenState extends State<CommunityGroupScreen> {
         }
         return false;
       },
-      child: ListView(
+      child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        children: [
-          Row(
-            children: [
-              Wrap(
-                spacing: 8,
-                children: ['Recent', 'Popular', 'Media only']
-                    .map(
-                      (label) => ChoiceChip(
+        itemCount: _controller.posts.length + 2,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  ...filters.map(
+                    (label) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
                         label: Text(label),
                         selected: _controller.postFilter == label,
                         onSelected: (_) => _controller.setPostFilter(label),
                       ),
-                    )
-                    .toList(growable: false),
-              ),
-              const Spacer(),
-              PopupMenuButton<String>(
-                onSelected: _controller.setPostFilter,
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'Recent', child: Text('Recent')),
-                  PopupMenuItem(value: 'Popular', child: Text('Popular')),
-                  PopupMenuItem(value: 'Media only', child: Text('Media only')),
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    onSelected: _controller.setPostFilter,
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(value: 'Recent', child: Text('Recent')),
+                      PopupMenuItem(value: 'Popular', child: Text('Popular')),
+                      PopupMenuItem(
+                        value: 'Media only',
+                        child: Text('Media only'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ..._controller.posts.map((post) => _postCard(post, adminTools: true)),
-        ],
+            );
+          }
+
+          if (index == 1) {
+            return const SizedBox(height: 16);
+          }
+
+          final post = _controller.posts[index - 2];
+          return _postCard(post, adminTools: true);
+        },
       ),
     );
   }

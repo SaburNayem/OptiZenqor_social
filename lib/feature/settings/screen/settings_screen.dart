@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/service/theme_service.dart';
-import '../common/settings_section_card.dart';
+import '../../../route/route_names.dart';
 import '../controller/settings_controller.dart';
+import '../model/settings_item_model.dart';
+import '../model/settings_section_model.dart';
 
 class SettingsScreen extends StatelessWidget {
   SettingsScreen({super.key, this.showAppBar = true});
@@ -14,71 +16,443 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final sections = _displaySections();
 
     return Scaffold(
-      appBar: showAppBar ? AppBar(title: const Text('Settings')) : null,
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 24),
-        children: <Widget>[
-          Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.45,
+      backgroundColor: const Color(0xFFF8F8FA),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+          children: [
+            _topBar(context),
+            const SizedBox(height: 18),
+            _profileCard(context),
+            const SizedBox(height: 18),
+            ...sections.map(
+              (section) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _sectionCard(context, section),
               ),
-              borderRadius: BorderRadius.circular(20),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('Control Center', style: theme.textTheme.titleLarge),
-                const SizedBox(height: 4),
-                Text(
-                  controller.roleLabel,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ValueListenableBuilder<ThemeMode>(
-                  valueListenable: ThemeService.instance.mode,
-                  builder: (_, mode, _) {
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.palette_outlined),
-                      title: const Text('Theme mode'),
-                      subtitle: Text('Current mode: ${mode.name}'),
-                      trailing: DropdownButton<ThemeMode>(
-                        value: mode,
-                        onChanged: (value) {
-                          if (value != null) {
-                            ThemeService.instance.setTheme(value);
-                          }
-                        },
-                        items: ThemeMode.values
-                            .map(
-                              (item) => DropdownMenuItem<ThemeMode>(
-                                value: item,
-                                child: Text(item.name),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+            const SizedBox(height: 6),
+            _logoutButton(context),
+            const SizedBox(height: 14),
+            Text(
+              'OptiZenqor Version 2.4.1',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: const Color(0xFFB4B7C1),
+              ),
             ),
-          ),
-          ...controller.sections.map(
-            (section) => SettingsSectionCard(
-              section: section,
-              onItemTap: AppGet.toNamed,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
+  Widget _topBar(BuildContext context) {
+    final actions = [
+      _TopAction(
+        icon: Icons.search_rounded,
+        onTap: () => _showSnack(context, 'Search settings coming soon'),
+      ),
+      _TopAction(
+        icon: Icons.notifications_none_rounded,
+        onTap: () => AppGet.toNamed(RouteNames.notifications),
+      ),
+    ];
+
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => Navigator.of(context).maybePop(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+        ),
+        Expanded(
+          child: Text(
+            'Settings',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ),
+        ...actions.map(
+          (action) =>
+              IconButton(onPressed: action.onTap, icon: Icon(action.icon)),
+        ),
+        CircleAvatar(
+          radius: 16,
+          backgroundImage: NetworkImage(controller.currentUser.avatar),
+        ),
+      ],
+    );
+  }
+
+  Widget _profileCard(BuildContext context) {
+    final user = controller.currentUser;
+
+    return InkWell(
+      onTap: () => AppGet.toNamed(RouteNames.accountSettings),
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFECECF1)),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundImage: NetworkImage(user.avatar),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.name,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '@${user.username}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: const Color(0xFF8A8E99),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Color(0xFFB5B8C1)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionCard(BuildContext context, _SettingsDisplaySection section) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 6, bottom: 8),
+          child: Text(
+            section.title,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: const Color(0xFF9A9EAA),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFECECF1)),
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < section.items.length; i++) ...[
+                _settingsRow(context, section.items[i]),
+                if (i != section.items.length - 1)
+                  const Divider(height: 1, indent: 68, endIndent: 16),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _settingsRow(BuildContext context, SettingsItemModel item) {
+    final iconColor = _iconColor(item.title);
+
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          item.icon ?? Icons.settings_outlined,
+          color: iconColor,
+          size: 20,
+        ),
+      ),
+      title: Text(
+        item.title,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: item.isDestructive
+              ? Theme.of(context).colorScheme.error
+              : const Color(0xFF303542),
+        ),
+      ),
+      subtitle: item.subtitle == null
+          ? null
+          : Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                item.subtitle!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: const Color(0xFF9599A5)),
+              ),
+            ),
+      trailing: const Icon(
+        Icons.chevron_right_rounded,
+        color: Color(0xFFB5B8C1),
+      ),
+      onTap: () => _handleItemTap(context, item),
+    );
+  }
+
+  Widget _logoutButton(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => _showSnack(context, 'Logout flow coming soon'),
+      icon: const Icon(Icons.logout_rounded),
+      label: const Text('Log Out'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFFFF5A55),
+        side: const BorderSide(color: Color(0xFFFFD7D5)),
+        minimumSize: const Size(double.infinity, 56),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+    );
+  }
+
+  List<_SettingsDisplaySection> _displaySections() {
+    final sectionMap = {
+      for (final section in controller.sections) section.title: section,
+    };
+
+    final accountItems = [
+      ..._takeItems(sectionMap['Account'], [
+        'Account settings',
+        'Password and security',
+      ]),
+    ];
+
+    final privacyItems = [
+      ..._takeItems(sectionMap['Privacy & Safety'], [
+        'Privacy',
+        'Blocked users quick list',
+      ]),
+    ];
+
+    final connectedItems = [
+      ..._takeItems(sectionMap['Communities & Discoverability'], [
+        'Connected apps',
+      ]),
+    ];
+
+    final preferenceItems = [
+      ..._takeItems(sectionMap['Messages, Calls & Notifications'], [
+        'Notifications',
+      ]),
+      ..._takeItems(sectionMap['Language, Accessibility & Data'], [
+        'Language & region',
+        'Accessibility',
+      ]),
+      _themeItem(),
+    ];
+
+    final appItems = [
+      ..._takeItems(sectionMap['Account'], ['Devices and sessions']),
+      ..._takeItems(sectionMap['About & App'], ['Support and help']),
+    ];
+
+    final extraItems = [
+      ..._takeItems(sectionMap['Messages, Calls & Notifications'], [
+        'Notification categories',
+        'Messages & calls',
+        'Activity sessions',
+      ]),
+      ..._takeItems(sectionMap['Content & Feed'], null),
+      ..._takeItems(sectionMap['Professional'], null),
+      ..._takeItems(sectionMap['Communities & Discoverability'], [
+        'Communities & groups',
+        'Deep link handler',
+        'Invite and referral',
+      ]),
+      ..._takeItems(sectionMap['Language, Accessibility & Data'], [
+        'Language and accessibility',
+        'Localization support',
+        'Accessibility support',
+        'Data & privacy center',
+        'Offline sync',
+      ]),
+      ..._takeItems(sectionMap['Privacy & Safety'], [
+        'Advanced privacy controls',
+        'Blocked and muted accounts',
+        'Safety and privacy',
+        'Report center',
+        'Help & safety',
+      ]),
+      ..._takeItems(sectionMap['Account'], [
+        'Verification request',
+        'Account switching',
+        'Archive center',
+      ]),
+      ..._takeItems(sectionMap['About & App'], [
+        'About',
+        'App update flow',
+        'Legal and compliance',
+        'Maintenance mode preview',
+      ]),
+    ];
+
+    return [
+      if (accountItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'Account', items: accountItems),
+      if (privacyItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'Privacy', items: privacyItems),
+      if (connectedItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'Connections', items: connectedItems),
+      if (preferenceItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'Preferences', items: preferenceItems),
+      if (appItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'App', items: appItems),
+      if (extraItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'More', items: extraItems),
+    ];
+  }
+
+  List<SettingsItemModel> _takeItems(
+    SettingsSectionModel? section,
+    List<String>? titles,
+  ) {
+    if (section == null) return const [];
+    if (titles == null) return section.items;
+
+    return titles
+        .map((title) => _findItem(section.items, title))
+        .whereType<SettingsItemModel>()
+        .toList(growable: false);
+  }
+
+  SettingsItemModel _themeItem() {
+    return const SettingsItemModel(
+      title: 'Theme mode',
+      subtitle: 'Switch between light, dark, and system theme',
+      icon: Icons.palette_outlined,
+    );
+  }
+
+  SettingsItemModel? _findItem(List<SettingsItemModel> items, String title) {
+    for (final item in items) {
+      if (item.title == title) return item;
+    }
+    return null;
+  }
+
+  Color _iconColor(String title) {
+    final key = title.toLowerCase();
+    if (key.contains('account') || key.contains('personal')) {
+      return const Color(0xFF6C8CF6);
+    }
+    if (key.contains('password') || key.contains('security')) {
+      return const Color(0xFFC978FF);
+    }
+    if (key.contains('privacy')) {
+      return const Color(0xFF58D3C1);
+    }
+    if (key.contains('blocked')) {
+      return const Color(0xFFFF7E73);
+    }
+    if (key.contains('connected')) {
+      return const Color(0xFF72D5CC);
+    }
+    if (key.contains('notification')) {
+      return const Color(0xFFFFA55B);
+    }
+    if (key.contains('language')) {
+      return const Color(0xFF7C83FF);
+    }
+    if (key.contains('accessibility')) {
+      return const Color(0xFF62D77C);
+    }
+    if (key.contains('devices') || key.contains('session')) {
+      return const Color(0xFF9AA2B1);
+    }
+    if (key.contains('support') || key.contains('help')) {
+      return const Color(0xFF9CA3AF);
+    }
+    return const Color(0xFF7B84A0);
+  }
+
+  void _showSnack(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _handleItemTap(BuildContext context, SettingsItemModel item) {
+    if (item.title == 'Theme mode') {
+      _showThemeSheet(context);
+      return;
+    }
+
+    if (item.routeName != null) {
+      AppGet.toNamed(item.routeName!);
+    }
+  }
+
+  Future<void> _showThemeSheet(BuildContext context) async {
+    final current = ThemeService.instance.mode.value;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: ThemeMode.values
+                .map(
+                  (mode) => ListTile(
+                    title: Text(mode.name),
+                    trailing: current == mode
+                        ? Icon(
+                            Icons.check_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                    onTap: () {
+                      ThemeService.instance.setTheme(mode);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                )
+                .toList(growable: false),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SettingsDisplaySection {
+  const _SettingsDisplaySection({required this.title, required this.items});
+
+  final String title;
+  final List<SettingsItemModel> items;
+}
+
+class _TopAction {
+  const _TopAction({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
 }

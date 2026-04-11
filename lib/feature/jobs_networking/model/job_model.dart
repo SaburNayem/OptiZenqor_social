@@ -1,10 +1,21 @@
-enum JobType { remote, fullTime, partTime, freelance, internship, contract, hybrid, onsite }
+enum JobType {
+  remote,
+  fullTime,
+  partTime,
+  freelance,
+  internship,
+  contract,
+  hybrid,
+  onsite,
+}
 
 enum ExperienceLevel { entry, mid, senior, lead }
 
 enum ApplicationStatus { pending, viewed, shortlisted, rejected }
 
 enum AlertFrequency { instant, daily, weekly }
+
+enum JobsUserRole { seeker, provider }
 
 class JobModel {
   const JobModel({
@@ -218,4 +229,24 @@ class EmployerStatsModel {
   final int totalApplicants;
   final int shortlistedCandidates;
   final int messages;
+}
+
+class EmployerProfileModel {
+  const EmployerProfileModel({
+    required this.companyName,
+    required this.hiringTitle,
+    required this.about,
+    required this.hiringFocus,
+    required this.location,
+    required this.openRoles,
+    required this.teamHighlights,
+  });
+
+  final String companyName;
+  final String hiringTitle;
+  final String about;
+  final String location;
+  final List<String> hiringFocus;
+  final List<String> openRoles;
+  final List<String> teamHighlights;
 }

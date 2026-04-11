@@ -259,6 +259,8 @@ class _FeaturedCommunityCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
                 colors: group.coverColors
                     .map(Color.new)
                     .toList(growable: false),

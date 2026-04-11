@@ -62,7 +62,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         onFilterTap: _openFilters,
                       ),
                     ),
-                    bottom: const TabBar(
+                  ),
+                ];
+              },
+              body: Column(
+                children: [
+                  const Material(
+                    color: Colors.white,
+                    child: TabBar(
                       isScrollable: true,
                       tabAlignment: TabAlignment.start,
                       tabs: [
@@ -74,15 +81,17 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       ],
                     ),
                   ),
-                ];
-              },
-              body: TabBarView(
-                children: [
-                  _BrowseTab(controller: _controller),
-                  _CategoriesTab(controller: _controller),
-                  SellProductScreen(controller: _controller),
-                  MyListingsScreen(controller: _controller),
-                  SavedItemsScreen(controller: _controller),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _BrowseTab(controller: _controller),
+                        _CategoriesTab(controller: _controller),
+                        SellProductScreen(controller: _controller),
+                        MyListingsScreen(controller: _controller),
+                        SavedItemsScreen(controller: _controller),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -136,71 +145,73 @@ class _Header extends StatelessWidget {
           ],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Marketplace',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Marketplace',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: () => _showNotifications(context, controller),
-                icon: const Icon(Icons.notifications_none_rounded),
-              ),
-              Builder(
-                builder: (context) {
-                  return IconButton(
-                    onPressed: () =>
-                        DefaultTabController.of(context).animateTo(4),
-                    icon: const Icon(Icons.bookmark_border_rounded),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: searchController,
-            onChanged: controller.updateSearch,
-            decoration: const InputDecoration(
-              hintText: 'Search products, brands, categories',
-              prefixIcon: Icon(Icons.search_rounded),
+                IconButton(
+                  onPressed: () => _showNotifications(context, controller),
+                  icon: const Icon(Icons.notifications_none_rounded),
+                ),
+                Builder(
+                  builder: (context) {
+                    return IconButton(
+                      onPressed: () =>
+                          DefaultTabController.of(context).animateTo(4),
+                      icon: const Icon(Icons.bookmark_border_rounded),
+                    );
+                  },
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              CategoryChip(
-                label: controller.selectedLocation,
-                selected: true,
-                leading: const Icon(Icons.place_outlined, size: 18),
-                onTap: () => _showLocations(context, controller),
+            const SizedBox(height: 10),
+            TextField(
+              controller: searchController,
+              onChanged: controller.updateSearch,
+              decoration: const InputDecoration(
+                hintText: 'Search products, brands, categories',
+                prefixIcon: Icon(Icons.search_rounded),
               ),
-              CategoryChip(
-                label: controller.selectedCategory == 'All'
-                    ? 'Categories'
-                    : controller.selectedCategory,
-                selected: false,
-                leading: const Icon(Icons.grid_view_rounded, size: 18),
-                onTap: () => _showCategoryPicker(context, controller),
-              ),
-              CategoryChip(
-                label: 'Filters',
-                selected: false,
-                leading: const Icon(Icons.tune_rounded, size: 18),
-                onTap: onFilterTap,
-              ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                CategoryChip(
+                  label: controller.selectedLocation,
+                  selected: true,
+                  leading: const Icon(Icons.place_outlined, size: 18),
+                  onTap: () => _showLocations(context, controller),
+                ),
+                CategoryChip(
+                  label: controller.selectedCategory == 'All'
+                      ? 'Categories'
+                      : controller.selectedCategory,
+                  selected: false,
+                  leading: const Icon(Icons.grid_view_rounded, size: 18),
+                  onTap: () => _showCategoryPicker(context, controller),
+                ),
+                CategoryChip(
+                  label: 'Filters',
+                  selected: false,
+                  leading: const Icon(Icons.tune_rounded, size: 18),
+                  onTap: onFilterTap,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
