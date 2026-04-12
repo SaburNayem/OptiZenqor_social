@@ -160,6 +160,11 @@ class MainShellScreen extends StatelessWidget {
                           RouteNames.bookmarks,
                         ),
                         _buildDrawerItem(
+                          Icons.hide_source_outlined,
+                          'Hidden posts',
+                          RouteNames.hiddenPosts,
+                        ),
+                        _buildDrawerItem(
                           Icons.account_balance_wallet_outlined,
                           'Wallet',
                           RouteNames.walletPayments,

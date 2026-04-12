@@ -28,6 +28,7 @@ import '../features/group_chat/screen/group_chat_screen.dart';
 import '../features/groups/screen/groups_screen.dart';
 import '../features/hashtags/screen/hashtags_screen.dart';
 import '../features/home_feed/screen/main_shell_screen.dart';
+import '../features/home_feed/screen/hidden_posts_screen.dart';
 import '../features/invite_referral/screen/invite_referral_screen.dart';
 import '../features/jobs_networking/screen/jobs_networking_screen.dart';
 import '../features/learning_courses/screen/learning_courses_screen.dart';
@@ -240,6 +241,8 @@ class AppRouter {
         return BusinessProfileScreen();
       case RouteNames.bookmarks:
         return BookmarksScreen();
+      case RouteNames.hiddenPosts:
+        return const HiddenPostsScreen();
       case RouteNames.savedCollections:
         return const SavedCollectionsScreen();
       case RouteNames.walletPayments:

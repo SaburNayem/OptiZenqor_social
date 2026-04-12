@@ -13,9 +13,9 @@ class HomeFeedController extends Cubit<int> {
   HomeFeedController({
     HomeFeedRepository? repository,
     AnalyticsService? analytics,
-  })  : _repository = repository ?? HomeFeedRepository(),
-        _analytics = analytics ?? AnalyticsService(),
-        super(0);
+  }) : _repository = repository ?? HomeFeedRepository(),
+       _analytics = analytics ?? AnalyticsService(),
+       super(0);
 
   final HomeFeedRepository _repository;
   final AnalyticsService _analytics;
@@ -32,15 +32,23 @@ class HomeFeedController extends Cubit<int> {
   final Set<String> _hiddenCreatorIds = <String>{};
   final Set<String> _hiddenTopics = <String>{};
   final List<String> suggestedUsers = <String>['Maya', 'Rohan', 'Liam'];
-  final List<String> suggestedGroups = <String>['Flutter Builders', 'Photo Club'];
+  final List<String> suggestedGroups = <String>[
+    'Flutter Builders',
+    'Photo Club',
+  ];
   final List<String> suggestedPages = <String>['Travel Daily', 'Fitness Bites'];
 
   bool get hasError => loadState.hasError;
   bool get isLoading => loadState.isLoading;
   bool get isLoadingMore => loadState.isLoadingMore;
-  List<PostModel> get visiblePosts =>
-      posts.where((PostModel post) => !_hiddenPostIds.contains(post.id)).toList();
-  bool isPostActionFailed(String postId) => _failedActionPostIds.contains(postId);
+  List<PostModel> get visiblePosts => posts
+      .where((PostModel post) => !_hiddenPostIds.contains(post.id))
+      .toList();
+  List<PostModel> get hiddenPosts => posts
+      .where((PostModel post) => _hiddenPostIds.contains(post.id))
+      .toList();
+  bool isPostActionFailed(String postId) =>
+      _failedActionPostIds.contains(postId);
   bool isLiked(String postId) => _likedPostIds.contains(postId);
 
   Future<void> loadInitial() async {
@@ -78,9 +86,10 @@ class HomeFeedController extends Cubit<int> {
   }
 
   Future<void> refreshFeed() async {
-    await _analytics.logEvent('feed_refresh', params: <String, dynamic>{
-      'tab': activeTab.name,
-    });
+    await _analytics.logEvent(
+      'feed_refresh',
+      params: <String, dynamic>{'tab': activeTab.name},
+    );
     await loadInitial();
   }
 
@@ -88,7 +97,11 @@ class HomeFeedController extends Cubit<int> {
     if (loadState.isLoadingMore || !pagination.hasMore) {
       return;
     }
-    loadState = loadState.copyWith(isLoadingMore: true, hasError: false, errorMessage: null);
+    loadState = loadState.copyWith(
+      isLoadingMore: true,
+      hasError: false,
+      errorMessage: null,
+    );
     _notify();
     try {
       final FeedSegment segment = _segmentForTab(activeTab);
@@ -122,9 +135,10 @@ class HomeFeedController extends Cubit<int> {
       return;
     }
     activeTab = tab;
-    await _analytics.logEvent('feed_tab_switched', params: <String, dynamic>{
-      'tab': tab.name,
-    });
+    await _analytics.logEvent(
+      'feed_tab_switched',
+      params: <String, dynamic>{'tab': tab.name},
+    );
     await loadInitial();
   }
 
@@ -139,10 +153,10 @@ class HomeFeedController extends Cubit<int> {
     try {
       await Future<void>.delayed(const Duration(milliseconds: 120));
       _failedActionPostIds.remove(postId);
-      await _analytics.logEvent('post_like_toggle', params: <String, dynamic>{
-        'postId': postId,
-        'liked': !wasLiked,
-      });
+      await _analytics.logEvent(
+        'post_like_toggle',
+        params: <String, dynamic>{'postId': postId, 'liked': !wasLiked},
+      );
       _notify();
     } catch (_) {
       if (wasLiked) {
@@ -173,11 +187,17 @@ class HomeFeedController extends Cubit<int> {
 
   void notInterested(String postId) {
     _hiddenPostIds.add(postId);
-    _analytics.logEvent('feed_not_interested', params: <String, dynamic>{
-      'postId': postId,
-      'tab': activeTab.name,
-    });
+    _analytics.logEvent(
+      'feed_not_interested',
+      params: <String, dynamic>{'postId': postId, 'tab': activeTab.name},
+    );
     _notify();
+  }
+
+  void unhidePost(String postId) {
+    if (_hiddenPostIds.remove(postId)) {
+      _notify();
+    }
   }
 
   Future<void> showLessLikeThis(String postId) async {
@@ -199,7 +219,11 @@ class HomeFeedController extends Cubit<int> {
     _hiddenTopics.add(topic);
     _hiddenPostIds.addAll(
       posts
-          .where((item) => item.tags.any((tag) => tag.toLowerCase() == topic.toLowerCase()))
+          .where(
+            (item) => item.tags.any(
+              (tag) => tag.toLowerCase() == topic.toLowerCase(),
+            ),
+          )
           .map((item) => item.id),
     );
     await _persistRecommendationPreferences();
@@ -254,11 +278,17 @@ class HomeFeedController extends Cubit<int> {
     );
 
     posts = <PostModel>[post, ...posts];
-    loadState = loadState.copyWith(isEmpty: posts.isEmpty, isSuccess: posts.isNotEmpty);
-    await _analytics.logEvent('post_created_local', params: <String, dynamic>{
-      'hasMedia': media.isNotEmpty,
-      'isVideo': isVideo,
-    });
+    loadState = loadState.copyWith(
+      isEmpty: posts.isEmpty,
+      isSuccess: posts.isNotEmpty,
+    );
+    await _analytics.logEvent(
+      'post_created_local',
+      params: <String, dynamic>{
+        'hasMedia': media.isNotEmpty,
+        'isVideo': isVideo,
+      },
+    );
     _notify();
   }
 
@@ -271,11 +301,14 @@ class HomeFeedController extends Cubit<int> {
     await _repository.saveLocalStories(
       stories.where((story) => story.id.startsWith('local_story_')).toList(),
     );
-    await _analytics.logEvent('story_created_local', params: <String, dynamic>{
-      'count': newStories.length,
-      'hasMedia': newStories.any((story) => story.hasMedia),
-      'hasText': newStories.any((story) => story.hasText),
-    });
+    await _analytics.logEvent(
+      'story_created_local',
+      params: <String, dynamic>{
+        'count': newStories.length,
+        'hasMedia': newStories.any((story) => story.hasMedia),
+        'hasText': newStories.any((story) => story.hasText),
+      },
+    );
     _notify();
   }
 
@@ -305,6 +338,7 @@ class HomeFeedController extends Cubit<int> {
     });
   }
 
-  void _notify() => emit(loadState.hashCode ^ posts.length ^ stories.length ^ pagination.page);
+  void _notify() => emit(
+    loadState.hashCode ^ posts.length ^ stories.length ^ pagination.page,
+  );
 }
-

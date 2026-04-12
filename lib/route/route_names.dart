@@ -93,6 +93,7 @@ class RouteNames {
   static const jobsApply = '/jobs/apply';
   static const businessProfile = '/business-profile';
   static const bookmarks = '/bookmarks';
+  static const hiddenPosts = '/hidden-posts';
   static const savedCollections = '/saved-collections';
   static const walletPayments = '/wallet-payments';
   static const subscriptions = '/subscriptions';

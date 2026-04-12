@@ -49,7 +49,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeFeedController, int>(
       builder: (context, _) {
-        final HomeFeedController controller = context.read<HomeFeedController>();
+        final HomeFeedController controller = context
+            .read<HomeFeedController>();
         if (controller.isLoading) {
           return const AppLoader(label: 'Preparing your personalized feed');
         }
@@ -96,7 +97,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   onMoreTap: () => _showPostActions(context, post.id),
                   onLikeTap: () => controller.likePost(post.id),
                   onCommentTap: () => _openPostDetail(context, post.id),
-                  onBookmarkTap: () => _showFeedback(context, 'Saved to bookmarks'),
+                  onBookmarkTap: () =>
+                      _showFeedback(context, 'Saved to bookmarks'),
                 );
               }),
               if (controller.isLoadingMore) ...[
@@ -115,6 +117,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
       context: context,
       showDragHandle: true,
       builder: (_) {
+        final controller = context.read<HomeFeedController>();
         return ListView(
           shrinkWrap: true,
           children: [
@@ -124,6 +127,27 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               onTap: () {
                 Navigator.of(context).pop();
                 _openPostDetail(context, postId);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.hide_source_outlined),
+              title: const Text('Hide post'),
+              onTap: () {
+                controller.notInterested(postId);
+                Navigator.of(context).pop();
+                _showFeedback(context, 'Post hidden from feed');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.tune_rounded),
+              title: const Text('Show less like this'),
+              onTap: () async {
+                await controller.showLessLikeThis(postId);
+                if (!context.mounted) {
+                  return;
+                }
+                Navigator.of(context).pop();
+                _showFeedback(context, 'We will show fewer similar posts');
               },
             ),
             ListTile(
@@ -156,9 +180,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
   void _openPostDetail(BuildContext context, String postId) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PostDetailScreen(postId: postId),
-      ),
+      MaterialPageRoute<void>(builder: (_) => PostDetailScreen(postId: postId)),
     );
   }
 }
