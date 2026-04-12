@@ -22,6 +22,8 @@ import '../features/deep_link_handler/screen/deep_link_handler_screen.dart';
 import '../features/drafts_and_scheduling/screen/drafts_and_scheduling_screen.dart';
 import '../features/drafts_and_scheduling/screen/drafts_screen.dart';
 import '../features/drafts_and_scheduling/screen/scheduling_screen.dart';
+import '../features/events/screen/create_event_screen.dart';
+import '../features/events/screen/create_pool_screen.dart';
 import '../features/events/screen/events_screen.dart';
 import '../features/explore_recommendation/screen/explore_recommendation_screen.dart';
 import '../features/group_chat/screen/group_chat_screen.dart';
@@ -251,6 +253,10 @@ class AppRouter {
         return SubscriptionsScreen();
       case RouteNames.events:
         return EventsScreen();
+      case RouteNames.eventsCreate:
+        return const CreateEventScreen();
+      case RouteNames.eventsPoolCreate:
+        return const CreatePoolScreen();
       case RouteNames.liveStream:
         return LiveStreamScreen();
       case RouteNames.safetyPrivacy:

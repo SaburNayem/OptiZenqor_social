@@ -99,6 +99,7 @@ class RouteNames {
   static const subscriptions = '/subscriptions';
   static const events = '/events';
   static const eventsCreate = '/events/create';
+  static const eventsPoolCreate = '/events/pool/create';
   static const eventsDetail = '/events/detail';
   static const liveStream = '/live-stream';
   static const safetyPrivacy = '/safety-privacy';

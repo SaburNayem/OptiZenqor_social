@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
+import '../../../route/route_names.dart';
 import '../controller/events_controller.dart';
 
 class EventsScreen extends StatefulWidget {
@@ -159,9 +160,12 @@ class _EventsScreenState extends State<EventsScreen> {
                   'Upcoming Events',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                Icon(
-                  Icons.add,
-                  color: const Color(0xFF26C6DA).withValues(alpha: 0.8),
+                IconButton(
+                  onPressed: () => AppGet.toNamed(RouteNames.eventsCreate),
+                  icon: Icon(
+                    Icons.add,
+                    color: const Color(0xFF26C6DA).withValues(alpha: 0.8),
+                  ),
                 ),
               ],
             ),

@@ -235,7 +235,7 @@ class UserProfileScreen extends StatelessWidget {
                       'Events',
                       const Color(0xFFF3E5F5),
                       const Color(0xFF8E24AA),
-                      onTap: () => AppGet.toNamed(RouteNames.events),
+                      onTap: () => AppGet.toNamed(RouteNames.eventsCreate),
                     ),
                     _buildUtilityIcon(
                       Icons.bar_chart_outlined,

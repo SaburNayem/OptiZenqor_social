@@ -73,7 +73,7 @@ class CommunityQuickActions extends StatelessWidget {
                   child: Column(
                     children: [
                       Icon(item['icon'] as IconData),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(item['label'] as String),
                     ],
                   ),
