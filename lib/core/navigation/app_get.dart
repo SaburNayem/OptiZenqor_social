@@ -6,8 +6,8 @@ import 'app_navigator.dart';
 class SnackPosition {
   const SnackPosition._();
 
-  static const SnackPosition TOP = SnackPosition._();
-  static const SnackPosition BOTTOM = SnackPosition._();
+  static const SnackPosition top = SnackPosition._();
+  static const SnackPosition bottom = SnackPosition._();
 }
 
 class AppGet {
@@ -65,11 +65,7 @@ class AppGet {
     );
   }
 
-  static void snackbar(
-    String title,
-    String message, {
-    Object? snackPosition,
-  }) {
+  static void snackbar(String title, String message, {Object? snackPosition}) {
     AppFeedback.showSnackbar(title: title, message: message);
   }
 }

@@ -4,9 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/data/service/theme_service.dart';
 import 'core/navigation/app_navigator.dart';
 import 'core/theme/app_theme.dart';
-import 'feature/home_feed/controller/home_feed_controller.dart';
-import 'feature/home_feed/controller/main_shell_controller.dart';
-import 'feature/settings/controller/settings_state_controller.dart';
+import 'features/home_feed/controller/home_feed_controller.dart';
+import 'features/home_feed/controller/main_shell_controller.dart';
+import 'features/settings/controller/settings_state_controller.dart';
 import 'route/app_router.dart';
 
 class OptiZenqorApp extends StatelessWidget {
@@ -16,9 +16,7 @@ class OptiZenqorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<MainShellController>(
-          create: (_) => MainShellController(),
-        ),
+        BlocProvider<MainShellController>(create: (_) => MainShellController()),
         BlocProvider<HomeFeedController>(
           create: (_) => HomeFeedController()..loadInitial(),
         ),
