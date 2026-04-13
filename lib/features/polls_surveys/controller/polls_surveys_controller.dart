@@ -8,26 +8,32 @@ class PollsSurveysController extends ChangeNotifier {
       : _repository = repository ?? PollsSurveysRepository();
 
   final PollsSurveysRepository _repository;
-  PollModel? poll;
+
+  List<PollModel> activeEntries = <PollModel>[];
+  List<PollModel> draftEntries = <PollModel>[];
+  List<String> quickTemplates = <String>[];
 
   void load() {
-    poll = _repository.seed();
+    activeEntries = _repository.activeEntries();
+    draftEntries = _repository.draftEntries();
+    quickTemplates = _repository.quickTemplates();
     notifyListeners();
   }
 
-  void vote(int index) {
-    final current = poll;
-    if (current == null || index < 0 || index >= current.votes.length) {
-      return;
-    }
-    final votes = List<int>.from(current.votes);
-    votes[index] += 1;
-    poll = PollModel(
-      id: current.id,
-      question: current.question,
-      options: current.options,
-      votes: votes,
-    );
+  void vote(String id, int index) {
+    activeEntries = activeEntries.map((entry) {
+      if (entry.id != id || index < 0 || index >= entry.votes.length) {
+        return entry;
+      }
+
+      final updatedVotes = List<int>.from(entry.votes);
+      updatedVotes[index] += 1;
+      return entry.copyWith(
+        votes: updatedVotes,
+        responseCount: entry.responseCount + 1,
+      );
+    }).toList();
+
     notifyListeners();
   }
 }
