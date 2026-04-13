@@ -23,7 +23,7 @@ class LoginScreen extends StatelessWidget {
         BlocProvider<_LoginUiCubit>(create: (_) => _LoginUiCubit()),
       ],
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
@@ -44,7 +44,7 @@ class LoginScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black.withValues(alpha: 0.85),
+                                  color: AppColors.black.withValues(alpha: 0.85),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -56,7 +56,7 @@ class LoginScreen extends StatelessWidget {
                             'Log in to your account to continue',
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey.shade500,
+                              color: AppColors.grey500,
                             ),
                           ),
                           const SizedBox(height: 48),
@@ -65,7 +65,7 @@ class LoginScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF495057),
+                              color: AppColors.hexFF495057,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -82,7 +82,7 @@ class LoginScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF495057),
+                              color: AppColors.hexFF495057,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -100,7 +100,7 @@ class LoginScreen extends StatelessWidget {
                                   uiState.obscurePassword
                                       ? Icons.visibility_outlined
                                       : Icons.visibility_off_outlined,
-                                  color: Colors.grey.shade400,
+                                  color: AppColors.grey400,
                                 ),
                               ),
                             ),
@@ -139,7 +139,7 @@ class LoginScreen extends StatelessWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: Divider(color: Colors.grey.shade200),
+                                child: Divider(color: AppColors.grey200),
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -148,14 +148,14 @@ class LoginScreen extends StatelessWidget {
                                 child: Text(
                                   'OR',
                                   style: TextStyle(
-                                    color: Colors.grey.shade400,
+                                    color: AppColors.grey400,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                               Expanded(
-                                child: Divider(color: Colors.grey.shade200),
+                                child: Divider(color: AppColors.grey200),
                               ),
                             ],
                           ),
@@ -171,7 +171,7 @@ class LoginScreen extends StatelessWidget {
                             },
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size.fromHeight(56),
-                              side: BorderSide(color: Colors.grey.shade200),
+                              side: BorderSide(color: AppColors.grey200),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -187,7 +187,7 @@ class LoginScreen extends StatelessWidget {
                                 const Text(
                                   'Continue with Google',
                                   style: TextStyle(
-                                    color: Color(0xFF495057),
+                                    color: AppColors.hexFF495057,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -202,7 +202,7 @@ class LoginScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   "Don't have an account? ",
-                                  style: TextStyle(color: Colors.grey.shade600),
+                                  style: TextStyle(color: AppColors.grey600),
                                 ),
                                 GestureDetector(
                                   onTap: () =>
@@ -251,3 +251,5 @@ class _LoginUiCubit extends Cubit<_LoginUiState> {
     emit(state.copyWith(obscurePassword: !state.obscurePassword));
   }
 }
+
+

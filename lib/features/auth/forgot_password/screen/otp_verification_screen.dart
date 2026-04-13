@@ -10,12 +10,12 @@ class OtpVerificationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF868E96)),
+          icon: const Icon(Icons.arrow_back, color: AppColors.hexFF868E96),
           onPressed: () => AppGet.back(),
         ),
         centerTitle: true,
@@ -26,7 +26,7 @@ class OtpVerificationScreen extends StatelessWidget {
               width: 7,
               height: 7,
               decoration: const BoxDecoration(
-                color: Color(0xFFE9ECEF),
+                color: AppColors.hexFFE9ECEF,
                 shape: BoxShape.circle,
               ),
             ),
@@ -44,7 +44,7 @@ class OtpVerificationScreen extends StatelessWidget {
               width: 7,
               height: 7,
               decoration: const BoxDecoration(
-                color: Color(0xFFE9ECEF),
+                color: AppColors.hexFFE9ECEF,
                 shape: BoxShape.circle,
               ),
             ),
@@ -63,7 +63,7 @@ class OtpVerificationScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF101828),
+                  color: AppColors.hexFF101828,
                 ),
               ),
               const SizedBox(height: 12),
@@ -71,7 +71,7 @@ class OtpVerificationScreen extends StatelessWidget {
                 'We sent a 6-digit code',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF667085),
+                  color: AppColors.hexFF667085,
                 ),
               ),
               const SizedBox(height: 40),
@@ -83,7 +83,7 @@ class OtpVerificationScreen extends StatelessWidget {
                     width: 48,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
+                      color: AppColors.hexFFF9FAFB,
                       borderRadius: BorderRadius.circular(12),
                       border: index == 0
                           ? Border.all(
@@ -93,7 +93,7 @@ class OtpVerificationScreen extends StatelessWidget {
                               width: 1.5,
                             )
                           : Border.all(
-                              color: const Color(0xFFEAECF0),
+                              color: AppColors.hexFFEAECF0,
                               width: 1,
                             ),
                     ),
@@ -139,3 +139,5 @@ class OtpVerificationScreen extends StatelessWidget {
     );
   }
 }
+
+

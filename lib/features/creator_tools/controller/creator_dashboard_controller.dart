@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/creator_metric_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CreatorDashboardController extends ChangeNotifier {
   final List<CreatorMetricModel> metrics = const [
@@ -9,28 +10,28 @@ class CreatorDashboardController extends ChangeNotifier {
       value: '124K',
       delta: '+18.4% this month',
       icon: Icons.groups_rounded,
-      highlightColor: Color(0xFF4C7CF0),
+      highlightColor: AppColors.hexFF4C7CF0,
     ),
     CreatorMetricModel(
       label: 'Engagement rate',
       value: '8.2%',
       delta: '+1.1 pts vs last month',
       icon: Icons.favorite_rounded,
-      highlightColor: Color(0xFFE55B5B),
+      highlightColor: AppColors.hexFFE55B5B,
     ),
     CreatorMetricModel(
       label: 'Followers growth',
       value: '+1.4K',
       delta: '320 from reels this week',
       icon: Icons.trending_up_rounded,
-      highlightColor: Color(0xFF2D9D78),
+      highlightColor: AppColors.hexFF2D9D78,
     ),
     CreatorMetricModel(
       label: 'Estimated earnings',
       value: '\$2,430',
       delta: '3 brand deals pending',
       icon: Icons.payments_rounded,
-      highlightColor: Color(0xFFF29B38),
+      highlightColor: AppColors.hexFFF29B38,
     ),
   ];
 
@@ -114,3 +115,4 @@ class CreatorDashboardController extends ChangeNotifier {
     'Task manager',
   ];
 }
+

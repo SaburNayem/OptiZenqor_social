@@ -12,6 +12,7 @@ import '../controller/home_feed_controller.dart';
 import '../controller/main_shell_controller.dart';
 import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class MainShellScreen extends StatelessWidget {
   MainShellScreen({super.key, this.arguments}) {
@@ -38,10 +39,10 @@ class MainShellScreen extends StatelessWidget {
         ];
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.white,
           appBar: controller.index == 0
               ? AppBar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.white,
                   elevation: 0,
                   titleSpacing: 16,
                   title: InkWell(
@@ -51,20 +52,20 @@ class MainShellScreen extends StatelessWidget {
                       height: 42,
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF4F6F8),
+                        color: AppColors.hexFFF4F6F8,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.search_rounded,
-                            color: Colors.grey.shade600,
+                            color: AppColors.grey600,
                           ),
                           const SizedBox(width: 10),
                           Text(
                             'Search',
                             style: TextStyle(
-                              color: Colors.grey.shade600,
+                              color: AppColors.grey600,
                               fontSize: 15,
                             ),
                           ),
@@ -81,7 +82,7 @@ class MainShellScreen extends StatelessWidget {
                               AppGet.toNamed(RouteNames.notifications),
                           icon: const Icon(
                             Icons.notifications_none_rounded,
-                            color: Colors.black87,
+                            color: AppColors.black87,
                           ),
                         ),
                         Positioned(
@@ -90,7 +91,7 @@ class MainShellScreen extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(2),
                             decoration: const BoxDecoration(
-                              color: Colors.red,
+                              color: AppColors.red,
                               shape: BoxShape.circle,
                             ),
                             constraints: const BoxConstraints(
@@ -240,17 +241,17 @@ class MainShellScreen extends StatelessWidget {
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => _openCreateScreen(context),
-            backgroundColor: const Color(0xFF26C6DA),
+            backgroundColor: AppColors.hexFF26C6DA,
             shape: const CircleBorder(),
             elevation: 4,
-            child: const Icon(Icons.add, color: Colors.white, size: 32),
+            child: const Icon(Icons.add, color: AppColors.white, size: 32),
           ),
           floatingActionButtonLocation:
               FloatingActionButtonLocation.centerDocked,
           bottomNavigationBar: BottomAppBar(
             padding: EdgeInsets.zero,
             height: 70,
-            color: Colors.white,
+            color: AppColors.white,
             shape: const CircularNotchedRectangle(),
             notchMargin: 8,
             child: Row(
@@ -302,12 +303,12 @@ class MainShellScreen extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: isDestructive ? Colors.red : Colors.blueGrey.shade700,
+        color: isDestructive ? AppColors.red : AppColors.blueGrey700,
       ),
       title: Text(
         label,
         style: TextStyle(
-          color: isDestructive ? Colors.red : Colors.blueGrey.shade800,
+          color: isDestructive ? AppColors.red : AppColors.blueGrey800,
           fontWeight: FontWeight.w500,
           fontSize: 15,
         ),
@@ -366,7 +367,7 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? const Color(0xFF26C6DA) : Colors.grey.shade400;
+    final color = isSelected ? AppColors.hexFF26C6DA : AppColors.grey400;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -389,3 +390,5 @@ class _NavBarItem extends StatelessWidget {
     );
   }
 }
+
+

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../model/live_stream_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveReactionOverlay extends StatefulWidget {
   const LiveReactionOverlay({
@@ -132,11 +133,11 @@ class _LiveReactionOverlayState extends State<LiveReactionOverlay> {
   Color _colorFor(LiveReactionType type) {
     switch (type) {
       case LiveReactionType.like:
-        return const Color(0xFF4FC3F7);
+        return AppColors.hexFF4FC3F7;
       case LiveReactionType.love:
-        return const Color(0xFFFF5A7A);
+        return AppColors.hexFFFF5A7A;
       case LiveReactionType.wow:
-        return const Color(0xFFFFD54F);
+        return AppColors.hexFFFFD54F;
     }
   }
 }
@@ -154,3 +155,4 @@ class _FloatingReaction {
   final double leftFactor;
   final double size;
 }
+

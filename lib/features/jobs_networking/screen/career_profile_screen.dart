@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/job_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CareerProfileScreen extends StatelessWidget {
   const CareerProfileScreen({
@@ -29,7 +30,7 @@ class CareerProfileScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(profile.title),
                     const SizedBox(height: 4),
-                    Text(profile.availability, style: const TextStyle(color: Colors.green)),
+                    Text(profile.availability, style: const TextStyle(color: AppColors.green)),
                   ],
                 ),
               ),
@@ -69,3 +70,4 @@ class CareerProfileScreen extends StatelessWidget {
     );
   }
 }
+

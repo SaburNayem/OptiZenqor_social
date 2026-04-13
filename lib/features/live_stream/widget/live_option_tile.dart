@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveOptionTile extends StatelessWidget {
   const LiveOptionTile({
@@ -22,8 +23,8 @@ class LiveOptionTile extends StatelessWidget {
       margin: const EdgeInsets.only(right: 10),
       child: Material(
         color: selected
-            ? const Color(0xFF26C6DA).withValues(alpha: 0.22)
-            : Colors.white.withValues(alpha: 0.08),
+            ? AppColors.hexFF26C6DA.withValues(alpha: 0.22)
+            : AppColors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           onTap: onTap,
@@ -35,14 +36,14 @@ class LiveOptionTile extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color: selected ? const Color(0xFF4DD8E8) : Colors.white70,
+                  color: selected ? AppColors.hexFF4DD8E8 : AppColors.white70,
                   size: 20,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   label,
                   style: TextStyle(
-                    color: selected ? Colors.white : Colors.white70,
+                    color: selected ? AppColors.white : AppColors.white70,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -55,3 +56,4 @@ class LiveOptionTile extends StatelessWidget {
     );
   }
 }
+

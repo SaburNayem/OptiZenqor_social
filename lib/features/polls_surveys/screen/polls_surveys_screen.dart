@@ -3,6 +3,7 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../controller/polls_surveys_controller.dart';
 import '../model/poll_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class PollsSurveysScreen extends StatelessWidget {
   PollsSurveysScreen({super.key}) {
@@ -14,7 +15,7 @@ class PollsSurveysScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAFC),
+      backgroundColor: AppColors.hexFFF7FAFC,
       appBar: AppBar(
         title: const Text('Polls & Surveys'),
         actions: [
@@ -67,8 +68,8 @@ class PollsSurveysScreen extends StatelessWidget {
                           'Static $template template opened',
                         );
                       },
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      backgroundColor: AppColors.white,
+                      side: const BorderSide(color: AppColors.hexFFE2E8F0),
                     );
                   },
                 ),
@@ -109,7 +110,7 @@ class PollsSurveysScreen extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: const LinearGradient(
-          colors: <Color>[Color(0xFF0F172A), Color(0xFF1D4ED8)],
+          colors: <Color>[AppColors.hexFF0F172A, AppColors.hexFF1D4ED8],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -120,13 +121,13 @@ class PollsSurveysScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
+              color: AppColors.white.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Text(
               'Profile engagement tools',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -135,7 +136,7 @@ class PollsSurveysScreen extends StatelessWidget {
           const Text(
             'Create polls and surveys your audience can answer directly from your profile.',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontSize: 22,
               height: 1.3,
               fontWeight: FontWeight.w800,
@@ -145,7 +146,7 @@ class PollsSurveysScreen extends StatelessWidget {
           Text(
             'Ask quick opinion questions, collect structured feedback, and keep drafts ready for the next campaign.',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.78),
+              color: AppColors.white.withValues(alpha: 0.78),
               height: 1.45,
             ),
           ),
@@ -172,8 +173,8 @@ class PollsSurveysScreen extends StatelessWidget {
             icon: Icons.poll_outlined,
             title: 'Create poll',
             subtitle: 'Fast yes/no or multi-choice vote',
-            backgroundColor: const Color(0xFFE0F2FE),
-            iconColor: const Color(0xFF0284C7),
+            backgroundColor: AppColors.hexFFE0F2FE,
+            iconColor: AppColors.hexFF0284C7,
             onTap: () {
               AppGet.snackbar(
                 'Create Poll',
@@ -188,8 +189,8 @@ class PollsSurveysScreen extends StatelessWidget {
             icon: Icons.assignment_outlined,
             title: 'Create survey',
             subtitle: 'Gather deeper profile feedback',
-            backgroundColor: const Color(0xFFDCFCE7),
-            iconColor: const Color(0xFF16A34A),
+            backgroundColor: AppColors.hexFFDCFCE7,
+            iconColor: AppColors.hexFF16A34A,
             onTap: () {
               AppGet.snackbar(
                 'Create Survey',
@@ -228,9 +229,9 @@ class PollsSurveysScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.hexFFE2E8F0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +256,7 @@ class PollsSurveysScreen extends StatelessWidget {
               Text(
                 entry.statusLabel,
                 style: const TextStyle(
-                  color: Color(0xFF64748B),
+                  color: AppColors.hexFF64748B,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -280,7 +281,7 @@ class PollsSurveysScreen extends StatelessWidget {
           Text(
             entry.question,
             style: const TextStyle(
-              color: Color(0xFF475569),
+              color: AppColors.hexFF475569,
               height: 1.45,
             ),
           ),
@@ -314,7 +315,7 @@ class PollsSurveysScreen extends StatelessWidget {
                       Text(
                         '${percent.toStringAsFixed(0)}%',
                         style: const TextStyle(
-                          color: Color(0xFF64748B),
+                          color: AppColors.hexFF64748B,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -326,7 +327,7 @@ class PollsSurveysScreen extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: voteCount / safeTotalVotes,
                       minHeight: 10,
-                      backgroundColor: const Color(0xFFE2E8F0),
+                      backgroundColor: AppColors.hexFFE2E8F0,
                       valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                     ),
                   ),
@@ -354,9 +355,9 @@ class PollsSurveysScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.hexFFE2E8F0),
       ),
       child: Row(
         children: [
@@ -391,7 +392,7 @@ class PollsSurveysScreen extends StatelessWidget {
                   entry.question,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFF64748B), height: 1.4),
+                  style: const TextStyle(color: AppColors.hexFF64748B, height: 1.4),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -445,9 +446,9 @@ class _QuickActionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppColors.hexFFE2E8F0),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,7 +470,7 @@ class _QuickActionCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               subtitle,
-              style: const TextStyle(color: Color(0xFF64748B), height: 1.4),
+              style: const TextStyle(color: AppColors.hexFF64748B, height: 1.4),
             ),
           ],
         ),
@@ -488,14 +489,14 @@ class _MetricBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
+        color: AppColors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.12)),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColors.white,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -513,17 +514,18 @@ class _InfoPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppColors.hexFFF8FAFC,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.hexFFE2E8F0),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          color: Color(0xFF475569),
+          color: AppColors.hexFF475569,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 }
+

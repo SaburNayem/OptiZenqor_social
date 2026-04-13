@@ -17,25 +17,25 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
       animation: _controller,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: const Color(0xFFFBFBFB),
+          backgroundColor: AppColors.hexFFFBFBFB,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              icon: const Icon(Icons.arrow_back, color: AppColors.black),
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: const Text(
               'Blocked Users',
               style: TextStyle(
-                color: Colors.black,
+                color: AppColors.black,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.search, color: Colors.black54),
+                icon: const Icon(Icons.search, color: AppColors.black54),
                 onPressed: () {},
               ),
               Stack(
@@ -44,7 +44,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(
                       Icons.notifications_none_outlined,
-                      color: Colors.black54,
+                      color: AppColors.black54,
                     ),
                     onPressed: () {},
                   ),
@@ -54,7 +54,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: AppColors.red,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       constraints: const BoxConstraints(
@@ -88,7 +88,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                           height: 50,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
+                            color: AppColors.hexFFF5F5F5,
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: const Row(
@@ -98,7 +98,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                                   decoration: InputDecoration(
                                     hintText: 'Search blocked users...',
                                     hintStyle: TextStyle(
-                                      color: Colors.grey,
+                                      color: AppColors.grey,
                                       fontSize: 14,
                                     ),
                                     border: InputBorder.none,
@@ -114,9 +114,9 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                         const SizedBox(height: 24),
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.white,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFF0F0F0)),
+                            border: Border.all(color: AppColors.hexFFF0F0F0),
                           ),
                           child: ListView.separated(
                             shrinkWrap: true,
@@ -124,7 +124,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                             itemCount: _controller.blocked.length,
                             separatorBuilder: (context, index) => const Divider(
                               height: 1,
-                              color: Color(0xFFF0F0F0),
+                              color: AppColors.hexFFF0F0F0,
                               indent: 16,
                               endIndent: 16,
                             ),
@@ -152,7 +152,7 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                                 subtitle: Text(
                                   user.handle,
                                   style: const TextStyle(
-                                    color: Colors.grey,
+                                    color: AppColors.grey,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -193,3 +193,5 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
     );
   }
 }
+
+

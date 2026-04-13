@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/data/mock/mock_data.dart';
+import '../../../core/constants/app_colors.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -131,14 +132,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   )
-                : Container(color: const Color(0xFF26C6DA)),
+                : Container(color: AppColors.hexFF26C6DA),
           ),
         ),
         Positioned(
           top: 12,
           right: 12,
           child: Material(
-            color: Colors.black.withValues(alpha: 0.45),
+            color: AppColors.black.withValues(alpha: 0.45),
             borderRadius: BorderRadius.circular(20),
             child: InkWell(
               onTap: () => _pickImage(isCover: true),
@@ -151,13 +152,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Icon(
                       Icons.camera_alt_outlined,
                       size: 16,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                     SizedBox(width: 6),
                     Text(
                       'Edit cover photo',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -173,7 +174,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Text(
             'Drag to adjust',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -189,7 +190,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Container(
           padding: const EdgeInsets.all(4),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             shape: BoxShape.circle,
           ),
           child: GestureDetector(
@@ -230,13 +231,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: const Color(0xFF26C6DA),
+                color: AppColors.hexFF26C6DA,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 3),
+                border: Border.all(color: AppColors.white, width: 3),
               ),
               child: const Icon(
                 Icons.camera_alt_outlined,
-                color: Colors.white,
+                color: AppColors.white,
                 size: 16,
               ),
             ),
@@ -252,7 +253,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.grey,
+                color: AppColors.grey,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -337,3 +338,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveAudienceChip extends StatelessWidget {
   const LiveAudienceChip({
@@ -20,8 +21,8 @@ class LiveAudienceChip extends StatelessWidget {
       duration: const Duration(milliseconds: 220),
       child: Material(
         color: selected
-            ? const Color(0xFF26C6DA).withValues(alpha: 0.24)
-            : Colors.white.withValues(alpha: 0.1),
+            ? AppColors.hexFF26C6DA.withValues(alpha: 0.24)
+            : AppColors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(999),
         child: InkWell(
           onTap: onTap,
@@ -32,13 +33,13 @@ class LiveAudienceChip extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (leading != null) ...[
-                  Icon(leading, color: Colors.white, size: 16),
+                  Icon(leading, color: AppColors.white, size: 16),
                   const SizedBox(width: 6),
                 ],
                 Text(
                   label,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
@@ -51,3 +52,4 @@ class LiveAudienceChip extends StatelessWidget {
     );
   }
 }
+

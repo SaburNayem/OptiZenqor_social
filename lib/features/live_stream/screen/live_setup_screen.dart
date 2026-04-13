@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveSetupScreen extends StatelessWidget {
   const LiveSetupScreen({
@@ -21,7 +22,7 @@ class LiveSetupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.black,
       body: Stack(
         children: [
           Positioned.fill(
@@ -36,9 +37,9 @@ class LiveSetupScreen extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF122033),
-                          Color(0xFF1D6FA3),
-                          Color(0xFF26C6DA),
+                          AppColors.hexFF122033,
+                          AppColors.hexFF1D6FA3,
+                          AppColors.hexFF26C6DA,
                         ],
                       ),
                     ),
@@ -46,7 +47,7 @@ class LiveSetupScreen extends StatelessWidget {
           ),
           Positioned.fill(
             child: Container(
-              color: Colors.black.withValues(alpha: 0.28),
+              color: AppColors.black.withValues(alpha: 0.28),
             ),
           ),
           SafeArea(
@@ -59,7 +60,7 @@ class LiveSetupScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        icon: const Icon(Icons.arrow_back, color: AppColors.white),
                       ),
                       const Spacer(),
                       Container(
@@ -68,13 +69,13 @@ class LiveSetupScreen extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: AppColors.red,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: const Text(
                           'LIVE',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),
@@ -97,7 +98,7 @@ class LiveSetupScreen extends StatelessWidget {
                             Text(
                               name,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -106,7 +107,7 @@ class LiveSetupScreen extends StatelessWidget {
                             Text(
                               privacy,
                               style: const TextStyle(
-                                color: Colors.white70,
+                                color: AppColors.white70,
                                 fontSize: 13,
                               ),
                             ),
@@ -121,13 +122,13 @@ class LiveSetupScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.32),
+                        color: AppColors.black.withValues(alpha: 0.32),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         caption,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontSize: 16,
                           height: 1.4,
                         ),
@@ -140,8 +141,8 @@ class LiveSetupScreen extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: () {},
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white38),
+                            foregroundColor: AppColors.white,
+                            side: const BorderSide(color: AppColors.white38),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           icon: const Icon(Icons.flip_camera_ios_outlined),
@@ -153,8 +154,8 @@ class LiveSetupScreen extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: () {},
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white38),
+                            foregroundColor: AppColors.white,
+                            side: const BorderSide(color: AppColors.white38),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           icon: const Icon(Icons.auto_awesome_outlined),
@@ -177,8 +178,8 @@ class LiveSetupScreen extends StatelessWidget {
                           );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.red,
+                        foregroundColor: AppColors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: const Text(
@@ -196,3 +197,4 @@ class LiveSetupScreen extends StatelessWidget {
     );
   }
 }
+

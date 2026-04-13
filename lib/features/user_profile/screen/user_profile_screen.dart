@@ -3,6 +3,7 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../route/route_names.dart';
 import '../controller/user_profile_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class UserProfileScreen extends StatelessWidget {
   UserProfileScreen({super.key, this.userId, this.showAppBar = true}) {
@@ -32,7 +33,7 @@ class UserProfileScreen extends StatelessWidget {
                   Container(
                     height: 120,
                     width: double.infinity,
-                    color: const Color(0xFF26C6DA),
+                    color: AppColors.hexFF26C6DA,
                   ),
                   Positioned(
                     bottom: -50,
@@ -45,7 +46,7 @@ class UserProfileScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.white,
                               shape: BoxShape.circle,
                             ),
                             child: CircleAvatar(
@@ -60,10 +61,10 @@ class UserProfileScreen extends StatelessWidget {
                               width: 24,
                               height: 24,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF26C6DA),
+                                color: AppColors.hexFF26C6DA,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   width: 3,
                                 ),
                               ),
@@ -90,14 +91,14 @@ class UserProfileScreen extends StatelessWidget {
                       icon: const Icon(
                         Icons.edit_outlined,
                         size: 18,
-                        color: Color(0xFF26C6DA),
+                        color: AppColors.hexFF26C6DA,
                       ),
                       label: const Text(
                         'Edit',
-                        style: TextStyle(color: Color(0xFF26C6DA)),
+                        style: TextStyle(color: AppColors.hexFF26C6DA),
                       ),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF26C6DA)),
+                        side: const BorderSide(color: AppColors.hexFF26C6DA),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -111,7 +112,7 @@ class UserProfileScreen extends StatelessWidget {
                       ),
                       icon: const Icon(
                         Icons.share_outlined,
-                        color: Colors.grey,
+                        color: AppColors.grey,
                       ),
                     ),
                   ],
@@ -142,13 +143,13 @@ class UserProfileScreen extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE0F7FA),
+                            color: AppColors.hexFFE0F7FA,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
                             'creator',
                             style: TextStyle(
-                              color: Color(0xFF00ACC1),
+                              color: AppColors.hexFF00ACC1,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -159,7 +160,7 @@ class UserProfileScreen extends StatelessWidget {
                     Text(
                       '@${user.username}',
                       style: TextStyle(
-                        color: Colors.grey.shade500,
+                        color: AppColors.grey500,
                         fontSize: 14,
                       ),
                     ),
@@ -167,7 +168,7 @@ class UserProfileScreen extends StatelessWidget {
                     Text(
                       'Digital nomad & visual storyteller. Exploring the world one pixel at a time. 📸✈️',
                       style: TextStyle(
-                        color: Colors.grey.shade700,
+                        color: AppColors.grey700,
                         fontSize: 14,
                         height: 1.4,
                       ),
@@ -219,43 +220,43 @@ class UserProfileScreen extends StatelessWidget {
                     _buildUtilityIcon(
                       Icons.bookmark_border,
                       'Saved',
-                      const Color(0xFFE0F2F1),
-                      const Color(0xFF00897B),
+                      AppColors.hexFFE0F2F1,
+                      AppColors.hexFF00897B,
                       onTap: () => AppGet.toNamed(RouteNames.bookmarks),
                     ),
                     _buildUtilityIcon(
                       Icons.account_balance_wallet_outlined,
                       'Wallet',
-                      const Color(0xFFE3F2FD),
-                      const Color(0xFF1E88E5),
+                      AppColors.hexFFE3F2FD,
+                      AppColors.hexFF1E88E5,
                       onTap: () => AppGet.toNamed(RouteNames.walletPayments),
                     ),
                     _buildUtilityIcon(
                       Icons.calendar_today_outlined,
                       'Events',
-                      const Color(0xFFF3E5F5),
-                      const Color(0xFF8E24AA),
+                      AppColors.hexFFF3E5F5,
+                      AppColors.hexFF8E24AA,
                       onTap: () => AppGet.toNamed(RouteNames.eventsCreate),
                     ),
                     _buildUtilityIcon(
                       Icons.bar_chart_outlined,
                       'Polls',
-                      const Color(0xFFE1F5FE),
-                      const Color(0xFF039BE5),
+                      AppColors.hexFFE1F5FE,
+                      AppColors.hexFF039BE5,
                       onTap: () => AppGet.toNamed(RouteNames.pollsSurveys),
                     ),
                     _buildUtilityIcon(
                       Icons.workspace_premium_outlined,
                       'Plans',
-                      const Color(0xFFFFF3E0),
-                      const Color(0xFFFB8C00),
+                      AppColors.hexFFFFF3E0,
+                      AppColors.hexFFFB8C00,
                       onTap: () => AppGet.toNamed(RouteNames.premium),
                     ),
                     _buildUtilityIcon(
                       Icons.card_giftcard,
                       'Invite',
-                      const Color(0xFFE8F5E9),
-                      const Color(0xFF43A047),
+                      AppColors.hexFFE8F5E9,
+                      AppColors.hexFF43A047,
                       onTap: () => AppGet.toNamed(RouteNames.inviteReferral),
                     ),
                   ],
@@ -334,20 +335,20 @@ class UserProfileScreen extends StatelessWidget {
                             bottom: 0,
                             child: Container(
                               alignment: Alignment.center,
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: AppColors.black.withValues(alpha: 0.1),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Icon(
                                     Icons.favorite,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     size: 16,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     likes[index],
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -370,7 +371,7 @@ class UserProfileScreen extends StatelessWidget {
     if (!showAppBar) return profileContent;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(title: const Text('Profile')),
       body: profileContent,
     );
@@ -391,7 +392,7 @@ class UserProfileScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+              style: TextStyle(color: AppColors.grey500, fontSize: 13),
             ),
           ],
         ),
@@ -400,7 +401,7 @@ class UserProfileScreen extends StatelessWidget {
   }
 
   Widget _buildStatDivider() {
-    return Container(height: 24, width: 1, color: Colors.grey.shade200);
+    return Container(height: 24, width: 1, color: AppColors.grey200);
   }
 
   Widget _buildUtilityIcon(
@@ -443,18 +444,20 @@ class UserProfileScreen extends StatelessWidget {
             icon: Icon(
               icon,
               color: isSelected
-                  ? const Color(0xFF26C6DA)
-                  : Colors.grey.shade400,
+                  ? AppColors.hexFF26C6DA
+                  : AppColors.grey400,
             ),
           ),
           if (isSelected)
             Container(
               height: 2,
               width: double.infinity,
-              color: const Color(0xFF26C6DA),
+              color: AppColors.hexFF26C6DA,
             ),
         ],
       ),
     );
   }
 }
+
+

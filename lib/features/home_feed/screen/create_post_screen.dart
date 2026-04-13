@@ -8,6 +8,7 @@ import '../../../core/data/service/media_picker_service.dart';
 import '../../../core/widgets/inline_video_player.dart';
 import '../../live_stream/model/live_stream_model.dart';
 import '../../live_stream/screen/live_broadcast_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CreatePostResult {
   const CreatePostResult({
@@ -80,17 +81,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     final currentUser = MockData.users.first;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black87),
+          icon: const Icon(Icons.close, color: AppColors.black87),
           onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'New Post',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         actions: [
@@ -101,10 +102,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               child: ElevatedButton(
                 onPressed: _canShare ? _submit : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF26C6DA),
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.hexFF26C6DA,
+                  foregroundColor: AppColors.white,
                   disabledBackgroundColor:
-                      const Color(0xFF26C6DA).withValues(alpha: 0.32),
+                      AppColors.hexFF26C6DA.withValues(alpha: 0.32),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -133,9 +134,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: AppColors.grey50,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: AppColors.grey200),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,10 +170,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: Colors.grey.shade300,
+                                        color: AppColors.grey300,
                                       ),
                                     ),
                                     child: Row(
@@ -181,7 +182,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                         const Icon(
                                           Icons.public_rounded,
                                           size: 14,
-                                          color: Colors.grey,
+                                          color: AppColors.grey,
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
@@ -192,7 +193,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                         const Icon(
                                           Icons.keyboard_arrow_down_rounded,
                                           size: 16,
-                                          color: Colors.grey,
+                                          color: AppColors.grey,
                                         ),
                                       ],
                                     ),
@@ -214,7 +215,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           decoration: const InputDecoration(
                             hintText: "What's on your mind?",
                             hintStyle: TextStyle(
-                              color: Colors.grey,
+                              color: AppColors.grey,
                               fontSize: 16,
                             ),
                             border: InputBorder.none,
@@ -233,22 +234,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   label: _mediaPaths.isEmpty
                       ? 'Photo / Video'
                       : 'Add more photo / video',
-                  bgColor: const Color(0xFFE8F5E9),
-                  iconColor: const Color(0xFF4CAF50),
+                  bgColor: AppColors.hexFFE8F5E9,
+                  iconColor: AppColors.hexFF4CAF50,
                   onTap: _showMediaPickerSheet,
                 ),
                 _buildOptionItem(
                   icon: Icons.wifi_tethering_outlined,
                   label: 'Go Live',
-                  bgColor: const Color(0xFFFFF3E0),
-                  iconColor: const Color(0xFFFF7043),
+                  bgColor: AppColors.hexFFFFF3E0,
+                  iconColor: AppColors.hexFFFF7043,
                   onTap: _goLive,
                 ),
                 _buildOptionItem(
                   icon: Icons.location_on_outlined,
                   label: _location == null ? 'Check in' : 'Location: $_location',
-                  bgColor: const Color(0xFFE3F2FD),
-                  iconColor: const Color(0xFF42A5F5),
+                  bgColor: AppColors.hexFFE3F2FD,
+                  iconColor: AppColors.hexFF42A5F5,
                   onTap: _pickLocation,
                 ),
                 _buildOptionItem(
@@ -256,8 +257,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   label: _feeling == null
                       ? 'Feeling / Activity'
                       : 'Feeling: $_feeling',
-                  bgColor: const Color(0xFFFFFDE7),
-                  iconColor: const Color(0xFFFFD600),
+                  bgColor: AppColors.hexFFFFFDE7,
+                  iconColor: AppColors.hexFFFFD600,
                   onTap: _pickFeeling,
                 ),
                 _buildOptionItem(
@@ -265,8 +266,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   label: _taggedPeople.isEmpty
                       ? 'Tag People'
                       : 'Tagged: ${_taggedPeople.join(', ')}',
-                  bgColor: const Color(0xFFF3E5F5),
-                  iconColor: const Color(0xFF8E24AA),
+                  bgColor: AppColors.hexFFF3E5F5,
+                  iconColor: AppColors.hexFF8E24AA,
                   onTap: _pickTaggedPeople,
                 ),
                 _buildOptionItem(
@@ -274,16 +275,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   label: _coAuthors.isEmpty
                       ? 'Add collaborators'
                       : 'Collaborators: ${_coAuthors.join(', ')}',
-                  bgColor: const Color(0xFFE0F7FA),
-                  iconColor: const Color(0xFF00ACC1),
+                  bgColor: AppColors.hexFFE0F7FA,
+                  iconColor: AppColors.hexFF00ACC1,
                   onTap: _pickCoAuthors,
                 ),
                 if (_mediaPaths.isNotEmpty && !_hasAnyVideo)
                   _buildOptionItem(
                     icon: Icons.image_search_outlined,
                     label: _altText == null ? 'Add alt text' : 'Alt text added',
-                    bgColor: const Color(0xFFFFF3E0),
-                    iconColor: const Color(0xFFFB8C00),
+                    bgColor: AppColors.hexFFFFF3E0,
+                    iconColor: AppColors.hexFFFB8C00,
                     onTap: _editAltText,
                   ),
               ],
@@ -292,33 +293,33 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           Container(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.grey.shade100)),
+              color: AppColors.white,
+              border: Border(top: BorderSide(color: AppColors.grey100)),
             ),
             child: Row(
               children: [
                 IconButton(
                   icon: const Icon(
                     Icons.add_photo_alternate_outlined,
-                    color: Color(0xFF26C6DA),
+                    color: AppColors.hexFF26C6DA,
                   ),
                   onPressed: _showMediaPickerSheet,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.tag, color: Color(0xFF26C6DA)),
+                  icon: const Icon(Icons.tag, color: AppColors.hexFF26C6DA),
                   onPressed: _pickTaggedPeople,
                 ),
                 IconButton(
                   icon: const Icon(
                     Icons.sentiment_satisfied_alt_outlined,
-                    color: Color(0xFF26C6DA),
+                    color: AppColors.hexFF26C6DA,
                   ),
                   onPressed: _pickFeeling,
                 ),
                 const Spacer(),
                 Text(
                   '${_captionController.text.length} / 280',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: const TextStyle(color: AppColors.grey, fontSize: 12),
                 ),
               ],
             ),
@@ -338,7 +339,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        color: Colors.black,
+        color: AppColors.black,
         child: Stack(
           children: [
             SizedBox(
@@ -393,7 +394,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
+                  color: AppColors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -401,7 +402,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       ? '${_mediaPaths.length} media selected'
                       : '${_mediaPaths.length} photo selected',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -414,13 +415,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.55),
+                    color: AppColors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${_mediaPaths.length} items',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -438,7 +439,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.black.withValues(alpha: 0.55),
+      color: AppColors.black.withValues(alpha: 0.55),
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -448,12 +449,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: Colors.white),
+              Icon(icon, size: 16, color: AppColors.white),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -492,12 +493,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 label,
                 style: const TextStyle(
                   fontSize: 15,
-                  color: Colors.black54,
+                  color: AppColors.black54,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.grey),
           ],
         ),
       ),
@@ -810,3 +811,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     }
   }
 }
+
+
+

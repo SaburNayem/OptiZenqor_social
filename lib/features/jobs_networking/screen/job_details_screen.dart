@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/job_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   const JobDetailsScreen({
@@ -34,7 +35,7 @@ class JobDetailsScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 backgroundColor: Color(job.logoColorValue),
-                child: Text(job.logoInitial, style: const TextStyle(color: Colors.white)),
+                child: Text(job.logoInitial, style: const TextStyle(color: AppColors.white)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -46,7 +47,7 @@ class JobDetailsScreen extends StatelessWidget {
                         Flexible(child: Text(job.company, style: const TextStyle(fontWeight: FontWeight.w700))),
                         if (job.verifiedEmployer) ...[
                           const SizedBox(width: 6),
-                          const Icon(Icons.verified_rounded, size: 18, color: Color(0xFF2563EB)),
+                          const Icon(Icons.verified_rounded, size: 18, color: AppColors.hexFF2563EB),
                         ],
                       ],
                     ),
@@ -188,3 +189,4 @@ class JobDetailsScreen extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 }
+

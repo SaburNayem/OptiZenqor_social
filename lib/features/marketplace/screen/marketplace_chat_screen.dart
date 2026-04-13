@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
 import '../model/product_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class MarketplaceChatScreen extends StatefulWidget {
   const MarketplaceChatScreen({
@@ -131,7 +132,7 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.7),
+                                    color: AppColors.white.withValues(alpha: 0.7),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Text(
@@ -324,3 +325,4 @@ class _ProductStrip extends StatelessWidget {
     );
   }
 }
+

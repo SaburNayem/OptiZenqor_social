@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../controller/media_viewer_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class MediaViewerScreen extends StatelessWidget {
   const MediaViewerScreen({super.key});
@@ -27,7 +28,7 @@ class MediaViewerScreen extends StatelessWidget {
                   left: 20,
                   child: Text(
                     'Type: ${item.type}',
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.white),
                   ),
                 ),
               ],
@@ -38,3 +39,4 @@ class MediaViewerScreen extends StatelessWidget {
     );
   }
 }
+

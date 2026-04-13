@@ -9,6 +9,7 @@ import '../widgets/community_group_header.dart';
 import '../widgets/community_group_tabs.dart';
 import '../cubit/community_group_cubit.dart';
 import '../cubit/community_group_state.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class CommunityGroupScreen extends StatelessWidget {
   const CommunityGroupScreen({required this.group, super.key});
@@ -83,7 +84,7 @@ class _CommunityGroupView extends StatelessWidget {
                       child: Column(
                         children: [
                           const Material(
-                            color: Colors.white,
+                            color: AppColors.white,
                             child: TabBar(
                               isScrollable: true,
                               labelPadding: EdgeInsets.symmetric(
@@ -139,3 +140,4 @@ class _CommunityGroupView extends StatelessWidget {
     );
   }
 }
+

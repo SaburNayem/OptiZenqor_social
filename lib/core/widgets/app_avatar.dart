@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 
 class AppAvatar extends StatelessWidget {
   const AppAvatar({
@@ -27,11 +28,11 @@ class AppAvatar extends StatelessWidget {
             bottom: -2,
             child: CircleAvatar(
               radius: radius * 0.25,
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.blue,
               child: Icon(
                 Icons.check,
                 size: radius * 0.25,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -39,3 +40,4 @@ class AppAvatar extends StatelessWidget {
     );
   }
 }
+

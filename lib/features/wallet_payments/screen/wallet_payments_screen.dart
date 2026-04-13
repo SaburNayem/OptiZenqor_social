@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
+import '../../../core/constants/app_colors.dart';
 
 class WalletPaymentsScreen extends StatelessWidget {
   const WalletPaymentsScreen({super.key});
@@ -11,21 +12,21 @@ class WalletPaymentsScreen extends StatelessWidget {
     final currentUser = MockData.users.first;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
           onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'Wallet',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black87),
+            icon: const Icon(Icons.search, color: AppColors.black87),
             onPressed: () {},
           ),
           Stack(
@@ -34,7 +35,7 @@ class WalletPaymentsScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(
                   Icons.notifications_none,
-                  color: Colors.black87,
+                  color: AppColors.black87,
                 ),
                 onPressed: () {},
               ),
@@ -45,7 +46,7 @@ class WalletPaymentsScreen extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Colors.red,
+                    color: AppColors.red,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -74,7 +75,7 @@ class WalletPaymentsScreen extends StatelessWidget {
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF26C6DA), Color(0xFF00838F)],
+                  colors: [AppColors.hexFF26C6DA, AppColors.hexFF00838F],
                 ),
                 borderRadius: BorderRadius.circular(28),
               ),
@@ -84,7 +85,7 @@ class WalletPaymentsScreen extends StatelessWidget {
                   Text(
                     'Available Balance',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: AppColors.white.withValues(alpha: 0.8),
                       fontSize: 14,
                     ),
                   ),
@@ -92,7 +93,7 @@ class WalletPaymentsScreen extends StatelessWidget {
                   const Text(
                     '\$2,450.00',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
@@ -104,7 +105,7 @@ class WalletPaymentsScreen extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: AppColors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -114,14 +115,14 @@ class WalletPaymentsScreen extends StatelessWidget {
                           width: 8,
                           height: 8,
                           decoration: const BoxDecoration(
-                            color: Color(0xFF4CAF50),
+                            color: AppColors.hexFF4CAF50,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 8),
                         const Text(
                           'Active Status',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
+                          style: TextStyle(color: AppColors.white, fontSize: 12),
                         ),
                       ],
                     ),
@@ -139,20 +140,20 @@ class WalletPaymentsScreen extends StatelessWidget {
                 _buildActionButton(
                   Icons.arrow_outward,
                   'Send',
-                  const Color(0xFFE0F7FA),
-                  const Color(0xFF00ACC1),
+                  AppColors.hexFFE0F7FA,
+                  AppColors.hexFF00ACC1,
                 ),
                 _buildActionButton(
                   Icons.arrow_downward,
                   'Receive',
-                  const Color(0xFFE0F7FA),
-                  const Color(0xFF00ACC1),
+                  AppColors.hexFFE0F7FA,
+                  AppColors.hexFF00ACC1,
                 ),
                 _buildActionButton(
                   Icons.add,
                   'Top Up',
-                  const Color(0xFFE0F7FA),
-                  const Color(0xFF00ACC1),
+                  AppColors.hexFFE0F7FA,
+                  AppColors.hexFF00ACC1,
                 ),
               ],
             ),
@@ -170,7 +171,7 @@ class WalletPaymentsScreen extends StatelessWidget {
                 Text(
                   'See All',
                   style: TextStyle(
-                    color: const Color(0xFF00ACC1),
+                    color: AppColors.hexFF00ACC1,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -183,9 +184,9 @@ class WalletPaymentsScreen extends StatelessWidget {
             // Transactions List
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.grey.shade100),
+                border: Border.all(color: AppColors.grey100),
               ),
               child: Column(
                 children: [
@@ -195,8 +196,8 @@ class WalletPaymentsScreen extends StatelessWidget {
                     'Today, 2:30 PM',
                     '+\$150.00',
                     true,
-                    const Color(0xFFE8F5E9),
-                    const Color(0xFF4CAF50),
+                    AppColors.hexFFE8F5E9,
+                    AppColors.hexFF4CAF50,
                   ),
                   _buildTransactionItem(
                     Icons.credit_card,
@@ -204,8 +205,8 @@ class WalletPaymentsScreen extends StatelessWidget {
                     'Yesterday',
                     '-\$9.99',
                     false,
-                    const Color(0xFFF5F5F5),
-                    const Color(0xFF424242),
+                    AppColors.hexFFF5F5F5,
+                    AppColors.hexFF424242,
                   ),
                   _buildTransactionItem(
                     Icons.shopping_bag_outlined,
@@ -213,8 +214,8 @@ class WalletPaymentsScreen extends StatelessWidget {
                     'Oct 12, 2023',
                     '-\$24.99',
                     false,
-                    const Color(0xFFF5F5F5),
-                    const Color(0xFF424242),
+                    AppColors.hexFFF5F5F5,
+                    AppColors.hexFF424242,
                   ),
                   _buildTransactionItem(
                     Icons.card_giftcard,
@@ -222,8 +223,8 @@ class WalletPaymentsScreen extends StatelessWidget {
                     'Oct 10, 2023',
                     '+\$5.00',
                     true,
-                    const Color(0xFFE8F5E9),
-                    const Color(0xFF4CAF50),
+                    AppColors.hexFFE8F5E9,
+                    AppColors.hexFF4CAF50,
                   ),
                   _buildTransactionItem(
                     Icons.add,
@@ -231,8 +232,8 @@ class WalletPaymentsScreen extends StatelessWidget {
                     'Oct 01, 2023',
                     '+\$50.00',
                     true,
-                    const Color(0xFFE0F7FA),
-                    const Color(0xFF00ACC1),
+                    AppColors.hexFFE0F7FA,
+                    AppColors.hexFF00ACC1,
                   ),
                 ],
               ),
@@ -261,7 +262,7 @@ class WalletPaymentsScreen extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.grey.shade600,
+            color: AppColors.grey600,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -306,7 +307,7 @@ class WalletPaymentsScreen extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   date,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                  style: TextStyle(color: AppColors.grey500, fontSize: 13),
                 ),
               ],
             ),
@@ -319,19 +320,19 @@ class WalletPaymentsScreen extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
-                  color: isCredit ? const Color(0xFF4CAF50) : Colors.black87,
+                  color: isCredit ? AppColors.hexFF4CAF50 : AppColors.black87,
                 ),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppColors.grey100,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   'Completed',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 10),
+                  style: TextStyle(color: AppColors.grey500, fontSize: 10),
                 ),
               ),
             ],
@@ -341,3 +342,5 @@ class WalletPaymentsScreen extends StatelessWidget {
     );
   }
 }
+
+

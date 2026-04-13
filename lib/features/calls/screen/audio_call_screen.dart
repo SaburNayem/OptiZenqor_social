@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class AudioCallScreen extends StatelessWidget {
   const AudioCallScreen({
@@ -13,7 +14,7 @@ class AudioCallScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0E1A24),
+      backgroundColor: AppColors.hexFF0E1A24,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
@@ -25,11 +26,11 @@ class AudioCallScreen extends StatelessWidget {
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: Colors.white),
+                        color: AppColors.white),
                   ),
                   const Text(
                     'End-to-end encrypted',
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                    style: TextStyle(color: AppColors.white70, fontSize: 13),
                   ),
                   const SizedBox(width: 48),
                 ],
@@ -43,7 +44,7 @@ class AudioCallScreen extends StatelessWidget {
               Text(
                 name,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
@@ -51,18 +52,18 @@ class AudioCallScreen extends StatelessWidget {
               const SizedBox(height: 8),
               const Text(
                 'Calling...',
-                style: TextStyle(color: Colors.white70, fontSize: 16),
+                style: TextStyle(color: AppColors.white70, fontSize: 16),
               ),
               const SizedBox(height: 12),
               const Text(
                 '00:14',
-                style: TextStyle(color: Colors.white54, fontSize: 14),
+                style: TextStyle(color: AppColors.white54, fontSize: 14),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: AppColors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: const Row(
@@ -81,16 +82,16 @@ class AudioCallScreen extends StatelessWidget {
                 children: [
                   _ActionButton(
                     icon: Icons.message_outlined,
-                    backgroundColor: Colors.white.withValues(alpha: 0.08),
+                    backgroundColor: AppColors.white.withValues(alpha: 0.08),
                   ),
                   _ActionButton(
                     icon: Icons.call_end_rounded,
-                    backgroundColor: const Color(0xFFE53935),
+                    backgroundColor: AppColors.hexFFE53935,
                     size: 72,
                   ),
                   _ActionButton(
                     icon: Icons.videocam_outlined,
-                    backgroundColor: Colors.white.withValues(alpha: 0.08),
+                    backgroundColor: AppColors.white.withValues(alpha: 0.08),
                   ),
                 ],
               ),
@@ -116,11 +117,11 @@ class _CallControl extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white, size: 22),
+        Icon(icon, color: AppColors.white, size: 22),
         const SizedBox(height: 6),
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 11),
+          style: const TextStyle(color: AppColors.white70, fontSize: 11),
         ),
       ],
     );
@@ -147,7 +148,8 @@ class _ActionButton extends StatelessWidget {
         color: backgroundColor,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: Colors.white, size: size * 0.4),
+      child: Icon(icon, color: AppColors.white, size: size * 0.4),
     );
   }
 }
+

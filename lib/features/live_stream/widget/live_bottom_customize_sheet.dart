@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../controller/live_stream_controller.dart';
 import '../model/live_stream_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveBottomCustomizeSheet extends StatelessWidget {
   const LiveBottomCustomizeSheet({
@@ -23,7 +24,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (_) {
         return LiveBottomCustomizeSheet(
           controller: controller,
@@ -42,7 +43,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
         return Container(
           height: MediaQuery.of(context).size.height * 0.86,
           decoration: const BoxDecoration(
-            color: Color(0xFF111827),
+            color: AppColors.hexFF111827,
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: DraggableScrollableSheet(
@@ -58,7 +59,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
                     width: 44,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: AppColors.white24,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -66,7 +67,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
                   const Text(
                     'Live setup',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -322,8 +323,8 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 22),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF111827),
-                      border: Border(top: BorderSide(color: Colors.white12)),
+                      color: AppColors.hexFF111827,
+                      border: Border(top: BorderSide(color: AppColors.white12)),
                     ),
                     child: Row(
                       children: [
@@ -352,7 +353,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: onApplyAndGoLive,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppColors.red,
                             ),
                             child: const Text('Apply & go'),
                           ),
@@ -375,7 +376,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColors.white,
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
@@ -396,12 +397,12 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
         maxLines: maxLines,
         onSubmitted: onSubmitted,
         onChanged: onSubmitted,
-        style: const TextStyle(color: Colors.white),
+        style: const TextStyle(color: AppColors.white),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.white70),
+          labelStyle: const TextStyle(color: AppColors.white70),
           filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.06),
+          fillColor: AppColors.white.withValues(alpha: 0.06),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
             borderSide: BorderSide.none,
@@ -420,7 +421,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       value: value,
       onChanged: onChanged,
-      title: Text(label, style: const TextStyle(color: Colors.white)),
+      title: Text(label, style: const TextStyle(color: AppColors.white)),
     );
   }
 
@@ -436,7 +437,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Text(label, style: const TextStyle(color: Colors.white)),
+          child: Text(label, style: const TextStyle(color: AppColors.white)),
         ),
         Slider(
           value: value.clamp(min, max),
@@ -456,11 +457,11 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
   }) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(label, style: const TextStyle(color: Colors.white)),
+      title: Text(label, style: const TextStyle(color: AppColors.white)),
       trailing: DropdownButton<T>(
         value: value,
-        dropdownColor: const Color(0xFF1B2430),
-        style: const TextStyle(color: Colors.white),
+        dropdownColor: AppColors.hexFF1B2430,
+        style: const TextStyle(color: AppColors.white),
         onChanged: (next) {
           if (next != null) {
             onChanged(next);
@@ -481,8 +482,8 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
   Widget _actionTile(String label) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(label, style: const TextStyle(color: Colors.white)),
-      trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+      title: Text(label, style: const TextStyle(color: AppColors.white)),
+      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.white70),
     );
   }
 
@@ -509,7 +510,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
                 color: Color(value),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? Colors.white : Colors.transparent,
+                  color: selected ? AppColors.white : AppColors.transparent,
                   width: 2,
                 ),
               ),
@@ -520,3 +521,4 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
     );
   }
 }
+

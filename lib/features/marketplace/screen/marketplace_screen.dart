@@ -10,6 +10,7 @@ import 'my_listings_screen.dart';
 import 'product_details_screen.dart';
 import 'saved_items_screen.dart';
 import 'sell_product_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -54,7 +55,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   SliverAppBar(
                     pinned: true,
                     expandedHeight: 300,
-                    surfaceTintColor: Colors.transparent,
+                    surfaceTintColor: AppColors.transparent,
                     leading: IconButton(
                       onPressed: () => Navigator.of(context).maybePop(),
                       icon: const Icon(Icons.arrow_back_rounded),
@@ -73,7 +74,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               body: Column(
                 children: [
                   const Material(
-                    color: Colors.white,
+                    color: AppColors.white,
                     child: TabBar(
                       isScrollable: true,
                       tabAlignment: TabAlignment.start,
@@ -513,7 +514,7 @@ class _MarketplaceFeaturedItemsScreenState
     final featuredItems = controller.featuredItems;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.hexFFF8FAFC,
       appBar: AppBar(
         title: const Text('Featured items'),
       ),
@@ -524,7 +525,7 @@ class _MarketplaceFeaturedItemsScreenState
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: <Color>[Color(0xFF0F172A), Color(0xFF1D4ED8)],
+                colors: <Color>[AppColors.hexFF0F172A, AppColors.hexFF1D4ED8],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -536,7 +537,7 @@ class _MarketplaceFeaturedItemsScreenState
                 Text(
                   'Featured marketplace picks',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -544,7 +545,7 @@ class _MarketplaceFeaturedItemsScreenState
                 Text(
                   'Browse highlighted listings selected for stronger visibility, demand, and freshness.',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: AppColors.white.withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -724,7 +725,7 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.hexFFF8FAFC,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
@@ -737,7 +738,7 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: <Color>[Color(0xFF0F172A), Color(0xFF1D4ED8)],
+                      colors: <Color>[AppColors.hexFF0F172A, AppColors.hexFF1D4ED8],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -751,13 +752,13 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
                           IconButton(
                             onPressed: () => Navigator.of(context).pop(),
                             style: IconButton.styleFrom(
-                              backgroundColor: Colors.white.withValues(
+                              backgroundColor: AppColors.white.withValues(
                                 alpha: 0.14,
                               ),
                             ),
                             icon: const Icon(
                               Icons.arrow_back_rounded,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -765,7 +766,7 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
                             child: Text(
                               'Search Marketplace',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -777,7 +778,7 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
                             ).pop(_controller.text.trim()),
                             child: const Text(
                               'Done',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: AppColors.white),
                             ),
                           ),
                         ],
@@ -786,7 +787,7 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: TextField(
@@ -821,7 +822,7 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
                       Text(
                         'Suggestions update as you type, with quick access to recent and trending searches.',
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.78),
+                          color: AppColors.white.withValues(alpha: 0.78),
                           height: 1.4,
                         ),
                       ),
@@ -880,7 +881,7 @@ class _SearchInsightsPanel extends StatelessWidget {
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
+            color: AppColors.hex12000000,
             blurRadius: 18,
             offset: Offset(0, 8),
           ),
@@ -980,7 +981,7 @@ class _SearchSuggestionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
@@ -997,7 +998,7 @@ class _SearchSuggestionCard extends StatelessWidget {
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF64748B),
+              color: AppColors.hexFF64748B,
             ),
           ),
           const SizedBox(height: 8),
@@ -1018,13 +1019,13 @@ class _FeaturedStatPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
+        color: AppColors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColors.white,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -1145,3 +1146,4 @@ class _SectionTitle extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class VideoCallScreen extends StatelessWidget {
   const VideoCallScreen({
@@ -13,7 +14,7 @@ class VideoCallScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.black,
       body: Stack(
         children: [
           Positioned.fill(
@@ -29,9 +30,9 @@ class VideoCallScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.45),
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.55),
+                    AppColors.black.withValues(alpha: 0.45),
+                    AppColors.transparent,
+                    AppColors.black.withValues(alpha: 0.55),
                   ],
                 ),
               ),
@@ -48,7 +49,7 @@ class VideoCallScreen extends StatelessWidget {
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(
                           Icons.keyboard_arrow_down_rounded,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ),
                       const Spacer(),
@@ -57,7 +58,7 @@ class VideoCallScreen extends StatelessWidget {
                           Text(
                             name,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -65,7 +66,7 @@ class VideoCallScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           const Text(
                             'Video call • 01:08',
-                            style: TextStyle(color: Colors.white70),
+                            style: TextStyle(color: AppColors.white70),
                           ),
                         ],
                       ),
@@ -81,7 +82,7 @@ class VideoCallScreen extends StatelessWidget {
                       height: 160,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white24),
+                        border: Border.all(color: AppColors.white24),
                         image: const DecorationImage(
                           image: NetworkImage(
                             'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500',
@@ -95,7 +96,7 @@ class VideoCallScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.28),
+                      color: AppColors.black.withValues(alpha: 0.28),
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: Row(
@@ -103,19 +104,19 @@ class VideoCallScreen extends StatelessWidget {
                       children: [
                         _VideoAction(
                           icon: Icons.mic_off_outlined,
-                          backgroundColor: Colors.white.withValues(alpha: 0.12),
+                          backgroundColor: AppColors.white.withValues(alpha: 0.12),
                         ),
                         _VideoAction(
                           icon: Icons.videocam_off_outlined,
-                          backgroundColor: Colors.white.withValues(alpha: 0.12),
+                          backgroundColor: AppColors.white.withValues(alpha: 0.12),
                         ),
                         _VideoAction(
                           icon: Icons.flip_camera_ios_outlined,
-                          backgroundColor: Colors.white.withValues(alpha: 0.12),
+                          backgroundColor: AppColors.white.withValues(alpha: 0.12),
                         ),
                         const _VideoAction(
                           icon: Icons.call_end_rounded,
-                          backgroundColor: Color(0xFFE53935),
+                          backgroundColor: AppColors.hexFFE53935,
                           size: 64,
                         ),
                       ],
@@ -151,7 +152,8 @@ class _VideoAction extends StatelessWidget {
         color: backgroundColor,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: Colors.white, size: size * 0.42),
+      child: Icon(icon, color: AppColors.white, size: size * 0.42),
     );
   }
 }
+

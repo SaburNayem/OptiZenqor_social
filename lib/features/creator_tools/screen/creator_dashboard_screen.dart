@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../controller/creator_dashboard_controller.dart';
 import '../model/creator_metric_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CreatorDashboardScreen extends StatelessWidget {
   const CreatorDashboardScreen({super.key});
@@ -81,7 +82,7 @@ class CreatorDashboardScreen extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF202B52), Color(0xFF3A4E8F)],
+          colors: [AppColors.hexFF202B52, AppColors.hexFF3A4E8F],
         ),
         borderRadius: BorderRadius.circular(28),
       ),
@@ -91,14 +92,14 @@ class CreatorDashboardScreen extends StatelessWidget {
           Text(
             'Creator performance snapshot',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.white,
+              color: AppColors.white,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
             'Your content is gaining stronger non-follower reach, with reels and carousel posts driving the biggest growth this week.',
-            style: TextStyle(color: Colors.white70, height: 1.45),
+            style: TextStyle(color: AppColors.white70, height: 1.45),
           ),
           const SizedBox(height: 18),
           Row(
@@ -129,7 +130,7 @@ class CreatorDashboardScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
+        color: AppColors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -139,13 +140,13 @@ class CreatorDashboardScreen extends StatelessWidget {
             label,
             style: Theme.of(
               context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+            ).textTheme.bodySmall?.copyWith(color: AppColors.white70),
           ),
           const SizedBox(height: 6),
           Text(
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.white,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -313,3 +314,4 @@ class CreatorDashboardScreen extends StatelessWidget {
     );
   }
 }
+

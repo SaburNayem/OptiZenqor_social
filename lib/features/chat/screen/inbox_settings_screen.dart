@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../controller/inbox_settings_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class InboxSettingsScreen extends StatelessWidget {
   InboxSettingsScreen({super.key})
@@ -306,9 +307,9 @@ class InboxSettingsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.grey200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,3 +329,6 @@ class InboxSettingsScreen extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
+
+
+

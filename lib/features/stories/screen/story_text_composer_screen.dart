@@ -41,7 +41,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.black,
       body: AnimatedBuilder(
         animation: _controller,
         builder: (BuildContext context, _) {
@@ -70,7 +70,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                             onPressed: () => Navigator.of(context).pop(),
                             icon: const Icon(
                               Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -79,7 +79,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                           FilledButton(
                             onPressed: _isSharing ? null : _shareStory,
                             style: FilledButton.styleFrom(
-                              backgroundColor: Colors.white,
+                              backgroundColor: AppColors.white,
                               foregroundColor: AppColors.primary,
                               minimumSize: const Size(0, 40),
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -94,7 +94,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                     height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                     ),
                                   )
                                 : const Text('Share'),
@@ -111,7 +111,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.18),
+                              color: AppColors.white.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Row(
@@ -119,14 +119,14 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                               children: [
                                 const Icon(
                                   Icons.music_note_rounded,
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   size: 18,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   _controller.selectedMusic,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -159,7 +159,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                                 'Share your story',
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
-                                                  color: Colors.white70,
+                                                  color: AppColors.white70,
                                                   fontSize: 34,
                                                   fontWeight: FontWeight.w600,
                                                   height: 1.15,
@@ -244,18 +244,18 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
         width: 40,
         padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.16),
+          color: AppColors.white.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.22)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: Colors.white, size: 18),
+            Icon(icon, color: AppColors.white, size: 18),
             const SizedBox(height: 8),
             // Text(
             //   label,
             //   style: const TextStyle(
-            //     color: Colors.white,
+            //     color: AppColors.white,
             //     fontWeight: FontWeight.w600,
             //   ),
             // ),
@@ -272,9 +272,9 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
       child: Ink(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.18),
+          color: AppColors.white.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.24)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -285,7 +285,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
               decoration: BoxDecoration(
                 color: _controller.selectedTextColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.4),
+                border: Border.all(color: AppColors.white, width: 1.4),
               ),
             ),
           ],
@@ -335,7 +335,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter setPickerState) {
               void updateColor(Offset localPosition, Size size) {
@@ -354,7 +354,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.82),
+                  color: AppColors.black.withValues(alpha: 0.82),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Column(
@@ -394,13 +394,13 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                         decoration: const BoxDecoration(
                                           gradient: LinearGradient(
                                             colors: <Color>[
-                                              Color(0xFFFF0000),
-                                              Color(0xFFFFFF00),
-                                              Color(0xFF00FF00),
-                                              Color(0xFF00FFFF),
-                                              Color(0xFF0000FF),
-                                              Color(0xFFFF00FF),
-                                              Color(0xFFFF0000),
+                                              AppColors.hexFFFF0000,
+                                              AppColors.hexFFFFFF00,
+                                              AppColors.hexFF00FF00,
+                                              AppColors.hexFF00FFFF,
+                                              AppColors.hexFF0000FF,
+                                              AppColors.hexFFFF00FF,
+                                              AppColors.hexFFFF0000,
                                             ],
                                           ),
                                         ),
@@ -411,8 +411,8 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                             begin: Alignment.topCenter,
                                             end: Alignment.bottomCenter,
                                             colors: <Color>[
-                                              Colors.transparent,
-                                              Colors.black,
+                                              AppColors.transparent,
+                                              AppColors.black,
                                             ],
                                           ),
                                         ),
@@ -437,7 +437,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                             color: tempColor.toColor(),
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: Colors.white,
+                                              color: AppColors.white,
                                               width: 2,
                                             ),
                                           ),
@@ -457,7 +457,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                       decoration: BoxDecoration(
                         color: tempColor.toColor(),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: AppColors.white, width: 2),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -541,3 +541,5 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     Navigator.of(context).pop(story);
   }
 }
+
+

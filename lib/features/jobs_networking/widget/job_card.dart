@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/job_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class JobCard extends StatelessWidget {
   const JobCard({
@@ -45,7 +46,7 @@ class JobCard extends StatelessWidget {
                       child: Text(
                         job.logoInitial,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
@@ -72,7 +73,7 @@ class JobCard extends StatelessWidget {
                               const Icon(
                                 Icons.verified_rounded,
                                 size: 18,
-                                color: Color(0xFF2563EB),
+                                color: AppColors.hexFF2563EB,
                               ),
                           ],
                         ),
@@ -205,3 +206,4 @@ class JobCard extends StatelessWidget {
     }
   }
 }
+

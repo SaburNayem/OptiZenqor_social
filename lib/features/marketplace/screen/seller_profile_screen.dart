@@ -5,6 +5,7 @@ import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
 import '../model/product_model.dart';
 import '../model/seller_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class MarketplaceSellerProfileScreen extends StatelessWidget {
   const MarketplaceSellerProfileScreen({
@@ -58,7 +59,7 @@ class MarketplaceSellerProfileScreen extends StatelessWidget {
                           const SizedBox(width: 8),
                           const Icon(
                             Icons.verified_rounded,
-                            color: Colors.blue,
+                            color: AppColors.blue,
                           ),
                         ],
                       ],
@@ -234,3 +235,4 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
+

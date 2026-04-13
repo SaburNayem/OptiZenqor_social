@@ -24,25 +24,25 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: AppColors.hexFFFBFBFB,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Account Settings',
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.black,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black54),
+            icon: const Icon(Icons.search, color: AppColors.black54),
             onPressed: () {},
           ),
           Stack(
@@ -51,7 +51,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               IconButton(
                 icon: const Icon(
                   Icons.notifications_none_outlined,
-                  color: Colors.black54,
+                  color: AppColors.black54,
                 ),
                 onPressed: () {},
               ),
@@ -61,7 +61,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: AppColors.red,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
@@ -101,7 +101,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           shape: BoxShape.circle,
                         ),
                         child: CircleAvatar(
@@ -109,7 +109,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           backgroundColor: AppColors.primary,
                           child: const Icon(
                             Icons.camera_alt_outlined,
-                            color: Colors.white,
+                            color: AppColors.white,
                             size: 18,
                           ),
                         ),
@@ -121,9 +121,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               const SizedBox(height: 32),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFF0F0F0)),
+                  border: Border.all(color: AppColors.hexFFF0F0F0),
                 ),
                 child: Column(
                   children: [
@@ -131,28 +131,28 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       label: 'Full Name',
                       controller: _fullNameController,
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildInputField(
                       label: 'Username',
                       controller: _usernameController,
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildInputField(
                       label: 'Email',
                       controller: _emailController,
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildInputField(
                       label: 'Phone Number',
                       controller: _phoneController,
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildSelectionField(
                       label: 'Gender',
                       value: 'Prefer not to say',
                       onTap: () {},
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildInputField(
                       label: 'Birthday',
                       controller: _birthdayController,
@@ -202,25 +202,25 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF666666),
+              color: AppColors.hexFF666666,
             ),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FA),
+              color: AppColors.hexFFF8F9FA,
               borderRadius: BorderRadius.circular(15),
             ),
             child: TextField(
               controller: controller,
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              style: const TextStyle(fontSize: 14, color: AppColors.black87),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 suffixIcon: suffixIcon != null
-                    ? Icon(suffixIcon, size: 18, color: Colors.black54)
+                    ? Icon(suffixIcon, size: 18, color: AppColors.black54)
                     : null,
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
@@ -248,7 +248,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF666666),
+                color: AppColors.hexFF666666,
               ),
             ),
             const SizedBox(height: 8),
@@ -257,12 +257,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               children: [
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: const TextStyle(fontSize: 14, color: AppColors.black87),
                 ),
                 const Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: Colors.black26,
+                  color: AppColors.black26,
                 ),
               ],
             ),
@@ -272,3 +272,5 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 }
+
+

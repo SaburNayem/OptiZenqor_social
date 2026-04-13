@@ -3,6 +3,7 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/data/mock/mock_data.dart';
 import '../controller/bookmarks_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class BookmarksScreen extends StatelessWidget {
   BookmarksScreen({super.key}) {
@@ -16,28 +17,28 @@ class BookmarksScreen extends StatelessWidget {
     final currentUser = MockData.users.first;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
           onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'Saved Collections',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black87),
+            icon: const Icon(Icons.search, color: AppColors.black87),
             onPressed: () {},
           ),
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.black87),
+                icon: const Icon(Icons.notifications_none, color: AppColors.black87),
                 onPressed: () {},
               ),
               Positioned(
@@ -47,7 +48,7 @@ class BookmarksScreen extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Colors.red,
+                    color: AppColors.red,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -79,18 +80,18 @@ class BookmarksScreen extends StatelessWidget {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                      border: Border.all(color: AppColors.grey200, width: 1.5),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add, size: 32, color: Colors.grey.shade400),
+                          Icon(Icons.add, size: 32, color: AppColors.grey400),
                           const SizedBox(height: 12),
                           Text(
                             'New Collection',
-                            style: TextStyle(color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+                            style: TextStyle(color: AppColors.grey500, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -172,9 +173,11 @@ class BookmarksScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           '$count saved items',
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+          style: TextStyle(color: AppColors.grey500, fontSize: 12),
         ),
       ],
     );
   }
 }
+
+

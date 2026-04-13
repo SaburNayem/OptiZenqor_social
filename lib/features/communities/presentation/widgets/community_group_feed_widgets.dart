@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../model/community_group_model.dart';
 import '../cubit/community_group_cubit.dart';
 import 'community_group_common_widgets.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class CommunityComposerCard extends StatelessWidget {
   const CommunityComposerCard({
@@ -21,7 +22,7 @@ class CommunityComposerCard extends StatelessWidget {
         children: [
           CircleAvatar(
             backgroundColor: Color(avatarColor),
-            child: const Icon(Icons.group_rounded, color: Colors.white),
+            child: const Icon(Icons.group_rounded, color: AppColors.white),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -118,7 +119,7 @@ class CommunityPostCard extends StatelessWidget {
                   backgroundColor: Color(post.authorAccent),
                   child: Text(
                     post.authorName.characters.first,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.white),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -425,3 +426,4 @@ class _CommunityPostAction extends StatelessWidget {
     );
   }
 }
+

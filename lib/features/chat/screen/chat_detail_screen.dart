@@ -13,6 +13,7 @@ import '../../../core/data/models/user_model.dart';
 import '../../calls/screen/audio_call_screen.dart';
 import '../../calls/screen/video_call_screen.dart';
 import 'chat_settings_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   const ChatDetailScreen({
@@ -190,12 +191,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleSpacing: 0,
@@ -214,9 +215,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     width: 10,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50),
+                      color: AppColors.hexFF4CAF50,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
+                      border: Border.all(color: AppColors.white, width: 1.5),
                     ),
                   ),
                 ),
@@ -231,14 +232,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: AppColors.black87,
                   ),
                 ),
                 const Text(
                   'Online',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF00ACC1),
+                    color: AppColors.hexFF00ACC1,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -258,7 +259,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.call_outlined, color: Colors.grey),
+            icon: const Icon(Icons.call_outlined, color: AppColors.grey),
           ),
           IconButton(
             onPressed: () {
@@ -271,7 +272,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.videocam_outlined, color: Colors.grey),
+            icon: const Icon(Icons.videocam_outlined, color: AppColors.grey),
           ),
           IconButton(
             onPressed: () {
@@ -284,7 +285,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               );
             },
-            icon: const Icon(Icons.more_vert, color: Colors.grey),
+            icon: const Icon(Icons.more_vert, color: AppColors.grey),
           ),
         ],
       ),
@@ -311,14 +312,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
+                            color: AppColors.grey100,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             'Today',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade500,
+                              color: AppColors.grey500,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -377,7 +378,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               DateFormat('h:mm a').format(message.timestamp),
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Colors.grey.shade400,
+                                color: AppColors.grey400,
                               ),
                             ),
                           ),
@@ -401,10 +402,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -417,7 +418,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             onPressed: () => _showAttachmentSheet(context),
             icon: const Icon(
               Icons.add_circle_outline_rounded,
-              color: Colors.grey,
+              color: AppColors.grey,
             ),
           ),
           Expanded(
@@ -432,12 +433,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           if (showSend)
             IconButton(
               onPressed: _sendCurrentPayload,
-              icon: const Icon(Icons.send_rounded, color: Color(0xFF26C6DA)),
+              icon: const Icon(Icons.send_rounded, color: AppColors.hexFF26C6DA),
             )
           else
             IconButton(
               onPressed: _toggleVoiceRecording,
-              icon: const Icon(Icons.mic_none_rounded, color: Colors.grey),
+              icon: const Icon(Icons.mic_none_rounded, color: AppColors.grey),
             ),
         ],
       ),
@@ -449,15 +450,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: AppColors.grey100),
       ),
       child: TextField(
         controller: _messageController,
         decoration: const InputDecoration(
           hintText: 'Type a message...',
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+          hintStyle: TextStyle(color: AppColors.grey, fontSize: 14),
           border: InputBorder.none,
           isDense: true,
         ),
@@ -467,14 +468,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Widget _buildMessageBubble(MessageModel message, bool isMe) {
     final BoxDecoration decoration = BoxDecoration(
-      color: isMe ? const Color(0xFF26C6DA) : Colors.grey.shade50,
+      color: isMe ? AppColors.hexFF26C6DA : AppColors.grey50,
       borderRadius: BorderRadius.only(
         topLeft: const Radius.circular(20),
         topRight: const Radius.circular(20),
         bottomLeft: Radius.circular(isMe ? 20 : 4),
         bottomRight: Radius.circular(isMe ? 4 : 20),
       ),
-      border: isMe ? null : Border.all(color: Colors.grey.shade100),
+      border: isMe ? null : Border.all(color: AppColors.grey100),
     );
 
     switch (message.kind) {
@@ -494,7 +495,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           child: Text(
             message.text,
             style: TextStyle(
-              color: isMe ? Colors.white : Colors.black87,
+              color: isMe ? AppColors.white : AppColors.black87,
               fontSize: 14,
               height: 1.4,
             ),
@@ -528,7 +529,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           children: [
             Icon(
               icons[message.kind] ?? Icons.attach_file_rounded,
-              color: isMe ? Colors.white : const Color(0xFF26C6DA),
+              color: isMe ? AppColors.white : AppColors.hexFF26C6DA,
               size: 20,
             ),
             const SizedBox(width: 10),
@@ -536,7 +537,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               child: Text(
                 message.text,
                 style: TextStyle(
-                  color: isMe ? Colors.white : Colors.black87,
+                  color: isMe ? AppColors.white : AppColors.black87,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -576,15 +577,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               height: 32,
               decoration: BoxDecoration(
                 color: isMe
-                    ? Colors.white.withValues(alpha: 0.2)
-                    : const Color(0xFF26C6DA).withValues(alpha: 0.14),
+                    ? AppColors.white.withValues(alpha: 0.2)
+                    : AppColors.hexFF26C6DA.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                 color: hasVoiceFile
-                    ? (isMe ? Colors.white : const Color(0xFF26C6DA))
-                    : Colors.grey.shade400,
+                    ? (isMe ? AppColors.white : AppColors.hexFF26C6DA)
+                    : AppColors.grey400,
               ),
             ),
           ),
@@ -605,10 +606,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     height: _voiceWaveHeights[index],
                     decoration: BoxDecoration(
                       color: active
-                          ? (isMe ? Colors.white : const Color(0xFF26C6DA))
+                          ? (isMe ? AppColors.white : AppColors.hexFF26C6DA)
                           : (isMe
-                                ? Colors.white.withValues(alpha: 0.45)
-                                : Colors.grey.shade400),
+                                ? AppColors.white.withValues(alpha: 0.45)
+                                : AppColors.grey400),
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -620,7 +621,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           Text(
             _formatRecordDuration(isPlaying ? current : total),
             style: TextStyle(
-              color: isMe ? Colors.white : Colors.black87,
+              color: isMe ? AppColors.white : AppColors.black87,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -634,9 +635,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.grey50,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: AppColors.grey100),
       ),
       child: Row(
         children: [
@@ -644,7 +645,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             onTap: () => _stopRecording(resetOnly: true),
             child: const Icon(
               Icons.stop_circle_outlined,
-              color: Color(0xFF26C6DA),
+              color: AppColors.hexFF26C6DA,
               size: 18,
             ),
           ),
@@ -660,7 +661,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     width: 3,
                     height: _activeRecordWaveHeights[index],
                     decoration: BoxDecoration(
-                      color: const Color(0xFF26C6DA),
+                      color: AppColors.hexFF26C6DA,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -672,7 +673,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           Text(
             _formatRecordDuration(_recordDuration),
             style: const TextStyle(
-              color: Colors.black87,
+              color: AppColors.black87,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -929,14 +930,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     width: 96,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: AppColors.grey50,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: AppColors.grey200),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(item.icon, color: const Color(0xFF26C6DA)),
+                        Icon(item.icon, color: AppColors.hexFF26C6DA),
                         const SizedBox(height: 8),
                         Text(
                           item.label,
@@ -1204,3 +1205,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return normalized.split('/').last;
   }
 }
+
+
+

@@ -10,25 +10,25 @@ class SupportHelpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFB),
+      backgroundColor: AppColors.hexFFFBFBFB,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Help & Support',
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.black,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black54),
+            icon: const Icon(Icons.search, color: AppColors.black54),
             onPressed: () {
               AppGet.snackbar('Search', 'Static help search opened');
             },
@@ -39,7 +39,7 @@ class SupportHelpScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(
                   Icons.notifications_none_outlined,
-                  color: Colors.black54,
+                  color: AppColors.black54,
                 ),
                 onPressed: () {
                   AppGet.toNamed(RouteNames.notifications);
@@ -51,7 +51,7 @@ class SupportHelpScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: AppColors.red,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
@@ -81,13 +81,13 @@ class SupportHelpScreen extends StatelessWidget {
                 height: 50,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
+                  color: AppColors.hexFFF5F5F5,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: const TextField(
                   decoration: InputDecoration(
                     hintText: 'Search help articles...',
-                    hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                    hintStyle: TextStyle(color: AppColors.grey, fontSize: 14),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -113,26 +113,26 @@ class SupportHelpScreen extends StatelessWidget {
                   _buildCategoryCard(
                     'Getting Started',
                     Icons.book_outlined,
-                    Colors.blue.shade100,
-                    Colors.blue,
+                    AppColors.blue100,
+                    AppColors.blue,
                   ),
                   _buildCategoryCard(
                     'Account Issues',
                     Icons.person_outline,
-                    Colors.orange.shade100,
-                    Colors.orange,
+                    AppColors.orange100,
+                    AppColors.orange,
                   ),
                   _buildCategoryCard(
                     'Privacy & Safety',
                     Icons.shield_outlined,
-                    Colors.green.shade100,
-                    Colors.green,
+                    AppColors.green100,
+                    AppColors.green,
                   ),
                   _buildCategoryCard(
                     'Billing & Plans',
                     Icons.credit_card_outlined,
-                    Colors.purple.shade100,
-                    Colors.purple,
+                    AppColors.purple100,
+                    AppColors.purple,
                   ),
                 ],
               ),
@@ -145,34 +145,34 @@ class SupportHelpScreen extends StatelessWidget {
               // Articles List
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFF0F0F0)),
+                  border: Border.all(color: AppColors.hexFFF0F0F0),
                 ),
                 child: Column(
                   children: [
                     _buildArticleTile(
                       'How to reset your password',
                       'Account',
-                      const Color(0xFFE0F2F1),
+                      AppColors.hexFFE0F2F1,
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildArticleTile(
                       'Managing privacy settings',
                       'Privacy',
-                      const Color(0xFFE0F2F1),
+                      AppColors.hexFFE0F2F1,
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildArticleTile(
                       'Setting up Two-Factor Authentication',
                       'Security',
-                      const Color(0xFFE0F2F1),
+                      AppColors.hexFFE0F2F1,
                     ),
-                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                    const Divider(height: 1, color: AppColors.hexFFF0F0F0),
                     _buildArticleTile(
                       'Reporting inappropriate content',
                       'Safety',
-                      const Color(0xFFE0F2F1),
+                      AppColors.hexFFE0F2F1,
                     ),
                   ],
                 ),
@@ -182,9 +182,9 @@ class SupportHelpScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFFF0F0F0)),
+                  border: Border.all(color: AppColors.hexFFF0F0F0),
                 ),
                 child: Column(
                   children: [
@@ -193,7 +193,7 @@ class SupportHelpScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE0F2F1),
+                            color: AppColors.hexFFE0F2F1,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -217,7 +217,7 @@ class SupportHelpScreen extends StatelessWidget {
                               'Our team is here for you',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey,
+                                color: AppColors.grey,
                               ),
                             ),
                           ],
@@ -259,8 +259,8 @@ class SupportHelpScreen extends StatelessWidget {
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFE0F2F1)),
-                          backgroundColor: const Color(0xFFF4FDFA),
+                          side: const BorderSide(color: AppColors.hexFFE0F2F1),
+                          backgroundColor: AppColors.hexFFF4FDFA,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -277,7 +277,7 @@ class SupportHelpScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     const Text(
                       'Average response time: ~2 hours',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: AppColors.grey),
                     ),
                   ],
                 ),
@@ -292,7 +292,7 @@ class SupportHelpScreen extends StatelessWidget {
         showSelectedLabels: true,
         showUnselectedLabels: true,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: AppColors.grey,
         currentIndex: 0,
         onTap: _handleBottomNavTap,
         items: const [
@@ -352,9 +352,9 @@ class SupportHelpScreen extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFF0F0F0)),
+          border: Border.all(color: AppColors.hexFFF0F0F0),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -384,10 +384,10 @@ class SupportHelpScreen extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
+          color: AppColors.hexFFF5F5F5,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(Icons.article_outlined, color: Colors.grey, size: 20),
+        child: const Icon(Icons.article_outlined, color: AppColors.grey, size: 20),
       ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,8 +417,10 @@ class SupportHelpScreen extends StatelessWidget {
       trailing: const Icon(
         Icons.arrow_forward_ios,
         size: 14,
-        color: Colors.grey,
+        color: AppColors.grey,
       ),
     );
   }
 }
+
+

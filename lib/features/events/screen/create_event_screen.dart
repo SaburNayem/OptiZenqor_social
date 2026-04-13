@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/navigation/app_get.dart';
 import '../../../route/route_names.dart';
 import '../controller/events_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -49,17 +50,17 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
           onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'Create Event',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -67,9 +68,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: const Color(0xFFF7FEFF),
+            color: AppColors.hexFFF7FEFF,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFB2EBF2)),
+            border: Border.all(color: AppColors.hexFFB2EBF2),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,13 +79,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 'Set up your event',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: Colors.black87,
+                  color: AppColors.black87,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Add event details and configure pools from this separate create flow.',
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: AppColors.grey600),
               ),
               const SizedBox(height: 16),
               _buildInputField(
@@ -112,8 +113,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 child: ElevatedButton(
                   onPressed: _handleCreateEvent,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF26C6DA),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.hexFF26C6DA,
+                    foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -146,7 +147,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               icon: const Icon(Icons.add_circle_outline, size: 18),
               label: const Text('Create pool'),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF00ACC1),
+                foregroundColor: AppColors.hexFF00ACC1,
               ),
             ),
           ],
@@ -154,7 +155,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         const SizedBox(height: 8),
         Text(
           'Add pricing or access pools from a dedicated setup screen.',
-          style: TextStyle(color: Colors.grey.shade600),
+          style: TextStyle(color: AppColors.grey600),
         ),
         const SizedBox(height: 14),
         ..._pools.map(_buildPoolCard),
@@ -167,9 +168,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE0F7FA)),
+        border: Border.all(color: AppColors.hexFFE0F7FA),
       ),
       child: Row(
         children: [
@@ -177,10 +178,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F7FA),
+              color: AppColors.hexFFE0F7FA,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.groups_2_outlined, color: Color(0xFF00ACC1)),
+            child: const Icon(Icons.groups_2_outlined, color: AppColors.hexFF00ACC1),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -194,12 +195,12 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 const SizedBox(height: 4),
                 Text(
                   '${pool.amount} • ${pool.limit}',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  style: TextStyle(color: AppColors.grey600, fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   pool.benefit,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  style: TextStyle(color: AppColors.grey500, fontSize: 12),
                 ),
               ],
             ),
@@ -207,7 +208,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           const Text(
             'Ready',
             style: TextStyle(
-              color: Color(0xFF00ACC1),
+              color: AppColors.hexFF00ACC1,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -225,9 +226,9 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF26C6DA)),
+        prefixIcon: Icon(icon, color: AppColors.hexFF26C6DA),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.white,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -288,3 +289,5 @@ class _PoolDraft {
   final String limit;
   final String benefit;
 }
+
+

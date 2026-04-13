@@ -4,6 +4,7 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 import '../../../core/data/models/notification_model.dart';
 import '../controller/notifications_controller.dart';
 import '../model/notification_payload_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key, this.showAppBar = true});
@@ -89,18 +90,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade400,
+                            color: AppColors.red400,
                             borderRadius: BorderRadius.circular(18),
                           ),
                           child: const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.delete_outline, color: Colors.white),
+                              Icon(Icons.delete_outline, color: AppColors.white),
                               SizedBox(height: 4),
                               Text(
                                 'Delete',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -140,7 +141,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   );
                                 },
                               ),
-                              backgroundColor: Colors.white,
+                              backgroundColor: AppColors.white,
                               shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.vertical(
                                   top: Radius.circular(24),
@@ -152,11 +153,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: unread
-                                  ? const Color(0xFFF2F7FF)
-                                  : Colors.white,
+                                  ? AppColors.hexFFF2F7FF
+                                  : AppColors.white,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: const Color(0xFFE9EEF5),
+                                color: AppColors.hexFFE9EEF5,
                               ),
                             ),
                             child: Row(
@@ -164,13 +165,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               children: [
                                 CircleAvatar(
                                   backgroundColor: unread
-                                      ? const Color(0xFFDCEBFF)
-                                      : const Color(0xFFF1F3F5),
+                                      ? AppColors.hexFFDCEBFF
+                                      : AppColors.hexFFF1F3F5,
                                   child: Icon(
                                     _iconFor(item),
                                     color: unread
-                                        ? const Color(0xFF1877F2)
-                                        : Colors.grey.shade700,
+                                        ? AppColors.hexFF1877F2
+                                        : AppColors.grey700,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -182,7 +183,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       RichText(
                                         text: TextSpan(
                                           style: const TextStyle(
-                                            color: Colors.black87,
+                                            color: AppColors.black87,
                                             fontSize: 14,
                                             height: 1.4,
                                           ),
@@ -204,8 +205,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                             _timeLabel(item),
                                             style: TextStyle(
                                               color: unread
-                                                  ? const Color(0xFF1877F2)
-                                                  : Colors.grey.shade600,
+                                                  ? AppColors.hexFF1877F2
+                                                  : AppColors.grey600,
                                               fontSize: 12,
                                               fontWeight: unread
                                                   ? FontWeight.w700
@@ -218,7 +219,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                               width: 10,
                                               height: 10,
                                               decoration: const BoxDecoration(
-                                                color: Color(0xFF1877F2),
+                                                color: AppColors.hexFF1877F2,
                                                 shape: BoxShape.circle,
                                               ),
                                             ),
@@ -246,7 +247,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                           );
                                         },
                                       ),
-                                      backgroundColor: Colors.white,
+                                      backgroundColor: AppColors.white,
                                       shape: const RoundedRectangleBorder(
                                         borderRadius: BorderRadius.vertical(
                                           top: Radius.circular(24),
@@ -404,3 +405,5 @@ class _NotificationActionSheet extends StatelessWidget {
     );
   }
 }
+
+

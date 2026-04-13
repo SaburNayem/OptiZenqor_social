@@ -26,21 +26,21 @@ class SplashScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 3),
+                border: Border.all(color: AppColors.white, width: 3),
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Container(
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Center(
                   child: Icon(
                     Icons
                         .handshake_rounded, // Best fit for the logo shape in icons
-                    color: Colors.black,
+                    color: AppColors.black,
                     size: 50,
                   ),
                 ),
@@ -50,7 +50,7 @@ class SplashScreen extends StatelessWidget {
             const Text(
               'OPTIZENQOR SOCIETY',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
@@ -62,3 +62,5 @@ class SplashScreen extends StatelessWidget {
     );
   }
 }
+
+

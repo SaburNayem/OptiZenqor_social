@@ -51,7 +51,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -69,16 +69,16 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.close, color: Colors.black, size: 28),
+        icon: const Icon(Icons.close, color: AppColors.black, size: 28),
         onPressed: () => AppGet.back<void>(),
       ),
       title: const Text(
         'Create story',
         style: TextStyle(
-          color: Colors.black,
+          color: AppColors.black,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -88,7 +88,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         IconButton(
           icon: const Icon(
             Icons.settings_outlined,
-            color: Colors.black,
+            color: AppColors.black,
             size: 28,
           ),
           onPressed: _showSettingsMessage,
@@ -137,16 +137,16 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         width: 104,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: selected ? AppColors.lightBackground : Colors.white,
+          color: selected ? AppColors.lightBackground : AppColors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
                 ? AppColors.primary.withValues(alpha: 0.35)
-                : Colors.grey.shade200,
+                : AppColors.grey200,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: AppColors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -161,7 +161,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               Icon(
                 icon,
                 size: 22,
-                color: selected ? AppColors.primary : Colors.black,
+                color: selected ? AppColors.primary : AppColors.black,
               ),
             const SizedBox(height: 5),
             Text(
@@ -169,7 +169,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: selected ? AppColors.primary : Colors.black,
+                color: selected ? AppColors.primary : AppColors.black,
               ),
             ),
           ],
@@ -197,7 +197,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                     style: TextStyle(
                       fontSize: _selectedAlbumIndex == 0 ? 14 : 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade800,
+                      color: AppColors.grey800,
                     ),
                   ),
                   const SizedBox(width: 2),
@@ -214,8 +214,8 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
             ),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.black,
-              side: const BorderSide(color: Colors.black, width: 1.5),
+              foregroundColor: AppColors.black,
+              side: const BorderSide(color: AppColors.black, width: 1.5),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               minimumSize: const Size(0, 34),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -245,7 +245,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               Icon(
                 Icons.photo_library_outlined,
                 size: 44,
-                color: Colors.grey.shade500,
+                color: AppColors.grey500,
               ),
               const SizedBox(height: 12),
               const Text(
@@ -257,7 +257,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               Text(
                 'We will load your device photos inside the app and let you switch albums here.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: AppColors.grey600),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
@@ -281,7 +281,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               Icon(
                 Icons.photo_library_outlined,
                 size: 44,
-                color: Colors.grey.shade500,
+                color: AppColors.grey500,
               ),
               const SizedBox(height: 12),
               const Text(
@@ -293,7 +293,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               Text(
                 'No images found in this album yet. Try another album from the bar above.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: AppColors.grey600),
               ),
             ],
           ),
@@ -329,7 +329,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                     thumbnailSize: const ThumbnailSize.square(400),
                     errorBuilder: (context, error, stackTrace) =>
                         const ColoredBox(
-                          color: Color(0x11000000),
+                          color: AppColors.hex11000000,
                           child: Icon(Icons.broken_image_outlined),
                         ),
                   ),
@@ -343,13 +343,13 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black54,
+                          color: AppColors.black54,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
                           '00:06',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -360,7 +360,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primary, width: 4),
-                        color: Colors.black.withValues(alpha: 0.12),
+                        color: AppColors.black.withValues(alpha: 0.12),
                       ),
                     ),
                   if (isSelected)
@@ -380,7 +380,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                                 ? '${_selectedOrderFor(_galleryItems[index].id)}'
                                 : '',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
@@ -399,7 +399,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
             right: 12,
             bottom: 12,
             child: Material(
-              color: Colors.black.withValues(alpha: 0.72),
+              color: AppColors.black.withValues(alpha: 0.72),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -408,12 +408,12 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.image_rounded, color: Colors.white),
+                    Icon(Icons.image_rounded, color: AppColors.white),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Selected image: ${_selectedMediaPath!.split('/').last}',
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: AppColors.white),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -439,7 +439,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       return FloatingActionButton.extended(
         onPressed: _selectedAssetIds.isEmpty ? null : _shareMultipleNow,
         backgroundColor: AppColors.splashBackground,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
         icon: const Icon(Icons.send_rounded),
         label: const Text(
           'Share now',
@@ -450,7 +450,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
 
     return FloatingActionButton(
       onPressed: _handleCameraCapture,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       elevation: 8,
       shape: const CircleBorder(),
       child: const Icon(Icons.camera_alt, color: AppColors.primary, size: 28),
@@ -633,7 +633,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                       ? Icons.grid_view_rounded
                       : Icons.photo_album_outlined,
                   size: 18,
-                  color: isSelected ? AppColors.primary : Colors.black87,
+                  color: isSelected ? AppColors.primary : AppColors.black87,
                 ),
                 const SizedBox(width: 10),
                 Flexible(
@@ -763,3 +763,5 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     Navigator.of(context).pop(<StoryModel>[story]);
   }
 }
+
+

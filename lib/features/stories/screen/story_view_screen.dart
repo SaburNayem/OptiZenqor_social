@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../controller/stories_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class StoryViewScreen extends StatefulWidget {
   const StoryViewScreen({
@@ -46,7 +47,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.black,
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
@@ -83,8 +84,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                               height: 2,
                               decoration: BoxDecoration(
                                 color: index <= _controller.currentIndex
-                                    ? Colors.white
-                                    : Colors.white.withValues(alpha: 0.3),
+                                    ? AppColors.white
+                                    : AppColors.white.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(1),
                               ),
                             ),
@@ -117,7 +118,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                                 )?.name ??
                                 '8Luck',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -126,7 +127,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                           Text(
                             '25 min',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: AppColors.white.withValues(alpha: 0.6),
                               fontSize: 12,
                             ),
                           ),
@@ -134,7 +135,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                           IconButton(
                             icon: const Icon(
                               Icons.more_vert,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                             onPressed: () {},
                           ),
@@ -158,7 +159,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                       const Text(
                         '8LUCK.COM',
                         style: TextStyle(
-                          color: Colors.orange,
+                          color: AppColors.orange,
                           fontWeight: FontWeight.bold,
                           fontSize: 11,
                           letterSpacing: 1.2,
@@ -174,17 +175,17 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                                 horizontal: 20,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.transparent,
+                                color: AppColors.transparent,
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.3),
+                                  color: AppColors.white.withValues(alpha: 0.3),
                                 ),
                               ),
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 'Send a message',
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.8),
+                                  color: AppColors.white.withValues(alpha: 0.8),
                                   fontSize: 14,
                                 ),
                               ),
@@ -193,13 +194,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                           const SizedBox(width: 16),
                           const Icon(
                             Icons.favorite_border,
-                            color: Colors.white,
+                            color: AppColors.white,
                             size: 28,
                           ),
                           const SizedBox(width: 16),
                           const Icon(
                             Icons.send_outlined,
-                            color: Colors.white,
+                            color: AppColors.white,
                             size: 28,
                           ),
                         ],
@@ -222,7 +223,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   Widget _buildStoryContent(StoryModel story) {
     final List<Color> backgroundColors = story.backgroundColors.length >= 2
         ? story.backgroundColors.map(Color.new).toList(growable: false)
-        : const <Color>[Color(0xFF1E40AF), Color(0xFF2BB0A1)];
+        : const <Color>[AppColors.hexFF1E40AF, AppColors.hexFF2BB0A1];
 
     return Container(
       width: double.infinity,
@@ -252,7 +253,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.28),
+                          color: AppColors.black.withValues(alpha: 0.28),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
@@ -260,7 +261,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                           children: [
                             const Icon(
                               Icons.music_note_rounded,
-                              color: Colors.white,
+                              color: AppColors.white,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
@@ -268,7 +269,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                               child: Text(
                                 story.music!,
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -306,20 +307,21 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
         File(story.media),
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.broken_image_outlined, color: Colors.white),
+            const Icon(Icons.broken_image_outlined, color: AppColors.white),
       );
     } else {
       child = Image.network(
         story.media,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.broken_image_outlined, color: Colors.white),
+            const Icon(Icons.broken_image_outlined, color: AppColors.white),
       );
     }
 
     return DecoratedBox(
-      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.2)),
+      decoration: BoxDecoration(color: AppColors.black.withValues(alpha: 0.2)),
       child: child,
     );
   }
 }
+

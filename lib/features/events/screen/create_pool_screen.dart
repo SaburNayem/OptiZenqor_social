@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/navigation/app_get.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CreatePoolScreen extends StatefulWidget {
   const CreatePoolScreen({super.key});
@@ -27,17 +28,17 @@ class _CreatePoolScreenState extends State<CreatePoolScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FCFD),
+      backgroundColor: AppColors.hexFFF9FCFD,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
           onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'Create Pool',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -48,11 +49,11 @@ class _CreatePoolScreenState extends State<CreatePoolScreen> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: AppColors.black.withValues(alpha: 0.04),
                     blurRadius: 18,
                     offset: const Offset(0, 8),
                   ),
@@ -68,7 +69,7 @@ class _CreatePoolScreenState extends State<CreatePoolScreen> {
                   const SizedBox(height: 6),
                   Text(
                     'Create a ticket pool, supporter tier, or group package for this event.',
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: TextStyle(color: AppColors.grey600),
                   ),
                   const SizedBox(height: 16),
                   _buildInputField(
@@ -110,9 +111,9 @@ class _CreatePoolScreenState extends State<CreatePoolScreen> {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFFEFFBFD),
+                color: AppColors.hexFFEFFBFD,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFFB2EBF2)),
+                border: Border.all(color: AppColors.hexFFB2EBF2),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,8 +146,8 @@ class _CreatePoolScreenState extends State<CreatePoolScreen> {
               child: ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF26C6DA),
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.hexFF26C6DA,
+                  foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -173,10 +174,10 @@ class _CreatePoolScreenState extends State<CreatePoolScreen> {
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF26C6DA)),
+        prefixIcon: Icon(icon, color: AppColors.hexFF26C6DA),
         alignLabelWithHint: maxLines > 1,
         filled: true,
-        fillColor: const Color(0xFFF9FCFD),
+        fillColor: AppColors.hexFFF9FCFD,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
@@ -227,21 +228,21 @@ class _PoolExampleRow extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.only(top: 4),
-          child: Icon(Icons.check_circle, size: 16, color: Color(0xFF00ACC1)),
+          child: Icon(Icons.check_circle, size: 16, color: AppColors.hexFF00ACC1),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(
             text: TextSpan(
               style: DefaultTextStyle.of(context).style.copyWith(
-                color: Colors.grey.shade700,
+                color: AppColors.grey700,
               ),
               children: [
                 TextSpan(
                   text: '$title: ',
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: AppColors.black87,
                   ),
                 ),
                 TextSpan(text: detail),
@@ -253,3 +254,5 @@ class _PoolExampleRow extends StatelessWidget {
     );
   }
 }
+
+

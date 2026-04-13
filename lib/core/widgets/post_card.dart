@@ -7,6 +7,7 @@ import '../data/models/user_model.dart';
 import '../helpers/format_helper.dart';
 import 'app_avatar.dart';
 import 'inline_video_player.dart';
+import '../constants/app_colors.dart';
 
 class PostCard extends StatelessWidget {
   const PostCard({
@@ -38,7 +39,7 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
@@ -73,7 +74,7 @@ class PostCard extends StatelessWidget {
                             Text(
                               FormatHelper.timeAgo(post.createdAt),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.grey,
+                                    color: AppColors.grey,
                                   ),
                             ),
                           ],
@@ -82,7 +83,7 @@ class PostCard extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: onMoreTap,
-                      icon: const Icon(Icons.more_horiz, color: Colors.grey),
+                      icon: const Icon(Icons.more_horiz, color: AppColors.grey),
                     ),
                   ],
                 ),
@@ -126,13 +127,13 @@ class PostCard extends StatelessWidget {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.55),
+                                  color: AppColors.black.withValues(alpha: 0.55),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Text(
                                   '${post.media.length} items',
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -153,7 +154,7 @@ class PostCard extends StatelessWidget {
                       onPressed: onLikeTap,
                       icon: Icon(
                         isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked ? Colors.red : null,
+                        color: isLiked ? AppColors.red : null,
                       ),
                     ),
                     IconButton(
@@ -201,7 +202,7 @@ class PostCard extends StatelessWidget {
                         onTap: onCommentTap,
                         child: Text(
                           'View all ${post.comments} comments',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                          style: TextStyle(color: AppColors.grey600, fontSize: 13),
                         ),
                       ),
                   ],
@@ -214,3 +215,5 @@ class PostCard extends StatelessWidget {
     );
   }
 }
+
+

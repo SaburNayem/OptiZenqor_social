@@ -11,6 +11,7 @@ import '../widget/live_control_button.dart';
 import '../widget/live_option_tile.dart';
 import '../widget/live_preview_header.dart';
 import '../widget/live_reaction_overlay.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveBroadcastScreen extends StatefulWidget {
   const LiveBroadcastScreen({
@@ -58,7 +59,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF090B10),
+      backgroundColor: AppColors.hexFF090B10,
       body: AnimatedBuilder(
         animation: Listenable.merge(<Listenable>[_controller, _enter]),
         builder: (context, _) {
@@ -134,9 +135,9 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF07111F),
+                  AppColors.hexFF07111F,
                   _controller.accentColor.withValues(alpha: 0.55),
-                  const Color(0xFF161C2B),
+                  AppColors.hexFF161C2B,
                 ],
               ),
             ),
@@ -144,7 +145,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
         Positioned.fill(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: Container(color: Colors.black.withValues(alpha: 0.08)),
+            child: Container(color: AppColors.black.withValues(alpha: 0.08)),
           ),
         ),
       ],
@@ -158,10 +159,10 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withValues(alpha: 0.56),
-            Colors.transparent,
-            Colors.black.withValues(alpha: 0.25),
-            Colors.black.withValues(alpha: 0.82),
+            AppColors.black.withValues(alpha: 0.56),
+            AppColors.transparent,
+            AppColors.black.withValues(alpha: 0.25),
+            AppColors.black.withValues(alpha: 0.82),
           ],
           stops: const [0, 0.22, 0.55, 1],
         ),
@@ -192,7 +193,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                         Text(
                           _controller.creatorName,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                           ),
@@ -200,7 +201,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                         Text(
                           _controller.username,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.72),
+                            color: AppColors.white.withValues(alpha: 0.72),
                           ),
                         ),
                       ],
@@ -212,7 +213,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
               Text(
                 'Describe what your live video is about',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.white.withValues(alpha: 0.7),
                   fontSize: 13,
                 ),
               ),
@@ -254,9 +255,9 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
         OutlinedButton.icon(
           onPressed: _openCustomizeSheet,
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-            backgroundColor: Colors.white.withValues(alpha: 0.05),
+            foregroundColor: AppColors.white,
+            side: BorderSide(color: AppColors.white.withValues(alpha: 0.15)),
+            backgroundColor: AppColors.white.withValues(alpha: 0.05),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
@@ -288,7 +289,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           style: ElevatedButton.styleFrom(
             minimumSize: const Size.fromHeight(56),
             backgroundColor: _controller.accentColor,
-            foregroundColor: Colors.black,
+            foregroundColor: AppColors.black,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(22),
             ),
@@ -332,7 +333,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                   child: Text(
                     _controller.live!.pinnedComment,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 13 * _controller.fontScale,
                     ),
                   ),
@@ -366,11 +367,11 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
               Expanded(
                 child: TextField(
                   controller: _controller.moderationReplyController,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppColors.white),
                   decoration: InputDecoration(
                     hintText: 'Reply or moderate the chat',
                     hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.44),
+                      color: AppColors.white.withValues(alpha: 0.44),
                     ),
                     border: InputBorder.none,
                     isDense: true,
@@ -387,7 +388,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                   child: const SizedBox(
                     width: 44,
                     height: 44,
-                    child: Icon(Icons.send_rounded, color: Colors.black),
+                    child: Icon(Icons.send_rounded, color: AppColors.black),
                   ),
                 ),
               ),
@@ -443,8 +444,8 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           onPressed: _confirmEndLive,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size.fromHeight(54),
-            backgroundColor: const Color(0xFFFF5A5F),
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.hexFFFF5A5F,
+            foregroundColor: AppColors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
@@ -514,9 +515,9 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
         child: Container(
           padding: padding ?? const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.22),
+            color: AppColors.black.withValues(alpha: 0.22),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.08)),
           ),
           child: child,
         ),
@@ -530,7 +531,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.06),
+      color: AppColors.white.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -546,7 +547,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                     Text(
                       label,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.56),
+                        color: AppColors.white.withValues(alpha: 0.56),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -555,7 +556,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                     Text(
                       value.trim().isEmpty ? 'Tap to add' : value,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -565,7 +566,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
               ),
               Icon(
                 Icons.edit_outlined,
-                color: Colors.white.withValues(alpha: 0.68),
+                color: AppColors.white.withValues(alpha: 0.68),
               ),
             ],
           ),
@@ -578,18 +579,18 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.07),
+        color: AppColors.white.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 16),
+          Icon(icon, color: AppColors.white, size: 16),
           const SizedBox(width: 8),
           Text(
             label,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -600,7 +601,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
 
   Widget _smallAction(String label) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.08),
+      color: AppColors.white.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: () => _showSnack(label),
@@ -611,7 +612,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
             label,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontSize: 12,
               fontWeight: FontWeight.w700,
             ),
@@ -623,7 +624,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
 
   Widget _iconAction(IconData icon, String label, VoidCallback onTap) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.08),
+      color: AppColors.white.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -633,13 +634,13 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: 18),
+              Icon(icon, color: AppColors.white, size: 18),
               const SizedBox(height: 6),
               Text(
                 label,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),
@@ -654,7 +655,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
   Future<void> _pickAudience() async {
     final result = await showModalBottomSheet<LiveAudienceVisibility>(
       context: context,
-      backgroundColor: const Color(0xFF11151D),
+      backgroundColor: AppColors.hexFF11151D,
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(
@@ -662,10 +663,10 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           children: LiveAudienceVisibility.values
               .map((audience) {
                 return ListTile(
-                  leading: Icon(_audienceIcon(audience), color: Colors.white),
+                  leading: Icon(_audienceIcon(audience), color: AppColors.white),
                   title: Text(
                     _audienceText(audience),
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.white),
                   ),
                   trailing: _controller.audience == audience
                       ? Icon(
@@ -706,15 +707,15 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF151922),
-        title: Text(title, style: const TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.hexFF151922,
+        title: Text(title, style: const TextStyle(color: AppColors.white)),
         content: TextField(
           controller: draft,
           maxLines: maxLines,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AppColors.white),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.06),
+            fillColor: AppColors.white.withValues(alpha: 0.06),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(18),
               borderSide: BorderSide.none,
@@ -750,31 +751,31 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
   Future<void> _showShareSheet() async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF11151D),
+      backgroundColor: AppColors.hexFF11151D,
       showDragHandle: true,
       builder: (context) => const SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.copy_rounded, color: Colors.white),
+              leading: Icon(Icons.copy_rounded, color: AppColors.white),
               title: Text(
                 'Copy live link',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.white),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.group_outlined, color: Colors.white),
+              leading: Icon(Icons.group_outlined, color: AppColors.white),
               title: Text(
                 'Share to followers',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.white),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.send_outlined, color: Colors.white),
+              leading: Icon(Icons.send_outlined, color: AppColors.white),
               title: Text(
                 'Send in message',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.white),
               ),
             ),
           ],
@@ -786,7 +787,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
   Future<void> _liveMoreMenu() async {
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF11151D),
+      backgroundColor: AppColors.hexFF11151D,
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(
@@ -797,11 +798,11 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                 _controller.commentsVisible
                     ? Icons.comments_disabled_outlined
                     : Icons.comment_outlined,
-                color: Colors.white,
+                color: AppColors.white,
               ),
               title: Text(
                 _controller.commentsVisible ? 'Hide comments' : 'Show comments',
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.white),
               ),
               onTap: () {
                 Navigator.of(context).pop();
@@ -809,12 +810,12 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
               },
             ),
             ListTile(
-              leading: const Icon(Icons.favorite_rounded, color: Colors.white),
+              leading: const Icon(Icons.favorite_rounded, color: AppColors.white),
               title: Text(
                 _controller.showReactionOverlay
                     ? 'Hide reactions overlay'
                     : 'Show reactions overlay',
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.white),
               ),
               onTap: () {
                 Navigator.of(context).pop();
@@ -833,14 +834,14 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF151922),
+        backgroundColor: AppColors.hexFF151922,
         title: const Text(
           'End live video?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.white),
         ),
         content: Text(
           'Your live replay and audience summary will stay on this device as mock data.',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.75)),
+          style: TextStyle(color: AppColors.white.withValues(alpha: 0.75)),
         ),
         actions: [
           TextButton(
@@ -850,7 +851,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFFF5A5F),
+              backgroundColor: AppColors.hexFFFF5A5F,
             ),
             child: const Text('End live'),
           ),
@@ -901,3 +902,4 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
+

@@ -4,6 +4,7 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 import '../../../core/data/mock/mock_data.dart';
 import '../../../route/route_names.dart';
 import '../controller/events_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});
@@ -37,21 +38,21 @@ class _EventsScreenState extends State<EventsScreen> {
     final currentUser = MockData.users.first;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
           onPressed: () => AppGet.back(),
         ),
         title: const Text(
           'Events',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black87),
+            icon: const Icon(Icons.search, color: AppColors.black87),
             onPressed: () {},
           ),
           Stack(
@@ -60,7 +61,7 @@ class _EventsScreenState extends State<EventsScreen> {
               IconButton(
                 icon: const Icon(
                   Icons.notifications_none,
-                  color: Colors.black87,
+                  color: AppColors.black87,
                 ),
                 onPressed: () {},
               ),
@@ -71,7 +72,7 @@ class _EventsScreenState extends State<EventsScreen> {
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Colors.red,
+                    color: AppColors.red,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -106,8 +107,8 @@ class _EventsScreenState extends State<EventsScreen> {
                     width: 50,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFF26C6DA)
-                          : Colors.transparent,
+                          ? AppColors.hexFF26C6DA
+                          : AppColors.transparent,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -117,8 +118,8 @@ class _EventsScreenState extends State<EventsScreen> {
                           _dates[index]['day']!,
                           style: TextStyle(
                             color: isSelected
-                                ? Colors.white70
-                                : Colors.grey.shade400,
+                                ? AppColors.white70
+                                : AppColors.grey400,
                             fontSize: 12,
                           ),
                         ),
@@ -126,7 +127,7 @@ class _EventsScreenState extends State<EventsScreen> {
                         Text(
                           _dates[index]['date']!,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
+                            color: isSelected ? AppColors.white : AppColors.black87,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -137,7 +138,7 @@ class _EventsScreenState extends State<EventsScreen> {
                             width: 4,
                             height: 4,
                             decoration: const BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.white,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -164,7 +165,7 @@ class _EventsScreenState extends State<EventsScreen> {
                   onPressed: () => AppGet.toNamed(RouteNames.eventsCreate),
                   icon: Icon(
                     Icons.add,
-                    color: const Color(0xFF26C6DA).withValues(alpha: 0.8),
+                    color: AppColors.hexFF26C6DA.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -235,11 +236,11 @@ class _EventsScreenState extends State<EventsScreen> {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -268,13 +269,13 @@ class _EventsScreenState extends State<EventsScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: AppColors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       price,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -304,13 +305,13 @@ class _EventsScreenState extends State<EventsScreen> {
                     const Icon(
                       Icons.calendar_today_outlined,
                       size: 16,
-                      color: Color(0xFF26C6DA),
+                      color: AppColors.hexFF26C6DA,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       time,
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: AppColors.grey600,
                         fontSize: 13,
                       ),
                     ),
@@ -322,13 +323,13 @@ class _EventsScreenState extends State<EventsScreen> {
                     const Icon(
                       Icons.location_on_outlined,
                       size: 16,
-                      color: Color(0xFF26C6DA),
+                      color: AppColors.hexFF26C6DA,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       location,
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: AppColors.grey600,
                         fontSize: 13,
                       ),
                     ),
@@ -376,7 +377,7 @@ class _EventsScreenState extends State<EventsScreen> {
                         Text(
                           stats,
                           style: TextStyle(
-                            color: Colors.grey.shade400,
+                            color: AppColors.grey400,
                             fontSize: 11,
                           ),
                         ),
@@ -388,13 +389,13 @@ class _EventsScreenState extends State<EventsScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE0F7FA),
+                        color: AppColors.hexFFE0F7FA,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
                         'RSVP',
                         style: TextStyle(
-                          color: Color(0xFF00ACC1),
+                          color: AppColors.hexFF00ACC1,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -410,3 +411,5 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 }
+
+

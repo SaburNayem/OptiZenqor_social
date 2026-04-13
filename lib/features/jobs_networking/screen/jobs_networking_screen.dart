@@ -13,6 +13,7 @@ import 'employer_dashboard_screen.dart';
 import 'job_application_flow_screen.dart';
 import 'job_details_screen.dart';
 import 'job_profile_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class JobsNetworkingScreen extends StatefulWidget {
   const JobsNetworkingScreen({super.key});
@@ -337,7 +338,7 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
                           const Icon(
                             Icons.verified_rounded,
                             size: 18,
-                            color: Color(0xFF2563EB),
+                            color: AppColors.hexFF2563EB,
                           ),
                       ],
                     ),
@@ -1155,3 +1156,4 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 }
+

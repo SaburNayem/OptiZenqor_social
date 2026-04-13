@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveControlButton extends StatelessWidget {
   const LiveControlButton({
@@ -18,7 +19,7 @@ class LiveControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? const Color(0xFF26C6DA) : Colors.white;
+    final color = active ? AppColors.hexFF26C6DA : AppColors.white;
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 1, end: highlight ? 1.06 : 1),
       duration: const Duration(milliseconds: 220),
@@ -30,7 +31,7 @@ class LiveControlButton extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: Material(
-            color: Colors.white.withValues(alpha: active ? 0.2 : 0.12),
+            color: AppColors.white.withValues(alpha: active ? 0.2 : 0.12),
             borderRadius: BorderRadius.circular(18),
             child: InkWell(
               onTap: onTap,
@@ -41,7 +42,7 @@ class LiveControlButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: AppColors.white.withValues(alpha: 0.15),
                   ),
                 ),
                 child: Icon(icon, color: color),
@@ -53,3 +54,4 @@ class LiveControlButton extends StatelessWidget {
     );
   }
 }
+

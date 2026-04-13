@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import '../constants/app_colors.dart';
 
 class InlineVideoPlayer extends StatefulWidget {
   const InlineVideoPlayer({
@@ -107,7 +108,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
             },
             icon: Icon(
               controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
-              color: Colors.white,
+              color: AppColors.white,
               size: 30,
             ),
           ),
@@ -123,7 +124,7 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
             },
             icon: Icon(
               _muted ? Icons.volume_off : Icons.volume_up,
-              color: Colors.white,
+              color: AppColors.white,
             ),
           ),
         ),
@@ -131,3 +132,4 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
     );
   }
 }
+

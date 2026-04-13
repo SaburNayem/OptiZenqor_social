@@ -36,7 +36,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.black,
       body: SizedBox.expand(
         child: AnimatedBuilder(
           animation: _controller,
@@ -51,9 +51,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: <Color>[
-                          Colors.black.withValues(alpha: 0.28),
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.34),
+                          AppColors.black.withValues(alpha: 0.28),
+                          AppColors.transparent,
+                          AppColors.black.withValues(alpha: 0.34),
                         ],
                       ),
                     ),
@@ -76,7 +76,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                                 onPressed: _isSharing ? null : _sharePreview,
                                 style: FilledButton.styleFrom(
                                   backgroundColor: AppColors.splashBackground,
-                                  foregroundColor: Colors.white,
+                                  foregroundColor: AppColors.white,
                                 ),
                                 child: _isSharing
                                     ? const SizedBox(
@@ -84,7 +84,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                                         height: 18,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                         ),
                                       )
                                     : const Text('Share'),
@@ -116,16 +116,16 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
   Widget _buildMedia() {
     if (widget.preview.isVideo) {
       return Container(
-        color: Colors.black,
+        color: AppColors.black,
         alignment: Alignment.center,
         child: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.videocam_rounded, color: Colors.white, size: 64),
+            Icon(Icons.videocam_rounded, color: AppColors.white, size: 64),
             SizedBox(height: 12),
             Text(
               'Video preview coming soon',
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(color: AppColors.white, fontSize: 16),
             ),
           ],
         ),
@@ -153,9 +153,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         constraints: const BoxConstraints(minHeight: 160),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.16),
+          color: AppColors.black.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.18)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,13 +164,13 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.3),
+                color: AppColors.black.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
                 _controller.selectedMusic,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -191,7 +191,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
               const Text(
                 'Add text',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: AppColors.white70,
                   fontSize: 28,
                   fontWeight: FontWeight.w600,
                   height: 1.15,
@@ -268,18 +268,18 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         width: 72,
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.3),
+          color: AppColors.black.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.16)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: Colors.white, size: 24),
+            Icon(icon, color: AppColors.white, size: 24),
             const SizedBox(height: 8),
             Text(
               label,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -300,10 +300,10 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.28),
+          color: AppColors.black.withValues(alpha: 0.28),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: AppColors.white, size: 20),
       ),
     );
   }
@@ -344,7 +344,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter setPickerState) {
               void updateColor(Offset localPosition, Size size) {
@@ -363,7 +363,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
               return Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.82),
+                  color: AppColors.black.withValues(alpha: 0.82),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Column(
@@ -403,13 +403,13 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                                         decoration: const BoxDecoration(
                                           gradient: LinearGradient(
                                             colors: <Color>[
-                                              Color(0xFFFF0000),
-                                              Color(0xFFFFFF00),
-                                              Color(0xFF00FF00),
-                                              Color(0xFF00FFFF),
-                                              Color(0xFF0000FF),
-                                              Color(0xFFFF00FF),
-                                              Color(0xFFFF0000),
+                                              AppColors.hexFFFF0000,
+                                              AppColors.hexFFFFFF00,
+                                              AppColors.hexFF00FF00,
+                                              AppColors.hexFF00FFFF,
+                                              AppColors.hexFF0000FF,
+                                              AppColors.hexFFFF00FF,
+                                              AppColors.hexFFFF0000,
                                             ],
                                           ),
                                         ),
@@ -420,8 +420,8 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                                             begin: Alignment.topCenter,
                                             end: Alignment.bottomCenter,
                                             colors: <Color>[
-                                              Colors.transparent,
-                                              Colors.black,
+                                              AppColors.transparent,
+                                              AppColors.black,
                                             ],
                                           ),
                                         ),
@@ -446,7 +446,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                                             color: tempColor.toColor(),
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: Colors.white,
+                                              color: AppColors.white,
                                               width: 2,
                                             ),
                                           ),
@@ -466,7 +466,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                       decoration: BoxDecoration(
                         color: tempColor.toColor(),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: AppColors.white, width: 2),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -509,3 +509,5 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     Navigator.of(context).pop(story);
   }
 }
+
+

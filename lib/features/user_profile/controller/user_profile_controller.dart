@@ -9,6 +9,7 @@ import '../../../core/enums/user_role.dart';
 import '../../../core/data/service/analytics_service.dart';
 import '../../follow_unfollow/controller/follow_controller.dart';
 import '../repository/user_profile_repository.dart';
+import '../../../core/constants/app_colors.dart';
 
 class UserProfileController extends ChangeNotifier {
   UserProfileController({
@@ -224,15 +225,15 @@ class UserProfileController extends ChangeNotifier {
     final current = user;
     switch (current?.badgeStyle) {
       case 'creator':
-        return const Color(0xFFEAB308);
+        return AppColors.hexFFEAB308;
       case 'business':
-        return const Color(0xFF2563EB);
+        return AppColors.hexFF2563EB;
       case 'seller':
-        return const Color(0xFF059669);
+        return AppColors.hexFF059669;
       case 'recruiter':
-        return const Color(0xFF7C3AED);
+        return AppColors.hexFF7C3AED;
       default:
-        return const Color(0xFF6B7280);
+        return AppColors.hexFF6B7280;
     }
   }
 
@@ -257,3 +258,4 @@ class UserProfileController extends ChangeNotifier {
     }
   }
 }
+

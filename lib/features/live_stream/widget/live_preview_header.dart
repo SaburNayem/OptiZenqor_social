@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../controller/live_stream_controller.dart';
 import '../model/live_stream_model.dart';
 import 'live_audience_chip.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LivePreviewHeader extends StatelessWidget {
   const LivePreviewHeader({
@@ -30,7 +31,7 @@ class LivePreviewHeader extends StatelessWidget {
                 const Text(
                   'Live video',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -110,8 +111,8 @@ class _TopIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: active
-          ? const Color(0xFF26C6DA).withValues(alpha: 0.24)
-          : Colors.black.withValues(alpha: 0.28),
+          ? AppColors.hexFF26C6DA.withValues(alpha: 0.24)
+          : AppColors.black.withValues(alpha: 0.28),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -119,7 +120,7 @@ class _TopIconButton extends StatelessWidget {
         child: SizedBox(
           width: 42,
           height: 42,
-          child: Icon(icon, color: Colors.white, size: 20),
+          child: Icon(icon, color: AppColors.white, size: 20),
         ),
       ),
     );
@@ -161,18 +162,18 @@ class _LiveBadgeState extends State<_LiveBadge>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.92),
+          color: AppColors.red.withValues(alpha: 0.92),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.fiber_manual_record, color: Colors.white, size: 10),
+            const Icon(Icons.fiber_manual_record, color: AppColors.white, size: 10),
             const SizedBox(width: 6),
             const Text(
               'LIVE',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -181,7 +182,7 @@ class _LiveBadgeState extends State<_LiveBadge>
             Text(
               widget.duration,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -192,3 +193,4 @@ class _LiveBadgeState extends State<_LiveBadge>
     );
   }
 }
+

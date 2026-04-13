@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../model/live_stream_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LiveCommentItem extends StatelessWidget {
   const LiveCommentItem({
@@ -23,9 +24,9 @@ class LiveCommentItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.34),
+            color: AppColors.black.withValues(alpha: 0.34),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.08)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,7 +46,7 @@ class LiveCommentItem extends StatelessWidget {
                           child: Text(
                             comment.username,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontSize: 12 * fontScale,
                               fontWeight: FontWeight.w700,
                             ),
@@ -56,7 +57,7 @@ class LiveCommentItem extends StatelessWidget {
                           const Icon(
                             Icons.verified_rounded,
                             size: 14,
-                            color: Color(0xFF4DD8E8),
+                            color: AppColors.hexFF4DD8E8,
                           ),
                         ],
                       ],
@@ -65,7 +66,7 @@ class LiveCommentItem extends StatelessWidget {
                     Text(
                       comment.message,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.92),
+                        color: AppColors.white.withValues(alpha: 0.92),
                         fontSize: 12 * fontScale,
                         height: 1.35,
                       ),
@@ -80,3 +81,4 @@ class LiveCommentItem extends StatelessWidget {
     );
   }
 }
+

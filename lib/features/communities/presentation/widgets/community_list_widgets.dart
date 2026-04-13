@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../model/community_group_model.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class FeaturedCommunityCard extends StatelessWidget {
   const FeaturedCommunityCard({
@@ -45,7 +46,7 @@ class FeaturedCommunityCard extends StatelessWidget {
                   Text(
                     group.name,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -53,14 +54,14 @@ class FeaturedCommunityCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '${group.memberCount} members • ${group.category}',
-                    style: const TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: AppColors.white70),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     group.description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: AppColors.white70),
                   ),
                   const SizedBox(height: 8),
                   Align(
@@ -71,8 +72,8 @@ class FeaturedCommunityCard extends StatelessWidget {
                         onPressed: onJoinTap,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(0, 44),
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
+                          backgroundColor: AppColors.white,
+                          foregroundColor: AppColors.black87,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 12,
@@ -186,7 +187,7 @@ class AvatarBadge extends StatelessWidget {
       child: Text(
         group.name.characters.first.toUpperCase(),
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.white,
           fontSize: radius * 0.8,
           fontWeight: FontWeight.w800,
         ),
@@ -208,3 +209,4 @@ class CommunitySectionTitle extends StatelessWidget {
     );
   }
 }
+

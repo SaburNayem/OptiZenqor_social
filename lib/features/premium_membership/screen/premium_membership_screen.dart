@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controller/premium_membership_controller.dart';
 import '../model/premium_plan_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class PremiumMembershipScreen extends StatelessWidget {
   PremiumMembershipScreen({super.key});
@@ -59,7 +60,7 @@ class PremiumMembershipScreen extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF1E2B5F), Color(0xFF4D63C8)],
+          colors: [AppColors.hexFF1E2B5F, AppColors.hexFF4D63C8],
         ),
       ),
       child: Column(
@@ -68,13 +69,13 @@ class PremiumMembershipScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.16),
+              color: AppColors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Text(
               'Upgrade your presence',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -83,7 +84,7 @@ class PremiumMembershipScreen extends StatelessWidget {
           Text(
             'Reach more people and unlock better creator tools',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Colors.white,
+              color: AppColors.white,
               fontWeight: FontWeight.w900,
               height: 1.2,
             ),
@@ -91,7 +92,7 @@ class PremiumMembershipScreen extends StatelessWidget {
           const SizedBox(height: 10),
           const Text(
             'Premium plans give you stronger visibility, richer analytics, and a cleaner way to grow your profile, content, and opportunities.',
-            style: TextStyle(color: Colors.white70, height: 1.45),
+            style: TextStyle(color: AppColors.white70, height: 1.45),
           ),
         ],
       ),
@@ -142,19 +143,19 @@ class PremiumMembershipScreen extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isSelected
-            ? const Color(0xFFF3F6FF)
+            ? AppColors.hexFFF3F6FF
             : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF4D63C8)
+              ? AppColors.hexFF4D63C8
               : Theme.of(context).colorScheme.outlineVariant,
           width: isSelected ? 2 : 1,
         ),
         boxShadow: isEmphasized
             ? [
                 BoxShadow(
-                  color: const Color(0xFF4D63C8).withValues(alpha: 0.08),
+                  color: AppColors.hexFF4D63C8.withValues(alpha: 0.08),
                   blurRadius: 24,
                   offset: const Offset(0, 12),
                 ),
@@ -192,13 +193,13 @@ class PremiumMembershipScreen extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E2B5F),
+                    color: AppColors.hexFF1E2B5F,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     plan.badge!,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -228,13 +229,13 @@ class PremiumMembershipScreen extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F7ED),
+                    color: AppColors.hexFFE8F7ED,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     plan.savingsLabel!,
                     style: const TextStyle(
-                      color: Color(0xFF2D9D78),
+                      color: AppColors.hexFF2D9D78,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -253,7 +254,7 @@ class PremiumMembershipScreen extends StatelessWidget {
                     child: Icon(
                       Icons.check_circle_rounded,
                       size: 18,
-                      color: Color(0xFF2D9D78),
+                      color: AppColors.hexFF2D9D78,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -268,14 +269,14 @@ class PremiumMembershipScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E2B5F),
+                color: AppColors.hexFF1E2B5F,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: const Text(
                 'Current selection',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -348,3 +349,4 @@ class PremiumMembershipScreen extends StatelessWidget {
     );
   }
 }
+

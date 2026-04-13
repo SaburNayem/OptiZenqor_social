@@ -5,6 +5,7 @@ import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../screen/story_view_screen.dart';
 import '../screen/add_story_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class StoryRingList extends StatelessWidget {
   const StoryRingList({
@@ -57,13 +58,13 @@ class StoryRingList extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: const BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.white,
                             shape: BoxShape.circle,
                           ),
                           child: const CircleAvatar(
                             radius: 8,
-                            backgroundColor: Color(0xFF26C6DA),
-                            child: Icon(Icons.add, size: 12, color: Colors.white),
+                            backgroundColor: AppColors.hexFF26C6DA,
+                            child: Icon(Icons.add, size: 12, color: AppColors.white),
                           ),
                         ),
                       ),
@@ -72,7 +73,7 @@ class StoryRingList extends StatelessWidget {
                   const SizedBox(height: 6),
                   const Text(
                     'Your Story',
-                    style: TextStyle(fontSize: 11, color: Colors.black87),
+                    style: TextStyle(fontSize: 11, color: AppColors.black87),
                   ),
                 ],
               ),
@@ -109,16 +110,16 @@ class StoryRingList extends StatelessWidget {
                         : const LinearGradient(
                             begin: Alignment.topRight,
                             end: Alignment.bottomLeft,
-                            colors: [Color(0xFFE91E63), Color(0xFFFFC107)],
+                            colors: [AppColors.hexFFE91E63, AppColors.hexFFFFC107],
                           ),
                     border: story.seen
-                        ? Border.all(color: Colors.grey.shade300)
+                        ? Border.all(color: AppColors.grey300)
                         : null,
                   ),
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: const BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.white,
                       shape: BoxShape.circle,
                     ),
                     child: AppAvatar(
@@ -130,7 +131,7 @@ class StoryRingList extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   user.name.split(' ').first,
-                  style: const TextStyle(fontSize: 11, color: Colors.black87),
+                  style: const TextStyle(fontSize: 11, color: AppColors.black87),
                 ),
               ],
             ),
@@ -142,3 +143,5 @@ class StoryRingList extends StatelessWidget {
     );
   }
 }
+
+

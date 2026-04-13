@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../model/story_text_composer_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class StoryTextComposerController extends ChangeNotifier {
   StoryTextComposerController(this.config)
@@ -22,11 +23,11 @@ class StoryTextComposerController extends ChangeNotifier {
   ];
 
   static const List<Color> textColors = <Color>[
-    Colors.white,
-    Color(0xFFFFF176),
-    Color(0xFF80DEEA),
-    Color(0xFFFFAB91),
-    Color(0xFFC5E1A5),
+    AppColors.white,
+    AppColors.hexFFFFF176,
+    AppColors.hexFF80DEEA,
+    AppColors.hexFFFFAB91,
+    AppColors.hexFFC5E1A5,
   ];
 
   final StoryTextComposerModel config;
@@ -120,3 +121,4 @@ class StoryTextComposerController extends ChangeNotifier {
     super.dispose();
   }
 }
+

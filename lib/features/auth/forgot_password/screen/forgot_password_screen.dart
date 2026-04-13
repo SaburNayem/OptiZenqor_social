@@ -10,12 +10,12 @@ class ForgotPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.grey),
+          icon: const Icon(Icons.arrow_back, color: AppColors.grey),
           onPressed: () => AppGet.back(),
         ),
         centerTitle: true,
@@ -35,7 +35,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               width: 8,
               height: 8,
               decoration: const BoxDecoration(
-                color: Color(0xFFE9ECEF),
+                color: AppColors.hexFFE9ECEF,
                 shape: BoxShape.circle,
               ),
             ),
@@ -44,7 +44,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               width: 8,
               height: 8,
               decoration: const BoxDecoration(
-                color: Color(0xFFE9ECEF),
+                color: AppColors.hexFFE9ECEF,
                 shape: BoxShape.circle,
               ),
             ),
@@ -63,13 +63,13 @@ class ForgotPasswordScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0D1521),
+                color: AppColors.hexFF0D1521,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               'Enter your email to receive a reset code',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 16, color: AppColors.grey500),
             ),
             const SizedBox(height: 40),
             const Text(
@@ -77,7 +77,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF495057),
+                color: AppColors.hexFF495057,
               ),
             ),
             const SizedBox(height: 10),
@@ -96,3 +96,5 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 }
+
+

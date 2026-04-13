@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/widgets/inline_video_player.dart';
 import '../controller/reels_controller.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ReelsScreen extends StatelessWidget {
   ReelsScreen({super.key}) {
@@ -16,10 +17,10 @@ class ReelsScreen extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.white),
           onPressed: () {},
         ),
         title: Row(
@@ -28,7 +29,7 @@ class ReelsScreen extends StatelessWidget {
             Text(
               'Following',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: AppColors.white.withValues(alpha: 0.7),
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -37,7 +38,7 @@ class ReelsScreen extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 12),
               width: 1,
               height: 16,
-              color: Colors.white30,
+              color: AppColors.white30,
             ),
             Column(
               mainAxisSize: MainAxisSize.min,
@@ -45,7 +46,7 @@ class ReelsScreen extends StatelessWidget {
                 const Text(
                   'For You',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -55,7 +56,7 @@ class ReelsScreen extends StatelessWidget {
                   width: 4,
                   height: 4,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -65,7 +66,7 @@ class ReelsScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
+            icon: const Icon(Icons.menu, color: AppColors.white),
             onPressed: () {},
           ),
         ],
@@ -102,10 +103,10 @@ class ReelsScreen extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.3),
-                          Colors.transparent,
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.5),
+                          AppColors.black.withValues(alpha: 0.3),
+                          AppColors.transparent,
+                          AppColors.transparent,
+                          AppColors.black.withValues(alpha: 0.5),
                         ],
                         stops: const [0.0, 0.2, 0.7, 1.0],
                       ),
@@ -125,7 +126,7 @@ class ReelsScreen extends StatelessWidget {
                             Text(
                               '@${user?.name.split(' ').first ?? 'Sara'}',
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -133,7 +134,7 @@ class ReelsScreen extends StatelessWidget {
                             const SizedBox(width: 8),
                             const Icon(
                               Icons.check_circle,
-                              color: Color(0xFF26C6DA),
+                              color: AppColors.hexFF26C6DA,
                               size: 18,
                             ),
                           ],
@@ -142,7 +143,7 @@ class ReelsScreen extends StatelessWidget {
                         Text(
                           '${user?.name ?? 'Sara'} is an Indian Model with impressive portfolio and was best model and ramp walk in 2018.',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 14,
                             height: 1.4,
                           ),
@@ -166,7 +167,7 @@ class ReelsScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   width: 2,
                                 ),
                               ),
@@ -175,12 +176,12 @@ class ReelsScreen extends StatelessWidget {
                                 backgroundImage: NetworkImage(
                                   user?.avatar ?? '',
                                 ),
-                                backgroundColor: Colors.black,
+                                backgroundColor: AppColors.black,
                                 child: user?.avatar == null
                                     ? const Text(
                                         'S',
                                         style: TextStyle(
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       )
@@ -195,12 +196,12 @@ class ReelsScreen extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.all(2),
                                   decoration: const BoxDecoration(
-                                    color: Colors.red,
+                                    color: AppColors.red,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.add,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     size: 14,
                                   ),
                                 ),
@@ -252,7 +253,7 @@ class _ReelAction extends StatelessWidget {
         children: [
           IconButton(
             onPressed: onTap,
-            icon: Icon(icon, color: Colors.white, size: 32),
+            icon: Icon(icon, color: AppColors.white, size: 32),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -260,7 +261,7 @@ class _ReelAction extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -270,3 +271,4 @@ class _ReelAction extends StatelessWidget {
     );
   }
 }
+

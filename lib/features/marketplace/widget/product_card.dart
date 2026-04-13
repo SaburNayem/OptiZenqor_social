@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../controller/marketplace_controller.dart';
 import '../model/product_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({
@@ -71,7 +72,7 @@ class ProductCard extends StatelessWidget {
               right: 12,
               child: CircleAvatar(
                 radius: 16,
-                backgroundColor: Colors.black.withValues(alpha: 0.35),
+                backgroundColor: AppColors.black.withValues(alpha: 0.35),
                 child: IconButton(
                   style: IconButton.styleFrom(
                     padding: EdgeInsets.zero,
@@ -83,7 +84,7 @@ class ProductCard extends StatelessWidget {
                     saved
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
-                    color: Colors.white,
+                    color: AppColors.white,
                     size: 18,
                   ),
                 ),
@@ -274,3 +275,4 @@ class _Pill extends StatelessWidget {
     );
   }
 }
+

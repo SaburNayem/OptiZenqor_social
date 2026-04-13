@@ -6,6 +6,7 @@ import '../../../core/data/mock/mock_data.dart';
 import '../../../core/helpers/format_helper.dart';
 import '../controller/post_detail_controller.dart';
 import '../model/post_comment_model.dart';
+import '../../../core/constants/app_colors.dart';
 
 class PostDetailScreen extends StatelessWidget {
   PostDetailScreen({
@@ -32,18 +33,18 @@ class PostDetailScreen extends StatelessWidget {
             .firstOrNull;
         
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.white,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+              icon: const Icon(Icons.arrow_back, color: AppColors.black87),
               onPressed: () => AppGet.back(),
             ),
             title: const Text(''), // Empty title as per screenshot
             actions: [
               IconButton(
-                icon: const Icon(Icons.more_horiz, color: Colors.black87),
+                icon: const Icon(Icons.more_horiz, color: AppColors.black87),
                 onPressed: () {},
               ),
             ],
@@ -77,7 +78,7 @@ class PostDetailScreen extends StatelessWidget {
                                 Text(
                                   FormatHelper.timeAgo(controller.detail.createdAt),
                                   style: TextStyle(
-                                    color: Colors.grey.shade500,
+                                    color: AppColors.grey500,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -103,21 +104,21 @@ class PostDetailScreen extends StatelessWidget {
                           IconButton(
                             icon: Icon(
                               controller.isLiked ? Icons.favorite : Icons.favorite_border,
-                              color: controller.isLiked ? Colors.red : Colors.black87,
+                              color: controller.isLiked ? AppColors.red : AppColors.black87,
                             ),
                             onPressed: controller.toggleLike,
                           ),
                           IconButton(
-                            icon: const Icon(Icons.chat_bubble_outline, color: Colors.black87),
+                            icon: const Icon(Icons.chat_bubble_outline, color: AppColors.black87),
                             onPressed: () {},
                           ),
                           IconButton(
-                            icon: const Icon(Icons.share_outlined, color: Colors.black87),
+                            icon: const Icon(Icons.share_outlined, color: AppColors.black87),
                             onPressed: () {},
                           ),
                           const Spacer(),
                           IconButton(
-                            icon: const Icon(Icons.bookmark_border, color: Colors.black87),
+                            icon: const Icon(Icons.bookmark_border, color: AppColors.black87),
                             onPressed: () {},
                           ),
                         ],
@@ -137,7 +138,7 @@ class PostDetailScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           RichText(
                             text: TextSpan(
-                              style: const TextStyle(color: Colors.black87, height: 1.4),
+                              style: const TextStyle(color: AppColors.black87, height: 1.4),
                               children: [
                                 TextSpan(
                                   text: '@${author?.username ?? 'user'}  ',
@@ -150,7 +151,7 @@ class PostDetailScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             '#workspace #productivity',
-                            style: TextStyle(color: Colors.blue.shade800, fontSize: 13),
+                            style: TextStyle(color: AppColors.blue800, fontSize: 13),
                           ),
                         ],
                       ),
@@ -178,8 +179,8 @@ class PostDetailScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Colors.grey.shade100)),
+                  color: AppColors.white,
+                  border: Border(top: BorderSide(color: AppColors.grey100)),
                 ),
                 child: Row(
                   children: [
@@ -193,7 +194,7 @@ class PostDetailScreen extends StatelessWidget {
                         height: 44,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: AppColors.grey100,
                           borderRadius: BorderRadius.circular(22),
                         ),
                         child: TextField(
@@ -208,7 +209,7 @@ class PostDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: const Icon(Icons.send, color: Color(0xFF26C6DA)),
+                      icon: const Icon(Icons.send, color: AppColors.hexFF26C6DA),
                       onPressed: () {
                         if (_commentController.text.isNotEmpty) {
                           controller.addComment(_commentController.text);
@@ -266,7 +267,7 @@ class _CommentTile extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: AppColors.grey50,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(0),
                       topRight: const Radius.circular(16),
@@ -276,7 +277,7 @@ class _CommentTile extends StatelessWidget {
                   ),
                   child: RichText(
                     text: TextSpan(
-                      style: const TextStyle(color: Colors.black87, fontSize: 13, height: 1.3),
+                      style: const TextStyle(color: AppColors.black87, fontSize: 13, height: 1.3),
                       children: [
                         TextSpan(
                           text: '@${comment.author}   ',
@@ -285,7 +286,7 @@ class _CommentTile extends StatelessWidget {
                         if (isReply)
                           const TextSpan(
                             text: '@sarahj   ',
-                            style: TextStyle(color: Color(0xFF00ACC1), fontWeight: FontWeight.bold),
+                            style: TextStyle(color: AppColors.hexFF00ACC1, fontWeight: FontWeight.bold),
                           ),
                         TextSpan(text: comment.message),
                       ],
@@ -295,9 +296,9 @@ class _CommentTile extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Text('2h', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                    const Text('2h', style: TextStyle(color: AppColors.grey, fontSize: 11)),
                     const SizedBox(width: 16),
-                    const Text('Reply', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const Text('Reply', style: TextStyle(color: AppColors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
@@ -308,9 +309,9 @@ class _CommentTile extends StatelessWidget {
               padding: const EdgeInsets.only(top: 10),
               child: Column(
                 children: [
-                  const Icon(Icons.favorite_border, size: 14, color: Colors.grey),
+                  const Icon(Icons.favorite_border, size: 14, color: AppColors.grey),
                   const SizedBox(height: 2),
-                  Text('${comment.likeCount}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  Text('${comment.likeCount}', style: const TextStyle(fontSize: 10, color: AppColors.grey)),
                 ],
               ),
             ),
@@ -319,3 +320,6 @@ class _CommentTile extends StatelessWidget {
     );
   }
 }
+
+
+

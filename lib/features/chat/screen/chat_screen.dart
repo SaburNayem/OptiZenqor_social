@@ -7,6 +7,7 @@ import '../controller/chat_controller.dart';
 import 'chat_detail_screen.dart';
 import 'inbox_settings_screen.dart';
 import 'chat_settings_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -29,9 +30,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUser = MockData.users.first;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         title: const Text('Chats'),
         actions: [
@@ -86,7 +87,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
+                        color: AppColors.grey50,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -94,14 +95,14 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           const Icon(
                             Icons.search,
-                            color: Colors.grey,
+                            color: AppColors.grey,
                             size: 20,
                           ),
                           const SizedBox(width: 12),
                           Text(
                             'Search messages...',
                             style: TextStyle(
-                              color: Colors.grey.shade400,
+                              color: AppColors.grey400,
                               fontSize: 15,
                             ),
                           ),
@@ -122,7 +123,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF263238),
+                          color: AppColors.hexFF263238,
                         ),
                       ),
                     ),
@@ -160,10 +161,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                         width: 14,
                                         height: 14,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF4CAF50),
+                                          color: AppColors.hexFF4CAF50,
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: Colors.white,
+                                            color: AppColors.white,
                                             width: 2,
                                           ),
                                         ),
@@ -176,7 +177,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   user.name.split(' ').first,
                                   style: const TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: AppColors.grey,
                                   ),
                                 ),
                               ],
@@ -196,7 +197,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF263238),
+                      color: AppColors.hexFF263238,
                     ),
                   ),
                 ),
@@ -221,18 +222,18 @@ class _ChatScreenState extends State<ChatScreen> {
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade400,
+                          color: AppColors.red400,
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.delete_outline, color: Colors.white),
+                            Icon(Icons.delete_outline, color: AppColors.white),
                             SizedBox(height: 4),
                             Text(
                               'Delete',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -266,9 +267,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.white,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: const Color(0xFFF0F0F0)),
+                            border: Border.all(color: AppColors.hexFFF0F0F0),
                           ),
                           child: Row(
                             children: [
@@ -285,10 +286,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                       width: 14,
                                       height: 14,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF4CAF50),
+                                        color: AppColors.hexFF4CAF50,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           width: 2,
                                         ),
                                       ),
@@ -321,8 +322,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       message.chatId,
                                                     ) >
                                                     0
-                                                ? const Color(0xFF00ACC1)
-                                                : Colors.grey,
+                                                ? AppColors.hexFF00ACC1
+                                                : AppColors.grey,
                                             fontWeight:
                                                 _controller.unreadCount(
                                                       message.chatId,
@@ -349,8 +350,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                         message.chatId,
                                                       ) >
                                                       0
-                                                  ? Colors.black87
-                                                  : Colors.grey,
+                                                  ? AppColors.black87
+                                                  : AppColors.grey,
                                               fontWeight:
                                                   _controller.unreadCount(
                                                         message.chatId,
@@ -371,13 +372,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                             ),
                                             padding: const EdgeInsets.all(6),
                                             decoration: const BoxDecoration(
-                                              color: Color(0xFF00ACC1),
+                                              color: AppColors.hexFF00ACC1,
                                               shape: BoxShape.circle,
                                             ),
                                             child: Text(
                                               '${_controller.unreadCount(message.chatId)}',
                                               style: const TextStyle(
-                                                color: Colors.white,
+                                                color: AppColors.white,
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -489,7 +490,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -531,3 +532,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return '${difference.inDays}d';
   }
 }
+
+
+

@@ -16,12 +16,12 @@ class SignupScreen extends StatelessWidget {
         builder: (context, state) {
           final cubit = context.read<_SignupCubit>();
           return Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.white,
             appBar: AppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: AppColors.white,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Color(0xFF868E96)),
+                icon: const Icon(Icons.arrow_back, color: AppColors.hexFF868E96),
                 onPressed: () {
                   if (state.currentStep > 1) {
                     cubit.previousStep();
@@ -35,7 +35,7 @@ class SignupScreen extends StatelessWidget {
                   Text(
                     'Step ${state.currentStep} of 3',
                     style: const TextStyle(
-                      color: Color(0xFF868E96),
+                      color: AppColors.hexFF868E96,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -44,7 +44,7 @@ class SignupScreen extends StatelessWidget {
                   Text(
                     '${((state.currentStep / 3) * 100).toInt()} %',
                     style: const TextStyle(
-                      color: Color(0xFF868E96),
+                      color: AppColors.hexFF868E96,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -59,7 +59,7 @@ class SignupScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(3),
                     child: LinearProgressIndicator(
                       value: state.currentStep / 3,
-                      backgroundColor: const Color(0xFFF2F4F7),
+                      backgroundColor: AppColors.hexFFF2F4F7,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         AppColors.splashBackground,
                       ),
@@ -130,13 +130,13 @@ class SignupScreen extends StatelessWidget {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF101828),
+            color: AppColors.hexFF101828,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           'Let\'s get you started on Connecta',
-          style: TextStyle(fontSize: 16, color: Color(0xFF667085)),
+          style: TextStyle(fontSize: 16, color: AppColors.hexFF667085),
         ),
         const SizedBox(height: 40),
         _buildLabel('Full Name'),
@@ -155,7 +155,7 @@ class SignupScreen extends StatelessWidget {
               state.obscurePassword
                   ? Icons.visibility_outlined
                   : Icons.visibility_off_outlined,
-              color: const Color(0xFF98A2B3),
+              color: AppColors.hexFF98A2B3,
             ),
           ),
         ),
@@ -171,7 +171,7 @@ class SignupScreen extends StatelessWidget {
               state.obscureConfirmPassword
                   ? Icons.visibility_outlined
                   : Icons.visibility_off_outlined,
-              color: const Color(0xFF98A2B3),
+              color: AppColors.hexFF98A2B3,
             ),
           ),
         ),
@@ -190,13 +190,13 @@ class SignupScreen extends StatelessWidget {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF101828),
+            color: AppColors.hexFF101828,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           'How do you want to use Connecta?',
-          style: TextStyle(fontSize: 16, color: Color(0xFF667085)),
+          style: TextStyle(fontSize: 16, color: AppColors.hexFF667085),
         ),
         const SizedBox(height: 32),
         _roleCard(
@@ -238,17 +238,17 @@ class SignupScreen extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: AppColors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
           border: Border.all(
-            color: isSelected ? AppColors.splashBackground : Colors.transparent,
+            color: isSelected ? AppColors.splashBackground : AppColors.transparent,
             width: 2,
           ),
         ),
@@ -257,7 +257,7 @@ class SignupScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
+                color: AppColors.hexFFF9FAFB,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -265,7 +265,7 @@ class SignupScreen extends StatelessWidget {
                 size: 32,
                 color: isSelected
                     ? AppColors.splashBackground
-                    : const Color(0xFF475467),
+                    : AppColors.hexFF475467,
               ),
             ),
             const SizedBox(width: 16),
@@ -278,7 +278,7 @@ class SignupScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF101828),
+                      color: AppColors.hexFF101828,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -286,7 +286,7 @@ class SignupScreen extends StatelessWidget {
                     subtitle,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF667085),
+                      color: AppColors.hexFF667085,
                     ),
                   ),
                 ],
@@ -300,13 +300,13 @@ class SignupScreen extends StatelessWidget {
                 border: Border.all(
                   color: isSelected
                       ? AppColors.splashBackground
-                      : const Color(0xFFEAECF0),
+                      : AppColors.hexFFEAECF0,
                   width: 2,
                 ),
-                color: isSelected ? AppColors.splashBackground : Colors.white,
+                color: isSelected ? AppColors.splashBackground : AppColors.white,
               ),
               child: isSelected
-                  ? const Icon(Icons.check, size: 16, color: Colors.white)
+                  ? const Icon(Icons.check, size: 16, color: AppColors.white)
                   : null,
             ),
           ],
@@ -325,13 +325,13 @@ class SignupScreen extends StatelessWidget {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF101828),
+            color: AppColors.hexFF101828,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
           'Tell us a bit about yourself',
-          style: TextStyle(fontSize: 16, color: Color(0xFF667085)),
+          style: TextStyle(fontSize: 16, color: AppColors.hexFF667085),
         ),
         const SizedBox(height: 32),
         Center(
@@ -341,13 +341,13 @@ class SignupScreen extends StatelessWidget {
                 height: 110,
                 width: 110,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF9FAFB),
+                  color: AppColors.hexFFF9FAFB,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.camera_alt_outlined,
                   size: 36,
-                  color: Color(0xFF98A2B3),
+                  color: AppColors.hexFF98A2B3,
                 ),
               ),
               const SizedBox(height: 8),
@@ -380,15 +380,15 @@ class SignupScreen extends StatelessWidget {
           maxLines: 4,
           decoration: InputDecoration(
             hintText: 'Write a short bio about yourself...',
-            hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
-            fillColor: const Color(0xFFF9FAFB),
+            hintStyle: const TextStyle(color: AppColors.hexFF98A2B3, fontSize: 14),
+            fillColor: AppColors.hexFFF9FAFB,
             filled: true,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             counterText: '0/150',
-            counterStyle: const TextStyle(color: Color(0xFF98A2B3)),
+            counterStyle: const TextStyle(color: AppColors.hexFF98A2B3),
           ),
         ),
         const SizedBox(height: 24),
@@ -420,14 +420,14 @@ class SignupScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEAECF0)),
+        border: Border.all(color: AppColors.hexFFEAECF0),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          color: Color(0xFF344054),
+          color: AppColors.hexFF344054,
           fontWeight: FontWeight.w500,
           fontSize: 14,
         ),
@@ -443,7 +443,7 @@ class SignupScreen extends StatelessWidget {
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF344054),
+          color: AppColors.hexFF344054,
         ),
       ),
     );
@@ -458,8 +458,8 @@ class SignupScreen extends StatelessWidget {
       obscureText: obscureText,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFFD0D5DD), fontSize: 14),
-        fillColor: const Color(0xFFF9FAFB),
+        hintStyle: const TextStyle(color: AppColors.hexFFD0D5DD, fontSize: 14),
+        fillColor: AppColors.hexFFF9FAFB,
         filled: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -527,3 +527,5 @@ class _SignupCubit extends Cubit<_SignupState> {
     emit(state.copyWith(selectedRole: role));
   }
 }
+
+

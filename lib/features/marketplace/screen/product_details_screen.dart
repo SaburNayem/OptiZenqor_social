@@ -8,6 +8,7 @@ import '../model/product_model.dart';
 import '../widget/product_card.dart';
 import 'marketplace_chat_screen.dart';
 import 'seller_profile_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   const ProductDetailsScreen({
@@ -178,7 +179,7 @@ class ProductDetailsScreen extends StatelessWidget {
                                     const Icon(
                                       Icons.verified_rounded,
                                       size: 18,
-                                      color: Colors.blue,
+                                      color: AppColors.blue,
                                     ),
                                   ],
                                 ],
@@ -619,7 +620,7 @@ class _OrderSuccessScreen extends StatelessWidget {
               const Icon(
                 Icons.check_circle_rounded,
                 size: 88,
-                color: Colors.green,
+                color: AppColors.green,
               ),
               const SizedBox(height: 16),
               Text(
@@ -641,3 +642,4 @@ class _OrderSuccessScreen extends StatelessWidget {
     );
   }
 }
+
