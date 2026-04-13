@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/data/service/theme_service.dart';
 import '../../../route/route_names.dart';
 import '../controller/settings_controller.dart';
@@ -19,7 +20,7 @@ class SettingsScreen extends StatelessWidget {
     final sections = _displaySections();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8FA),
+      backgroundColor: AppColors.hexFFF8F8FA,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
@@ -41,7 +42,7 @@ class SettingsScreen extends StatelessWidget {
               'OptiZenqor Version 2.4.1',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: const Color(0xFFB4B7C1),
+                color: AppColors.hexFFB4B7C1,
               ),
             ),
           ],
@@ -94,15 +95,15 @@ class SettingsScreen extends StatelessWidget {
     return InkWell(
       onTap: () => AppGet.toNamed(RouteNames.accountSettings),
       borderRadius: BorderRadius.circular(22),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFFECECF1)),
-        ),
-        child: Row(
-          children: [
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: AppColors.hexFFECECF1),
+          ),
+          child: Row(
+            children: [
             CircleAvatar(
               radius: 22,
               backgroundImage: NetworkImage(user.avatar),
@@ -122,13 +123,16 @@ class SettingsScreen extends StatelessWidget {
                   Text(
                     '@${user.username}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFF8A8E99),
+                      color: AppColors.hexFF8A8E99,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Color(0xFFB5B8C1)),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.hexFFB5B8C1,
+            ),
           ],
         ),
       ),
@@ -144,16 +148,16 @@ class SettingsScreen extends StatelessWidget {
           child: Text(
             section.title,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: const Color(0xFF9A9EAA),
+              color: AppColors.hexFF9A9EAA,
               fontWeight: FontWeight.w700,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFECECF1)),
+            border: Border.all(color: AppColors.hexFFECECF1),
           ),
           child: Column(
             children: [
@@ -194,7 +198,7 @@ class SettingsScreen extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: item.isDestructive
               ? Theme.of(context).colorScheme.error
-              : const Color(0xFF303542),
+              : AppColors.hexFF303542,
         ),
       ),
       subtitle: item.subtitle == null
@@ -207,12 +211,12 @@ class SettingsScreen extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: const Color(0xFF9599A5)),
+                ).textTheme.bodySmall?.copyWith(color: AppColors.hexFF9599A5),
               ),
             ),
       trailing: const Icon(
         Icons.chevron_right_rounded,
-        color: Color(0xFFB5B8C1),
+        color: AppColors.hexFFB5B8C1,
       ),
       onTap: () => _handleItemTap(context, item),
     );
@@ -224,10 +228,10 @@ class SettingsScreen extends StatelessWidget {
       icon: const Icon(Icons.logout_rounded),
       label: const Text('Log Out'),
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFFFF5A55),
-        side: const BorderSide(color: Color(0xFFFFD7D5)),
+        foregroundColor: AppColors.hexFFFF5A55,
+        side: const BorderSide(color: AppColors.hexFFFFD7D5),
         minimumSize: const Size(double.infinity, 56),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
@@ -238,96 +242,73 @@ class SettingsScreen extends StatelessWidget {
       for (final section in controller.sections) section.title: section,
     };
 
-    final accountItems = [
-      ..._takeItems(sectionMap['Account'], [
-        'Account settings',
-        'Password and security',
-      ]),
-    ];
-
-    final privacyItems = [
-      ..._takeItems(sectionMap['Privacy & Safety'], [
-        'Privacy',
-        'Blocked users quick list',
-      ]),
-    ];
-
-    final connectedItems = [
-      ..._takeItems(sectionMap['Communities & Discoverability'], [
-        'Connected apps',
-      ]),
-    ];
-
-    final preferenceItems = [
-      ..._takeItems(sectionMap['Messages, Calls & Notifications'], [
-        'Notifications',
-      ]),
-      ..._takeItems(sectionMap['Language, Accessibility & Data'], [
-        'Language & region',
-        'Accessibility',
-      ]),
-      _themeItem(),
-    ];
-
-    final appItems = [
-      ..._takeItems(sectionMap['Account'], ['Devices and sessions']),
-      ..._takeItems(sectionMap['About & App'], ['Support and help']),
-    ];
-
-    final extraItems = [
-      ..._takeItems(sectionMap['Messages, Calls & Notifications'], [
-        'Notification categories',
-        'Messages & calls',
-        'Activity sessions',
-      ]),
-      ..._takeItems(sectionMap['Content & Feed'], null),
-      ..._takeItems(sectionMap['Professional'], null),
-      ..._takeItems(sectionMap['Communities & Discoverability'], [
+    final accountItems = _takeItems(sectionMap['Account'], [
+      'Account settings',
+      'Password and security',
+    ]);
+    final privacyItems = _takeItems(sectionMap['Privacy & Safety'], null);
+    final connectionItems = _mergeItems([
+      _takeItems(sectionMap['Communities & Discoverability'], [
         'Communities & groups',
+        'Connected apps',
         'Deep link handler',
         'Invite and referral',
       ]),
-      ..._takeItems(sectionMap['Language, Accessibility & Data'], [
+    ]);
+    final preferenceItems = _mergeItems([
+      _takeItems(sectionMap['Messages, Calls & Notifications'], [
+        'Notifications',
+        'Notification categories',
+        'Messages & calls',
+      ]),
+      _takeItems(sectionMap['Language, Accessibility & Data'], [
         'Language and accessibility',
+        'Language & region',
+        'Accessibility',
         'Localization support',
         'Accessibility support',
-        'Data & privacy center',
-        'Offline sync',
       ]),
-      ..._takeItems(sectionMap['Privacy & Safety'], [
-        'Advanced privacy controls',
-        'Blocked and muted accounts',
-        'Safety and privacy',
-        'Report center',
-        'Help & safety',
-      ]),
-      ..._takeItems(sectionMap['Account'], [
+      [_themeItem()],
+    ]);
+    final contentItems = _takeItems(sectionMap['Content & Feed'], null);
+    final professionalItems = _takeItems(sectionMap['Professional'], null);
+    final appItems = _mergeItems([
+      _takeItems(sectionMap['Account'], [
+        'Devices and sessions',
         'Verification request',
         'Account switching',
         'Archive center',
       ]),
-      ..._takeItems(sectionMap['About & App'], [
-        'About',
-        'App update flow',
-        'Legal and compliance',
-        'Maintenance mode preview',
+      _takeItems(sectionMap['Messages, Calls & Notifications'], [
+        'Activity sessions',
       ]),
-    ];
+      _takeItems(sectionMap['Language, Accessibility & Data'], [
+        'Data & privacy center',
+        'Offline sync',
+      ]),
+      _takeItems(sectionMap['About & App'], null),
+    ]);
 
     return [
       if (accountItems.isNotEmpty)
         _SettingsDisplaySection(title: 'Account', items: accountItems),
       if (privacyItems.isNotEmpty)
         _SettingsDisplaySection(title: 'Privacy', items: privacyItems),
-      if (connectedItems.isNotEmpty)
-        _SettingsDisplaySection(title: 'Connections', items: connectedItems),
+      if (connectionItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'Connections', items: connectionItems),
       if (preferenceItems.isNotEmpty)
         _SettingsDisplaySection(title: 'Preferences', items: preferenceItems),
+      if (contentItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'Content', items: contentItems),
+      if (professionalItems.isNotEmpty)
+        _SettingsDisplaySection(title: 'Professional', items: professionalItems),
       if (appItems.isNotEmpty)
         _SettingsDisplaySection(title: 'App', items: appItems),
-      if (extraItems.isNotEmpty)
-        _SettingsDisplaySection(title: 'More', items: extraItems),
     ];
+  }
+
+  List<SettingsItemModel> _mergeItems(List<List<SettingsItemModel>> groups) {
+    return groups.expand((group) => group).toList(growable: false);
   }
 
   List<SettingsItemModel> _takeItems(
@@ -361,36 +342,36 @@ class SettingsScreen extends StatelessWidget {
   Color _iconColor(String title) {
     final key = title.toLowerCase();
     if (key.contains('account') || key.contains('personal')) {
-      return const Color(0xFF6C8CF6);
+      return AppColors.primary600;
     }
     if (key.contains('password') || key.contains('security')) {
-      return const Color(0xFFC978FF);
+      return AppColors.primary700;
     }
     if (key.contains('privacy')) {
-      return const Color(0xFF58D3C1);
+      return AppColors.primary500;
     }
     if (key.contains('blocked')) {
-      return const Color(0xFFFF7E73);
+      return AppColors.primary800;
     }
     if (key.contains('connected')) {
-      return const Color(0xFF72D5CC);
+      return AppColors.primary500;
     }
     if (key.contains('notification')) {
-      return const Color(0xFFFFA55B);
+      return AppColors.primary600;
     }
     if (key.contains('language')) {
-      return const Color(0xFF7C83FF);
+      return AppColors.primary600;
     }
     if (key.contains('accessibility')) {
-      return const Color(0xFF62D77C);
+      return AppColors.primary500;
     }
     if (key.contains('devices') || key.contains('session')) {
-      return const Color(0xFF9AA2B1);
+      return AppColors.grey700;
     }
     if (key.contains('support') || key.contains('help')) {
-      return const Color(0xFF9CA3AF);
+      return AppColors.grey700;
     }
-    return const Color(0xFF7B84A0);
+    return AppColors.primary700;
   }
 
   void _showSnack(BuildContext context, String message) {

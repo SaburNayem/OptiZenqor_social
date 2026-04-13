@@ -1,18 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../route/route_names.dart';
 import '../controller/user_profile_controller.dart';
-import '../../../core/constants/app_colors.dart';
 
-class UserProfileScreen extends StatelessWidget {
-  UserProfileScreen({super.key, this.userId, this.showAppBar = true}) {
-    _controller.load(userId: userId);
-  }
+class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({super.key, this.userId, this.showAppBar = true});
 
   final String? userId;
   final bool showAppBar;
-  final UserProfileController _controller = UserProfileController();
+
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  late final UserProfileController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = UserProfileController();
+    _controller.load(userId: widget.userId);
+  }
+
+  @override
+  void didUpdateWidget(covariant UserProfileScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userId != widget.userId) {
+      _controller.load(userId: widget.userId);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +45,63 @@ class UserProfileScreen extends StatelessWidget {
       animation: _controller,
       builder: (context, child) {
         final user = _controller.user;
-        if (user == null) return const SizedBox.shrink();
+
+        if (_controller.state.isLoading && user == null) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        }
+
+        if (_controller.state.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    size: 48,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _controller.state.errorMessage ?? 'Unable to load profile',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.black87,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton(
+                    onPressed: () => _controller.load(userId: widget.userId),
+                    child: const Text('Try again'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (user == null) {
+          return const Center(
+            child: Text(
+              'Profile not found',
+              style: TextStyle(
+                color: AppColors.black87,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          );
+        }
 
         return SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Image and Avatar
               Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -76,10 +151,7 @@ class UserProfileScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 10),
-
-              // Edit/Share Buttons
               Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Row(
@@ -98,6 +170,7 @@ class UserProfileScreen extends StatelessWidget {
                         style: TextStyle(color: AppColors.hexFF26C6DA),
                       ),
                       style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 56),
                         side: const BorderSide(color: AppColors.hexFF26C6DA),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -118,10 +191,7 @@ class UserProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 10),
-
-              // Profile Info
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -166,7 +236,9 @@ class UserProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Digital nomad & visual storyteller. Exploring the world one pixel at a time. 📸✈️',
+                      user.bio.isNotEmpty
+                          ? user.bio
+                          : 'Profile bio is not available yet.',
                       style: TextStyle(
                         color: AppColors.grey700,
                         fontSize: 14,
@@ -176,21 +248,18 @@ class UserProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Stats
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildStatColumn(
-                    '142',
+                    '${_controller.postCount}',
                     'Posts',
                     onTap: () => _controller.selectTab(0),
                   ),
                   _buildStatDivider(),
                   _buildStatColumn(
-                    '12.4 K',
+                    '${user.followers}',
                     'Followers',
                     onTap: () => AppGet.snackbar(
                       'Followers',
@@ -199,7 +268,7 @@ class UserProfileScreen extends StatelessWidget {
                   ),
                   _buildStatDivider(),
                   _buildStatColumn(
-                    '342',
+                    '${user.following}',
                     'Following',
                     onTap: () => AppGet.snackbar(
                       'Following',
@@ -208,10 +277,7 @@ class UserProfileScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
-              // Utility Icons Row
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Row(
@@ -262,10 +328,7 @@ class UserProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Tab Selector
               Row(
                 children: [
                   _buildTabItem(
@@ -285,8 +348,6 @@ class UserProfileScreen extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // Content Grid
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -328,11 +389,7 @@ class UserProfileScreen extends StatelessWidget {
                       children: [
                         Image.network(images[index], fit: BoxFit.cover),
                         if (likes[index].isNotEmpty)
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
+                          Positioned.fill(
                             child: Container(
                               alignment: Alignment.center,
                               color: AppColors.black.withValues(alpha: 0.1),
@@ -368,7 +425,9 @@ class UserProfileScreen extends StatelessWidget {
       },
     );
 
-    if (!showAppBar) return profileContent;
+    if (!widget.showAppBar) {
+      return profileContent;
+    }
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -443,9 +502,7 @@ class UserProfileScreen extends StatelessWidget {
             onPressed: onTap,
             icon: Icon(
               icon,
-              color: isSelected
-                  ? AppColors.hexFF26C6DA
-                  : AppColors.grey400,
+              color: isSelected ? AppColors.hexFF26C6DA : AppColors.grey400,
             ),
           ),
           if (isSelected)
@@ -459,5 +516,3 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 }
-
-

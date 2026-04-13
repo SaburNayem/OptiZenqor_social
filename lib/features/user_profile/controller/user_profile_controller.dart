@@ -26,8 +26,10 @@ class UserProfileController extends ChangeNotifier {
   final AnalyticsService _analytics;
   final FollowController _followController;
 
-  LoadStateModel state = const LoadStateModel();
-  UserModel? user;
+  LoadStateModel state = MockData.users.isNotEmpty
+      ? const LoadStateModel(isSuccess: true)
+      : const LoadStateModel(isEmpty: true);
+  UserModel? user = MockData.users.isNotEmpty ? MockData.users.first : null;
   String _viewedUserId = '';
   int selectedTabIndex = 0;
   bool _followInitialized = false;
@@ -155,12 +157,20 @@ class UserProfileController extends ChangeNotifier {
   }
 
   Future<void> load({String? userId}) async {
+    state = state.copyWith(
+      isLoading: true,
+      isSuccess: false,
+      isEmpty: false,
+      hasError: false,
+      errorMessage: null,
+    );
+    notifyListeners();
+
     if (!_followInitialized) {
       _followInitialized = true;
-      await _followController.init();
+      _followController.init().catchError((_) {});
     }
-    state = state.copyWith(isLoading: true, errorMessage: null);
-    notifyListeners();
+
     try {
       if (userId != null && userId.trim().isNotEmpty) {
         user = await _repository.getProfileById(userId);
@@ -178,6 +188,8 @@ class UserProfileController extends ChangeNotifier {
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
+        isSuccess: false,
+        isEmpty: false,
         hasError: true,
         errorMessage: 'Unable to load profile',
       );

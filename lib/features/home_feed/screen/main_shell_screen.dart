@@ -35,7 +35,7 @@ class MainShellScreen extends StatelessWidget {
           ReelsScreen(),
           const SizedBox.shrink(), // Placeholder for center FAB action
           ChatScreen(),
-          UserProfileScreen(),
+          const UserProfileScreen(showAppBar: false),
         ];
 
         return Scaffold(
@@ -235,7 +235,10 @@ class MainShellScreen extends StatelessWidget {
                 },
               ),
               Expanded(
-                child: IndexedStack(index: controller.index, children: tabs),
+                child: KeyedSubtree(
+                  key: ValueKey<int>(controller.index),
+                  child: tabs[controller.index],
+                ),
               ),
             ],
           ),
