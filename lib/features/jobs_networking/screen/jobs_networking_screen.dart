@@ -72,7 +72,15 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 24),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.arrow_back_rounded),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Text(
               'How do you want to use jobs?',
               style: Theme.of(
