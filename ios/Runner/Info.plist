@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Optizenqor Social</string>
+	<string>OptiZenqor Socity</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -46,10 +46,10 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>OptiZenqor Social needs access to your photo library to create stories from your device media.</string>
+	<string>OptiZenqor Socity needs access to your photo library to create stories from your device media.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>OptiZenqor Social needs photo library access to manage story media on your device.</string>
+	<string>OptiZenqor Socity needs photo library access to manage story media on your device.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>OptiZenqor Social needs microphone access so you can record voice messages.</string>
+	<string>OptiZenqor Socity needs microphone access so you can record voice messages.</string>
 </dict>
 </plist>

@@ -39,7 +39,7 @@ class SettingsScreen extends StatelessWidget {
             _logoutButton(context),
             const SizedBox(height: 14),
             Text(
-              'OptiZenqor Version 2.4.1',
+              'OptiZenqor Socity Version 2.4.1',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: AppColors.hexFFB4B7C1,

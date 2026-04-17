@@ -7,16 +7,16 @@ class AboutSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('About OptiZenqor')),
+      appBar: AppBar(title: const Text('About OptiZenqor Socity')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('OptiZenqor Social', style: textTheme.titleLarge),
+          Text('OptiZenqor Socity', style: textTheme.titleLarge),
           const SizedBox(height: 4),
           Text('Version 0.9.0 (prototype build)', style: textTheme.bodySmall),
           const SizedBox(height: 16),
           const Text(
-            'OptiZenqor Social is a creator-first social platform focused on '
+            'OptiZenqor Socity is a creator-first social platform focused on '
             'community, commerce, and professional growth.',
           ),
           const SizedBox(height: 16),

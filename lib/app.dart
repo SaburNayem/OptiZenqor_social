@@ -29,7 +29,7 @@ class OptiZenqorApp extends StatelessWidget {
         builder: (_, mode, _) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'OptiZenqor Social',
+            title: 'OptiZenqor Socity',
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: mode,

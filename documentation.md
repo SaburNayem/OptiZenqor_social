@@ -1,6 +1,6 @@
-# OptiZenqor Social Implementation Documentation
+# OptiZenqor Socity Implementation Documentation
 
-This document converts the requested product feature list into a concrete Flutter implementation plan for the existing OptiZenqor Social codebase.
+This document converts the requested product feature list into a concrete Flutter implementation plan for the existing OptiZenqor Socity codebase.
 
 It is written for the current project structure:
 

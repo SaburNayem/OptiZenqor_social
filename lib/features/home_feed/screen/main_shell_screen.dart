@@ -35,7 +35,7 @@ class MainShellScreen extends StatelessWidget {
           ReelsScreen(),
           const SizedBox.shrink(), // Placeholder for center FAB action
           ChatScreen(),
-          const UserProfileScreen(showAppBar: false),
+          const UserProfileScreen(),
         ];
 
         return Scaffold(

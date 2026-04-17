@@ -1,7 +1,7 @@
 class AppStrings {
   AppStrings._();
 
-  static const appName = 'OptiZenqor Social';
+  static const appName = 'OptiZenqor Socity';
   static const continueText = 'Continue';
   static const skip = 'Skip';
   static const retry = 'Retry';

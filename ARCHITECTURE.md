@@ -1,4 +1,4 @@
-# OptiZenqor Social Project Structure Documentation
+# OptiZenqor Socity Project Structure Documentation
 
 This document defines the required folder flow for the Flutter codebase.
 The goal is a clean, scalable, non-garbage architecture with strict separation of responsibility.

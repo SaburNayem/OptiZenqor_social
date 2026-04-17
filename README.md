@@ -1,4 +1,4 @@
-# optizenqor_social
+# OptiZenqor Socity
 
 A new Flutter project.
 
