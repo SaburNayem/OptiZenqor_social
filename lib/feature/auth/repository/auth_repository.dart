@@ -14,14 +14,21 @@ class AuthRepository {
   final AuthService _authService;
   final AppSharedPreferences _storage;
 
-  Future<void> login(UserRole role) async {
+  Future<void> login({
+    required UserRole role,
+    required String email,
+    required String password,
+  }) async {
     debugPrint('[AuthRepository] login start role=${role.name}');
-    await _authService.login(role: role);
+    final response = await _authService.login(
+      role: role,
+      email: email,
+      password: password,
+    );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Login failed.');
+    }
     debugPrint('[AuthRepository] AuthService.login success');
-    await _storage.writeJson(StorageKeys.authSession, {
-      'isLoggedIn': true,
-      'role': role.name,
-    });
     debugPrint('[AuthRepository] Session persisted key=${StorageKeys.authSession}');
   }
 

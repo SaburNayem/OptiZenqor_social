@@ -9,6 +9,8 @@ class MediaViewerService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'media_viewer': ApiEndPoints.mediaViewer,
+    'media_item': ApiEndPoints.mediaViewerById(':id'),
     'posts': ApiEndPoints.posts,
     'reels': ApiEndPoints.reels,
     'stories': ApiEndPoints.stories,

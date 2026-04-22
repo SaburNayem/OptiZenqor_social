@@ -3,7 +3,7 @@ import 'api_client_service.dart';
 
 abstract class FeatureServiceBase {
   FeatureServiceBase({ApiClientService? apiClient})
-    : apiClient = apiClient ?? const ApiClientService();
+    : apiClient = apiClient ?? ApiClientService();
 
   final ApiClientService apiClient;
 

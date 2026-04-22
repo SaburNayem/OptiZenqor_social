@@ -9,6 +9,6 @@ class PushNotificationPreferencesService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
-    'preferences': ApiEndPoints.notificationPreferences,
+    'preferences': ApiEndPoints.pushNotificationPreferences,
   };
 }

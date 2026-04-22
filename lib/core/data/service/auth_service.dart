@@ -9,7 +9,7 @@ class AuthService {
   AuthService({
     ApiClientService? apiClient,
     AppSharedPreferences? storage,
-  }) : _apiClient = apiClient ?? const ApiClientService(),
+  }) : _apiClient = apiClient ?? ApiClientService(),
        _storage = storage ?? AppSharedPreferences();
 
   final ApiClientService _apiClient;
@@ -28,33 +28,47 @@ class AuthService {
   }) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
         .post(ApiEndPoints.authLogin, <String, dynamic>{
-          'role': role.name,
           'email': email ?? '',
           'password': password ?? '',
         });
+    final Map<String, dynamic>? session =
+        response.data['data'] as Map<String, dynamic>?;
+    final String resolvedRole =
+        ((session?['user'] as Map<String, dynamic>?)?['role'] as String?)
+            ?.toLowerCase() ??
+        role.name;
     _loggedIn = true;
-    _role = role;
+    _role = _parseRole(resolvedRole);
     await _persistSession(
       endpoint: ApiEndPoints.authLogin,
       payload: <String, dynamic>{
         'isLoggedIn': true,
-        'role': role.name,
+        'role': _role.name,
         'email': email ?? '',
+        'accessToken': session?['token'],
+        'refreshToken': session?['refreshToken'],
+        'sessionId': session?['sessionId'],
+        'tokenType': session?['tokenType'] ?? 'Bearer',
+        'user': session?['user'],
       },
     );
     return response;
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> signup({
-    required String fullName,
+    required String name,
+    required String username,
     required String email,
     required String password,
+    required String confirmPassword,
     required String role,
   }) {
     return _apiClient.post(ApiEndPoints.authSignup, <String, dynamic>{
-      'fullName': fullName,
+      'name': name,
+      'username': username,
       'email': email,
       'password': password,
+      'confirmPassword': confirmPassword,
       'role': role,
     });
   }
@@ -70,56 +84,50 @@ class AuthService {
   Future<ServiceResponseModel<Map<String, dynamic>>> resetPassword({
     required String email,
     required String otp,
-    required String newPassword,
+    required String password,
   }) {
     return _apiClient.post(ApiEndPoints.authResetPassword, <String, dynamic>{
       'email': email,
       'otp': otp,
-      'newPassword': newPassword,
+      'password': password,
     });
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> sendOtp({
-    required String email,
-    String purpose = 'signup',
+    required String destination,
+    String channel = 'email',
   }) {
     return _apiClient.post(ApiEndPoints.authSendOtp, <String, dynamic>{
-      'email': email,
-      'purpose': purpose,
+      'destination': destination,
+      'channel': channel,
     });
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> resendOtp({
-    required String email,
-    String purpose = 'signup',
+    required String destination,
   }) {
     return _apiClient.post(ApiEndPoints.authResendOtp, <String, dynamic>{
-      'email': email,
-      'purpose': purpose,
+      'destination': destination,
     });
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> verifyOtp({
-    required String email,
-    required String otp,
-    String purpose = 'signup',
+    required String code,
   }) {
     return _apiClient.post(ApiEndPoints.authVerifyOtp, <String, dynamic>{
-      'email': email,
-      'otp': otp,
-      'purpose': purpose,
+      'code': code,
     });
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> confirmEmailVerification({
     required String email,
-    required String otp,
+    required String code,
   }) {
     return _apiClient.post(
       ApiEndPoints.authVerifyEmailConfirm,
       <String, dynamic>{
         'email': email,
-        'otp': otp,
+        'code': code,
       },
     );
   }
@@ -154,5 +162,22 @@ class AuthService {
       'endpoint': endpoint,
       ...payload,
     });
+  }
+
+  UserRole _parseRole(String value) {
+    switch (value.trim().toLowerCase()) {
+      case 'creator':
+        return UserRole.creator;
+      case 'business':
+        return UserRole.business;
+      case 'seller':
+        return UserRole.seller;
+      case 'recruiter':
+        return UserRole.recruiter;
+      case 'user':
+        return UserRole.user;
+      default:
+        return UserRole.guest;
+    }
   }
 }

@@ -9,6 +9,8 @@ class AppUpdateFlowService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'app_update_flow': ApiEndPoints.appUpdateFlow,
+    'start': ApiEndPoints.appUpdateFlowStart,
     'bootstrap': ApiEndPoints.appBootstrap,
     'config': ApiEndPoints.appConfig,
   };

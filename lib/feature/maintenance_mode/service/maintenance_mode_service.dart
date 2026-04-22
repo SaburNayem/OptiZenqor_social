@@ -9,6 +9,8 @@ class MaintenanceModeService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'maintenance_mode': ApiEndPoints.maintenanceMode,
+    'retry': ApiEndPoints.maintenanceModeRetry,
     'app_config': ApiEndPoints.appConfig,
   };
 }

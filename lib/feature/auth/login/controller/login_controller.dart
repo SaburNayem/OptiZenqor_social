@@ -20,11 +20,17 @@ class LoginController extends Cubit<FormStateModel> {
   final AnalyticsService _analyticsService;
 
   UserRole selectedRole = UserRole.user;
+  String email = '';
+  String password = '';
 
   Future<void> login() async {
     emit(state.copyWith(isSubmitting: true, errorMessage: null));
     try {
-      await _authRepository.login(selectedRole);
+      await _authRepository.login(
+        role: selectedRole,
+        email: email.trim(),
+        password: password,
+      );
       await _analyticsService.logEvent(
         'login_success',
         params: <String, dynamic>{'role': selectedRole.name},
@@ -48,6 +54,14 @@ class LoginController extends Cubit<FormStateModel> {
 
   void updateRole(UserRole role) {
     selectedRole = role;
+  }
+
+  void updateEmail(String value) {
+    email = value;
+  }
+
+  void updatePassword(String value) {
+    password = value;
   }
 }
 

@@ -10,5 +10,10 @@ class CallsService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'calls': ApiEndPoints.calls,
+    'call': ApiEndPoints.callById(':id'),
+    'rtc_config': ApiEndPoints.callsRtcConfig,
+    'sessions': ApiEndPoints.callSessions,
+    'session': ApiEndPoints.callSessionById(':id'),
+    'end_session': ApiEndPoints.callSessionEnd(':id'),
   };
 }

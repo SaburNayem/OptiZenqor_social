@@ -9,6 +9,7 @@ class LocalizationSupportService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'localization_support': ApiEndPoints.localizationSupport,
     'master_data': ApiEndPoints.masterData,
     'app_config': ApiEndPoints.appConfig,
   };

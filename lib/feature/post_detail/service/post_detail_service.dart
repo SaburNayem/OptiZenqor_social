@@ -10,7 +10,7 @@ class PostDetailService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'post': ApiEndPoints.postById(':id'),
-    'detail': ApiEndPoints.postDetail(':id'),
+    'detail': ApiEndPoints.postById(':id'),
     'like': ApiEndPoints.postLike(':id'),
     'comments': ApiEndPoints.postComments(':id'),
   };

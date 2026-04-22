@@ -9,7 +9,8 @@ class BusinessProfileService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'business_profile': ApiEndPoints.businessProfile,
     'professional_profiles': ApiEndPoints.professionalProfiles,
-    'user_profile': ApiEndPoints.userById(':id'),
+    'user_profile': ApiEndPoints.profileById(':id'),
   };
 }

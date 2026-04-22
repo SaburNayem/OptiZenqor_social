@@ -9,8 +9,9 @@ class VerificationRequestService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
-    'send_otp': ApiEndPoints.authSendOtp,
-    'resend_otp': ApiEndPoints.authResendOtp,
-    'verify_email_confirm': ApiEndPoints.authVerifyEmailConfirm,
+    'verification_request': ApiEndPoints.verificationRequest,
+    'documents': ApiEndPoints.verificationRequestDocuments,
+    'submit': ApiEndPoints.verificationRequestSubmit,
+    'status': ApiEndPoints.verificationRequestStatus,
   };
 }

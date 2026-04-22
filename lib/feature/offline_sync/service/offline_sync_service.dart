@@ -9,6 +9,8 @@ class OfflineSyncService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'offline_sync': ApiEndPoints.offlineSync,
+    'retry': ApiEndPoints.offlineSyncRetry,
     'session_init': ApiEndPoints.appSessionInit,
     'bootstrap': ApiEndPoints.appBootstrap,
     'upload_manager': ApiEndPoints.uploadManager,

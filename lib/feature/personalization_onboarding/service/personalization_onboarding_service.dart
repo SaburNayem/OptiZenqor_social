@@ -9,7 +9,8 @@ class PersonalizationOnboardingService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
-    'interests': ApiEndPoints.onboardingInterests,
+    'personalization_onboarding': ApiEndPoints.personalizationOnboarding,
+    'interests': ApiEndPoints.personalizationOnboardingInterests,
     'recommendations': ApiEndPoints.recommendations,
   };
 }

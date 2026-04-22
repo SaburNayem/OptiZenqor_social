@@ -1,3 +1,4 @@
+import '../config/app_config.dart';
 import 'http_service_model.dart';
 
 class HttpService {
@@ -5,7 +6,7 @@ class HttpService {
     String? baseUrl,
     Duration timeout = const Duration(seconds: 30),
     Map<String, String>? defaultHeaders,
-  }) : _baseUrl = baseUrl ?? '',
+  }) : _baseUrl = baseUrl ?? AppConfig.currentApiBaseUrl,
        _timeout = timeout,
        _defaultHeaders = <String, String>{
          'Content-Type': 'application/json',

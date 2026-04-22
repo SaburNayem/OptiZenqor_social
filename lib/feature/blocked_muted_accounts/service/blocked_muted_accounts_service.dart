@@ -9,8 +9,9 @@ class BlockedMutedAccountsService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'blocked_muted_accounts': ApiEndPoints.blockedMutedAccounts,
     'users': ApiEndPoints.users,
-    'block_user': ApiEndPoints.userBlock(':id'),
+    'block_user': ApiEndPoints.blockByTargetId(':id'),
     'safety_config': ApiEndPoints.safetyConfig,
   };
 }

@@ -9,6 +9,7 @@ class SafetyPrivacyService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'safety_privacy': ApiEndPoints.safetyPrivacy,
     'safety_config': ApiEndPoints.safetyConfig,
     'security_state': ApiEndPoints.securityState,
     'legal_consents': ApiEndPoints.legalConsents,

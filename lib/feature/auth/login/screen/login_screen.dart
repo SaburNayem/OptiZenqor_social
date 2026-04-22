@@ -73,6 +73,7 @@ class LoginScreen extends StatelessWidget {
                           TextFormField(
                             validator: (v) => InputValidators.email(v ?? ''),
                             keyboardType: TextInputType.emailAddress,
+                            onChanged: controller.updateEmail,
                             decoration: const InputDecoration(
                               hintText: 'hello@example.com',
                             ),
@@ -91,6 +92,7 @@ class LoginScreen extends StatelessWidget {
                             validator: (v) =>
                                 InputValidators.loginPassword(v ?? ''),
                             obscureText: uiState.obscurePassword,
+                            onChanged: controller.updatePassword,
                             decoration: InputDecoration(
                               hintText: '••••••••',
                               suffixIcon: IconButton(

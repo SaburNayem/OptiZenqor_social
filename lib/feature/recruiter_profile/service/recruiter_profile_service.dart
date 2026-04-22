@@ -9,7 +9,8 @@ class RecruiterProfileService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'recruiter_profile': ApiEndPoints.recruiterProfile,
     'professional_profiles': ApiEndPoints.professionalProfiles,
-    'user_profile': ApiEndPoints.userById(':id'),
+    'user_profile': ApiEndPoints.profileById(':id'),
   };
 }

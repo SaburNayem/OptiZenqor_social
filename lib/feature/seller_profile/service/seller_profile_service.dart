@@ -9,7 +9,8 @@ class SellerProfileService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'seller_profile': ApiEndPoints.sellerProfile,
     'products': ApiEndPoints.marketplaceProducts,
-    'user_profile': ApiEndPoints.userById(':id'),
+    'user_profile': ApiEndPoints.profileById(':id'),
   };
 }

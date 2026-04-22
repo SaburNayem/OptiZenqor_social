@@ -9,6 +9,8 @@ class AccountSwitchingService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'account_switching': ApiEndPoints.accountSwitching,
+    'active': ApiEndPoints.accountSwitchingActive,
     'me': ApiEndPoints.authMe,
     'demo_accounts': ApiEndPoints.authDemoAccounts,
     'users': ApiEndPoints.users,

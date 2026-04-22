@@ -10,6 +10,6 @@ class ShareRepostSystemService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'posts': ApiEndPoints.posts,
-    'post_detail': ApiEndPoints.postDetail(':id'),
+    'post_detail': ApiEndPoints.postById(':id'),
   };
 }

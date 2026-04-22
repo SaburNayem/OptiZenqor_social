@@ -10,6 +10,8 @@ class PremiumMembershipService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'premium_membership': ApiEndPoints.premiumMembership,
+    'premium': ApiEndPoints.premium,
+    'premium_plans': ApiEndPoints.premiumPlans,
     'plans': ApiEndPoints.monetizationPlans,
   };
 }

@@ -9,6 +9,7 @@ class ExploreRecommendationService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'explore_recommendation': ApiEndPoints.exploreRecommendation,
     'recommendations': ApiEndPoints.recommendations,
     'hashtags': ApiEndPoints.hashtags,
     'trending': ApiEndPoints.trending,

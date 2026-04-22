@@ -9,6 +9,10 @@ class ActivitySessionsService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'activity_sessions': ApiEndPoints.activitySessions,
+    'history': ApiEndPoints.activitySessionsHistory,
+    'logout_others': ApiEndPoints.activitySessionsLogoutOthers,
+    'session': ApiEndPoints.activitySessionById(':id'),
     'security_state': ApiEndPoints.securityState,
     'logout_all': ApiEndPoints.securityLogoutAll,
   };

@@ -9,6 +9,7 @@ class CreatorToolsService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'creator_dashboard': ApiEndPoints.creatorDashboard,
     'monetization_overview': ApiEndPoints.monetizationOverview,
     'monetization_plans': ApiEndPoints.monetizationPlans,
     'upload_manager': ApiEndPoints.uploadManager,

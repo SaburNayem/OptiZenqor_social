@@ -9,8 +9,11 @@ class SupportHelpService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'support_help': ApiEndPoints.supportHelp,
+    'faq': ApiEndPoints.supportHelpFaq,
+    'mail': ApiEndPoints.supportHelpMail,
     'faqs': ApiEndPoints.supportFaqs,
     'tickets': ApiEndPoints.supportTickets,
-    'chat': ApiEndPoints.supportChat,
+    'chat': ApiEndPoints.supportHelpChat,
   };
 }

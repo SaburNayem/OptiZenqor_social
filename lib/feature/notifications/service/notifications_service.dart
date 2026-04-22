@@ -9,8 +9,9 @@ class NotificationsService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'notifications': ApiEndPoints.notifications,
     'inbox': ApiEndPoints.notificationsInbox,
     'campaigns': ApiEndPoints.notificationsCampaigns,
-    'preferences': ApiEndPoints.notificationPreferences,
+    'preferences': ApiEndPoints.notificationsPreferences,
   };
 }
