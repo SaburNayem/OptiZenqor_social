@@ -13,6 +13,7 @@ export 'common_widget/common_widgets.dart';
 export 'data/api/api_end_points.dart';
 export 'data/model/common_api_response_model.dart';
 export 'data/service/api_client_service.dart';
+export 'data/service/feature_service_base.dart';
 export 'data/service/local_storage_service.dart';
 export 'data/service_model/service_response_model.dart';
 export 'data/shared_pref/app_shared_pref.dart';
