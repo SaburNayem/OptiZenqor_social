@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../../../app_route/route_names.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/user_model.dart';
+import '../../account_switching/repository/account_switching_repository.dart';
+import '../../verification_request/model/verification_request_model.dart';
+import '../../verification_request/repository/verification_request_repository.dart';
+import '../../verification_request/screen/verification_request_screen.dart';
 import '../controller/marketplace_controller.dart';
 import '../model/marketplace_filter_model.dart';
 import '../model/product_model.dart';
 import '../widget/category_chip.dart';
 import '../widget/product_card.dart';
+import 'marketplace_create_listing_screen.dart';
 import 'marketplace_filter_sheet.dart';
 import 'my_listings_screen.dart';
 import 'product_details_screen.dart';
 import 'saved_items_screen.dart';
-import 'sell_product_screen.dart';
 import '../../../core/constants/app_colors.dart';
 
 class MarketplaceScreen extends StatefulWidget {
@@ -22,6 +29,7 @@ class MarketplaceScreen extends StatefulWidget {
 class _MarketplaceScreenState extends State<MarketplaceScreen> {
   late final MarketplaceController _controller;
   final TextEditingController _searchController = TextEditingController();
+  bool _isCheckingCreateAccess = false;
 
   @override
   void initState() {
@@ -47,59 +55,62 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           );
         }
         return DefaultTabController(
-          length: 5,
+          length: 4,
           child: Scaffold(
-            body: NestedScrollView(
-              headerSliverBuilder: (context, _) {
-                return [
-                  SliverAppBar(
-                    pinned: true,
-                    expandedHeight: 300,
-                    surfaceTintColor: AppColors.transparent,
-                    leading: IconButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      icon: const Icon(Icons.arrow_back_rounded),
-                    ),
-                    title: const Text('Marketplace'),
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: _Header(
-                        controller: _controller,
-                        searchController: _searchController,
-                        onFilterTap: _openFilters,
-                      ),
-                    ),
-                  ),
-                ];
-              },
-              body: Column(
-                children: [
-                  const Material(
-                    color: AppColors.white,
-                    child: TabBar(
-                      isScrollable: true,
-                      tabAlignment: TabAlignment.start,
-                      tabs: [
-                        Tab(text: 'Browse'),
-                        Tab(text: 'Categories'),
-                        Tab(text: 'Sell'),
-                        Tab(text: 'My Listings'),
-                        Tab(text: 'Saved'),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      children: [
-                        _BrowseTab(controller: _controller),
-                        _CategoriesTab(controller: _controller),
-                        SellProductScreen(controller: _controller),
-                        MyListingsScreen(controller: _controller),
-                        SavedItemsScreen(controller: _controller),
-                      ],
-                    ),
-                  ),
-                ],
+            appBar: AppBar(
+              surfaceTintColor: AppColors.transparent,
+              leading: IconButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back_rounded),
               ),
+              title: const Text('Marketplace'),
+              actions: [
+                IconButton(
+                  tooltip: 'Add product',
+                  onPressed: _isCheckingCreateAccess
+                      ? null
+                      : _handleCreateListingTap,
+                  icon: _isCheckingCreateAccess
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.add_rounded),
+                ),
+              ],
+            ),
+            body: Column(
+              children: [
+                _Header(
+                  controller: _controller,
+                  searchController: _searchController,
+                  onFilterTap: _openFilters,
+                ),
+                const Material(
+                  color: AppColors.white,
+                  child: TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    tabs: [
+                      Tab(text: 'Browse'),
+                      Tab(text: 'Categories'),
+                      Tab(text: 'My Listings'),
+                      Tab(text: 'Saved'),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _BrowseTab(controller: _controller),
+                      _CategoriesTab(controller: _controller),
+                      MyListingsScreen(controller: _controller),
+                      SavedItemsScreen(controller: _controller),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -124,6 +135,72 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       _controller.updateFilter(result);
     }
   }
+
+  Future<void> _handleCreateListingTap() async {
+    if (_isCheckingCreateAccess) {
+      return;
+    }
+    final returnRouteName =
+        ModalRoute.of(context)?.settings.name ?? RouteNames.marketplace;
+
+    setState(() {
+      _isCheckingCreateAccess = true;
+    });
+
+    final activeUser = await _resolveActiveUser();
+    final request = await VerificationRequestRepository().load();
+    final canCreate = _canCreateListing(activeUser, request);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isCheckingCreateAccess = false;
+    });
+
+    if (canCreate) {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => MarketplaceCreateListingScreen(
+            controller: _controller,
+            activeUser: activeUser,
+          ),
+        ),
+      );
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => VerificationRequestScreen(
+          returnRouteName: returnRouteName,
+          completionTargetLabel: 'Marketplace',
+          requestedForUser: activeUser,
+        ),
+      ),
+    );
+  }
+
+  Future<UserModel> _resolveActiveUser() async {
+    final activeAccountId = await AccountSwitchingRepository().readActiveAccountId();
+    if (activeAccountId == null || activeAccountId.trim().isEmpty) {
+      return MockData.users.first;
+    }
+    return MockData.users.firstWhere(
+      (user) => user.id == activeAccountId,
+      orElse: () => MockData.users.first,
+    );
+  }
+
+  bool _canCreateListing(
+    UserModel activeUser,
+    VerificationRequestModel request,
+  ) {
+    return activeUser.verified ||
+        activeUser.verificationStatus.toLowerCase() == 'verified' ||
+        request.status == VerificationStatus.approved;
+  }
 }
 
 class _Header extends StatelessWidget {
@@ -140,7 +217,8 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 36, 16, 10),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -151,67 +229,64 @@ class _Header extends StatelessWidget {
           ],
         ),
       ),
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 58),
-            TextField(
-              controller: searchController,
-              readOnly: true,
-              onTap: () async {
-                final selectedQuery = await Navigator.of(context).push<String>(
-                  MaterialPageRoute<String>(
-                    builder: (_) => MarketplaceSearchScreen(
-                      controller: controller,
-                      initialQuery: searchController.text,
-                    ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: searchController,
+            readOnly: true,
+            onTap: () async {
+              final selectedQuery = await Navigator.of(context).push<String>(
+                MaterialPageRoute<String>(
+                  builder: (_) => MarketplaceSearchScreen(
+                    controller: controller,
+                    initialQuery: searchController.text,
+                  ),
+                ),
+              );
+              if (selectedQuery != null) {
+                searchController.value = TextEditingValue(
+                  text: selectedQuery,
+                  selection: TextSelection.collapsed(
+                    offset: selectedQuery.length,
                   ),
                 );
-                if (selectedQuery != null) {
-                  searchController.value = TextEditingValue(
-                    text: selectedQuery,
-                    selection: TextSelection.collapsed(
-                      offset: selectedQuery.length,
-                    ),
-                  );
-                  controller.updateSearch(selectedQuery);
-                }
-              },
-              decoration: const InputDecoration(
-                hintText: 'Search products, brands, categories',
-                prefixIcon: Icon(Icons.search_rounded),
+                controller.updateSearch(selectedQuery);
+              }
+            },
+            decoration: const InputDecoration(
+              hintText: 'Search products, brands, categories',
+              prefixIcon: Icon(Icons.search_rounded),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              CategoryChip(
+                label: controller.selectedLocation,
+                selected: true,
+                leading: const Icon(Icons.place_outlined, size: 18),
+                onTap: () => _showLocations(context, controller),
               ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                CategoryChip(
-                  label: controller.selectedLocation,
-                  selected: true,
-                  leading: const Icon(Icons.place_outlined, size: 18),
-                  onTap: () => _showLocations(context, controller),
-                ),
-                CategoryChip(
-                  label: controller.selectedCategory == 'All'
-                      ? 'Categories'
-                      : controller.selectedCategory,
-                  selected: false,
-                  leading: const Icon(Icons.grid_view_rounded, size: 18),
-                  onTap: () => _showCategoryPicker(context, controller),
-                ),
-                CategoryChip(
-                  label: 'Filters',
-                  selected: false,
-                  leading: const Icon(Icons.tune_rounded, size: 18),
-                  onTap: onFilterTap,
-                ),
-              ],
-            ),
-          ],
-        ),
+              CategoryChip(
+                label: controller.selectedCategory == 'All'
+                    ? 'Categories'
+                    : controller.selectedCategory,
+                selected: false,
+                leading: const Icon(Icons.grid_view_rounded, size: 18),
+                onTap: () => _showCategoryPicker(context, controller),
+              ),
+              CategoryChip(
+                label: 'Filters',
+                selected: false,
+                leading: const Icon(Icons.tune_rounded, size: 18),
+                onTap: onFilterTap,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -87,6 +87,8 @@ class AppRoute {
   static const String pollsSurveys = RouteNames.pollsSurveys;
   static const String supportHelp = RouteNames.supportHelp;
   static const String userProfile = RouteNames.userProfile;
+  static const String userProfileFollowers = RouteNames.userProfileFollowers;
+  static const String userProfileFollowing = RouteNames.userProfileFollowing;
   static const String chat = RouteNames.chat;
 
   static const String initialRoute = AppRouter.initialRoute;

@@ -95,17 +95,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       audience: _controller.audience,
                       captionController: _controller.captionController,
                       onAudienceTap: () => _controller.pickPrivacy(context),
+                      attachmentPreview: _controller.mediaPaths.isEmpty
+                          ? null
+                          : CreatePostMediaPreview(
+                              mediaPaths: _controller.mediaPaths,
+                              hasAnyVideo: _controller.hasAnyVideo,
+                              isVideoPath: _isVideoPath,
+                              onReplaceTap: () =>
+                                  _controller.showMediaPickerSheet(context),
+                              onRemoveTap: _controller.clearMedia,
+                            ),
                     ),
                     const SizedBox(height: 20),
-                    CreatePostMediaPreview(
-                      mediaPaths: _controller.mediaPaths,
-                      hasAnyVideo: _controller.hasAnyVideo,
-                      isVideoPath: _isVideoPath,
-                      onReplaceTap: () => _controller.showMediaPickerSheet(context),
-                      onRemoveTap: _controller.clearMedia,
-                    ),
-                    if (_controller.mediaPaths.isNotEmpty)
-                      const SizedBox(height: 24),
                     CreatePostActionTile(
                       icon: Icons.add_photo_alternate,
                       label: _controller.mediaPaths.isEmpty

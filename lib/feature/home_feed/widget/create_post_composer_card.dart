@@ -10,6 +10,7 @@ class CreatePostComposerCard extends StatelessWidget {
     required this.audience,
     required this.captionController,
     required this.onAudienceTap,
+    this.attachmentPreview,
   });
 
   final String avatarUrl;
@@ -17,14 +18,13 @@ class CreatePostComposerCard extends StatelessWidget {
   final String audience;
   final TextEditingController captionController;
   final VoidCallback onAudienceTap;
+  final Widget? attachmentPreview;
 
   @override
   Widget build(BuildContext context) {
+    final hasAttachment = attachmentPreview != null;
+
     return Container(
-      constraints: BoxConstraints(
-        minHeight: 180,
-        maxHeight: MediaQuery.of(context).size.height * 0.5,
-      ),
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       decoration: BoxDecoration(
         color: AppColors.grey50,
@@ -93,23 +93,25 @@ class CreatePostComposerCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Expanded(
-            child: TextField(
-              controller: captionController,
-              maxLines: null,
-              minLines: 8,
-              textAlignVertical: TextAlignVertical.top,
-              decoration: const InputDecoration(
-                hintText: "What's on your mind?",
-                hintStyle: TextStyle(
-                  color: AppColors.grey,
-                  fontSize: 16,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
+          TextField(
+            controller: captionController,
+            minLines: hasAttachment ? 4 : 5,
+            maxLines: 8,
+            textAlignVertical: TextAlignVertical.top,
+            decoration: const InputDecoration(
+              hintText: "What's on your mind?",
+              hintStyle: TextStyle(
+                color: AppColors.grey,
+                fontSize: 16,
               ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
             ),
           ),
+          if (attachmentPreview != null) ...[
+            const SizedBox(height: 14),
+            attachmentPreview!,
+          ],
         ],
       ),
     );

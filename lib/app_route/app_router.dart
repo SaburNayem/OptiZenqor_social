@@ -192,6 +192,16 @@ class AppRouter {
         return SupportHelpScreen();
       case RouteNames.userProfile:
         return UserProfileScreen(userId: params['id']);
+      case RouteNames.userProfileFollowers:
+        return FollowListScreen(
+          userId: params['id'],
+          initialTab: FollowListTab.followers,
+        );
+      case RouteNames.userProfileFollowing:
+        return FollowListScreen(
+          userId: params['id'],
+          initialTab: FollowListTab.following,
+        );
       case RouteNames.userProfileEdit:
         return const EditProfileScreen();
       case RouteNames.chat:

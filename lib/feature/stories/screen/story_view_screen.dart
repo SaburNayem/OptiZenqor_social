@@ -101,17 +101,24 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                       ),
                       child: Row(
                         children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: AppColors.white,
+                            ),
+                            onPressed: () => Navigator.of(context).maybePop(),
+                          ),
                           CircleAvatar(
                             radius: 18,
                             backgroundImage: NetworkImage(
                               _getUser(
                                     _controller.stories[_controller
                                         .currentIndex],
-                                  )?.avatar ??
+                                )?.avatar ??
                                   '',
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Text(
                             _getUser(
                                   _controller.stories[_controller.currentIndex],

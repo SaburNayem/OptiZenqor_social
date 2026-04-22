@@ -18,9 +18,13 @@ class FollowController extends ChangeNotifier {
   }
 
   FollowStateModel stateFor(UserModel user) {
-    return _states[user.id] ?? FollowStateModel(
+    final stored = _states[user.id];
+    return FollowStateModel(
       targetUserId: user.id,
       isPrivateAccount: user.isPrivate,
+      isFollowing:
+          stored?.isFollowing ?? _repository.isCurrentUserFollowing(user.id),
+      hasPendingRequest: stored?.hasPendingRequest ?? false,
     );
   }
 

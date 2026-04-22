@@ -21,7 +21,7 @@ class ReelsScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.white),
-          onPressed: () {},
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,

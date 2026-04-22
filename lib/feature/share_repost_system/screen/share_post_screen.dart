@@ -104,11 +104,10 @@ class _SharePostScreenState extends State<SharePostScreen> {
                       audience: _controller.audience,
                       captionController: _controller.captionController,
                       onAudienceTap: () => _controller.pickPrivacy(context),
-                    ),
-                    const SizedBox(height: 18),
-                    ShareSourcePostCard(
-                      post: widget.post,
-                      author: widget.author,
+                      attachmentPreview: ShareSourcePostCard(
+                        post: widget.post,
+                        author: widget.author,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     CreatePostActionTile(

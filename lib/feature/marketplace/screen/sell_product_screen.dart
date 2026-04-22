@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/data/models/user_model.dart';
+import '../../../core/enums/user_role.dart';
 import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
 import '../model/product_model.dart';
 
 class SellProductScreen extends StatefulWidget {
-  const SellProductScreen({super.key, required this.controller});
+  const SellProductScreen({
+    super.key,
+    required this.controller,
+    required this.activeUser,
+    this.onPublished,
+  });
 
   final MarketplaceController controller;
+  final UserModel activeUser;
+  final VoidCallback? onPublished;
 
   @override
   State<SellProductScreen> createState() => _SellProductScreenState();
@@ -345,6 +354,17 @@ class _SellProductScreenState extends State<SellProductScreen> {
       .where((tag) => tag.isNotEmpty)
       .toList();
 
+  SellerType get _sellerType {
+    if (widget.activeUser.verified ||
+        widget.activeUser.verificationStatus.toLowerCase() == 'verified') {
+      return SellerType.verified;
+    }
+    if (widget.activeUser.role == UserRole.business) {
+      return SellerType.shop;
+    }
+    return SellerType.individual;
+  }
+
   void _onSaveDraft() {
     widget.controller.saveDraft(
       title: _titleController.text,
@@ -359,6 +379,10 @@ class _SellProductScreenState extends State<SellProductScreen> {
       location: _locationController.text,
       deliveryOptions: _deliveryOptions,
       optionalFields: _optionalFields,
+      sellerId: widget.activeUser.id,
+      sellerName: widget.activeUser.name,
+      sellerAvatar: widget.activeUser.avatar,
+      sellerType: _sellerType,
     );
     AppGet.snackbar('Marketplace', 'Draft saved locally');
   }
@@ -385,8 +409,13 @@ class _SellProductScreenState extends State<SellProductScreen> {
       deliveryOptions: _deliveryOptions,
       boostListing: _boostListing,
       optionalFields: _optionalFields,
+      sellerId: widget.activeUser.id,
+      sellerName: widget.activeUser.name,
+      sellerAvatar: widget.activeUser.avatar,
+      sellerType: _sellerType,
     );
     AppGet.snackbar('Marketplace', 'Listing published');
+    widget.onPublished?.call();
   }
 }
 

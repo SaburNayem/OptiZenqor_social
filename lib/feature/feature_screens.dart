@@ -18,6 +18,7 @@ export 'events/screen/create_event_screen.dart';
 export 'events/screen/create_pool_screen.dart';
 export 'events/screen/events_screen.dart';
 export 'explore_recommendation/screen/explore_recommendation_screen.dart';
+export 'follow_unfollow/screen/follow_list_screen.dart';
 export 'group_chat/screen/group_chat_screen.dart';
 export 'groups/screen/groups_screen.dart';
 export 'hashtags/screen/hashtags_screen.dart';

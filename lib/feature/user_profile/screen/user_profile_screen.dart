@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../media_viewer/model/media_viewer_item_model.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
 import '../../../app_route/route_names.dart';
@@ -189,10 +191,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                     const SizedBox(width: 12),
                     IconButton(
-                      onPressed: () => AppGet.snackbar(
-                        'Share Profile',
-                        'Static share profile sheet opened',
-                      ),
+                      onPressed: () => _showShareProfileSheet(user),
                       icon: const Icon(
                         Icons.share_outlined,
                         color: AppColors.grey,
@@ -271,18 +270,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   _buildStatColumn(
                     '${user.followers}',
                     'Followers',
-                    onTap: () => AppGet.snackbar(
-                      'Followers',
-                      'Static followers list opened',
+                    onTap: () => AppGet.toNamed(
+                      RouteNames.userProfileFollowers,
+                      parameters: <String, String>{'id': user.id},
                     ),
                   ),
                   _buildStatDivider(),
                   _buildStatColumn(
                     '${user.following}',
                     'Following',
-                    onTap: () => AppGet.snackbar(
-                      'Following',
-                      'Static following list opened',
+                    onTap: () => AppGet.toNamed(
+                      RouteNames.userProfileFollowing,
+                      parameters: <String, String>{'id': user.id},
                     ),
                   ),
                 ],
@@ -471,6 +470,63 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildStatDivider() {
     return Container(height: 24, width: 1, color: AppColors.grey200);
+  }
+
+  Future<void> _showShareProfileSheet(UserModel user) async {
+    final profileUrl = user.publicProfileUrl.isNotEmpty
+        ? user.publicProfileUrl
+        : 'https://optizenqor.app/@${user.username}';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.link_rounded),
+                title: const Text('Copy profile link'),
+                subtitle: Text(profileUrl),
+                onTap: () async {
+                  await Clipboard.setData(ClipboardData(text: profileUrl));
+                  if (sheetContext.mounted) {
+                    Navigator.of(sheetContext).pop();
+                  }
+                  AppGet.snackbar('Share Profile', 'Profile link copied');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.alternate_email_rounded),
+                title: const Text('Copy username'),
+                subtitle: Text('@${user.username}'),
+                onTap: () async {
+                  await Clipboard.setData(
+                    ClipboardData(text: '@${user.username}'),
+                  );
+                  if (sheetContext.mounted) {
+                    Navigator.of(sheetContext).pop();
+                  }
+                  AppGet.snackbar('Share Profile', 'Username copied');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code_rounded),
+                title: const Text('Copy public profile URL'),
+                subtitle: const Text('Use this link to share the profile'),
+                onTap: () async {
+                  await Clipboard.setData(ClipboardData(text: profileUrl));
+                  if (sheetContext.mounted) {
+                    Navigator.of(sheetContext).pop();
+                  }
+                  AppGet.snackbar('Share Profile', 'Public URL copied');
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildUtilityIcon(

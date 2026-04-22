@@ -304,6 +304,10 @@ class MarketplaceController extends ChangeNotifier {
     required List<DeliveryOption> deliveryOptions,
     required bool boostListing,
     required Map<String, String> optionalFields,
+    required String sellerId,
+    required String sellerName,
+    required String sellerAvatar,
+    required SellerType sellerType,
   }) {
     _products.insert(
       0,
@@ -321,9 +325,9 @@ class MarketplaceController extends ChangeNotifier {
         images: const <String>[
           'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80',
         ],
-        sellerId: 'seller-1',
-        sellerName: 'Ava Rahman',
-        sellerType: SellerType.verified,
+        sellerId: sellerId,
+        sellerName: sellerName,
+        sellerType: sellerType,
         isNegotiable: isNegotiable,
         deliveryOptions: deliveryOptions,
         attributes: optionalFields,
@@ -347,6 +351,12 @@ class MarketplaceController extends ChangeNotifier {
         reviewStatus: listingApprovalEnabled ? 'Awaiting approval' : 'Approved',
       ),
     );
+    _upsertSeller(
+      sellerId: sellerId,
+      sellerName: sellerName,
+      sellerAvatar: sellerAvatar,
+      sellerType: sellerType,
+    );
     notifications.insert(0, 'Published "$title" to Marketplace');
     notifyListeners();
   }
@@ -364,6 +374,10 @@ class MarketplaceController extends ChangeNotifier {
     required String location,
     required List<DeliveryOption> deliveryOptions,
     required Map<String, String> optionalFields,
+    required String sellerId,
+    required String sellerName,
+    required String sellerAvatar,
+    required SellerType sellerType,
   }) {
     _products.insert(
       0,
@@ -381,9 +395,9 @@ class MarketplaceController extends ChangeNotifier {
         images: const <String>[
           'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
         ],
-        sellerId: 'seller-1',
-        sellerName: 'Ava Rahman',
-        sellerType: SellerType.verified,
+        sellerId: sellerId,
+        sellerName: sellerName,
+        sellerType: sellerType,
         isNegotiable: isNegotiable,
         deliveryOptions: deliveryOptions,
         attributes: optionalFields,
@@ -406,6 +420,12 @@ class MarketplaceController extends ChangeNotifier {
         isHiddenByModeration: false,
         reviewStatus: 'Draft',
       ),
+    );
+    _upsertSeller(
+      sellerId: sellerId,
+      sellerName: sellerName,
+      sellerAvatar: sellerAvatar,
+      sellerType: sellerType,
     );
     notifications.insert(0, 'Saved "$title" as draft');
     notifyListeners();
@@ -488,6 +508,51 @@ class MarketplaceController extends ChangeNotifier {
 
   double randomCounterOffer(ProductModel product) {
     return max(product.price * 0.9, product.price - (_random.nextInt(80) + 20));
+  }
+
+  void _upsertSeller({
+    required String sellerId,
+    required String sellerName,
+    required String sellerAvatar,
+    required SellerType sellerType,
+  }) {
+    final existingIndex = sellers.indexWhere((seller) => seller.id == sellerId);
+    final SellerModel? existing = existingIndex == -1 ? null : sellers[existingIndex];
+    final activeListings = _products
+        .where(
+          (item) =>
+              item.sellerId == sellerId &&
+              item.listingStatus != ListingStatus.draft,
+        )
+        .length;
+
+    final updatedSeller = SellerModel(
+      id: sellerId,
+      name: sellerName,
+      avatar: sellerAvatar,
+      bio:
+          existing?.bio ??
+          'Marketplace seller profile for $sellerName on OptiZenqor.',
+      joinDate: existing?.joinDate ?? DateTime.now(),
+      rating: existing?.rating ?? 5,
+      responseRate: existing?.responseRate ?? 100,
+      responseTime: existing?.responseTime ?? 'within 15 mins',
+      followers: existing?.followers ?? 0,
+      following: existing?.following ?? 0,
+      isVerified: sellerType == SellerType.verified,
+      sellerType: sellerType,
+      activeListings: activeListings,
+      completedOrders: existing?.completedOrders ?? 0,
+      reviews: existing?.reviews ?? const <SellerReview>[],
+      storeName: existing?.storeName ?? sellerName,
+      strikeStatus: existing?.strikeStatus ?? 'No warnings',
+    );
+
+    if (existingIndex == -1) {
+      sellers.insert(0, updatedSeller);
+      return;
+    }
+    sellers[existingIndex] = updatedSeller;
   }
 
   void _updateListingStatus(String productId, ListingStatus status) {

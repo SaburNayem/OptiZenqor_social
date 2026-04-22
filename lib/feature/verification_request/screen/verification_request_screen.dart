@@ -1,15 +1,43 @@
 import 'package:flutter/material.dart';
 
+import '../../../app_route/route_names.dart';
+import '../../../core/data/models/user_model.dart';
 import '../controller/verification_request_controller.dart';
 import '../model/verification_request_model.dart';
+import 'verification_submission_complete_screen.dart';
 
-class VerificationRequestScreen extends StatelessWidget {
-  VerificationRequestScreen({super.key}) {
+class VerificationRequestScreen extends StatefulWidget {
+  const VerificationRequestScreen({
+    super.key,
+    this.returnRouteName = RouteNames.settings,
+    this.completionTargetLabel = 'Settings',
+    this.requestedForUser,
+  });
+
+  final String returnRouteName;
+  final String completionTargetLabel;
+  final UserModel? requestedForUser;
+
+  @override
+  State<VerificationRequestScreen> createState() =>
+      _VerificationRequestScreenState();
+}
+
+class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
+  final VerificationRequestController _controller =
+      VerificationRequestController();
+
+  @override
+  void initState() {
+    super.initState();
     _controller.load();
   }
 
-  final VerificationRequestController _controller =
-      VerificationRequestController();
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +51,22 @@ class VerificationRequestScreen extends StatelessWidget {
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    if (widget.requestedForUser != null) ...[
+                      Card(
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              widget.requestedForUser!.avatar,
+                            ),
+                          ),
+                          title: Text(widget.requestedForUser!.name),
+                          subtitle: Text(
+                            '@${widget.requestedForUser!.username} needs ID verification before creating marketplace listings.',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     Card(
                       child: ListTile(
                         title: Text('Status: ${_controller.model.status.name}'),
@@ -44,7 +88,7 @@ class VerificationRequestScreen extends StatelessWidget {
                       ),
                     const SizedBox(height: 16),
                     Text(
-                      'Document upload placeholders',
+                      'Upload the required ID documents',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
@@ -64,7 +108,7 @@ class VerificationRequestScreen extends StatelessWidget {
                     FilledButton(
                       onPressed: _controller.model.selectedDocuments.isEmpty
                           ? null
-                          : _controller.submit,
+                          : _submitRequest,
                       child: const Text('Submit request'),
                     ),
                     const SizedBox(height: 12),
@@ -82,6 +126,21 @@ class VerificationRequestScreen extends StatelessWidget {
                 ),
         );
       },
+    );
+  }
+
+  Future<void> _submitRequest() async {
+    await _controller.submit();
+    if (!mounted) {
+      return;
+    }
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => VerificationSubmissionCompleteScreen(
+          returnRouteName: widget.returnRouteName,
+          targetLabel: widget.completionTargetLabel,
+        ),
+      ),
     );
   }
 }
