@@ -45,7 +45,9 @@ class LoginScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.black.withValues(alpha: 0.85),
+                                  color: AppColors.black.withValues(
+                                    alpha: 0.85,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -230,6 +232,3 @@ class _LoginUiCubit extends Cubit<_LoginUiState> {
     emit(state.copyWith(obscurePassword: !state.obscurePassword));
   }
 }
-
-
-

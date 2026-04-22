@@ -5,11 +5,9 @@ import '../../../core/data/service/auth_service.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthRepository {
-  AuthRepository({
-    AuthService? authService,
-    AppSharedPreferences? storage,
-  })  : _authService = authService ?? AuthService(),
-        _storage = storage ?? AppSharedPreferences();
+  AuthRepository({AuthService? authService, AppSharedPreferences? storage})
+    : _authService = authService ?? AuthService(),
+      _storage = storage ?? AppSharedPreferences();
 
   final AuthService _authService;
   final AppSharedPreferences _storage;
@@ -29,7 +27,9 @@ class AuthRepository {
       throw Exception(response.message ?? 'Login failed.');
     }
     debugPrint('[AuthRepository] AuthService.login success');
-    debugPrint('[AuthRepository] Session persisted key=${StorageKeys.authSession}');
+    debugPrint(
+      '[AuthRepository] Session persisted key=${StorageKeys.authSession}',
+    );
   }
 
   Future<void> logout() async {

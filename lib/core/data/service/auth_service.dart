@@ -6,11 +6,9 @@ import '../service_model/service_response_model.dart';
 import 'api_client_service.dart';
 
 class AuthService {
-  AuthService({
-    ApiClientService? apiClient,
-    AppSharedPreferences? storage,
-  }) : _apiClient = apiClient ?? ApiClientService(),
-       _storage = storage ?? AppSharedPreferences();
+  AuthService({ApiClientService? apiClient, AppSharedPreferences? storage})
+    : _apiClient = apiClient ?? ApiClientService(),
+      _storage = storage ?? AppSharedPreferences();
 
   final ApiClientService _apiClient;
   final AppSharedPreferences _storage;
@@ -125,10 +123,7 @@ class AuthService {
   }) {
     return _apiClient.post(
       ApiEndPoints.authVerifyEmailConfirm,
-      <String, dynamic>{
-        'email': email,
-        'code': code,
-      },
+      <String, dynamic>{'email': email, 'code': code},
     );
   }
 

@@ -64,4 +64,3 @@ class LoginController extends Cubit<FormStateModel> {
     password = value;
   }
 }
-

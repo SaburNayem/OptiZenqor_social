@@ -36,33 +36,21 @@ class ApiClientService {
     String endpoint,
     Map<String, dynamic> payload,
   ) async {
-    return _send(
-      method: 'POST',
-      endpoint: endpoint,
-      payload: payload,
-    );
+    return _send(method: 'POST', endpoint: endpoint, payload: payload);
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> patch(
     String endpoint,
     Map<String, dynamic> payload,
   ) async {
-    return _send(
-      method: 'PATCH',
-      endpoint: endpoint,
-      payload: payload,
-    );
+    return _send(method: 'PATCH', endpoint: endpoint, payload: payload);
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> delete(
     String endpoint, {
     Map<String, dynamic>? payload,
   }) async {
-    return _send(
-      method: 'DELETE',
-      endpoint: endpoint,
-      payload: payload,
-    );
+    return _send(method: 'DELETE', endpoint: endpoint, payload: payload);
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> _send({
@@ -80,9 +68,7 @@ class ApiClientService {
     try {
       final http.Request request = http.Request(method, uri)
         ..headers.addAll(
-          await _buildHeaders(
-            includeJsonContentType: method != 'GET',
-          ),
+          await _buildHeaders(includeJsonContentType: method != 'GET'),
         );
 
       if (payload != null && payload.isNotEmpty) {
@@ -91,9 +77,7 @@ class ApiClientService {
 
       final http.StreamedResponse streamedResponse = await _client
           .send(request)
-          .timeout(
-            Duration(milliseconds: AppConfig.receiveTimeoutMs),
-          );
+          .timeout(Duration(milliseconds: AppConfig.receiveTimeoutMs));
       final http.Response response = await http.Response.fromStream(
         streamedResponse,
       );
@@ -121,10 +105,7 @@ class ApiClientService {
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
         statusCode: 503,
-        data: <String, dynamic>{
-          'success': false,
-          'message': error.message,
-        },
+        data: <String, dynamic>{'success': false, 'message': error.message},
         message: error.message,
       );
     }
@@ -137,8 +118,7 @@ class ApiClientService {
       StorageKeys.authSession,
     );
     final String? accessToken = authSession?['accessToken'] as String?;
-    final String tokenType =
-        authSession?['tokenType'] as String? ?? 'Bearer';
+    final String tokenType = authSession?['tokenType'] as String? ?? 'Bearer';
 
     return <String, String>{
       'Accept': 'application/json',
@@ -175,10 +155,7 @@ class ApiClientService {
     }
   }
 
-  String? _extractMessage(
-    Map<String, dynamic> responseBody,
-    String? fallback,
-  ) {
+  String? _extractMessage(Map<String, dynamic> responseBody, String? fallback) {
     final dynamic message = responseBody['message'];
     if (message is String && message.isNotEmpty) {
       return message;
