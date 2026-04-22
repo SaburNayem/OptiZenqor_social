@@ -15,6 +15,7 @@ class PostDetailContent extends StatelessWidget {
     required this.commentTiles,
     required this.onMediaTap,
     required this.onLikeTap,
+    required this.onLikeCountTap,
     required this.onCommentTap,
     required this.onShareTap,
     required this.onBookmarkTap,
@@ -26,6 +27,7 @@ class PostDetailContent extends StatelessWidget {
   final List<Widget> commentTiles;
   final ValueChanged<int> onMediaTap;
   final VoidCallback onLikeTap;
+  final VoidCallback onLikeCountTap;
   final VoidCallback onCommentTap;
   final VoidCallback onShareTap;
   final VoidCallback onBookmarkTap;
@@ -118,9 +120,16 @@ class PostDetailContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${FormatHelper.formatCompactNumber(controller.detail.likes)} likes',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: onLikeCountTap,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      '${FormatHelper.formatCompactNumber(controller.detail.likes)} likes',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 RichText(

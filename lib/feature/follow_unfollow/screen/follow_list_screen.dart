@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/empty_state_view.dart';
@@ -56,10 +55,11 @@ class _FollowListScreenState extends State<FollowListScreen> {
           final following = _controller.following(targetUser.id);
 
           return Scaffold(
-            backgroundColor: AppColors.white,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(targetUser.name),
                   Text(
@@ -136,37 +136,74 @@ class _ConnectionsTab extends StatelessWidget {
         final user = users[index];
         final relation = controller.stateFor(user);
         final isCurrentUser = user.id == currentUser.id;
+        final colorScheme = Theme.of(context).colorScheme;
 
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-          leading: CircleAvatar(backgroundImage: NetworkImage(user.avatar)),
-          title: Text(user.name),
-          subtitle: Text('@${user.username}'),
-          trailing: isCurrentUser
-              ? const Chip(label: Text('You'))
-              : relation.hasPendingRequest
-              ? const Chip(label: Text('Requested'))
-              : relation.isFollowing
-              ? OutlinedButton(
-                  onPressed: () => controller.toggleFollow(user),
-                  child: const Text('Following'),
-                )
-              : FilledButton.tonal(
-                  onPressed: () => controller.toggleFollow(user),
-                  child: Text(
-                    targetUserId == currentUser.id
-                        ? 'Follow back'
-                        : 'Follow',
-                  ),
+        return Material(
+          color: colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => UserProfileScreen(userId: user.id),
+                  settings: const RouteSettings(name: RouteNames.userProfile),
                 ),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => UserProfileScreen(userId: user.id),
-                settings: const RouteSettings(name: RouteNames.userProfile),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: colorScheme.outlineVariant),
               ),
-            );
-          },
+              child: Row(
+                children: [
+                  CircleAvatar(backgroundImage: NetworkImage(user.avatar)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.name,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '@${user.username}',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  if (isCurrentUser)
+                    const Chip(label: Text('You'))
+                  else if (relation.hasPendingRequest)
+                    const Chip(label: Text('Requested'))
+                  else if (relation.isFollowing)
+                    OutlinedButton(
+                      onPressed: () => controller.toggleFollow(user),
+                      child: const Text('Following'),
+                    )
+                  else
+                    FilledButton.tonal(
+                      onPressed: () => controller.toggleFollow(user),
+                      child: Text(
+                        targetUserId == currentUser.id
+                            ? 'Follow back'
+                            : 'Follow',
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

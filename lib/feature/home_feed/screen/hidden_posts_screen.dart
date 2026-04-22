@@ -6,6 +6,7 @@ import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/common_widget/empty_state_view.dart';
 import '../../../core/common_widget/post_card.dart';
+import '../../../core/navigation/app_get.dart';
 import '../../bookmarks/controller/bookmarks_controller.dart';
 import '../../bookmarks/widget/save_post_collection_sheet.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
@@ -137,9 +138,7 @@ class HiddenPostsScreen extends StatelessWidget {
   }
 
   void _showFeedback(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    AppGet.snackbar('Hidden posts', message);
   }
 
   void _openOtherProfile(BuildContext context, String userId) {
@@ -156,4 +155,3 @@ class HiddenPostsScreen extends StatelessWidget {
     );
   }
 }
-
