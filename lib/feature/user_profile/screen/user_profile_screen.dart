@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../media_viewer/model/media_viewer_item_model.dart';
+import '../../media_viewer/model/media_viewer_route_arguments.dart';
 import '../../../app_route/route_names.dart';
 import '../controller/user_profile_controller.dart';
 
@@ -115,7 +117,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     left: 16,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(54),
-                      onTap: () => AppGet.toNamed(RouteNames.mediaViewer),
+                      onTap: () => AppGet.toNamed(
+                        RouteNames.mediaViewer,
+                        arguments: MediaViewerRouteArguments(
+                          items: <MediaViewerItemModel>[
+                            MediaViewerItemModel.fromSource(user.avatar),
+                          ],
+                          title: '${user.name} profile photo',
+                        ),
+                      ),
                       child: Stack(
                         children: [
                           Container(

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:optizenqor_social/core/navigation/app_get.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/service/connectivity_service.dart';
-import '../../../app_route/route_names.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
 import '../controller/home_feed_controller.dart';
 import '../controller/main_shell_controller.dart';
+import '../model/create_post_result_model.dart';
+import '../widget/main_shell_bottom_nav_bar.dart';
+import '../widget/main_shell_drawer.dart';
+import '../widget/main_shell_home_app_bar.dart';
 import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
-import '../../../core/constants/app_colors.dart';
 
 class MainShellScreen extends StatelessWidget {
   MainShellScreen({super.key, this.arguments}) {
@@ -24,7 +25,6 @@ class MainShellScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = MockData.users.first;
     final MainShellController controller = context.read<MainShellController>();
     controller.syncArguments(arguments);
 
@@ -40,180 +40,8 @@ class MainShellScreen extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: AppColors.white,
-          appBar: controller.index == 0
-              ? AppBar(
-                  backgroundColor: AppColors.white,
-                  elevation: 0,
-                  titleSpacing: 16,
-                  title: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => AppGet.toNamed(RouteNames.searchDiscovery),
-                    child: Container(
-                      height: 42,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.hexFFF4F6F8,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.search_rounded,
-                            color: AppColors.grey600,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Search',
-                            style: TextStyle(
-                              color: AppColors.grey600,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  actions: <Widget>[
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        IconButton(
-                          onPressed: () =>
-                              AppGet.toNamed(RouteNames.notifications),
-                          icon: const Icon(
-                            Icons.notifications_none_rounded,
-                            color: AppColors.black87,
-                          ),
-                        ),
-                        Positioned(
-                          right: 12,
-                          top: 12,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: AppColors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 8,
-                              minHeight: 8,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                )
-              : null,
-          drawer: Drawer(
-            child: SafeArea(
-              child: Column(
-                children: [
-                  UserAccountsDrawerHeader(
-                    currentAccountPicture: CircleAvatar(
-                      backgroundImage: NetworkImage(currentUser.avatar),
-                    ),
-                    accountName: Text(currentUser.name),
-                    accountEmail: Text('@${currentUser.username}'),
-                    margin: EdgeInsets.zero,
-                    onDetailsPressed: () => AppGet.toNamed(
-                      RouteNames.userProfile,
-                      parameters: <String, String>{'id': currentUser.id},
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        _buildDrawerItem(
-                          Icons.groups_outlined,
-                          'Communities',
-                          RouteNames.communities,
-                        ),
-                        _buildDrawerItem(
-                          Icons.shopping_bag_outlined,
-                          'Marketplace',
-                          RouteNames.marketplace,
-                        ),
-                        _buildDrawerItem(
-                          Icons.bar_chart_outlined,
-                          'Creator Dashboard',
-                          RouteNames.creatorDashboard,
-                        ),
-                        _buildDrawerItem(
-                          Icons.star_outline,
-                          'Premium Plans',
-                          RouteNames.premium,
-                        ),
-                        _buildDrawerItem(
-                          Icons.calendar_today_outlined,
-                          'Drafts & Scheduling',
-                          RouteNames.scheduling,
-                        ),
-                        _buildDrawerItem(
-                          Icons.cloud_upload_outlined,
-                          'Upload Manager',
-                          RouteNames.uploadManager,
-                        ),
-                        _buildDrawerItem(
-                          Icons.bookmark_border_outlined,
-                          'Bookmarks',
-                          RouteNames.bookmarks,
-                        ),
-                        _buildDrawerItem(
-                          Icons.hide_source_outlined,
-                          'Hidden posts',
-                          RouteNames.hiddenPosts,
-                        ),
-                        _buildDrawerItem(
-                          Icons.account_balance_wallet_outlined,
-                          'Wallet',
-                          RouteNames.walletPayments,
-                        ),
-                        _buildDrawerItem(
-                          Icons.event_outlined,
-                          'Events',
-                          RouteNames.events,
-                        ),
-                        _buildDrawerItem(
-                          Icons.work_outline,
-                          'Jobs',
-                          RouteNames.jobsNetworking,
-                        ),
-                        _buildDrawerItem(
-                          Icons.card_giftcard_outlined,
-                          'Invite Friends',
-                          RouteNames.inviteReferral,
-                        ),
-                        _buildDrawerItem(
-                          Icons.archive_outlined,
-                          'My archive',
-                          RouteNames.archiveCenter,
-                        ),
-                        const Divider(),
-                        _buildDrawerItem(
-                          Icons.settings_outlined,
-                          'Settings',
-                          RouteNames.settings,
-                        ),
-                        _buildDrawerItem(
-                          Icons.help_outline,
-                          'Help & Support',
-                          RouteNames.supportHelp,
-                        ),
-                        _buildDrawerItem(
-                          Icons.logout,
-                          'Log Out',
-                          RouteNames.login,
-                          isDestructive: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          appBar: controller.index == 0 ? const MainShellHomeAppBar() : null,
+          drawer: MainShellDrawer(controller: controller),
           body: Column(
             children: <Widget>[
               AnimatedBuilder(
@@ -251,74 +79,11 @@ class MainShellScreen extends StatelessWidget {
           ),
           floatingActionButtonLocation:
               FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: BottomAppBar(
-            padding: EdgeInsets.zero,
-            height: 70,
-            color: AppColors.white,
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavBarItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'Home',
-                  isSelected: controller.index == 0,
-                  onTap: () => controller.onTabChanged(0),
-                ),
-                _NavBarItem(
-                  icon: Icons.play_circle_outline,
-                  activeIcon: Icons.play_circle_filled_rounded,
-                  label: 'Reels',
-                  isSelected: controller.index == 1,
-                  onTap: () => controller.onTabChanged(1),
-                ),
-                const SizedBox(width: 48), // Space for FAB
-                _NavBarItem(
-                  icon: Icons.chat_bubble_outline,
-                  activeIcon: Icons.chat_bubble_rounded,
-                  label: 'Chat',
-                  isSelected: controller.index == 3,
-                  onTap: () => controller.onTabChanged(3),
-                ),
-                _NavBarItem(
-                  icon: Icons.person_outline,
-                  activeIcon: Icons.person_rounded,
-                  label: 'Profile',
-                  isSelected: controller.index == 4,
-                  onTap: () => controller.onTabChanged(4),
-                ),
-              ],
-            ),
+          bottomNavigationBar: MainShellBottomNavBar(
+            selectedIndex: controller.index,
+            onChanged: controller.onTabChanged,
           ),
         );
-      },
-    );
-  }
-
-  Widget _buildDrawerItem(
-    IconData icon,
-    String label,
-    String routeName, {
-    bool isDestructive = false,
-  }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? AppColors.red : AppColors.blueGrey700,
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          color: isDestructive ? AppColors.red : AppColors.blueGrey800,
-          fontWeight: FontWeight.w500,
-          fontSize: 15,
-        ),
-      ),
-      onTap: () {
-        AppGet.back();
-        AppGet.toNamed(routeName);
       },
     );
   }
@@ -352,47 +117,4 @@ class MainShellScreen extends StatelessWidget {
     }
   }
 }
-
-class _NavBarItem extends StatelessWidget {
-  const _NavBarItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isSelected ? AppColors.hexFF26C6DA : AppColors.grey400;
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(isSelected ? activeIcon : icon, color: color, size: 26),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
 

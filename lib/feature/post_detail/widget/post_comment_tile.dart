@@ -1,0 +1,150 @@
+import 'package:flutter/material.dart';
+
+import '../../../core/constants/app_colors.dart';
+import '../../../core/data/mock/mock_data.dart';
+import '../model/post_comment_model.dart';
+
+class PostCommentTile extends StatelessWidget {
+  const PostCommentTile({
+    super.key,
+    required this.comment,
+    required this.isReply,
+    this.onLikeTap,
+    this.onReplyTap,
+  });
+
+  final PostCommentModel comment;
+  final bool isReply;
+  final VoidCallback? onLikeTap;
+  final VoidCallback? onReplyTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final String avatarUrl = _avatarFor(comment.author);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: isReply ? 64 : 16,
+        right: 16,
+        top: 8,
+        bottom: 8,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(radius: 16, backgroundImage: NetworkImage(avatarUrl)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.grey50,
+                    borderRadius: BorderRadius.only(
+                      topRight: const Radius.circular(16),
+                      bottomLeft: const Radius.circular(16),
+                      bottomRight: const Radius.circular(16),
+                      topLeft: Radius.circular(isReply ? 16 : 0),
+                    ),
+                  ),
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        color: AppColors.black87,
+                        fontSize: 13,
+                        height: 1.3,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: '@${comment.author}  ',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(text: comment.message),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 14,
+                  children: [
+                    Text(
+                      comment.createdAt,
+                      style: const TextStyle(
+                        color: AppColors.grey,
+                        fontSize: 11,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: onReplyTap,
+                      child: const Text(
+                        'Reply',
+                        style: TextStyle(
+                          color: AppColors.grey,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (comment.isEdited)
+                      const Text(
+                        'Edited',
+                        style: TextStyle(
+                          color: AppColors.grey,
+                          fontSize: 11,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: InkWell(
+              onTap: onLikeTap,
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Column(
+                  children: [
+                    Icon(
+                      comment.isLikedByMe
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      size: 16,
+                      color:
+                          comment.isLikedByMe ? AppColors.red : AppColors.grey,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${comment.likeCount}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _avatarFor(String username) {
+    final match = MockData.users.where((user) => user.username == username);
+    if (match.isNotEmpty) {
+      return match.first.avatar;
+    }
+    return MockData.users.first.avatar;
+  }
+}

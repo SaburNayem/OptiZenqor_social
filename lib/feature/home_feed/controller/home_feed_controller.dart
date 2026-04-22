@@ -5,6 +5,7 @@ import '../../../core/data/models/pagination_state_model.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/service/analytics_service.dart';
+import '../helper/home_feed_post_factory.dart';
 import '../repository/home_feed_repository.dart';
 
 enum FeedTab { forYou, following, trending }
@@ -241,38 +242,18 @@ class HomeFeedController extends Cubit<int> {
     String? altText,
     List<String> editHistory = const <String>[],
   }) async {
-    final text = caption.trim();
-    final List<String> trimmedMediaPaths = mediaPaths
-        .map((item) => item.trim())
-        .where((item) => item.isNotEmpty)
-        .toList(growable: false);
-    if (text.isEmpty && trimmedMediaPaths.isEmpty) {
+    if (caption.trim().isEmpty &&
+        mediaPaths.every((item) => item.trim().isEmpty)) {
       return;
     }
 
-    final List<String> media = trimmedMediaPaths;
-
-    final post = PostModel(
-      id: 'local_${DateTime.now().millisecondsSinceEpoch}',
-      authorId: 'u1',
-      caption: text,
-      tags: const <String>['#local'],
-      media: media,
-      likes: 0,
-      comments: 0,
-      createdAt: DateTime.now(),
-      viewCount: 1,
-      shareCount: 0,
-      taggedUserIds: taggedPeople
-          .map((item) => item.replaceFirst('@', ''))
-          .where((item) => item.isNotEmpty)
-          .toList(),
-      mentionUsernames: coAuthors
-          .map((item) => item.replaceFirst('@', ''))
-          .where((item) => item.isNotEmpty)
-          .toList(),
-      location: location,
+    final PostModel post = HomeFeedPostFactory.buildLocalPost(
+      caption: caption,
+      mediaPaths: mediaPaths,
       audience: audience,
+      location: location,
+      taggedPeople: taggedPeople,
+      coAuthors: coAuthors,
       altText: altText,
       editHistory: editHistory,
     );
@@ -285,7 +266,7 @@ class HomeFeedController extends Cubit<int> {
     await _analytics.logEvent(
       'post_created_local',
       params: <String, dynamic>{
-        'hasMedia': media.isNotEmpty,
+        'hasMedia': post.media.isNotEmpty,
         'isVideo': isVideo,
       },
     );
@@ -331,11 +312,13 @@ class HomeFeedController extends Cubit<int> {
   }
 
   Future<void> _persistRecommendationPreferences() {
-    return _repository.writeRecommendationPreferences(<String, List<String>>{
-      'lessLikeThis': _lessLikeThisPostIds.toList(),
-      'hiddenCreators': _hiddenCreatorIds.toList(),
-      'hiddenTopics': _hiddenTopics.toList(),
-    });
+    return _repository.writeRecommendationPreferences(
+      HomeFeedPostFactory.buildRecommendationPreferences(
+        lessLikeThisPostIds: _lessLikeThisPostIds,
+        hiddenCreatorIds: _hiddenCreatorIds,
+        hiddenTopics: _hiddenTopics,
+      ),
+    );
   }
 
   void _notify() => emit(

@@ -57,6 +57,20 @@ class _SignupAccountStep extends StatelessWidget {
           'Let\'s get you started on Connecta',
           style: TextStyle(fontSize: 16, color: AppColors.hexFF667085),
         ),
+        const SizedBox(height: 24),
+        const _SignupAlternativeDivider(),
+        const SizedBox(height: 24),
+        AuthGoogleButton(
+          label: 'Sign Up with Google',
+          onPressed: () {
+            AppGet.snackbar(
+              'Google Sign Up',
+              'Google account connected. Complete your setup.',
+              snackPosition: SnackPosition.bottom,
+            );
+            cubit.continueWithGoogle();
+          },
+        ),
         const SizedBox(height: 40),
         Form(
           key: accountDetailsFormKey,

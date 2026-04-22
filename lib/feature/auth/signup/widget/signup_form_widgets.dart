@@ -191,3 +191,55 @@ class _SignupTextField extends StatelessWidget {
     );
   }
 }
+
+class _SignupLoginPrompt extends StatelessWidget {
+  const _SignupLoginPrompt();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          'Already have an account? ',
+          style: TextStyle(color: AppColors.hexFF667085),
+        ),
+        GestureDetector(
+          onTap: () => AppGet.offNamed(RouteNames.login),
+          child: const Text(
+            'Log In',
+            style: TextStyle(
+              color: AppColors.splashBackground,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SignupAlternativeDivider extends StatelessWidget {
+  const _SignupAlternativeDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: AppColors.grey200)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'OR',
+            style: TextStyle(
+              color: AppColors.grey400,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Expanded(child: Divider(color: AppColors.grey200)),
+      ],
+    );
+  }
+}

@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/data/models/form_state_model.dart';
 import '../../../../core/validators/input_validators.dart';
 import '../../../../app_route/route_names.dart';
+import '../../widget/auth_google_button.dart';
 import '../controller/login_controller.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -160,7 +161,8 @@ class LoginScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 32),
-                          OutlinedButton(
+                          AuthGoogleButton(
+                            label: 'Continue with Google',
                             onPressed: () {
                               AppGet.snackbar(
                                 'Google Login',
@@ -169,31 +171,6 @@ class LoginScreen extends StatelessWidget {
                               );
                               AppGet.offNamed(RouteNames.shell);
                             },
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(56),
-                              side: BorderSide(color: AppColors.grey200),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.network(
-                                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                                  height: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                const Text(
-                                  'Continue with Google',
-                                  style: TextStyle(
-                                    color: AppColors.hexFF495057,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                           const SizedBox(height: 48),
                           Center(

@@ -5,6 +5,7 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/validators/input_validators.dart';
 import '../../../../app_route/route_names.dart';
+import '../../widget/auth_google_button.dart';
 
 part '../widget/signup_step_sections.dart';
 part '../widget/signup_form_widgets.dart';
@@ -85,23 +86,35 @@ class SignupScreen extends StatelessWidget {
                 ),
               ),
             ),
-            bottomNavigationBar: Padding(
-              padding: const EdgeInsets.all(24),
-              child: FilledButton(
-                onPressed: () => _handleContinueTap(context, state, cubit),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.splashBackground,
-                  minimumSize: const Size.fromHeight(56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  state.currentStep == 3 ? 'Create Account' : 'Continue',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+            bottomNavigationBar: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FilledButton(
+                      onPressed: () => _handleContinueTap(context, state, cubit),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.splashBackground,
+                        minimumSize: const Size.fromHeight(56),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        state.currentStep == 3 ? 'Create Account' : 'Continue',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (state.currentStep == 1) ...[
+                      const SizedBox(height: 12),
+                      const _SignupLoginPrompt(),
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -119,6 +132,7 @@ class SignupScreen extends StatelessWidget {
     if (state.currentStep == 1) {
       final bool isValid = _accountDetailsFormKey.currentState?.validate() ?? false;
       if (isValid) {
+        cubit.useEmailSignup();
         cubit.nextStep();
       }
       return;
@@ -137,6 +151,11 @@ class SignupScreen extends StatelessWidget {
       return;
     }
 
+    if (state.signedUpWithGoogle) {
+      AppGet.offAllNamed(RouteNames.shell);
+      return;
+    }
+
     AppGet.toNamed(
       RouteNames.emailVerification,
       arguments: cubit.emailController.text.trim(),
@@ -150,18 +169,21 @@ class _SignupState {
     this.obscurePassword = true,
     this.obscureConfirmPassword = true,
     this.selectedRole,
+    this.signedUpWithGoogle = false,
   });
 
   final int currentStep;
   final bool obscurePassword;
   final bool obscureConfirmPassword;
   final String? selectedRole;
+  final bool signedUpWithGoogle;
 
   _SignupState copyWith({
     int? currentStep,
     bool? obscurePassword,
     bool? obscureConfirmPassword,
     String? selectedRole,
+    bool? signedUpWithGoogle,
   }) {
     return _SignupState(
       currentStep: currentStep ?? this.currentStep,
@@ -169,6 +191,7 @@ class _SignupState {
       obscureConfirmPassword:
           obscureConfirmPassword ?? this.obscureConfirmPassword,
       selectedRole: selectedRole ?? this.selectedRole,
+      signedUpWithGoogle: signedUpWithGoogle ?? this.signedUpWithGoogle,
     );
   }
 }
@@ -204,6 +227,16 @@ class _SignupCubit extends Cubit<_SignupState> {
 
   void selectRole(String role) {
     emit(state.copyWith(selectedRole: role));
+  }
+
+  void continueWithGoogle() {
+    emit(state.copyWith(currentStep: 2, signedUpWithGoogle: true));
+  }
+
+  void useEmailSignup() {
+    if (state.signedUpWithGoogle) {
+      emit(state.copyWith(signedUpWithGoogle: false));
+    }
   }
 
   @override

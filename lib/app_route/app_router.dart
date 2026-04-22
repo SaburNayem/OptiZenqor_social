@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/data/mock/mock_data.dart';
 import '../feature/auth/auth_feature_screens.dart';
 import '../feature/feature_screens.dart';
+import '../feature/media_viewer/model/media_viewer_item_model.dart';
+import '../feature/media_viewer/model/media_viewer_route_arguments.dart';
 import '../feature/settings/settings_feature_screens.dart';
 import 'route_names.dart';
 
@@ -117,7 +119,7 @@ class AppRouter {
       case RouteNames.shareRepostSystem:
         return const ShareRepostSystemScreen();
       case RouteNames.mediaViewer:
-        return const MediaViewerScreen();
+        return MediaViewerScreen(arguments: _mediaViewerArguments(arguments));
       case RouteNames.postDetail:
         return PostDetailScreen();
       case RouteNames.accountSwitching:
@@ -215,6 +217,35 @@ class AppRouter {
       final Object? email = arguments['email'];
       if (email is String && email.trim().isNotEmpty) {
         return email.trim();
+      }
+    }
+    return null;
+  }
+
+  static MediaViewerRouteArguments? _mediaViewerArguments(Object? arguments) {
+    if (arguments is MediaViewerRouteArguments) {
+      return arguments;
+    }
+    if (arguments is Map) {
+      final Object? rawItems = arguments['items'];
+      final Object? rawInitialIndex = arguments['initialIndex'];
+      final Object? rawTitle = arguments['title'];
+
+      if (rawItems is List<MediaViewerItemModel>) {
+        return MediaViewerRouteArguments(
+          items: rawItems,
+          initialIndex: rawInitialIndex is int ? rawInitialIndex : 0,
+          title: rawTitle is String ? rawTitle : null,
+        );
+      }
+      if (rawItems is List<String>) {
+        return MediaViewerRouteArguments(
+          items: rawItems
+              .map(MediaViewerItemModel.fromSource)
+              .toList(growable: false),
+          initialIndex: rawInitialIndex is int ? rawInitialIndex : 0,
+          title: rawTitle is String ? rawTitle : null,
+        );
       }
     }
     return null;
