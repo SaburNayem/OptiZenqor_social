@@ -170,12 +170,8 @@ class HomeFeedController extends Cubit<int> {
     }
   }
 
-  int displayLikeCount(PostModel post) {
-    if (_likedPostIds.contains(post.id)) {
-      return post.likes + 1;
-    }
-    return post.likes;
-  }
+  int displayLikeCount(PostModel post) =>
+      _likedPostIds.contains(post.id) ? post.likes + 1 : post.likes;
 
   bool canRetryPostAction(String postId) {
     return _failedActionPostIds.contains(postId);
@@ -304,7 +300,6 @@ class HomeFeedController extends Cubit<int> {
     }
   }
 
-  // Legacy compatibility method used by existing UI and shell lifecycle.
   Future<void> restore() async {
     if (posts.isEmpty && !loadState.isLoading) {
       await loadInitial();
@@ -321,7 +316,5 @@ class HomeFeedController extends Cubit<int> {
     );
   }
 
-  void _notify() => emit(
-    loadState.hashCode ^ posts.length ^ stories.length ^ pagination.page,
-  );
+  void _notify() => emit(state + 1);
 }

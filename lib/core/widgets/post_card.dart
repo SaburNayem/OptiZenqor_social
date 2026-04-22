@@ -15,11 +15,13 @@ class PostCard extends StatelessWidget {
     required this.author,
     this.likeCount,
     this.isLiked = false,
+    this.isBookmarked = false,
     this.onTap,
     this.onAuthorTap,
     this.onMoreTap,
     this.onLikeTap,
     this.onCommentTap,
+    this.onShareTap,
     this.onBookmarkTap,
     super.key,
   });
@@ -28,11 +30,13 @@ class PostCard extends StatelessWidget {
   final UserModel author;
   final int? likeCount;
   final bool isLiked;
+  final bool isBookmarked;
   final VoidCallback? onTap;
   final VoidCallback? onAuthorTap;
   final VoidCallback? onMoreTap;
   final VoidCallback? onLikeTap;
   final VoidCallback? onCommentTap;
+  final VoidCallback? onShareTap;
   final VoidCallback? onBookmarkTap;
 
   @override
@@ -162,13 +166,18 @@ class PostCard extends StatelessWidget {
                       icon: const Icon(Icons.chat_bubble_outline),
                     ),
                     IconButton(
-                      onPressed: () {}, // Share action
+                      onPressed: onShareTap,
                       icon: const Icon(Icons.share_outlined),
                     ),
                     const Spacer(),
                     IconButton(
                       onPressed: onBookmarkTap,
-                      icon: const Icon(Icons.bookmark_border_rounded),
+                      icon: Icon(
+                        isBookmarked
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_border_rounded,
+                        color: isBookmarked ? AppColors.black87 : null,
+                      ),
                     ),
                   ],
                 ),

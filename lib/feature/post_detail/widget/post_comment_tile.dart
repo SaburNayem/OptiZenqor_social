@@ -8,13 +8,13 @@ class PostCommentTile extends StatelessWidget {
   const PostCommentTile({
     super.key,
     required this.comment,
-    required this.isReply,
+    this.depth = 0,
     this.onLikeTap,
     this.onReplyTap,
   });
 
   final PostCommentModel comment;
-  final bool isReply;
+  final int depth;
   final VoidCallback? onLikeTap;
   final VoidCallback? onReplyTap;
 
@@ -24,7 +24,7 @@ class PostCommentTile extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(
-        left: isReply ? 64 : 16,
+        left: 16 + (_effectiveDepth * 24),
         right: 16,
         top: 8,
         bottom: 8,
@@ -49,7 +49,7 @@ class PostCommentTile extends StatelessWidget {
                       topRight: const Radius.circular(16),
                       bottomLeft: const Radius.circular(16),
                       bottomRight: const Radius.circular(16),
-                      topLeft: Radius.circular(isReply ? 16 : 0),
+                      topLeft: Radius.circular(depth > 0 ? 16 : 0),
                     ),
                   ),
                   child: RichText(
@@ -147,4 +147,6 @@ class PostCommentTile extends StatelessWidget {
     }
     return MockData.users.first.avatar;
   }
+
+  int get _effectiveDepth => depth.clamp(0, 3);
 }

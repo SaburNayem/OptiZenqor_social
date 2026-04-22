@@ -1,183 +1,217 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
-import '../../../core/data/mock/mock_data.dart';
+import '../../../core/common_widget/empty_state_view.dart';
+import '../../post_detail/screen/post_detail_screen.dart';
+import '../../saved_collections/model/saved_collection_model.dart';
 import '../controller/bookmarks_controller.dart';
-import '../../../core/constants/app_colors.dart';
+import '../model/bookmark_item_model.dart';
+import '../widget/saved_collection_tile.dart';
+import '../widget/saved_post_list_card.dart';
+import 'saved_collection_posts_screen.dart';
 
 class BookmarksScreen extends StatelessWidget {
-  BookmarksScreen({super.key}) {
-    _controller.load();
-  }
-
-  final BookmarksController _controller = BookmarksController();
+  const BookmarksScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = MockData.users.first;
+    return BlocBuilder<BookmarksController, BookmarksState>(
+      builder: (context, state) {
+        final BookmarksController controller = context.read<BookmarksController>();
+        final List<BookmarkItemModel> items = state.items;
 
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
-          onPressed: () => AppGet.back(),
-        ),
-        title: const Text(
-          'Saved Collections',
-          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: AppColors.black87),
-            onPressed: () {},
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: AppColors.black87),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage: NetworkImage(currentUser.avatar),
-            ),
-          ),
-        ],
-      ),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: const EdgeInsets.all(16),
-        mainAxisSpacing: 24,
-        crossAxisSpacing: 16,
-        childAspectRatio: 0.85,
-        children: [
-          // New Collection Button
-          InkWell(
-            onTap: () {},
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.grey200, width: 1.5),
-                      borderRadius: BorderRadius.circular(24),
+        return Scaffold(
+          appBar: AppBar(title: const Text('Saved Posts')),
+          body: state.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _createCollection(context, controller),
+                        icon: const Icon(Icons.create_new_folder_outlined),
+                        label: const Text('New Collection'),
+                      ),
                     ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Folders',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 190,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
                         children: [
-                          Icon(Icons.add, size: 32, color: AppColors.grey400),
-                          const SizedBox(height: 12),
-                          Text(
-                            'New Collection',
-                            style: TextStyle(color: AppColors.grey500, fontWeight: FontWeight.w500),
+                          SavedCollectionTile(
+                            title: 'All Posts',
+                            count: items.length,
+                            previews: items
+                                .map((BookmarkItemModel item) => item.thumbnail)
+                                .where((String preview) => preview.isNotEmpty)
+                                .take(4)
+                                .toList(growable: false),
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const SavedCollectionPostsScreen(
+                                  title: 'All Posts',
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ...state.collections.map(
+                            (SavedCollectionModel collection) {
+                              final List<BookmarkItemModel> collectionItems =
+                                  controller.itemsForCollection(collection.id);
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: SavedCollectionTile(
+                                  title: collection.name,
+                                  count: collectionItems.length,
+                                  previews: collectionItems
+                                      .map(
+                                        (BookmarkItemModel item) => item.thumbnail,
+                                      )
+                                      .where(
+                                        (String preview) => preview.isNotEmpty,
+                                      )
+                                      .take(4)
+                                      .toList(growable: false),
+                                  onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) =>
+                                          SavedCollectionPostsScreen(
+                                        collectionId: collection.id,
+                                        title: collection.name,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'All Saved Posts',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (items.isEmpty)
+                      const EmptyStateView(
+                        title: 'No saved posts yet',
+                        message: 'Saved posts from the feed will appear here.',
+                      )
+                    else
+                      ...items.map(
+                        (BookmarkItemModel item) => SavedPostListCard(
+                          item: item,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => PostDetailScreen(postId: item.id),
+                            ),
+                          ),
+                          onMoreTap: () => _showPostActions(
+                            context: context,
+                            controller: controller,
+                            item: item,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                const Opacity(opacity: 0, child: Text('Placeholder')), // For spacing
-              ],
-            ),
-          ),
-
-          _buildCollectionCard(
-            'All Posts',
-            '124',
-            [
-              'https://picsum.photos/seed/s1/200/200',
-              'https://picsum.photos/seed/s2/200/200',
-              'https://picsum.photos/seed/s3/200/200',
-              'https://picsum.photos/seed/s4/200/200',
-            ],
-          ),
-          _buildCollectionCard(
-            'Travel Inspo',
-            '42',
-            [
-              'https://picsum.photos/seed/s5/200/200',
-              'https://picsum.photos/seed/s6/200/200',
-              'https://picsum.photos/seed/s7/200/200',
-              'https://picsum.photos/seed/s8/200/200',
-            ],
-          ),
-          _buildCollectionCard(
-            'Recipes',
-            '18',
-            [
-              'https://picsum.photos/seed/s9/200/200',
-              'https://picsum.photos/seed/s10/200/200',
-              'https://picsum.photos/seed/s11/200/200',
-              'https://picsum.photos/seed/s12/200/200',
-            ],
-          ),
-          _buildCollectionCard(
-            'Design Ideas',
-            '56',
-            [
-              'https://picsum.photos/seed/s13/200/200',
-              'https://picsum.photos/seed/s14/200/200',
-              'https://picsum.photos/seed/s15/200/200',
-              'https://picsum.photos/seed/s16/200/200',
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildCollectionCard(String title, String count, List<String> images) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: GridView.count(
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 2,
-              mainAxisSpacing: 2,
-              children: images.map((url) => Image.network(url, fit: BoxFit.cover)).toList(),
-            ),
+  Future<void> _createCollection(
+    BuildContext context,
+    BookmarksController controller,
+  ) async {
+    final TextEditingController textController = TextEditingController();
+    final String? name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('New Collection'),
+          content: TextField(
+            controller: textController,
+            decoration: const InputDecoration(hintText: 'Folder name'),
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '$count saved items',
-          style: TextStyle(color: AppColors.grey500, fontSize: 12),
-        ),
-      ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(textController.text.trim()),
+              child: const Text('Create'),
+            ),
+          ],
+        );
+      },
+    );
+    if (name == null || name.trim().isEmpty) {
+      return;
+    }
+    await controller.createCollection(name);
+    if (!context.mounted) {
+      return;
+    }
+    AppGet.snackbar('Saved posts', 'Collection created');
+  }
+
+  Future<void> _showPostActions({
+    required BuildContext context,
+    required BookmarksController controller,
+    required BookmarkItemModel item,
+  }) {
+    return showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.bookmark_remove_outlined),
+                title: const Text('Unsave post'),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await controller.unsave(item.id);
+                  if (!context.mounted) {
+                    return;
+                  }
+                  AppGet.snackbar('Saved posts', 'Post removed from saved');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.flag_outlined),
+                title: const Text('Report'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  AppGet.snackbar('Reported', 'Static report flow opened');
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
-
-

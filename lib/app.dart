@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/data/service/theme_service.dart';
 import 'core/navigation/app_navigator.dart';
 import 'core/theme/app_theme.dart';
+import 'feature/bookmarks/controller/bookmarks_controller.dart';
 import 'feature/home_feed/controller/home_feed_controller.dart';
 import 'feature/home_feed/controller/main_shell_controller.dart';
 import 'feature/settings/controller/settings_state_controller.dart';
@@ -19,6 +20,9 @@ class OptiZenqorApp extends StatelessWidget {
         BlocProvider<MainShellController>(create: (_) => MainShellController()),
         BlocProvider<HomeFeedController>(
           create: (_) => HomeFeedController()..loadInitial(),
+        ),
+        BlocProvider<BookmarksController>(
+          create: (_) => BookmarksController()..load(),
         ),
         BlocProvider<SettingsStateController>(
           create: (_) => SettingsStateController()..load(),

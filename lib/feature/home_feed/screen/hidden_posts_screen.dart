@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/models/post_model.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/common_widget/empty_state_view.dart';
 import '../../../core/common_widget/post_card.dart';
+import '../../bookmarks/controller/bookmarks_controller.dart';
+import '../../bookmarks/widget/save_post_collection_sheet.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
+import '../../share_repost_system/widget/share_post_action_sheet.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
 import '../controller/home_feed_controller.dart';
 
@@ -18,67 +23,117 @@ class HiddenPostsScreen extends StatelessWidget {
         final controller = context.read<HomeFeedController>();
         final hiddenPosts = controller.hiddenPosts;
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Hidden posts')),
-          body: hiddenPosts.isEmpty
-              ? const EmptyStateView(
-                  title: 'No hidden posts',
-                  message: 'Posts you hide from the feed will appear here.',
-                )
-              : ListView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  children: hiddenPosts
-                      .map((post) {
-                        final user = MockData.users
-                            .where((item) => item.id == post.authorId)
-                            .firstOrNull;
-                        if (user == null) {
-                          return const SizedBox.shrink();
-                        }
-                        return Column(
-                          children: [
-                            PostCard(
-                              post: post,
-                              author: user,
-                              likeCount: controller.displayLikeCount(post),
-                              isLiked: controller.isLiked(post.id),
-                              onTap: () => _openPostDetail(context, post.id),
-                              onAuthorTap: () =>
-                                  _openOtherProfile(context, user.id),
-                              onLikeTap: () => controller.likePost(post.id),
-                              onCommentTap: () =>
-                                  _openPostDetail(context, post.id),
-                              onBookmarkTap: () =>
-                                  _showFeedback(context, 'Saved to bookmarks'),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 4,
-                              ),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    controller.unhidePost(post.id);
-                                    _showFeedback(
-                                      context,
-                                      'Post restored to feed',
-                                    );
-                                  },
-                                  icon: const Icon(Icons.visibility_rounded),
-                                  label: const Text('Unhide post'),
+        return BlocBuilder<BookmarksController, BookmarksState>(
+          builder: (context, _) {
+            final BookmarksController bookmarksController =
+                context.read<BookmarksController>();
+            return Scaffold(
+              appBar: AppBar(title: const Text('Hidden posts')),
+              body: hiddenPosts.isEmpty
+                  ? const EmptyStateView(
+                      title: 'No hidden posts',
+                      message: 'Posts you hide from the feed will appear here.',
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      children: hiddenPosts
+                          .map((post) {
+                            final user = MockData.users
+                                .where((item) => item.id == post.authorId)
+                                .firstOrNull;
+                            if (user == null) {
+                              return const SizedBox.shrink();
+                            }
+                            return Column(
+                              children: [
+                                PostCard(
+                                  post: post,
+                                  author: user,
+                                  likeCount: controller.displayLikeCount(post),
+                                  isLiked: controller.isLiked(post.id),
+                                  isBookmarked: bookmarksController.isSaved(
+                                    post.id,
+                                  ),
+                                  onTap: () =>
+                                      _openPostDetail(context, post.id),
+                                  onAuthorTap: () =>
+                                      _openOtherProfile(context, user.id),
+                                  onLikeTap: () =>
+                                      controller.likePost(post.id),
+                                  onCommentTap: () =>
+                                      _openPostDetail(context, post.id),
+                                  onShareTap: () => showSharePostActionSheet(
+                                    context: context,
+                                    post: post,
+                                    author: user,
+                                  ),
+                                  onBookmarkTap: () => _handleBookmarkTap(
+                                    context: context,
+                                    bookmarksController: bookmarksController,
+                                    post: post,
+                                    user: user,
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        );
-                      })
-                      .toList(growable: false),
-                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 4,
+                                  ),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {
+                                        controller.unhidePost(post.id);
+                                        _showFeedback(
+                                          context,
+                                          'Post restored to feed',
+                                        );
+                                      },
+                                      icon: const Icon(Icons.visibility_rounded),
+                                      label: const Text('Unhide post'),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          })
+                          .toList(growable: false),
+                    ),
+            );
+          },
         );
       },
     );
+  }
+
+  Future<void> _handleBookmarkTap({
+    required BuildContext context,
+    required BookmarksController bookmarksController,
+    required PostModel post,
+    required UserModel user,
+  }) async {
+    if (bookmarksController.isSaved(post.id)) {
+      await bookmarksController.unsave(post.id);
+      if (!context.mounted) {
+        return;
+      }
+      _showFeedback(context, 'Removed from saved posts');
+      return;
+    }
+
+    final String? destination = await showSavePostCollectionSheet(
+      context: context,
+      controller: bookmarksController,
+      onSave: (collectionId) => bookmarksController.savePost(
+        post: post,
+        author: user,
+        collectionId: collectionId,
+      ),
+    );
+    if (destination == null || !context.mounted) {
+      return;
+    }
+    _showFeedback(context, 'Saved to $destination');
   }
 
   void _showFeedback(BuildContext context, String message) {
