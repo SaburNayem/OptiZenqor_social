@@ -7,17 +7,17 @@ import '../models/reel_model.dart';
 import '../models/story_model.dart';
 import '../models/user_model.dart';
 import '../../enums/user_role.dart';
-import '../../../features/blocked_muted_accounts/model/restricted_account_model.dart';
-import '../../../features/drafts_and_scheduling/model/draft_item_model.dart';
-import '../../../features/events/model/event_model.dart';
-import '../../../features/notifications/model/notification_payload_model.dart';
-import '../../../features/pages/model/page_model.dart';
-import '../../../features/report_center/model/report_item_model.dart';
-import '../../../features/settings/model/settings_item_model.dart';
-import '../../../features/subscriptions/model/subscription_plan_model.dart';
-import '../../../features/upload_manager/model/upload_task_model.dart';
-import '../../../features/wallet_payments/model/wallet_transaction_model.dart';
-import '../../../route/route_names.dart';
+import '../../../feature/blocked_muted_accounts/model/restricted_account_model.dart';
+import '../../../feature/drafts_and_scheduling/model/draft_item_model.dart';
+import '../../../feature/events/model/event_model.dart';
+import '../../../feature/notifications/model/notification_payload_model.dart';
+import '../../../feature/pages/model/page_model.dart';
+import '../../../feature/report_center/model/report_item_model.dart';
+import '../../../feature/settings/model/settings_item_model.dart';
+import '../../../feature/subscriptions/model/subscription_plan_model.dart';
+import '../../../feature/upload_manager/model/upload_task_model.dart';
+import '../../../feature/wallet_payments/model/wallet_transaction_model.dart';
+import '../../../app_route/route_names.dart';
 
 class MockData {
   MockData._();
@@ -498,3 +498,4 @@ class MockData {
     ),
   ];
 }
+

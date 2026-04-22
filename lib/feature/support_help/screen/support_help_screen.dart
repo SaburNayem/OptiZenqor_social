@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../route/route_names.dart';
+import '../../../app_route/route_names.dart';
 
 class SupportHelpScreen extends StatelessWidget {
   const SupportHelpScreen({super.key});
@@ -422,5 +422,6 @@ class SupportHelpScreen extends StatelessWidget {
     );
   }
 }
+
 
 
