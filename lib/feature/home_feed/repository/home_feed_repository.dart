@@ -1,9 +1,10 @@
 import '../../../core/data/api/api_end_points.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../service/home_feed_service.dart';
 
 enum FeedSegment { forYou, following, trending }
@@ -30,9 +31,10 @@ class HomeFeedRepository {
       final response = await _service.apiClient.get(_feedEndpointFor(segment));
       final List<Map<String, dynamic>> items = _readMapList(response.data);
       if (response.isSuccess && items.isNotEmpty) {
-        final List<PostModel> posts = items
+        final List<PostModel> parsedPosts = items
             .map(PostModel.fromApiJson)
             .toList(growable: false);
+        final List<PostModel> posts = await _hydratePostAuthors(parsedPosts);
         await _storage.writeJsonList(
           StorageKeys.cachedFeed,
           posts.map((PostModel post) => post.toCacheJson()).toList(),
@@ -46,8 +48,7 @@ class HomeFeedRepository {
       return cached;
     }
 
-    await Future<void>.delayed(const Duration(milliseconds: 180));
-    return MockData.posts;
+    return const <PostModel>[];
   }
 
   Future<List<PostModel>> readCachedFeed() async {
@@ -75,9 +76,8 @@ class HomeFeedRepository {
   }
 
   Future<List<StoryModel>> fetchStories() async {
-    await Future<void>.delayed(const Duration(milliseconds: 180));
     final localStories = await readLocalStories();
-    return <StoryModel>[...localStories, ...MockData.stories];
+    return localStories;
   }
 
   Future<List<StoryModel>> readLocalStories() async {
@@ -157,6 +157,94 @@ class HomeFeedRepository {
         return id;
       }
     }
-    return MockData.users.first.id;
+    return '';
+  }
+
+  Future<UserModel?> currentUserProfile() async {
+    final Map<String, dynamic>? session =
+        await _storage.readJson(StorageKeys.authSession);
+    final Object? user = session?['user'];
+    if (user is Map<String, dynamic>) {
+      final UserModel resolved = UserModel.fromApiJson(user);
+      return resolved.id.isEmpty ? null : resolved;
+    }
+    if (user is Map) {
+      final UserModel resolved = UserModel.fromApiJson(
+        Map<String, dynamic>.from(user),
+      );
+      return resolved.id.isEmpty ? null : resolved;
+    }
+    return null;
+  }
+
+  Future<List<PostModel>> _hydratePostAuthors(List<PostModel> posts) async {
+    final Set<String> missingAuthorIds = posts
+        .where((PostModel post) => post.author == null && post.authorId.isNotEmpty)
+        .map((PostModel post) => post.authorId)
+        .toSet();
+    if (missingAuthorIds.isEmpty) {
+      return posts;
+    }
+
+    final Map<String, UserModel> authors = <String, UserModel>{};
+    await Future.wait<void>(
+      missingAuthorIds.map((String authorId) async {
+        try {
+          final ServiceResponseModel<Map<String, dynamic>> response =
+              await _service.apiClient.get(ApiEndPoints.userById(authorId));
+          if (!response.isSuccess || response.data['success'] == false) {
+            return;
+          }
+          final Map<String, dynamic>? payload =
+              _extractUserPayload(response.data);
+          if (payload == null) {
+            return;
+          }
+          final UserModel author = UserModel.fromApiJson(payload);
+          if (author.id.isNotEmpty) {
+            authors[authorId] = author;
+          }
+        } catch (_) {}
+      }),
+    );
+
+    return posts
+        .map(
+          (PostModel post) => post.author != null || !authors.containsKey(post.authorId)
+              ? post
+              : post.copyWith(author: authors[post.authorId]),
+        )
+        .toList(growable: false);
+  }
+
+  Map<String, dynamic>? _extractUserPayload(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
+      payload,
+      _readMap(payload['user']),
+      _readMap(payload['data']),
+      _readMap(payload['profile']),
+      _readMap(payload['result']),
+    ];
+    for (final Map<String, dynamic>? candidate in candidates) {
+      if (candidate == null || candidate.isEmpty) {
+        continue;
+      }
+      if (candidate.containsKey('id') ||
+          candidate.containsKey('username') ||
+          candidate.containsKey('name')) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
   }
 }

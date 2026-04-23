@@ -471,11 +471,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildPostsGrid() {
     final List<PostModel> posts = _controller.posts;
     if (posts.isEmpty) {
-      return _buildLegacyMediaGrid(
-        titles: _legacySampleCaptions,
-        badges: _legacySampleLikes,
-        icon: Icons.favorite,
-        onTapRoute: RouteNames.postDetail,
+      return _buildEmptyTabState(
+        icon: Icons.grid_view_rounded,
+        title: 'No posts yet',
+        message: 'Posts from backend will appear here.',
       );
     }
 
@@ -492,7 +491,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       itemBuilder: (BuildContext context, int index) {
         final PostModel post = posts[index];
         return InkWell(
-          onTap: () => AppGet.toNamed(RouteNames.postDetail),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => PostDetailScreen(postId: post.id),
+            ),
+          ),
           child: _MediaTile(
             imageUrl: post.media.isNotEmpty ? post.media.first : null,
             title: post.caption,
@@ -507,11 +510,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildReelsGrid() {
     final List<ReelModel> reels = _controller.reels;
     if (reels.isEmpty) {
-      return _buildLegacyMediaGrid(
-        titles: _legacySampleCaptions,
-        badges: _legacySampleLikes,
-        icon: Icons.play_arrow_rounded,
-        onTapRoute: RouteNames.reels,
+      return _buildEmptyTabState(
+        icon: Icons.play_circle_outline,
+        title: 'No reels yet',
+        message: 'Reels from backend will appear here.',
       );
     }
 
@@ -548,11 +550,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildTaggedGrid() {
     final List<PostTagSummary> taggedPosts = _controller.taggedPosts;
     if (taggedPosts.isEmpty) {
-      return _buildLegacyMediaGrid(
-        titles: _legacySampleTaggedTitles,
-        badges: const <String>['', '', '', '', '', '', '', '', ''],
+      return _buildEmptyTabState(
         icon: Icons.alternate_email_rounded,
-        onTapRoute: RouteNames.postDetail,
+        title: 'No tagged posts',
+        message: 'Tagged posts will appear here when backend support is added.',
       );
     }
 
@@ -606,6 +607,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildEmptyTabState({
+    required IconData icon,
+    required String title,
+    required String message,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 40),
+      child: Column(
+        children: [
+          Icon(icon, size: 42, color: AppColors.grey400),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: AppColors.grey,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -814,42 +848,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 }
-
-const List<String> _legacySampleCaptions = <String>[
-  'Creator spotlight',
-  'Workspace reel',
-  'Behind the scenes',
-  'Campaign preview',
-  'Daily update',
-  'Travel diary',
-  'Studio notes',
-  'Collab teaser',
-  'Weekend dump',
-];
-
-const List<String> _legacySampleLikes = <String>[
-  '1k+',
-  '856',
-  '342',
-  '',
-  '',
-  '',
-  '',
-  '',
-  '',
-];
-
-const List<String> _legacySampleTaggedTitles = <String>[
-  'Tagged update',
-  'Mentioned post',
-  'Collab note',
-  'Community drop',
-  'Event recap',
-  'Launch post',
-  'Studio share',
-  'Creator tag',
-  'Feature mention',
-];
 
 class _MediaTile extends StatelessWidget {
   const _MediaTile({

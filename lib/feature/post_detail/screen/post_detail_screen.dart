@@ -4,7 +4,6 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/helpers/format_helper.dart';
@@ -124,10 +123,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   UserModel? _authorForDetail() {
-    return _controller.detail.author ??
-        MockData.users
-        .where((user) => user.id == _controller.detail.authorId)
-        .firstOrNull;
+    return _controller.detail.author;
   }
 
   Future<void> _sharePost() async {
@@ -142,33 +138,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     );
   }
 
-  List<UserModel> _likedUsers() {
-    final List<UserModel> others = MockData.users
-        .where((user) => user.id != _controller.detail.authorId)
-        .toList(growable: false);
-    if (others.isEmpty) {
-      return const <UserModel>[];
-    }
-    final int startIndex = _controller.detail.id.codeUnits.fold<int>(
-      0,
-      (total, value) => total + value,
-    ) %
-        others.length;
-    final List<UserModel> ordered = <UserModel>[
-      ...others.skip(startIndex),
-      ...others.take(startIndex),
-    ];
-    final UserModel currentUser = MockData.users.first;
-    final List<UserModel> visible = ordered.take(4).toList(growable: true);
-    if (_controller.isLiked &&
-        !visible.any((user) => user.id == currentUser.id)) {
-      visible.insert(0, currentUser);
-    }
-    return visible;
-  }
-
   Future<void> _showLikesSheet() {
-    final List<UserModel> likedUsers = _likedUsers();
     return showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -195,41 +165,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                SizedBox(
-                  height: likedUsers.isEmpty
-                      ? 80
-                      : (likedUsers.length * 78).clamp(80, 320).toDouble(),
-                  child: likedUsers.isEmpty
-                      ? const Center(
-                          child: Text('No like activity to show yet'),
-                        )
-                      : ListView.separated(
-                          itemCount: likedUsers.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final UserModel user = likedUsers[index];
-                            final bool isCurrentUser =
-                                user.id == MockData.users.first.id;
-                            return ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: AppAvatar(
-                                imageUrl: user.avatar,
-                                verified: user.verified,
-                                radius: 20,
-                              ),
-                              title: Text(user.name),
-                              subtitle: Text(
-                                isCurrentUser
-                                    ? '@${user.username} | You liked this'
-                                    : '@${user.username}',
-                              ),
-                              trailing: Text(
-                                '${FormatHelper.formatCompactNumber(user.followers)} followers',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            );
-                          },
-                        ),
+                const SizedBox(
+                  height: 80,
+                  child: Center(
+                    child: Text('Detailed reaction users are not available yet'),
+                  ),
                 ),
               ],
             ),
@@ -252,9 +192,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       return;
     }
 
-    final UserModel? author = MockData.users
-        .where((user) => user.id == _controller.detail.authorId)
-        .firstOrNull;
+    final UserModel? author = _authorForDetail();
     if (author == null) {
       return;
     }
@@ -341,6 +279,41 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         builder: (context, _) {
           final PostDetailController controller = _controller;
           final UserModel? author = _authorForDetail();
+          if (!controller.isLoading &&
+              !controller.hasLoaded &&
+              controller.errorMessage != null) {
+            return Scaffold(
+              backgroundColor: AppColors.white,
+              appBar: AppBar(
+                backgroundColor: AppColors.white,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: AppColors.black87),
+                  onPressed: AppGet.back,
+                ),
+              ),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        size: 44,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        controller.errorMessage!,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
           if (controller.isLoading && !controller.hasLoaded) {
             return Scaffold(
               backgroundColor: AppColors.white,
@@ -413,7 +386,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       ),
                     ),
                     PostDetailCommentComposer(
-                      avatarUrl: MockData.users.first.avatar,
+                      avatarUrl:
+                          controller.currentUser?.avatar.isNotEmpty == true
+                          ? controller.currentUser!.avatar
+                          : 'https://placehold.co/80x80',
                       commentController: _commentController,
                       focusNode: _commentFocusNode,
                       replyingToAuthor: _replyingToAuthor,

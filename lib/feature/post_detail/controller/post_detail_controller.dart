@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/enums/reaction_type.dart';
 import '../repository/post_detail_repository.dart';
 import '../model/post_detail_model.dart';
@@ -29,14 +29,19 @@ class PostDetailController extends Cubit<int> {
   bool hasLoaded = false;
   String? errorMessage;
   bool isLiked = false;
+  UserModel? currentUser;
   final Map<ReactionType, int> postReactions = <ReactionType, int>{};
   ReactionType? selectedReaction;
 
   Future<void> load({String? postId}) async {
-    final String selectedPostId =
-        (postId?.trim().isNotEmpty ?? false)
-            ? postId!.trim()
-            : MockData.posts.first.id;
+    final String selectedPostId = postId?.trim() ?? '';
+    if (selectedPostId.isEmpty) {
+      errorMessage = 'Post not found.';
+      hasLoaded = false;
+      isLoading = false;
+      _notify();
+      return;
+    }
     isLoading = true;
     errorMessage = null;
     _notify();
@@ -50,6 +55,7 @@ class PostDetailController extends Cubit<int> {
         ..addAll(result.comments);
       relatedPosts = result.relatedPosts;
       isLiked = result.isLiked;
+      currentUser = result.currentUser;
       postReactions
         ..clear()
         ..addAll(result.postReactions);
@@ -59,72 +65,11 @@ class PostDetailController extends Cubit<int> {
       errorMessage = null;
       _notify();
     } catch (_) {
-      _loadMock(postId: selectedPostId);
-      hasLoaded = true;
+      hasLoaded = false;
       isLoading = false;
-      errorMessage = 'Showing fallback post data.';
+      errorMessage = 'Unable to load post details.';
       _notify();
     }
-  }
-
-  void _loadMock({String? postId}) {
-    final selected =
-        MockData.posts.where((p) => p.id == postId).firstOrNull ??
-        MockData.posts.first;
-    detail = PostDetailModel(
-      id: selected.id,
-      authorId: selected.authorId,
-      caption: selected.caption,
-      media: selected.media,
-      likes: selected.likes,
-      comments: selected.comments,
-      createdAt: selected.createdAt,
-      shareCount: selected.shareCount,
-      viewCount: selected.viewCount,
-      author: selected.author,
-    );
-    comments
-      ..clear()
-      ..addAll(
-        <PostCommentModel>[
-          const PostCommentModel(
-            id: 'c1',
-            authorId: 'u2',
-            author: 'nexa.studio',
-            message: 'The visual style is super clean.',
-            createdAt: '2h',
-            likeCount: 4,
-            reactions: <String, int>{'love': 2},
-            authorUsername: 'nexa.studio',
-          ),
-          const PostCommentModel(
-            id: 'c2',
-            authorId: 'u3',
-            author: 'rafiahmed',
-            message: 'Can you share this component breakdown? @mayaquinn',
-            createdAt: '1h',
-            likeCount: 2,
-            mentions: <String>['mayaquinn'],
-            reactions: <String, int>{'insightful': 1},
-            authorUsername: 'rafiahmed',
-          ),
-          const PostCommentModel(
-            id: 'c3',
-            authorId: 'u1',
-            author: 'mayaquinn',
-            message: 'Sure, I will post the structure tonight.',
-            replyTo: 'c2',
-            createdAt: '58m',
-            likeCount: 1,
-            authorUsername: 'mayaquinn',
-          ),
-        ],
-      );
-
-    relatedPosts = MockData.posts
-        .where((p) => p.id != detail.id)
-        .take(3)
-        .toList();
   }
 
   Future<void> toggleLike() async {

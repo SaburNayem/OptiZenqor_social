@@ -21,7 +21,7 @@ class StoryRingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = users.first; // Assuming first is current user for demo
+    final UserModel? currentUser = users.firstOrNull;
 
     return SizedBox(
       height: 100,
@@ -49,7 +49,9 @@ class StoryRingList extends StatelessWidget {
                   Stack(
                     children: [
                       AppAvatar(
-                        imageUrl: currentUser.avatar,
+                        imageUrl:
+                            currentUser?.avatar ??
+                            'https://placehold.co/120x120',
                         radius: 30,
                       ),
                       Positioned(
@@ -71,9 +73,9 @@ class StoryRingList extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Your Story',
-                    style: TextStyle(fontSize: 11, color: AppColors.black87),
+                  Text(
+                    currentUser == null ? 'Add Story' : 'Your Story',
+                    style: const TextStyle(fontSize: 11, color: AppColors.black87),
                   ),
                 ],
               ),

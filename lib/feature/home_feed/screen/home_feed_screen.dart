@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/common_widget/app_loader.dart';
@@ -90,18 +89,18 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
                   const SizedBox(height: 8),
-                  StoryRingList(
-                    stories: controller.stories,
-                    users: MockData.users,
-                    onStoryAdded: controller.addLocalStories,
-                  ),
+                  if (controller.stories.isNotEmpty)
+                    StoryRingList(
+                      stories: controller.stories,
+                      users: controller.visiblePosts
+                          .map((PostModel post) => post.author)
+                          .whereType<UserModel>()
+                          .toList(growable: false),
+                      onStoryAdded: controller.addLocalStories,
+                    ),
                   const Divider(height: 32, thickness: 0.5),
                   ...controller.visiblePosts.map((post) {
-                    final user =
-                        post.author ??
-                        MockData.users
-                        .where((item) => item.id == post.authorId)
-                        .firstOrNull;
+                    final UserModel? user = post.author;
                     if (user == null) {
                       return const SizedBox.shrink();
                     }

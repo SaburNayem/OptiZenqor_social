@@ -1,6 +1,5 @@
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/api/api_end_points.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/api_client_service.dart';
@@ -20,6 +19,7 @@ class PostDetailLoadResult {
     required this.isLiked,
     required this.postReactions,
     required this.selectedReaction,
+    required this.currentUser,
   });
 
   final PostDetailModel detail;
@@ -28,6 +28,7 @@ class PostDetailLoadResult {
   final bool isLiked;
   final Map<ReactionType, int> postReactions;
   final ReactionType? selectedReaction;
+  final UserModel? currentUser;
 }
 
 class PostDetailRepository {
@@ -76,6 +77,7 @@ class PostDetailRepository {
       commentAuthors,
     );
     final String currentUserId = await _currentUserId();
+    final UserModel? currentUser = await currentUserProfile();
     final Map<ReactionType, int> postReactions = _buildReactionCounts(
       reactionItems,
     );
@@ -83,12 +85,14 @@ class PostDetailRepository {
       reactionItems,
       currentUserId,
     );
+    final PostDetailModel baseDetail = PostDetailModel.fromApiJson(
+      postJson,
+      liveCommentCount: comments.length,
+    );
+    final UserModel? author = baseDetail.author ?? await _loadAuthor(baseDetail.authorId);
 
     return PostDetailLoadResult(
-      detail: PostDetailModel.fromApiJson(
-        postJson,
-        liveCommentCount: comments.length,
-      ),
+      detail: baseDetail.copyWith(author: author),
       comments: comments,
       relatedPosts: await _relatedPosts(postId),
       isLiked: currentUserId.isNotEmpty &&
@@ -98,6 +102,7 @@ class PostDetailRepository {
           ),
       postReactions: postReactions,
       selectedReaction: selectedReaction,
+      currentUser: currentUser,
     );
   }
 
@@ -182,6 +187,27 @@ class PostDetailRepository {
         .where((PostModel item) => item.id != postId)
         .take(3)
         .toList(growable: false);
+  }
+
+  Future<UserModel?> _loadAuthor(String authorId) async {
+    if (authorId.trim().isEmpty) {
+      return null;
+    }
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _apiClient.get(ApiEndPoints.userById(authorId));
+      if (!response.isSuccess || response.data['success'] == false) {
+        return null;
+      }
+      final Map<String, dynamic>? payload = _extractUserPayload(response.data);
+      if (payload == null) {
+        return null;
+      }
+      final UserModel user = UserModel.fromApiJson(payload);
+      return user.id.isEmpty ? null : user;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<Map<String, UserModel>> _loadCommentAuthors(
@@ -384,20 +410,55 @@ class PostDetailRepository {
   }
 
   Future<String> _currentUserId() async {
-    final UserModel user = await _currentUser();
-    return user.id;
+    final UserModel? user = await currentUserProfile();
+    return user?.id ?? '';
   }
 
-  Future<UserModel> _currentUser() async {
+  Future<UserModel?> currentUserProfile() async {
     final Map<String, dynamic>? session =
         await _storage.readJson(StorageKeys.authSession);
     final Object? user = session?['user'];
     if (user is Map<String, dynamic>) {
-      return UserModel.fromApiJson(user);
+      final UserModel resolved = UserModel.fromApiJson(user);
+      return resolved.id.isEmpty ? null : resolved;
     }
     if (user is Map) {
-      return UserModel.fromApiJson(Map<String, dynamic>.from(user));
+      final UserModel resolved = UserModel.fromApiJson(
+        Map<String, dynamic>.from(user),
+      );
+      return resolved.id.isEmpty ? null : resolved;
     }
-    return MockData.users.first;
+    return null;
+  }
+
+  Map<String, dynamic>? _extractUserPayload(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
+      payload,
+      _readMap(payload['user']),
+      _readMap(payload['data']),
+      _readMap(payload['profile']),
+      _readMap(payload['result']),
+    ];
+    for (final Map<String, dynamic>? candidate in candidates) {
+      if (candidate == null || candidate.isEmpty) {
+        continue;
+      }
+      if (candidate.containsKey('id') ||
+          candidate.containsKey('username') ||
+          candidate.containsKey('name')) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
   }
 }
