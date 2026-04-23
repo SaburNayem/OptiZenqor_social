@@ -95,6 +95,7 @@ class NotificationsController extends ChangeNotifier {
   }
 
   Future<String?> handleTap(NotificationModel item) async {
+    await _repository.markRead(item.id);
     _readIds.add(item.id);
     notifyListeners();
     await _analytics.logEvent(

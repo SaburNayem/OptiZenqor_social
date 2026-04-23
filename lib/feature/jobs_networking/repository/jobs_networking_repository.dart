@@ -1,9 +1,37 @@
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../model/job_application_model.dart';
 import '../model/job_model.dart';
+import '../service/jobs_networking_service.dart';
 
 class JobsNetworkingRepository {
-  List<JobModel> listJobs() {
-    return const <JobModel>[
+  JobsNetworkingRepository({JobsNetworkingService? service})
+    : _service = service ?? JobsNetworkingService();
+
+  final JobsNetworkingService _service;
+
+  Future<List<JobModel>> listJobs() async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint('jobs');
+      if (response.isSuccess && response.data['success'] != false) {
+        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+          response.data,
+          preferredKeys: const <String>['jobs', 'items'],
+        );
+        if (items.isNotEmpty) {
+          return items
+              .map(JobModel.fromApiJson)
+              .where((JobModel item) => item.id.isNotEmpty)
+              .toList(growable: false);
+        }
+      }
+    } catch (_) {}
+
+    return _fallbackJobs;
+  }
+
+  static const List<JobModel> _fallbackJobs = <JobModel>[
       JobModel(
         id: 'j1',
         title: 'Senior Product Designer',
@@ -159,13 +187,12 @@ class JobsNetworkingRepository {
         verifiedEmployer: true,
       ),
     ];
-  }
 
   List<JobModel> myJobs() {
     return <JobModel>[
-      listJobs()[1].copyWith(draft: false, applied: false),
-      listJobs()[4].copyWith(closed: true, applied: false),
-      listJobs()[2].copyWith(draft: true, applied: false),
+      _fallbackJobs[1].copyWith(draft: false, applied: false),
+      _fallbackJobs[4].copyWith(closed: true, applied: false),
+      _fallbackJobs[2].copyWith(draft: true, applied: false),
     ];
   }
 
@@ -246,7 +273,21 @@ class JobsNetworkingRepository {
     ];
   }
 
-  CareerProfileModel profile() {
+  Future<CareerProfileModel> profile() async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint('professional_profiles');
+      if (response.isSuccess && response.data['success'] != false) {
+        final Map<String, dynamic>? data = ApiPayloadReader.readMap(
+          response.data['data'],
+        );
+        final Map<String, dynamic> resolved = data ?? response.data;
+        if (resolved.isNotEmpty) {
+          return CareerProfileModel.fromApiJson(resolved);
+        }
+      }
+    } catch (_) {}
+
     return const CareerProfileModel(
       name: 'Maya Quinn',
       title: 'Product Designer',
@@ -263,6 +304,22 @@ class JobsNetworkingRepository {
       ],
       availability: 'Open to work',
     );
+  }
+
+  Future<void> applyToJob(
+    String jobId, {
+    String coverLetter = '',
+    String portfolioLink = '',
+  }) async {
+    try {
+      await _service.apiClient.post(
+        _service.endpoints['apply']!.replaceFirst(':id', jobId),
+        <String, dynamic>{
+          'coverLetter': coverLetter,
+          'portfolioLink': portfolioLink,
+        },
+      );
+    } catch (_) {}
   }
 
   EmployerStatsModel employerStats() {

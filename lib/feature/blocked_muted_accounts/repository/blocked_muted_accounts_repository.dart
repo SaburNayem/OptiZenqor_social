@@ -1,12 +1,19 @@
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/service/local_storage_service.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../model/restricted_account_model.dart';
+import '../service/blocked_muted_accounts_service.dart';
 
 class BlockedMutedAccountsRepository {
-  BlockedMutedAccountsRepository({LocalStorageService? storage})
-    : _storage = storage ?? LocalStorageService();
+  BlockedMutedAccountsRepository({
+    LocalStorageService? storage,
+    BlockedMutedAccountsService? service,
+  }) : _storage = storage ?? LocalStorageService(),
+       _service = service ?? BlockedMutedAccountsService();
 
   final LocalStorageService _storage;
+  final BlockedMutedAccountsService _service;
 
   static const List<RestrictedAccountModel> _seedBlocked =
       <RestrictedAccountModel>[
@@ -41,6 +48,15 @@ class BlockedMutedAccountsRepository {
       ];
 
   Future<List<RestrictedAccountModel>> loadBlocked() async {
+    final List<RestrictedAccountModel>? remoteBlocked = await _loadFromApi(
+      status: 'blocked',
+      preferredKeys: const <String>['blocked', 'users'],
+    );
+    if (remoteBlocked != null) {
+      await saveBlocked(remoteBlocked);
+      return remoteBlocked;
+    }
+
     final raw = await _storage.readJsonList(StorageKeys.blockedAccounts);
     if (raw.isEmpty) {
       await saveBlocked(_seedBlocked);
@@ -50,6 +66,15 @@ class BlockedMutedAccountsRepository {
   }
 
   Future<List<RestrictedAccountModel>> loadMuted() async {
+    final List<RestrictedAccountModel>? remoteMuted = await _loadFromApi(
+      status: 'muted',
+      preferredKeys: const <String>['muted', 'users'],
+    );
+    if (remoteMuted != null) {
+      await saveMuted(remoteMuted);
+      return remoteMuted;
+    }
+
     final raw = await _storage.readJsonList(StorageKeys.mutedAccounts);
     if (raw.isEmpty) {
       await saveMuted(_seedMuted);
@@ -70,5 +95,47 @@ class BlockedMutedAccountsRepository {
       StorageKeys.mutedAccounts,
       accounts.map((item) => item.toJson()).toList(),
     );
+  }
+
+  Future<bool> unblockAccount(String id) async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.apiClient.delete(
+            _service.endpoints['block_user']!.replaceFirst(':id', id),
+          );
+      return response.isSuccess && response.data['success'] != false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<List<RestrictedAccountModel>?> _loadFromApi({
+    required String status,
+    required List<String> preferredKeys,
+  }) async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint('blocked_muted_accounts');
+      if (!response.isSuccess || response.data['success'] == false) {
+        return null;
+      }
+      final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        response.data,
+        preferredKeys: preferredKeys,
+      );
+      if (items.isNotEmpty || response.data.isNotEmpty) {
+        return items
+            .map(
+              (Map<String, dynamic> item) => RestrictedAccountModel.fromApiJson(
+                item,
+                status: status,
+              ),
+            )
+            .where((RestrictedAccountModel item) => item.id.isNotEmpty)
+            .toList(growable: false);
+      }
+    } catch (_) {}
+
+    return null;
   }
 }

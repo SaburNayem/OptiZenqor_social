@@ -1,3 +1,5 @@
+import '../../../core/data/api/api_payload_reader.dart';
+
 enum VerificationStatus { notRequested, pending, approved, rejected }
 
 class VerificationRequestModel {
@@ -31,7 +33,12 @@ class VerificationRequestModel {
   factory VerificationRequestModel.fromJson(Map<String, dynamic> json) {
     return VerificationRequestModel(
       status: VerificationStatus.values.firstWhere(
-        (item) => item.name == json['status'],
+        (item) =>
+            item.name ==
+            ApiPayloadReader.readString(
+              json['status'],
+              fallback: VerificationStatus.notRequested.name,
+            ),
         orElse: () => VerificationStatus.notRequested,
       ),
       reason: json['reason'] as String? ?? 'Not submitted',
@@ -41,6 +48,31 @@ class VerificationRequestModel {
       submittedAt: json['submittedAt'] == null
           ? null
           : DateTime.tryParse(json['submittedAt'] as String),
+    );
+  }
+
+  factory VerificationRequestModel.fromApiJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> data =
+        ApiPayloadReader.readMap(json['data']) ?? json;
+
+    return VerificationRequestModel(
+      status: VerificationStatus.values.firstWhere(
+        (VerificationStatus item) =>
+            item.name ==
+            ApiPayloadReader.readString(
+              data['status'],
+              fallback: VerificationStatus.notRequested.name,
+            ),
+        orElse: () => VerificationStatus.notRequested,
+      ),
+      reason: ApiPayloadReader.readString(
+        data['reason'] ?? data['message'],
+        fallback: 'Not submitted',
+      ),
+      selectedDocuments: ApiPayloadReader.readStringList(
+        data['selectedDocuments'] ?? data['documents'],
+      ),
+      submittedAt: ApiPayloadReader.readDateTime(data['submittedAt']),
     );
   }
 

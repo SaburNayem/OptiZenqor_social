@@ -1,3 +1,5 @@
+import '../../../core/data/api/api_payload_reader.dart';
+
 class SessionItemModel {
   const SessionItemModel({
     required this.id,
@@ -39,13 +41,54 @@ class SessionItemModel {
 
   factory SessionItemModel.fromJson(Map<String, dynamic> json) {
     return SessionItemModel(
-      id: json['id'] as String,
-      device: json['device'] as String,
-      location: json['location'] as String,
-      platform: json['platform'] as String? ?? 'Unknown',
-      lastActive: json['lastActive'] as String? ?? 'Unknown',
-      active: json['active'] as bool? ?? false,
-      isCurrent: json['isCurrent'] as bool? ?? false,
+      id: ApiPayloadReader.readString(json['id']),
+      device: ApiPayloadReader.readString(json['device']),
+      location: ApiPayloadReader.readString(json['location']),
+      platform: ApiPayloadReader.readString(
+        json['platform'],
+        fallback: 'Unknown',
+      ),
+      lastActive: ApiPayloadReader.readString(
+        json['lastActive'],
+        fallback: 'Unknown',
+      ),
+      active: ApiPayloadReader.readBool(json['active']) ?? false,
+      isCurrent: ApiPayloadReader.readBool(json['isCurrent']) ?? false,
+    );
+  }
+
+  factory SessionItemModel.fromApiJson(Map<String, dynamic> json) {
+    final DateTime? lastActiveAt = ApiPayloadReader.readDateTime(
+      json['lastActiveAt'] ?? json['updatedAt'] ?? json['createdAt'],
+    );
+
+    return SessionItemModel(
+      id: ApiPayloadReader.readString(json['id']),
+      device: ApiPayloadReader.readString(
+        json['device'] ?? json['deviceName'],
+        fallback: 'Unknown device',
+      ),
+      location: ApiPayloadReader.readString(
+        json['location'] ?? json['ipLocation'],
+        fallback: 'Unknown location',
+      ),
+      platform: ApiPayloadReader.readString(
+        json['platform'] ?? json['client'],
+        fallback: 'Unknown',
+      ),
+      lastActive: lastActiveAt?.toLocal().toString() ??
+          ApiPayloadReader.readString(
+            json['lastActive'] ?? json['lastSeen'],
+            fallback: 'Unknown',
+          ),
+      active:
+          ApiPayloadReader.readBool(json['active'] ?? json['isActive']) ??
+          false,
+      isCurrent:
+          ApiPayloadReader.readBool(
+            json['isCurrent'] ?? json['currentSession'],
+          ) ??
+          false,
     );
   }
 

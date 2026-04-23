@@ -1,10 +1,17 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/reel_model.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../model/reel_filter_model.dart';
+import '../service/reels_short_video_service.dart';
 
 class ReelsController extends ChangeNotifier {
+  ReelsController({ReelsShortVideoService? service})
+    : _service = service ?? ReelsShortVideoService();
+
+  final ReelsShortVideoService _service;
   List<ReelModel> reels = <ReelModel>[];
   ReelFilterModel filter = const ReelFilterModel(filter: ReelFeedFilter.forYou);
   final Set<String> _likedReelIds = <String>{};
@@ -13,6 +20,25 @@ class ReelsController extends ChangeNotifier {
   final Map<String, int> _extraShareCount = <String, int>{};
 
   Future<void> load() async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint('reels');
+      if (response.isSuccess && response.data['success'] != false) {
+        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+          response.data,
+          preferredKeys: const <String>['reels', 'items'],
+        );
+        if (items.isNotEmpty) {
+          reels = items
+              .map(ReelModel.fromApiJson)
+              .where((ReelModel item) => item.id.isNotEmpty)
+              .toList(growable: false);
+          notifyListeners();
+          return;
+        }
+      }
+    } catch (_) {}
+
     await Future<void>.delayed(const Duration(milliseconds: 320));
     reels = MockData.reels;
     notifyListeners();

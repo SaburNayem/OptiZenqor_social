@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../model/job_application_model.dart';
@@ -25,14 +27,14 @@ class JobsNetworkingController extends ChangeNotifier {
   String searchQuery = '';
   JobsUserRole? selectedRole;
 
-  void load() {
-    jobs = _repository.listJobs();
+  Future<void> load() async {
+    jobs = await _repository.listJobs();
     myPostedJobs = _repository.myJobs();
     applications = _repository.myApplications();
     alerts = _repository.alerts();
     companies = _repository.companies();
     applicants = _repository.applicants();
-    careerProfile = _repository.profile();
+    careerProfile = await _repository.profile();
     employerStats = _repository.employerStats();
     employerProfile = _repository.employerProfile();
     notifyListeners();
@@ -124,6 +126,13 @@ class JobsNetworkingController extends ChangeNotifier {
     String coverLetter = '',
     String portfolioLink = '',
   }) {
+    unawaited(
+      _repository.applyToJob(
+        jobId,
+        coverLetter: coverLetter,
+        portfolioLink: portfolioLink,
+      ),
+    );
     jobs = jobs
         .map((job) => job.id == jobId ? job.copyWith(applied: true) : job)
         .toList(growable: false);

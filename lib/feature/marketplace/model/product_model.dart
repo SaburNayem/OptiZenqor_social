@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 
 enum ProductCondition { newItem, likeNew, good, fair, refurbished }
 
@@ -168,6 +169,89 @@ class ProductModel {
   final bool isHiddenByModeration;
   final String reviewStatus;
 
+  factory ProductModel.fromApiJson(Map<String, dynamic> json) {
+    final Map<String, dynamic>? seller = ApiPayloadReader.readMap(json['seller']);
+    final String category = ApiPayloadReader.readString(
+      json['category'],
+      fallback: 'General',
+    );
+    final String companyName = ApiPayloadReader.readString(
+      seller?['name'] ?? json['sellerName'],
+      fallback: 'Unknown seller',
+    );
+    final String brand = ApiPayloadReader.readString(
+      json['brand'] ?? seller?['storeName'],
+      fallback: companyName,
+    );
+
+    return ProductModel(
+      id: ApiPayloadReader.readString(json['id']),
+      title: ApiPayloadReader.readString(
+        json['title'],
+        fallback: 'Marketplace item',
+      ),
+      description: ApiPayloadReader.readString(
+        json['description'],
+      ),
+      price: ApiPayloadReader.readDouble(json['price']),
+      category: category,
+      subcategory: ApiPayloadReader.readString(
+        json['subcategory'],
+        fallback: category,
+      ),
+      condition: _conditionFromValue(json['condition']),
+      location: ApiPayloadReader.readString(
+        json['location'],
+        fallback: 'Unknown',
+      ),
+      distanceLabel: ApiPayloadReader.readString(
+        json['distanceLabel'],
+        fallback: 'Nearby',
+      ),
+      timePosted:
+          ApiPayloadReader.readDateTime(
+            json['timePosted'] ?? json['createdAt'],
+          ) ??
+          DateTime.now(),
+      images: ApiPayloadReader.readStringList(json['images'] ?? json['media']),
+      sellerId: ApiPayloadReader.readString(
+        json['sellerId'] ?? seller?['id'],
+      ),
+      sellerName: companyName,
+      sellerType: _sellerTypeFromValue(
+        json['sellerType'] ?? seller?['sellerType'] ?? seller?['type'],
+      ),
+      isNegotiable:
+          ApiPayloadReader.readBool(json['isNegotiable']) ?? false,
+      deliveryOptions: _deliveryOptionsFromValue(json['deliveryOptions']),
+      attributes: _attributesFromValue(json['attributes']),
+      tags: ApiPayloadReader.readStringList(json['tags']),
+      brand: brand,
+      quantity: ApiPayloadReader.readInt(json['quantity']),
+      isFeatured: ApiPayloadReader.readBool(json['isFeatured']) ?? false,
+      isTrending: ApiPayloadReader.readBool(json['isTrending']) ?? false,
+      isRecommended:
+          ApiPayloadReader.readBool(json['isRecommended']) ?? false,
+      isRecentlyViewed:
+          ApiPayloadReader.readBool(json['isRecentlyViewed']) ?? false,
+      hasPriceDrop: ApiPayloadReader.readBool(json['hasPriceDrop']) ?? false,
+      isAuction: ApiPayloadReader.readBool(json['isAuction']) ?? false,
+      rating: ApiPayloadReader.readDouble(json['rating']),
+      reviewCount: ApiPayloadReader.readInt(json['reviewCount']),
+      reviews: _reviewsFromValue(json['reviews']),
+      listingStatus: _listingStatusFromValue(json['listingStatus']),
+      views: ApiPayloadReader.readInt(json['views']),
+      watchers: ApiPayloadReader.readInt(json['watchers']),
+      chats: ApiPayloadReader.readInt(json['chats']),
+      isHiddenByModeration:
+          ApiPayloadReader.readBool(json['isHiddenByModeration']) ?? false,
+      reviewStatus: ApiPayloadReader.readString(
+        json['reviewStatus'],
+        fallback: 'Approved',
+      ),
+    );
+  }
+
   ProductModel copyWith({
     double? price,
     bool? isRecentlyViewed,
@@ -211,5 +295,104 @@ class ProductModel {
       isHiddenByModeration: isHiddenByModeration ?? this.isHiddenByModeration,
       reviewStatus: reviewStatus,
     );
+  }
+
+  static ProductCondition _conditionFromValue(Object? value) {
+    switch ((value?.toString() ?? '').trim().toLowerCase()) {
+      case 'new':
+      case 'newitem':
+      case 'new_item':
+        return ProductCondition.newItem;
+      case 'likenew':
+      case 'like_new':
+      case 'like new':
+        return ProductCondition.likeNew;
+      case 'fair':
+        return ProductCondition.fair;
+      case 'refurbished':
+        return ProductCondition.refurbished;
+      case 'good':
+      default:
+        return ProductCondition.good;
+    }
+  }
+
+  static SellerType _sellerTypeFromValue(Object? value) {
+    switch ((value?.toString() ?? '').trim().toLowerCase()) {
+      case 'verified':
+        return SellerType.verified;
+      case 'shop':
+      case 'business':
+        return SellerType.shop;
+      case 'individual':
+      default:
+        return SellerType.individual;
+    }
+  }
+
+  static List<DeliveryOption> _deliveryOptionsFromValue(Object? value) {
+    final List<String> items = ApiPayloadReader.readStringList(value);
+    if (items.isEmpty) {
+      return const <DeliveryOption>[DeliveryOption.pickup];
+    }
+    return items.map((String item) {
+      switch (item.toLowerCase()) {
+        case 'shipping':
+          return DeliveryOption.shipping;
+        case 'delivery':
+        case 'local_delivery':
+          return DeliveryOption.delivery;
+        case 'pickup':
+        default:
+          return DeliveryOption.pickup;
+      }
+    }).toList(growable: false);
+  }
+
+  static Map<String, String> _attributesFromValue(Object? value) {
+    final Map<String, dynamic>? map = ApiPayloadReader.readMap(value);
+    if (map == null) {
+      return const <String, String>{};
+    }
+    return map.map<String, String>(
+      (String key, dynamic item) => MapEntry(key, item?.toString() ?? ''),
+    );
+  }
+
+  static List<ProductReview> _reviewsFromValue(Object? value) {
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapListFromAny(
+      value,
+    );
+    return items
+        .map(
+          (Map<String, dynamic> item) => ProductReview(
+            author: ApiPayloadReader.readString(
+              item['author'] ?? item['buyerName'],
+              fallback: 'Buyer',
+            ),
+            rating: ApiPayloadReader.readDouble(item['rating']),
+            comment: ApiPayloadReader.readString(item['comment']),
+            dateLabel: ApiPayloadReader.readString(
+              item['dateLabel'] ?? item['createdAt'],
+            ),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  static ListingStatus _listingStatusFromValue(Object? value) {
+    switch ((value?.toString() ?? '').trim().toLowerCase()) {
+      case 'pending':
+        return ListingStatus.pending;
+      case 'sold':
+        return ListingStatus.sold;
+      case 'expired':
+        return ListingStatus.expired;
+      case 'draft':
+        return ListingStatus.draft;
+      case 'active':
+      default:
+        return ListingStatus.active;
+    }
   }
 }

@@ -1,5 +1,6 @@
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 
 enum BookmarkType { post, reel, product }
 
@@ -72,6 +73,62 @@ class BookmarkItemModel {
       thumbnail: thumbnail,
       savedAt: DateTime.now(),
       isVideo: _isVideoPath(thumbnail),
+    );
+  }
+
+  factory BookmarkItemModel.fromApiJson(Map<String, dynamic> json) {
+    final Map<String, dynamic>? author = ApiPayloadReader.readMap(
+      json['author'],
+    );
+    final Map<String, dynamic>? post = ApiPayloadReader.readMap(json['post']);
+    final String title = ApiPayloadReader.readString(
+      json['title'] ?? json['caption'] ?? post?['caption'],
+      fallback: 'Saved item',
+    );
+    final String thumbnail = ApiPayloadReader.readString(
+      json['thumbnail'] ??
+          json['thumbnailUrl'] ??
+          post?['thumbnail'] ??
+          (post?['media'] is List && (post?['media'] as List).isNotEmpty
+              ? (post?['media'] as List).first
+              : null),
+    );
+    final String typeValue = ApiPayloadReader.readString(
+      json['type'] ?? json['entityType'],
+      fallback: 'post',
+    );
+
+    return BookmarkItemModel(
+      id: ApiPayloadReader.readString(
+        json['id'] ?? json['postId'] ?? post?['id'],
+      ),
+      title: title,
+      type: BookmarkType.values.firstWhere(
+        (BookmarkType value) => value.name == typeValue.toLowerCase(),
+        orElse: () => BookmarkType.post,
+      ),
+      authorId: ApiPayloadReader.readString(
+        json['authorId'] ?? author?['id'] ?? post?['authorId'],
+      ),
+      authorName: ApiPayloadReader.readString(
+        json['authorName'] ?? author?['name'],
+        fallback: 'Unknown creator',
+      ),
+      authorAvatar: ApiPayloadReader.readString(
+        json['authorAvatar'] ?? author?['avatar'] ?? author?['avatarUrl'],
+      ),
+      caption: ApiPayloadReader.readString(
+        json['caption'] ?? post?['caption'],
+        fallback: title,
+      ),
+      thumbnail: thumbnail,
+      savedAt:
+          ApiPayloadReader.readDateTime(
+            json['savedAt'] ?? json['createdAt'],
+          ) ??
+          DateTime.now(),
+      isVideo:
+          ApiPayloadReader.readBool(json['isVideo']) ?? _isVideoPath(thumbnail),
     );
   }
 

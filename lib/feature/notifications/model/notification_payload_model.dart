@@ -1,3 +1,5 @@
+import '../../../core/data/api/api_payload_reader.dart';
+
 enum NotificationType {
   social,
   commerce,
@@ -19,16 +21,27 @@ class NotificationPayloadModel {
   final Map<String, dynamic> metadata;
 
   factory NotificationPayloadModel.fromMap(Map<String, dynamic> map) {
-    final rawType = (map['type'] as String? ?? 'system').toLowerCase();
+    final rawType = ApiPayloadReader.readString(
+      map['type'],
+      fallback: 'system',
+    ).toLowerCase();
     final type = NotificationType.values.firstWhere(
       (value) => value.name == rawType,
       orElse: () => NotificationType.system,
     );
+    final Map<String, dynamic> metadata = Map<String, dynamic>.from(
+      ApiPayloadReader.readMap(map['metadata']) ?? const <String, dynamic>{},
+    );
     return NotificationPayloadModel(
       type: type,
-      routeName: map['routeName'] as String? ?? '/',
-      entityId: map['entityId'] as String?,
-      metadata: Map<String, dynamic>.from(map['metadata'] as Map? ?? const <String, dynamic>{}),
+      routeName: ApiPayloadReader.readString(
+        map['routeName'] ?? map['route'] ?? map['path'],
+        fallback: '/',
+      ),
+      entityId: ApiPayloadReader.readString(
+        map['entityId'] ?? map['targetId'],
+      ),
+      metadata: metadata,
     );
   }
 

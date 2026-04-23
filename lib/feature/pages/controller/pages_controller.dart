@@ -11,13 +11,14 @@ class PagesController extends ChangeNotifier {
       : _repository = repository ?? PagesRepository();
 
   final PagesRepository _repository;
-  final String currentUserId = MockData.users.first.id;
+  String currentUserId = MockData.users.first.id;
   List<PageModel> pages = <PageModel>[];
   String query = '';
   PagesViewFilter selectedFilter = PagesViewFilter.discover;
 
-  void load() {
-    pages = _repository.load();
+  Future<void> load() async {
+    currentUserId = await _repository.currentUserId();
+    pages = await _repository.load();
     notifyListeners();
   }
 

@@ -12,9 +12,9 @@ class WalletPaymentsController extends ChangeNotifier {
   double balance = 0;
   List<WalletTransactionModel> history = <WalletTransactionModel>[];
 
-  void load() {
-    balance = _repository.balance();
-    history = _repository.history();
+  Future<void> load() async {
+    balance = await _repository.balance();
+    history = await _repository.history();
     notifyListeners();
   }
 }

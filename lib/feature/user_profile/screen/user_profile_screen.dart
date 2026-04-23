@@ -11,6 +11,7 @@ import '../../media_viewer/model/media_viewer_item_model.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
 import '../controller/user_profile_controller.dart';
 import '../repository/user_profile_repository.dart';
+import 'edit_profile_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key, this.userId, this.showAppBar = true});
@@ -175,47 +176,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _openEditProfile,
-                              icon: const Icon(
-                                Icons.edit_outlined,
-                                size: 18,
-                                color: AppColors.hexFF26C6DA,
-                              ),
-                              label: const Text(
-                                'Edit Profile',
-                                style: TextStyle(
-                                  color: AppColors.hexFF26C6DA,
-                                ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(0, 48),
-                                side: const BorderSide(
-                                  color: AppColors.hexFF26C6DA,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (!_controller.isOwnProfile) ...[
-                            const SizedBox(width: 8),
-                            Expanded(child: _buildFollowActionButton()),
-                          ],
-                        ],
+                    if (!_controller.isOwnProfile)
+                      Expanded(child: _buildFollowActionButton()),
+                    if (_controller.isOwnProfile) ...[
+                      _buildEditProfileButton(),
+                      const SizedBox(width: 8),
+                    ] else
+                      const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.grey200),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      onPressed: () => _showShareProfileSheet(user),
-                      icon: const Icon(
-                        Icons.share_outlined,
-                        color: AppColors.grey,
+                      child: IconButton(
+                        onPressed: () => _showShareProfileSheet(user),
+                        icon: const Icon(
+                          Icons.share_outlined,
+                          color: AppColors.grey,
+                        ),
                       ),
                     ),
                   ],
@@ -227,35 +205,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Expanded(
-                          child: Text(
-                            user.name,
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        Text(
+                          user.name,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.hexFFE0F7FA,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            _roleLabel(user),
-                            style: const TextStyle(
-                              color: AppColors.hexFF00ACC1,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                        _buildProfileTypeChip(user),
                       ],
                     ),
                     Text(
@@ -452,6 +414,45 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       onPressed: _controller.toggleFollow,
       style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
       child: const Text('Follow'),
+    );
+  }
+
+  Widget _buildEditProfileButton() {
+    return OutlinedButton.icon(
+      onPressed: _openEditProfile,
+      icon: const Icon(
+        Icons.edit_outlined,
+        size: 18,
+        color: AppColors.hexFF26C6DA,
+      ),
+      label: const Text(
+        'Edit Profile',
+        style: TextStyle(color: AppColors.hexFF26C6DA),
+      ),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        side: const BorderSide(color: AppColors.hexFF26C6DA),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildProfileTypeChip(UserModel user) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.hexFFE0F7FA,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        _roleLabel(user),
+        style: const TextStyle(
+          color: AppColors.hexFF00ACC1,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -665,7 +666,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _openEditProfile() async {
-    final bool? updated = await AppGet.toNamed<bool>(RouteNames.userProfileEdit);
+    final bool? updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => const EditProfileScreen(),
+        settings: const RouteSettings(name: RouteNames.userProfileEdit),
+      ),
+    );
     if (updated == true) {
       await _controller.load(userId: widget.userId);
     }

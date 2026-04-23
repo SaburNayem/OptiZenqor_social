@@ -9,6 +9,7 @@ class MarketplaceService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'marketplace': ApiEndPoints.marketplace,
     'products': ApiEndPoints.marketplaceProducts,
   };
 }

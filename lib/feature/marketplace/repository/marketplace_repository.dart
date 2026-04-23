@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../model/marketplace_category_model.dart';
 import '../model/marketplace_chat_model.dart';
 import '../model/marketplace_order_model.dart';
 import '../model/product_model.dart';
 import '../model/seller_model.dart';
+import '../service/marketplace_service.dart';
 
 class MarketplaceSeedData {
   const MarketplaceSeedData({
@@ -39,6 +42,11 @@ class MarketplaceSeedData {
 }
 
 class MarketplaceRepository {
+  MarketplaceRepository({MarketplaceService? service})
+    : _service = service ?? MarketplaceService();
+
+  final MarketplaceService _service;
+
   Future<MarketplaceSeedData> loadMarketplace() async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
 
@@ -576,10 +584,12 @@ class MarketplaceRepository {
       ),
     ];
 
+    final MarketplaceSeedData? remoteData = await _loadRemoteMarketplace();
+
     return MarketplaceSeedData(
-      products: products,
-      sellers: sellers,
-      categories: const <MarketplaceCategoryModel>[
+      products: remoteData?.products ?? products,
+      sellers: remoteData?.sellers ?? sellers,
+      categories: remoteData?.categories ?? const <MarketplaceCategoryModel>[
         MarketplaceCategoryModel(
           name: 'Vehicles',
           icon: Icons.directions_car_outlined,
@@ -663,36 +673,36 @@ class MarketplaceRepository {
           subcategories: <String>['Collectibles', 'Bundles', 'Seasonal'],
         ),
       ],
-      savedItemIds: const <String>['item-1', 'item-2', 'item-4'],
-      followedSellerIds: const <String>['seller-1', 'seller-2'],
+      savedItemIds: remoteData?.savedItemIds ?? const <String>['item-1', 'item-2', 'item-4'],
+      followedSellerIds: remoteData?.followedSellerIds ?? const <String>['seller-1', 'seller-2'],
       savedSearches: const <String>[
         'sony camera',
         'ergonomic desk',
         'verified skincare',
       ],
-      recentSearches: const <String>[
+      recentSearches: remoteData?.recentSearches ?? const <String>[
         'gaming console',
         'remote digital products',
         'delivery available chair',
       ],
-      trendingSearches: const <String>[
+      trendingSearches: remoteData?.trendingSearches ?? const <String>[
         'creator camera',
         'home office desk',
         'pilates reformer',
         'switch oled',
       ],
-      notifications: const <String>[
+      notifications: remoteData?.notifications ?? const <String>[
         'Price dropped 8% on Sony A7 IV Creator Bundle',
         'Urban Home Lab replied to your delivery question',
         'Your draft listing passed keyword review',
       ],
-      blockedKeywords: const <String>[
+      blockedKeywords: remoteData?.blockedKeywords ?? const <String>[
         'weapons',
         'counterfeit',
         'adult-only',
         'stolen',
       ],
-      chatMessages: <MarketplaceChatMessage>[
+      chatMessages: remoteData?.chatMessages ?? <MarketplaceChatMessage>[
         MarketplaceChatMessage(
           id: 'chat-1',
           senderName: 'Ava Rahman',
@@ -713,7 +723,7 @@ class MarketplaceRepository {
           timestamp: DateTime.now().subtract(const Duration(hours: 1)),
         ),
       ],
-      offerHistory: <MarketplaceOfferEvent>[
+      offerHistory: remoteData?.offerHistory ?? <MarketplaceOfferEvent>[
         MarketplaceOfferEvent(
           actor: 'You',
           action: 'Offered',
@@ -729,7 +739,7 @@ class MarketplaceRepository {
           ),
         ),
       ],
-      orders: <MarketplaceOrderModel>[
+      orders: remoteData?.orders ?? <MarketplaceOrderModel>[
         MarketplaceOrderModel(
           id: 'ord-1',
           productId: 'item-2',
@@ -754,5 +764,150 @@ class MarketplaceRepository {
         ),
       ],
     );
+  }
+
+  Future<MarketplaceSeedData?> _loadRemoteMarketplace() async {
+    for (final String key in <String>['marketplace', 'products']) {
+      try {
+        final ServiceResponseModel<Map<String, dynamic>> response =
+            await _service.getEndpoint(key);
+        if (!response.isSuccess || response.data['success'] == false) {
+          continue;
+        }
+
+        final List<Map<String, dynamic>> productItems =
+            ApiPayloadReader.readMapList(
+              response.data,
+              preferredKeys: const <String>['products', 'items'],
+            );
+        if (productItems.isEmpty) {
+          continue;
+        }
+
+        final List<ProductModel> products = productItems
+            .map(ProductModel.fromApiJson)
+            .where((ProductModel item) => item.id.isNotEmpty)
+            .toList(growable: false);
+        if (products.isEmpty) {
+          continue;
+        }
+
+        final List<SellerModel> sellers = _deriveSellers(products);
+        final List<MarketplaceCategoryModel> categories =
+            _deriveCategories(products);
+
+        return MarketplaceSeedData(
+          products: products,
+          sellers: sellers,
+          categories: categories,
+          savedItemIds: ApiPayloadReader.readStringList(
+            response.data['savedItemIds'],
+          ),
+          followedSellerIds: ApiPayloadReader.readStringList(
+            response.data['followedSellerIds'],
+          ),
+          savedSearches: ApiPayloadReader.readStringList(
+            response.data['savedSearches'],
+          ),
+          recentSearches: ApiPayloadReader.readStringList(
+            response.data['recentSearches'],
+          ),
+          trendingSearches: ApiPayloadReader.readStringList(
+            response.data['trendingSearches'],
+          ),
+          notifications: ApiPayloadReader.readStringList(
+            response.data['notifications'],
+          ),
+          blockedKeywords: ApiPayloadReader.readStringList(
+            response.data['blockedKeywords'],
+          ),
+          chatMessages: const <MarketplaceChatMessage>[],
+          offerHistory: const <MarketplaceOfferEvent>[],
+          orders: const <MarketplaceOrderModel>[],
+        );
+      } catch (_) {}
+    }
+
+    return null;
+  }
+
+  List<SellerModel> _deriveSellers(List<ProductModel> products) {
+    final Map<String, SellerModel> sellersById = <String, SellerModel>{};
+    for (final ProductModel product in products) {
+      if (product.sellerId.isEmpty) {
+        continue;
+      }
+      sellersById.putIfAbsent(
+        product.sellerId,
+        () => SellerModel(
+          id: product.sellerId,
+          name: product.sellerName,
+          avatar: '',
+          bio: 'Marketplace seller on OptiZenqor.',
+          joinDate: DateTime.now(),
+          rating: product.rating,
+          responseRate: 90,
+          responseTime: 'within 1 day',
+          followers: 0,
+          following: 0,
+          isVerified: product.sellerType == SellerType.verified,
+          sellerType: product.sellerType,
+          activeListings: products
+              .where((ProductModel item) => item.sellerId == product.sellerId)
+              .length,
+          completedOrders: 0,
+          reviews: product.reviews
+              .map(
+                (ProductReview item) => SellerReview(
+                  buyerName: item.author,
+                  rating: item.rating,
+                  comment: item.comment,
+                  dateLabel: item.dateLabel,
+                ),
+              )
+              .toList(growable: false),
+          storeName: product.sellerName,
+          strikeStatus: 'No warnings',
+        ),
+      );
+    }
+    return sellersById.values.toList(growable: false);
+  }
+
+  List<MarketplaceCategoryModel> _deriveCategories(List<ProductModel> products) {
+    final Map<String, Set<String>> categoryMap = <String, Set<String>>{};
+    for (final ProductModel product in products) {
+      categoryMap.putIfAbsent(product.category, () => <String>{});
+      if (product.subcategory.isNotEmpty) {
+        categoryMap[product.category]!.add(product.subcategory);
+      }
+    }
+
+    return categoryMap.entries
+        .map(
+          (MapEntry<String, Set<String>> entry) => MarketplaceCategoryModel(
+            name: entry.key,
+            icon: _iconForCategory(entry.key),
+            subcategories: entry.value.toList(growable: false),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  IconData _iconForCategory(String category) {
+    switch (category.trim().toLowerCase()) {
+      case 'electronics':
+        return Icons.devices_other_outlined;
+      case 'home & furniture':
+        return Icons.weekend_outlined;
+      case 'beauty & personal care':
+        return Icons.spa_outlined;
+      case 'sports & outdoors':
+        return Icons.sports_basketball_outlined;
+      case 'digital products':
+        return Icons.cloud_download_outlined;
+      default:
+        return Icons.category_outlined;
+    }
   }
 }

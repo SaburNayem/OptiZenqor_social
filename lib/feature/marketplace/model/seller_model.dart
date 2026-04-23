@@ -1,4 +1,5 @@
 import 'product_model.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 
 class SellerReview {
   const SellerReview({
@@ -52,4 +53,82 @@ class SellerModel {
   final List<SellerReview> reviews;
   final String storeName;
   final String strikeStatus;
+
+  factory SellerModel.fromApiJson(Map<String, dynamic> json) {
+    return SellerModel(
+      id: ApiPayloadReader.readString(json['id']),
+      name: ApiPayloadReader.readString(
+        json['name'],
+        fallback: 'Seller',
+      ),
+      avatar: ApiPayloadReader.readString(
+        json['avatar'] ?? json['avatarUrl'],
+      ),
+      bio: ApiPayloadReader.readString(
+        json['bio'] ?? json['description'],
+      ),
+      joinDate:
+          ApiPayloadReader.readDateTime(
+            json['joinDate'] ?? json['createdAt'],
+          ) ??
+          DateTime.now(),
+      rating: ApiPayloadReader.readDouble(json['rating']),
+      responseRate: ApiPayloadReader.readInt(json['responseRate']),
+      responseTime: ApiPayloadReader.readString(
+        json['responseTime'],
+        fallback: 'within 1 day',
+      ),
+      followers: ApiPayloadReader.readInt(json['followers']),
+      following: ApiPayloadReader.readInt(json['following']),
+      isVerified:
+          ApiPayloadReader.readBool(json['isVerified'] ?? json['verified']) ??
+          false,
+      sellerType: _sellerTypeFromValue(json['sellerType'] ?? json['type']),
+      activeListings: ApiPayloadReader.readInt(json['activeListings']),
+      completedOrders: ApiPayloadReader.readInt(json['completedOrders']),
+      reviews: _reviewsFromValue(json['reviews']),
+      storeName: ApiPayloadReader.readString(
+        json['storeName'],
+        fallback: ApiPayloadReader.readString(json['name'], fallback: 'Seller'),
+      ),
+      strikeStatus: ApiPayloadReader.readString(
+        json['strikeStatus'],
+        fallback: 'No warnings',
+      ),
+    );
+  }
+
+  static SellerType _sellerTypeFromValue(Object? value) {
+    switch ((value?.toString() ?? '').trim().toLowerCase()) {
+      case 'verified':
+        return SellerType.verified;
+      case 'shop':
+      case 'business':
+        return SellerType.shop;
+      case 'individual':
+      default:
+        return SellerType.individual;
+    }
+  }
+
+  static List<SellerReview> _reviewsFromValue(Object? value) {
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapListFromAny(
+      value,
+    );
+    return items
+        .map(
+          (Map<String, dynamic> item) => SellerReview(
+            buyerName: ApiPayloadReader.readString(
+              item['buyerName'] ?? item['author'],
+              fallback: 'Buyer',
+            ),
+            rating: ApiPayloadReader.readDouble(item['rating']),
+            comment: ApiPayloadReader.readString(item['comment']),
+            dateLabel: ApiPayloadReader.readString(
+              item['dateLabel'] ?? item['createdAt'],
+            ),
+          ),
+        )
+        .toList(growable: false);
+  }
 }

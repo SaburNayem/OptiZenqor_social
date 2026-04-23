@@ -28,15 +28,22 @@ class ActivitySessionsController extends ChangeNotifier {
   Future<void> logoutOtherDevices() async {
     loggingOutOthers = true;
     notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    sessions = sessions
-        .map(
-          (item) => item.isCurrent
-              ? item
-              : item.copyWith(active: false, lastActive: 'Signed out remotely'),
-        )
-        .toList();
-    await _repository.saveSessions(sessions);
+    final bool syncedRemotely = await _repository.logoutOtherDevices();
+    if (syncedRemotely) {
+      sessions = await _repository.loadSessions();
+    } else {
+      sessions = sessions
+          .map(
+            (item) => item.isCurrent
+                ? item
+                : item.copyWith(
+                    active: false,
+                    lastActive: 'Signed out remotely',
+                  ),
+          )
+          .toList();
+      await _repository.saveSessions(sessions);
+    }
     loggingOutOthers = false;
     notifyListeners();
   }

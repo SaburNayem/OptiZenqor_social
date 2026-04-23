@@ -1,3 +1,5 @@
+import '../../../core/data/api/api_payload_reader.dart';
+
 enum JobType {
   remote,
   fullTime,
@@ -76,6 +78,77 @@ class JobModel {
   final String? contactLink;
   final String? deadlineLabel;
 
+  factory JobModel.fromApiJson(Map<String, dynamic> json) {
+    final Map<String, dynamic>? company = ApiPayloadReader.readMap(
+      json['company'],
+    );
+    final String companyName = ApiPayloadReader.readString(
+      json['companyName'] ?? json['company'] ?? company?['name'],
+      fallback: 'Unknown company',
+    );
+    final String title = ApiPayloadReader.readString(
+      json['title'],
+      fallback: 'Job opportunity',
+    );
+    final String location = ApiPayloadReader.readString(
+      json['location'],
+      fallback: 'Remote',
+    );
+
+    return JobModel(
+      id: ApiPayloadReader.readString(json['id']),
+      title: title,
+      company: companyName,
+      location: location,
+      salary: ApiPayloadReader.readString(
+        json['salary'] ?? json['salaryLabel'],
+      ),
+      type: _jobTypeFromValue(json['type'] ?? json['jobType']),
+      experienceLevel: _experienceLevelFromValue(
+        json['experienceLevel'] ?? json['level'],
+      ),
+      postedTime: ApiPayloadReader.readString(
+        json['postedTime'] ?? json['createdAt'],
+        fallback: 'Recently posted',
+      ),
+      logoInitial: companyName.isEmpty ? 'J' : companyName.substring(0, 1),
+      logoColorValue: ApiPayloadReader.readInt(
+        json['logoColorValue'] ?? company?['logoColorValue'],
+      ),
+      description: ApiPayloadReader.readString(json['description']),
+      responsibilities: ApiPayloadReader.readStringList(
+        json['responsibilities'],
+      ),
+      requirements: ApiPayloadReader.readStringList(json['requirements']),
+      skills: ApiPayloadReader.readStringList(json['skills']),
+      benefits: ApiPayloadReader.readStringList(json['benefits']),
+      aboutCompany: ApiPayloadReader.readString(
+        json['aboutCompany'] ?? company?['about'],
+      ),
+      quickApplyEnabled:
+          ApiPayloadReader.readBool(json['quickApplyEnabled']) ?? true,
+      verifiedEmployer:
+          ApiPayloadReader.readBool(
+            json['verifiedEmployer'] ?? company?['verified'],
+          ) ??
+          false,
+      saved: ApiPayloadReader.readBool(json['saved']) ?? false,
+      applied: ApiPayloadReader.readBool(json['applied']) ?? false,
+      featured: ApiPayloadReader.readBool(json['featured']) ?? false,
+      remoteFriendly:
+          ApiPayloadReader.readBool(json['remoteFriendly']) ??
+          location.toLowerCase().contains('remote'),
+      draft: ApiPayloadReader.readBool(json['draft']) ?? false,
+      closed: ApiPayloadReader.readBool(json['closed']) ?? false,
+      externalApplyEnabled:
+          ApiPayloadReader.readBool(json['externalApplyEnabled']) ?? false,
+      contactLink: ApiPayloadReader.readString(
+        json['contactLink'] ?? json['applyUrl'],
+      ),
+      deadlineLabel: ApiPayloadReader.readString(json['deadlineLabel']),
+    );
+  }
+
   JobModel copyWith({
     bool? saved,
     bool? applied,
@@ -126,6 +199,49 @@ class JobModel {
       contactLink: contactLink ?? this.contactLink,
       deadlineLabel: deadlineLabel ?? this.deadlineLabel,
     );
+  }
+
+  static JobType _jobTypeFromValue(Object? value) {
+    switch ((value?.toString() ?? '').trim().toLowerCase()) {
+      case 'remote':
+        return JobType.remote;
+      case 'part_time':
+      case 'parttime':
+      case 'part-time':
+        return JobType.partTime;
+      case 'freelance':
+        return JobType.freelance;
+      case 'internship':
+        return JobType.internship;
+      case 'contract':
+        return JobType.contract;
+      case 'hybrid':
+        return JobType.hybrid;
+      case 'onsite':
+      case 'on_site':
+      case 'on-site':
+        return JobType.onsite;
+      case 'full_time':
+      case 'fulltime':
+      case 'full-time':
+      default:
+        return JobType.fullTime;
+    }
+  }
+
+  static ExperienceLevel _experienceLevelFromValue(Object? value) {
+    switch ((value?.toString() ?? '').trim().toLowerCase()) {
+      case 'entry':
+      case 'junior':
+        return ExperienceLevel.entry;
+      case 'senior':
+        return ExperienceLevel.senior;
+      case 'lead':
+        return ExperienceLevel.lead;
+      case 'mid':
+      default:
+        return ExperienceLevel.mid;
+    }
   }
 }
 
@@ -215,6 +331,30 @@ class CareerProfileModel {
   final String resumeLabel;
   final List<String> portfolioLinks;
   final String availability;
+
+  factory CareerProfileModel.fromApiJson(Map<String, dynamic> json) {
+    return CareerProfileModel(
+      name: ApiPayloadReader.readString(
+        json['name'],
+        fallback: 'Professional profile',
+      ),
+      title: ApiPayloadReader.readString(json['title']),
+      skills: ApiPayloadReader.readStringList(json['skills']),
+      experience: ApiPayloadReader.readStringList(json['experience']),
+      education: ApiPayloadReader.readStringList(json['education']),
+      resumeLabel: ApiPayloadReader.readString(
+        json['resumeLabel'],
+        fallback: 'Primary resume',
+      ),
+      portfolioLinks: ApiPayloadReader.readStringList(
+        json['portfolioLinks'],
+      ),
+      availability: ApiPayloadReader.readString(
+        json['availability'],
+        fallback: 'Open to work',
+      ),
+    );
+  }
 }
 
 class EmployerStatsModel {

@@ -8,7 +8,7 @@ class VerificationRequestController extends ChangeNotifier {
     : _repository = repository ?? VerificationRequestRepository();
 
   final VerificationRequestRepository _repository;
-  final List<String> requiredDocuments = const <String>[
+  List<String> requiredDocuments = const <String>[
     'Government ID',
     'Business proof',
     'Profile photo',
@@ -24,6 +24,8 @@ class VerificationRequestController extends ChangeNotifier {
   Future<void> load() async {
     isLoading = true;
     notifyListeners();
+    requiredDocuments =
+        await _repository.loadRequiredDocuments() ?? requiredDocuments;
     model = await _repository.load();
     isLoading = false;
     notifyListeners();
@@ -42,12 +44,7 @@ class VerificationRequestController extends ChangeNotifier {
   }
 
   Future<void> submit() async {
-    model = model.copyWith(
-      status: VerificationStatus.pending,
-      reason: 'Documents uploaded. Under review.',
-      submittedAt: DateTime.now(),
-    );
-    await _repository.save(model);
+    model = await _repository.submit(model);
     notifyListeners();
   }
 

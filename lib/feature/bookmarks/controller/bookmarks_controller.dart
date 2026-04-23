@@ -115,7 +115,7 @@ class BookmarksController extends Cubit<BookmarksState> {
             itemId: item.id,
           );
 
-    await _repository.write(items);
+    await _repository.add(item, items);
     if (collectionId != null) {
       await _collectionsRepository.write(collections);
     }
@@ -141,7 +141,7 @@ class BookmarksController extends Cubit<BookmarksState> {
         )
         .toList(growable: false);
 
-    await _repository.write(items);
+    await _repository.remove(postId, items);
     await _collectionsRepository.write(collections);
     emit(state.copyWith(items: items, collections: collections));
   }

@@ -1,3 +1,5 @@
+import '../../../core/data/api/api_payload_reader.dart';
+
 class AccountIdentityModel {
   const AccountIdentityModel({
     required this.id,
@@ -15,11 +17,34 @@ class AccountIdentityModel {
 
   factory AccountIdentityModel.fromJson(Map<String, dynamic> json) {
     return AccountIdentityModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      handle: json['handle'] as String,
+      id: ApiPayloadReader.readString(json['id']),
+      name: ApiPayloadReader.readString(json['name']),
+      handle: ApiPayloadReader.readString(json['handle']),
       roleLabel: json['roleLabel'] as String? ?? 'Personal',
       isVerified: json['isVerified'] as bool? ?? false,
+    );
+  }
+
+  factory AccountIdentityModel.fromApiJson(Map<String, dynamic> json) {
+    final String username = ApiPayloadReader.readString(
+      json['username'] ?? json['handle'],
+    );
+    final String name = ApiPayloadReader.readString(
+      json['name'] ?? json['displayName'],
+      fallback: username.isEmpty ? 'Account' : username,
+    );
+
+    return AccountIdentityModel(
+      id: ApiPayloadReader.readString(json['id']),
+      name: name,
+      handle: username.startsWith('@') ? username : '@$username',
+      roleLabel: ApiPayloadReader.readString(
+        json['roleLabel'] ?? json['role'],
+        fallback: 'Personal',
+      ),
+      isVerified:
+          ApiPayloadReader.readBool(json['isVerified'] ?? json['verified']) ??
+          false,
     );
   }
 

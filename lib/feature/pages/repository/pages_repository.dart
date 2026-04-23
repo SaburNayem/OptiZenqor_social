@@ -1,7 +1,43 @@
+import '../../../core/constants/storage_keys.dart';
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/service/local_storage_service.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../model/page_model.dart';
+import '../service/pages_service.dart';
 
 class PagesRepository {
-  List<PageModel> load() => const <PageModel>[
+  PagesRepository({
+    PagesService? service,
+    LocalStorageService? storage,
+  }) : _service = service ?? PagesService(),
+       _storage = storage ?? LocalStorageService();
+
+  final PagesService _service;
+  final LocalStorageService _storage;
+
+  Future<List<PageModel>> load() async {
+    final List<PageModel>? remotePages = await _loadFromApi();
+    if (remotePages != null) {
+      return remotePages;
+    }
+    return _fallbackPages;
+  }
+
+  Future<String> currentUserId() async {
+    final Map<String, dynamic>? authSession = await _storage.readJson(
+      StorageKeys.authSession,
+    );
+    final Object? user = authSession?['user'];
+    if (user is Map<String, dynamic>) {
+      return ApiPayloadReader.readString(user['id']);
+    }
+    if (user is Map) {
+      return ApiPayloadReader.readString(user['id']);
+    }
+    return 'u1';
+  }
+
+  static const List<PageModel> _fallbackPages = <PageModel>[
         PageModel(
           id: 'page_1',
           name: 'OptiZenqor Official',
@@ -142,4 +178,25 @@ class PagesRepository {
           highlights: <String>['Jobs', 'Hiring', 'Guides'],
         ),
       ];
+
+  Future<List<PageModel>?> _loadFromApi() async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint('pages');
+      if (!response.isSuccess || response.data['success'] == false) {
+        return null;
+      }
+      final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        response.data,
+        preferredKeys: const <String>['pages', 'items'],
+      );
+      if (items.isNotEmpty) {
+        return items
+            .map(PageModel.fromApiJson)
+            .where((PageModel item) => item.id.isNotEmpty)
+            .toList(growable: false);
+      }
+    } catch (_) {}
+    return null;
+  }
 }
