@@ -49,6 +49,8 @@
 	<string>OptiZenqor Socity needs access to your photo library to create stories from your device media.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>OptiZenqor Socity needs photo library access to manage story media on your device.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>OptiZenqor Socity needs camera access so you can take a profile photo during signup.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>OptiZenqor Socity needs microphone access so you can record voice messages.</string>
 </dict>

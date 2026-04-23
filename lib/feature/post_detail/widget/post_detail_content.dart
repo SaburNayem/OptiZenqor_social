@@ -131,6 +131,14 @@ class PostDetailContent extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  _engagementSummary(),
+                  style: TextStyle(
+                    color: AppColors.grey600,
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 RichText(
                   text: TextSpan(
@@ -153,7 +161,7 @@ class PostDetailContent extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
             child: Text(
-              'Comments (${controller.comments.length})',
+              'Comments (${controller.detail.comments})',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -165,5 +173,16 @@ class PostDetailContent extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _engagementSummary() {
+    final List<String> parts = <String>[
+      '${FormatHelper.formatCompactNumber(controller.detail.comments)} comments',
+      if (controller.detail.shareCount > 0)
+        '${FormatHelper.formatCompactNumber(controller.detail.shareCount)} shares',
+      if (controller.detail.viewCount > 0)
+        '${FormatHelper.formatCompactNumber(controller.detail.viewCount)} views',
+    ];
+    return parts.join(' | ');
   }
 }

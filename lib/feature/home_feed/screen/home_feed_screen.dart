@@ -91,7 +91,9 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   ),
                   const Divider(height: 32, thickness: 0.5),
                   ...controller.visiblePosts.map((post) {
-                    final user = MockData.users
+                    final user =
+                        post.author ??
+                        MockData.users
                         .where((item) => item.id == post.authorId)
                         .firstOrNull;
                     if (user == null) {

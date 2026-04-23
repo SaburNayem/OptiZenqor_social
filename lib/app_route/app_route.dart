@@ -10,6 +10,7 @@ class AppRoute {
   static const String signup = RouteNames.signup;
   static const String emailVerification = RouteNames.emailVerification;
   static const String forgotPassword = RouteNames.forgotPassword;
+  static const String otpVerification = RouteNames.otpVerification;
   static const String resetPassword = RouteNames.resetPassword;
   static const String shell = RouteNames.shell;
 
@@ -30,7 +31,8 @@ class AppRoute {
   static const String privacySettings = RouteNames.privacySettings;
   static const String notificationsSettings = RouteNames.notificationsSettings;
   static const String messagesCallsSettings = RouteNames.messagesCallsSettings;
-  static const String feedContentPreferences = RouteNames.feedContentPreferences;
+  static const String feedContentPreferences =
+      RouteNames.feedContentPreferences;
   static const String creatorToolsSettings = RouteNames.creatorToolsSettings;
   static const String monetizationPayments = RouteNames.monetizationPayments;
   static const String communitiesGroups = RouteNames.communitiesGroups;

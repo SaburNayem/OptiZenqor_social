@@ -1,54 +1,53 @@
+import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
+import '../service/home_feed_service.dart';
 
 enum FeedSegment { forYou, following, trending }
 
 class HomeFeedRepository {
-  HomeFeedRepository({AppSharedPreferences? storage})
-      : _storage = storage ?? AppSharedPreferences();
+  HomeFeedRepository({
+    AppSharedPreferences? storage,
+    HomeFeedService? service,
+  }) : _storage = storage ?? AppSharedPreferences(),
+       _service = service ?? HomeFeedService();
 
   final AppSharedPreferences _storage;
+  final HomeFeedService _service;
 
   Future<List<PostModel>> fetchFeed({
     required FeedSegment segment,
     required int page,
   }) async {
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    final list = MockData.posts;
-    await _storage.writeJsonList(
-      StorageKeys.cachedFeed,
-      list
-          .map(
-            (p) => {
-              'id': p.id,
-              'authorId': p.authorId,
-              'caption': p.caption,
-              'tags': p.tags,
-              'media': p.media,
-              'likes': p.likes,
-              'comments': p.comments,
-              'createdAt': p.createdAt.toIso8601String(),
-              'viewCount': p.viewCount,
-              'shareCount': p.shareCount,
-              'taggedUserIds': p.taggedUserIds,
-              'mentionUsernames': p.mentionUsernames,
-              'location': p.location,
-              'audience': p.audience,
-              'altText': p.altText,
-              'editHistory': p.editHistory,
-              'isSponsored': p.isSponsored,
-              'brandCollaborationLabel': p.brandCollaborationLabel,
-              'repostHistory': p.repostHistory,
-            },
-          )
-          .toList(),
-    );
-    segment;
-    page;
-    return list;
+    if (page > 1) {
+      return <PostModel>[];
+    }
+
+    try {
+      final response = await _service.apiClient.get(_feedEndpointFor(segment));
+      final List<Map<String, dynamic>> items = _readMapList(response.data);
+      if (response.isSuccess && items.isNotEmpty) {
+        final List<PostModel> posts = items
+            .map(PostModel.fromApiJson)
+            .toList(growable: false);
+        await _storage.writeJsonList(
+          StorageKeys.cachedFeed,
+          posts.map((PostModel post) => post.toCacheJson()).toList(),
+        );
+        return posts;
+      }
+    } catch (_) {}
+
+    final List<PostModel> cached = await readCachedFeed();
+    if (cached.isNotEmpty) {
+      return cached;
+    }
+
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    return MockData.posts;
   }
 
   Future<List<PostModel>> readCachedFeed() async {
@@ -57,30 +56,22 @@ class HomeFeedRepository {
       return <PostModel>[];
     }
     return cached
-        .map(
-          (item) => PostModel(
-            id: item['id'] as String,
-            authorId: item['authorId'] as String,
-            caption: item['caption'] as String,
-            tags: List<String>.from(item['tags'] as List<dynamic>),
-            media: List<String>.from(item['media'] as List<dynamic>),
-            likes: item['likes'] as int,
-            comments: item['comments'] as int,
-            createdAt: DateTime.parse(item['createdAt'] as String),
-            viewCount: item['viewCount'] as int? ?? 0,
-            shareCount: item['shareCount'] as int? ?? 0,
-            taggedUserIds: List<String>.from(item['taggedUserIds'] as List<dynamic>? ?? const <dynamic>[]),
-            mentionUsernames: List<String>.from(item['mentionUsernames'] as List<dynamic>? ?? const <dynamic>[]),
-            location: item['location'] as String?,
-            audience: item['audience'] as String? ?? 'Everyone',
-            altText: item['altText'] as String?,
-            editHistory: List<String>.from(item['editHistory'] as List<dynamic>? ?? const <dynamic>[]),
-            isSponsored: item['isSponsored'] as bool? ?? false,
-            brandCollaborationLabel: item['brandCollaborationLabel'] as String?,
-            repostHistory: List<String>.from(item['repostHistory'] as List<dynamic>? ?? const <dynamic>[]),
-          ),
-        )
-        .toList();
+        .map(PostModel.fromApiJson)
+        .toList(growable: false);
+  }
+
+  Future<void> setPostLiked({
+    required String postId,
+    required bool liked,
+  }) async {
+    final String userId = await _currentUserId();
+    final response = await _service.apiClient.patch(
+      liked ? ApiEndPoints.postLike(postId) : ApiEndPoints.postUnlike(postId),
+      <String, dynamic>{'userId': userId},
+    );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to update post like');
+    }
   }
 
   Future<List<StoryModel>> fetchStories() async {
@@ -122,5 +113,50 @@ class HomeFeedRepository {
 
   Future<void> writeRecommendationPreferences(Map<String, List<String>> prefs) {
     return _storage.writeJson(StorageKeys.recommendationPreferences, prefs);
+  }
+
+  String _feedEndpointFor(FeedSegment segment) {
+    switch (segment) {
+      case FeedSegment.forYou:
+        return ApiEndPoints.feedHome;
+      case FeedSegment.following:
+      case FeedSegment.trending:
+        return ApiEndPoints.feed;
+    }
+  }
+
+  List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
+    final Object? raw =
+        payload['data'] ?? payload['items'] ?? payload['results'] ?? payload['value'];
+    if (raw is List) {
+      return raw
+          .whereType<Object>()
+          .map(
+            (Object item) => item is Map<String, dynamic>
+                ? item
+                : Map<String, dynamic>.from(item as Map),
+          )
+          .toList(growable: false);
+    }
+    return const <Map<String, dynamic>>[];
+  }
+
+  Future<String> _currentUserId() async {
+    final Map<String, dynamic>? session =
+        await _storage.readJson(StorageKeys.authSession);
+    final Object? user = session?['user'];
+    if (user is Map<String, dynamic>) {
+      final String id = (user['id'] as Object? ?? '').toString();
+      if (id.isNotEmpty) {
+        return id;
+      }
+    }
+    if (user is Map) {
+      final String id = (user['id'] as Object? ?? '').toString();
+      if (id.isNotEmpty) {
+        return id;
+      }
+    }
+    return MockData.users.first.id;
   }
 }

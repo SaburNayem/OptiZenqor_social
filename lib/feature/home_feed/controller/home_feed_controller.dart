@@ -152,7 +152,7 @@ class HomeFeedController extends Cubit<int> {
     }
     _notify();
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 120));
+      await _repository.setPostLiked(postId: postId, liked: !wasLiked);
       _failedActionPostIds.remove(postId);
       await _analytics.logEvent(
         'post_like_toggle',

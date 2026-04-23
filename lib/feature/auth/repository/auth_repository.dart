@@ -1,8 +1,12 @@
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/data/service/auth_service.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../../../core/enums/user_role.dart';
-import '../../../core/data/service/auth_service.dart';
 import 'package:flutter/foundation.dart';
+
+import '../model/auth_exception.dart';
+import '../signup/model/signup_model.dart';
 
 class AuthRepository {
   AuthRepository({AuthService? authService, AppSharedPreferences? storage})
@@ -23,13 +27,144 @@ class AuthRepository {
       email: email,
       password: password,
     );
-    if (!response.isSuccess || response.data['success'] == false) {
-      throw Exception(response.message ?? 'Login failed.');
+    final Map<String, dynamic>? session = _extractSessionPayload(response.data);
+    final String accessToken =
+        (session?['token'] ?? session?['accessToken'] ?? '').toString();
+    if (!response.isSuccess ||
+        response.data['success'] == false ||
+        accessToken.isEmpty) {
+      throw AuthException(
+        _resolveLoginErrorMessage(
+          statusCode: response.statusCode,
+          payload: response.data,
+          fallbackMessage: response.message,
+          hasSession: accessToken.isNotEmpty,
+        ),
+        statusCode: response.statusCode,
+      );
     }
     debugPrint('[AuthRepository] AuthService.login success');
     debugPrint(
       '[AuthRepository] Session persisted key=${StorageKeys.authSession}',
     );
+  }
+
+  Future<void> signup({required SignupModel signup}) async {
+    debugPrint('[AuthRepository] signup start email=${signup.email}');
+    final response = await _authService.signup(
+      name: signup.name,
+      username: signup.username,
+      email: signup.email,
+      password: signup.password,
+      confirmPassword: signup.confirmPassword,
+      role: signup.role,
+      avatarUrl: signup.avatarUrl,
+      bio: signup.bio,
+      interests: signup.interests,
+    );
+
+    if (!_isSuccessfulResponse(response)) {
+      throw AuthException(
+        _resolveSignupErrorMessage(
+          statusCode: response.statusCode,
+          payload: response.data,
+          fallbackMessage: response.message,
+        ),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<void> confirmEmailVerification({
+    required String email,
+    required String code,
+  }) async {
+    debugPrint('[AuthRepository] confirmEmailVerification start email=$email');
+    final response = await _authService.confirmEmailVerification(
+      email: email,
+      code: code,
+    );
+
+    if (!_isSuccessfulResponse(response)) {
+      throw AuthException(
+        _resolveVerificationErrorMessage(
+          statusCode: response.statusCode,
+          payload: response.data,
+          fallbackMessage: response.message,
+        ),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<String> forgotPassword({required String email}) async {
+    debugPrint('[AuthRepository] forgotPassword start email=$email');
+    final response = await _authService.forgotPassword(email: email);
+
+    if (!_isSuccessfulResponse(response)) {
+      throw AuthException(
+        _resolveForgotPasswordErrorMessage(
+          statusCode: response.statusCode,
+          payload: response.data,
+          fallbackMessage: response.message,
+        ),
+        statusCode: response.statusCode,
+      );
+    }
+
+    return _extractApiMessage(response.data) ??
+        response.message ??
+        'We sent a 6-digit reset code to your email.';
+  }
+
+  Future<String> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    debugPrint('[AuthRepository] resetPassword start email=$email');
+    final response = await _authService.resetPassword(
+      email: email,
+      otp: otp,
+      password: password,
+    );
+
+    if (!_isSuccessfulResponse(response)) {
+      throw AuthException(
+        _resolveResetPasswordErrorMessage(
+          statusCode: response.statusCode,
+          payload: response.data,
+          fallbackMessage: response.message,
+        ),
+        statusCode: response.statusCode,
+      );
+    }
+
+    return _extractApiMessage(response.data) ??
+        response.message ??
+        'Your password has been reset successfully.';
+  }
+
+  Future<String> resendEmailVerificationCode({required String email}) async {
+    debugPrint(
+      '[AuthRepository] resendEmailVerificationCode start email=$email',
+    );
+    final response = await _authService.resendOtp(destination: email);
+
+    if (!_isSuccessfulResponse(response)) {
+      throw AuthException(
+        _resolveResendCodeErrorMessage(
+          statusCode: response.statusCode,
+          payload: response.data,
+          fallbackMessage: response.message,
+        ),
+        statusCode: response.statusCode,
+      );
+    }
+
+    return _extractApiMessage(response.data) ??
+        response.message ??
+        'A new 6-digit verification code has been sent to your email.';
   }
 
   Future<void> logout() async {
@@ -40,5 +175,283 @@ class AuthRepository {
   Future<bool> hasSession() async {
     final session = await _storage.readJson(StorageKeys.authSession);
     return (session?['isLoggedIn'] as bool?) ?? false;
+  }
+
+  Map<String, dynamic>? _extractSessionPayload(Map<String, dynamic> payload) {
+    final dynamic nestedData = payload['data'];
+    if (nestedData is Map<String, dynamic>) {
+      return nestedData;
+    }
+    if (nestedData is Map) {
+      return Map<String, dynamic>.from(nestedData);
+    }
+    if (_looksLikeSessionPayload(payload)) {
+      return payload;
+    }
+    return null;
+  }
+
+  bool _looksLikeSessionPayload(Map<String, dynamic> payload) {
+    return payload.containsKey('token') ||
+        payload.containsKey('accessToken') ||
+        payload.containsKey('refreshToken') ||
+        payload.containsKey('user');
+  }
+
+  bool _isSuccessfulResponse(
+    ServiceResponseModel<Map<String, dynamic>> response,
+  ) {
+    return response.isSuccess && response.data['success'] != false;
+  }
+
+  String _resolveLoginErrorMessage({
+    required int statusCode,
+    required Map<String, dynamic> payload,
+    required String? fallbackMessage,
+    required bool hasSession,
+  }) {
+    final String? apiMessage = _extractApiMessage(payload) ?? fallbackMessage;
+
+    if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+      return apiMessage ?? 'Invalid email or password.';
+    }
+    if (statusCode == 404) {
+      return 'Login service is unavailable right now.';
+    }
+    if (statusCode == 408) {
+      return apiMessage ??
+          'Request timed out. Check your connection and try again.';
+    }
+    if (statusCode == 429) {
+      return 'Too many login attempts. Please wait and try again.';
+    }
+    if (statusCode == 503) {
+      return apiMessage ??
+          'Unable to reach the server. Check your connection and try again.';
+    }
+    if (statusCode >= 500) {
+      return 'Server error. Please try again in a moment.';
+    }
+    if (!hasSession) {
+      return apiMessage ?? 'Unable to create your login session.';
+    }
+    return apiMessage ?? 'Unable to continue. Please try again.';
+  }
+
+  String _resolveSignupErrorMessage({
+    required int statusCode,
+    required Map<String, dynamic> payload,
+    required String? fallbackMessage,
+  }) {
+    final String? apiMessage = _extractApiMessage(payload) ?? fallbackMessage;
+
+    if (statusCode == 400) {
+      return apiMessage ?? 'Please review your signup details and try again.';
+    }
+    if (statusCode == 401 || statusCode == 403) {
+      return apiMessage ?? 'You are not allowed to create this account.';
+    }
+    if (statusCode == 404) {
+      return 'Signup service is unavailable right now.';
+    }
+    if (statusCode == 408) {
+      return apiMessage ??
+          'Request timed out. Check your connection and try again.';
+    }
+    if (statusCode == 409) {
+      return apiMessage ??
+          'An account with this email or username already exists.';
+    }
+    if (statusCode == 429) {
+      return 'Too many signup attempts. Please wait and try again.';
+    }
+    if (statusCode == 503) {
+      return apiMessage ??
+          'Unable to reach the server. Check your connection and try again.';
+    }
+    if (statusCode >= 500) {
+      return 'Server error. Please try again in a moment.';
+    }
+
+    return apiMessage ?? 'Unable to create your account right now.';
+  }
+
+  String _resolveVerificationErrorMessage({
+    required int statusCode,
+    required Map<String, dynamic> payload,
+    required String? fallbackMessage,
+  }) {
+    final String? apiMessage = _extractApiMessage(payload) ?? fallbackMessage;
+
+    if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+      return apiMessage ?? 'Invalid verification code. Please try again.';
+    }
+    if (statusCode == 404) {
+      return apiMessage ??
+          'Verification request was not found. Please request a new code.';
+    }
+    if (statusCode == 408) {
+      return apiMessage ??
+          'Request timed out. Check your connection and try again.';
+    }
+    if (statusCode == 410) {
+      return apiMessage ?? 'This verification code has expired.';
+    }
+    if (statusCode == 429) {
+      return 'Too many verification attempts. Please wait and try again.';
+    }
+    if (statusCode == 503) {
+      return apiMessage ??
+          'Unable to reach the server. Check your connection and try again.';
+    }
+    if (statusCode >= 500) {
+      return 'Server error. Please try again in a moment.';
+    }
+
+    return apiMessage ?? 'Unable to verify your email right now.';
+  }
+
+  String _resolveResendCodeErrorMessage({
+    required int statusCode,
+    required Map<String, dynamic> payload,
+    required String? fallbackMessage,
+  }) {
+    final String? apiMessage = _extractApiMessage(payload) ?? fallbackMessage;
+
+    if (statusCode == 400 || statusCode == 404) {
+      return apiMessage ?? 'Unable to resend the verification code.';
+    }
+    if (statusCode == 408) {
+      return apiMessage ??
+          'Request timed out. Check your connection and try again.';
+    }
+    if (statusCode == 429) {
+      return 'Please wait a bit before requesting another code.';
+    }
+    if (statusCode == 503) {
+      return apiMessage ??
+          'Unable to reach the server. Check your connection and try again.';
+    }
+    if (statusCode >= 500) {
+      return 'Server error. Please try again in a moment.';
+    }
+
+    return apiMessage ?? 'Unable to resend the verification code right now.';
+  }
+
+  String _resolveForgotPasswordErrorMessage({
+    required int statusCode,
+    required Map<String, dynamic> payload,
+    required String? fallbackMessage,
+  }) {
+    final String? apiMessage = _extractApiMessage(payload) ?? fallbackMessage;
+
+    if (statusCode == 400) {
+      return apiMessage ?? 'Please enter a valid email address.';
+    }
+    if (statusCode == 404) {
+      return apiMessage ?? 'We could not find an account with that email.';
+    }
+    if (statusCode == 408) {
+      return apiMessage ??
+          'Request timed out. Check your connection and try again.';
+    }
+    if (statusCode == 429) {
+      return 'Please wait a bit before requesting another reset code.';
+    }
+    if (statusCode == 503) {
+      return apiMessage ??
+          'Unable to reach the server. Check your connection and try again.';
+    }
+    if (statusCode >= 500) {
+      return 'Server error. Please try again in a moment.';
+    }
+
+    return apiMessage ??
+        'Unable to start the password reset process right now.';
+  }
+
+  String _resolveResetPasswordErrorMessage({
+    required int statusCode,
+    required Map<String, dynamic> payload,
+    required String? fallbackMessage,
+  }) {
+    final String? apiMessage = _extractApiMessage(payload) ?? fallbackMessage;
+
+    if (statusCode == 400 || statusCode == 401 || statusCode == 403) {
+      return apiMessage ?? 'Invalid reset code or password.';
+    }
+    if (statusCode == 404) {
+      return apiMessage ??
+          'Reset request was not found. Please request a new code.';
+    }
+    if (statusCode == 408) {
+      return apiMessage ??
+          'Request timed out. Check your connection and try again.';
+    }
+    if (statusCode == 410) {
+      return apiMessage ??
+          'This reset code has expired. Please request a new one.';
+    }
+    if (statusCode == 429) {
+      return 'Too many reset attempts. Please wait and try again.';
+    }
+    if (statusCode == 503) {
+      return apiMessage ??
+          'Unable to reach the server. Check your connection and try again.';
+    }
+    if (statusCode >= 500) {
+      return 'Server error. Please try again in a moment.';
+    }
+
+    return apiMessage ?? 'Unable to reset your password right now.';
+  }
+
+  String? _extractApiMessage(Map<String, dynamic> payload) {
+    final dynamic directMessage = payload['message'];
+    if (directMessage is String && directMessage.trim().isNotEmpty) {
+      return directMessage.trim();
+    }
+
+    final dynamic error = payload['error'];
+    if (error is String && error.trim().isNotEmpty) {
+      return error.trim();
+    }
+
+    final dynamic errors = payload['errors'];
+    if (errors is List && errors.isNotEmpty) {
+      final String joined = errors
+          .whereType<String>()
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .join('\n');
+      if (joined.isNotEmpty) {
+        return joined;
+      }
+    }
+
+    if (errors is Map) {
+      for (final dynamic value in errors.values) {
+        if (value is String && value.trim().isNotEmpty) {
+          return value.trim();
+        }
+        if (value is List) {
+          for (final dynamic item in value) {
+            if (item is String && item.trim().isNotEmpty) {
+              return item.trim();
+            }
+          }
+        }
+      }
+    }
+
+    final dynamic nestedData = payload['data'];
+    if (nestedData is Map<String, dynamic>) {
+      return _extractApiMessage(nestedData);
+    }
+    if (nestedData is Map) {
+      return _extractApiMessage(Map<String, dynamic>.from(nestedData));
+    }
+    return null;
   }
 }

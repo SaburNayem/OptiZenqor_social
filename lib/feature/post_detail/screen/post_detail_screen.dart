@@ -60,10 +60,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   void _startReply(PostCommentModel comment) {
-    final String mention = '@${comment.author} ';
+    final String mention = '@${comment.authorUsername ?? comment.author} ';
     setState(() {
       _replyToCommentId = comment.id;
-      _replyingToAuthor = comment.author;
+      _replyingToAuthor = comment.authorUsername ?? comment.author;
       _commentController.value = TextEditingValue(
         text: mention,
         selection: TextSelection.collapsed(offset: mention.length),
@@ -80,11 +80,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     _commentController.clear();
   }
 
-  void _submitComment() {
+  Future<void> _submitComment() async {
     if (_commentController.text.trim().isEmpty) {
       return;
     }
-    _controller.addComment(_commentController.text, replyTo: _replyToCommentId);
+    await _controller.addComment(
+      _commentController.text,
+      replyTo: _replyToCommentId,
+    );
     _commentController.clear();
     setState(() {
       _replyToCommentId = null;
@@ -114,11 +117,15 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       likes: detail.likes,
       comments: detail.comments,
       createdAt: detail.createdAt,
+      shareCount: detail.shareCount,
+      viewCount: detail.viewCount,
+      author: detail.author,
     );
   }
 
   UserModel? _authorForDetail() {
-    return MockData.users
+    return _controller.detail.author ??
+        MockData.users
         .where((user) => user.id == _controller.detail.authorId)
         .firstOrNull;
   }
@@ -334,6 +341,21 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         builder: (context, _) {
           final PostDetailController controller = _controller;
           final UserModel? author = _authorForDetail();
+          if (controller.isLoading && !controller.hasLoaded) {
+            return Scaffold(
+              backgroundColor: AppColors.white,
+              appBar: AppBar(
+                backgroundColor: AppColors.white,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: AppColors.black87),
+                  onPressed: AppGet.back,
+                ),
+                title: const Text(''),
+              ),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
           return BlocBuilder<BookmarksController, BookmarksState>(
             builder: (context, _) {
               final BookmarksController bookmarksController =
@@ -382,7 +404,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         title: author?.name ?? 'Post media',
                         initialIndex: index,
                       ),
-                      onLikeTap: controller.toggleLike,
+                      onLikeTap: () => controller.toggleLike(),
                       onLikeCountTap: _showLikesSheet,
                       onCommentTap: _focusCommentField,
                       onShareTap: _sharePost,

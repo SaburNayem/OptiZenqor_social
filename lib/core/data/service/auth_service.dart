@@ -29,26 +29,11 @@ class AuthService {
           'email': email ?? '',
           'password': password ?? '',
         });
-    final Map<String, dynamic>? session =
-        response.data['data'] as Map<String, dynamic>?;
-    final String resolvedRole =
-        ((session?['user'] as Map<String, dynamic>?)?['role'] as String?)
-            ?.toLowerCase() ??
-        role.name;
-    _loggedIn = true;
-    _role = _parseRole(resolvedRole);
-    await _persistSession(
+    await _persistAuthSessionIfAvailable(
+      response,
       endpoint: ApiEndPoints.authLogin,
-      payload: <String, dynamic>{
-        'isLoggedIn': true,
-        'role': _role.name,
-        'email': email ?? '',
-        'accessToken': session?['token'],
-        'refreshToken': session?['refreshToken'],
-        'sessionId': session?['sessionId'],
-        'tokenType': session?['tokenType'] ?? 'Bearer',
-        'user': session?['user'],
-      },
+      fallbackEmail: email,
+      fallbackRole: role,
     );
     return response;
   }
@@ -59,16 +44,32 @@ class AuthService {
     required String email,
     required String password,
     required String confirmPassword,
-    required String role,
-  }) {
-    return _apiClient.post(ApiEndPoints.authSignup, <String, dynamic>{
+    required UserRole role,
+    String? avatarUrl,
+    String? bio,
+    List<String>? interests,
+  }) async {
+    final Map<String, dynamic> payload = <String, dynamic>{
       'name': name,
       'username': username,
       'email': email,
       'password': password,
       'confirmPassword': confirmPassword,
-      'role': role,
-    });
+      'role': _formatSignupRole(role),
+      if (avatarUrl != null && avatarUrl.trim().isNotEmpty)
+        'avatarUrl': avatarUrl.trim(),
+      if (bio != null && bio.trim().isNotEmpty) 'bio': bio.trim(),
+      if (interests != null && interests.isNotEmpty) 'interests': interests,
+    };
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .post(ApiEndPoints.authSignup, payload);
+    await _persistAuthSessionIfAvailable(
+      response,
+      endpoint: ApiEndPoints.authSignup,
+      fallbackEmail: email,
+      fallbackRole: role,
+    );
+    return response;
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> forgotPassword({
@@ -120,11 +121,18 @@ class AuthService {
   Future<ServiceResponseModel<Map<String, dynamic>>> confirmEmailVerification({
     required String email,
     required String code,
-  }) {
-    return _apiClient.post(
-      ApiEndPoints.authVerifyEmailConfirm,
-      <String, dynamic>{'email': email, 'code': code},
+  }) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .post(ApiEndPoints.authVerifyEmailConfirm, <String, dynamic>{
+          'email': email,
+          'code': code,
+        });
+    await _persistAuthSessionIfAvailable(
+      response,
+      endpoint: ApiEndPoints.authVerifyEmailConfirm,
+      fallbackEmail: email,
     );
+    return response;
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> demoAccounts() {
@@ -159,6 +167,108 @@ class AuthService {
     });
   }
 
+  Future<void> _persistAuthSessionIfAvailable(
+    ServiceResponseModel<Map<String, dynamic>> response, {
+    required String endpoint,
+    String? fallbackEmail,
+    UserRole? fallbackRole,
+  }) async {
+    if (!_shouldPersistAuthSession(response)) {
+      return;
+    }
+
+    final Map<String, dynamic>? session = _extractSessionPayload(response.data);
+    final String accessToken =
+        (session?['token'] ?? session?['accessToken'] ?? '').toString();
+    if (accessToken.isEmpty) {
+      return;
+    }
+
+    final Map<String, dynamic>? user = _extractUserPayload(session);
+    final String resolvedRole =
+        (user?['role'] as String?)?.toLowerCase() ??
+        fallbackRole?.name ??
+        _role.name;
+    final String resolvedEmail = _resolveSessionEmail(
+      user,
+      fallbackEmail: fallbackEmail,
+    );
+
+    _loggedIn = true;
+    _role = _parseRole(resolvedRole);
+    await _persistSession(
+      endpoint: endpoint,
+      payload: <String, dynamic>{
+        'isLoggedIn': true,
+        'role': _role.name,
+        'email': resolvedEmail,
+        'accessToken': accessToken,
+        'refreshToken': session?['refreshToken'],
+        'sessionId': session?['sessionId'],
+        'tokenType': session?['tokenType'] ?? 'Bearer',
+        'user': user ?? session?['user'],
+      },
+    );
+  }
+
+  bool _shouldPersistAuthSession(
+    ServiceResponseModel<Map<String, dynamic>> response,
+  ) {
+    if (!response.isSuccess) {
+      return false;
+    }
+
+    final dynamic success = response.data['success'];
+    if (success is bool && !success) {
+      return false;
+    }
+
+    return true;
+  }
+
+  Map<String, dynamic>? _extractSessionPayload(Map<String, dynamic> payload) {
+    final dynamic nestedData = payload['data'];
+    if (nestedData is Map<String, dynamic>) {
+      return nestedData;
+    }
+    if (nestedData is Map) {
+      return Map<String, dynamic>.from(nestedData);
+    }
+    if (_looksLikeSessionPayload(payload)) {
+      return payload;
+    }
+    return null;
+  }
+
+  bool _looksLikeSessionPayload(Map<String, dynamic> payload) {
+    return payload.containsKey('token') ||
+        payload.containsKey('accessToken') ||
+        payload.containsKey('refreshToken') ||
+        payload.containsKey('user');
+  }
+
+  Map<String, dynamic>? _extractUserPayload(Map<String, dynamic>? session) {
+    final dynamic user = session?['user'];
+    if (user is Map<String, dynamic>) {
+      return user;
+    }
+    if (user is Map) {
+      return Map<String, dynamic>.from(user);
+    }
+    return null;
+  }
+
+  String _resolveSessionEmail(
+    Map<String, dynamic>? user, {
+    String? fallbackEmail,
+  }) {
+    final String userEmail = (user?['email'] as String? ?? '').trim();
+    if (userEmail.isNotEmpty) {
+      return userEmail;
+    }
+    return fallbackEmail ?? '';
+  }
+
   UserRole _parseRole(String value) {
     switch (value.trim().toLowerCase()) {
       case 'creator':
@@ -173,6 +283,23 @@ class AuthService {
         return UserRole.user;
       default:
         return UserRole.guest;
+    }
+  }
+
+  String _formatSignupRole(UserRole role) {
+    switch (role) {
+      case UserRole.user:
+        return 'User';
+      case UserRole.creator:
+        return 'Creator';
+      case UserRole.business:
+        return 'Business';
+      case UserRole.seller:
+        return 'Seller';
+      case UserRole.recruiter:
+        return 'Recruiter';
+      case UserRole.guest:
+        return 'Guest';
     }
   }
 }

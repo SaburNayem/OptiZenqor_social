@@ -4,10 +4,12 @@ class _SignupStepContent extends StatelessWidget {
   const _SignupStepContent({
     required this.state,
     required this.accountDetailsFormKey,
+    required this.profileDetailsFormKey,
   });
 
   final _SignupState state;
   final GlobalKey<FormState> accountDetailsFormKey;
+  final GlobalKey<FormState> profileDetailsFormKey;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,10 @@ class _SignupStepContent extends StatelessWidget {
       case 2:
         return _SignupRoleStep(state: state);
       case 3:
-        return const _SignupProfileStep();
+        return _SignupProfileStep(
+          state: state,
+          profileDetailsFormKey: profileDetailsFormKey,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -67,6 +72,7 @@ class _SignupAccountStep extends StatelessWidget {
               _SignupTextField(
                 controller: cubit.fullNameController,
                 hint: 'John Doe',
+                onChanged: (_) => cubit.clearError(),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Full name is required';
@@ -80,6 +86,7 @@ class _SignupAccountStep extends StatelessWidget {
                 controller: cubit.emailController,
                 hint: 'hello@example.com',
                 keyboardType: TextInputType.emailAddress,
+                onChanged: (_) => cubit.clearError(),
                 validator: (value) => InputValidators.email(value ?? ''),
               ),
               const SizedBox(height: 24),
@@ -88,6 +95,7 @@ class _SignupAccountStep extends StatelessWidget {
                 controller: cubit.passwordController,
                 hint: 'Create a password',
                 obscureText: state.obscurePassword,
+                onChanged: (_) => cubit.clearError(),
                 validator: (value) => InputValidators.password(value ?? ''),
                 suffixIcon: IconButton(
                   onPressed: cubit.togglePassword,
@@ -105,6 +113,7 @@ class _SignupAccountStep extends StatelessWidget {
                 controller: cubit.confirmPasswordController,
                 hint: 'Repeat password',
                 obscureText: state.obscureConfirmPassword,
+                onChanged: (_) => cubit.clearError(),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please confirm your password';
@@ -136,10 +145,9 @@ class _SignupAccountStep extends StatelessWidget {
           onPressed: () {
             AppGet.snackbar(
               'Google Sign Up',
-              'Google account connected. Complete your setup.',
+              'Google sign-up is not configured yet.',
               snackPosition: SnackPosition.bottom,
             );
-            cubit.continueWithGoogle();
           },
         ),
         const SizedBox(height: 8),
@@ -175,21 +183,38 @@ class _SignupRoleStep extends StatelessWidget {
         const SizedBox(height: 32),
         _SignupRoleCard(
           state: state,
+          role: UserRole.user,
           title: 'User',
           subtitle: 'Discover amazing content and connect with creators',
           icon: Icons.person_outline,
         ),
         _SignupRoleCard(
           state: state,
+          role: UserRole.creator,
           title: 'Creator',
           subtitle: 'Share your work and grow your audience',
           icon: Icons.auto_awesome_outlined,
         ),
         _SignupRoleCard(
           state: state,
+          role: UserRole.business,
           title: 'Business',
           subtitle: 'Partner with creators and reach your audience',
           icon: Icons.business_outlined,
+        ),
+        _SignupRoleCard(
+          state: state,
+          role: UserRole.seller,
+          title: 'Seller',
+          subtitle: 'Showcase products and grow your customer community',
+          icon: Icons.storefront_outlined,
+        ),
+        _SignupRoleCard(
+          state: state,
+          role: UserRole.recruiter,
+          title: 'Recruiter',
+          subtitle: 'Find talent, build teams, and manage hiring outreach',
+          icon: Icons.badge_outlined,
         ),
       ],
     );
@@ -199,22 +224,24 @@ class _SignupRoleStep extends StatelessWidget {
 class _SignupRoleCard extends StatelessWidget {
   const _SignupRoleCard({
     required this.state,
+    required this.role,
     required this.title,
     required this.subtitle,
     required this.icon,
   });
 
   final _SignupState state;
+  final UserRole role;
   final String title;
   final String subtitle;
   final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    final bool isSelected = state.selectedRole == title;
+    final bool isSelected = state.selectedRole == role;
 
     return GestureDetector(
-      onTap: () => context.read<_SignupCubit>().selectRole(title),
+      onTap: () => context.read<_SignupCubit>().selectRole(role),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
@@ -229,7 +256,9 @@ class _SignupRoleCard extends StatelessWidget {
             ),
           ],
           border: Border.all(
-            color: isSelected ? AppColors.splashBackground : AppColors.transparent,
+            color: isSelected
+                ? AppColors.splashBackground
+                : AppColors.transparent,
             width: 2,
           ),
         ),
@@ -284,7 +313,9 @@ class _SignupRoleCard extends StatelessWidget {
                       : AppColors.hexFFEAECF0,
                   width: 2,
                 ),
-                color: isSelected ? AppColors.splashBackground : AppColors.white,
+                color: isSelected
+                    ? AppColors.splashBackground
+                    : AppColors.white,
               ),
               child: isSelected
                   ? const Icon(Icons.check, size: 16, color: AppColors.white)

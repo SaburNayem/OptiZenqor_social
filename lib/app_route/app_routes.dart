@@ -10,5 +10,7 @@ class AppRoutes {
     RouteNames.signup,
     RouteNames.emailVerification,
     RouteNames.forgotPassword,
+    RouteNames.otpVerification,
+    RouteNames.resetPassword,
   };
 }

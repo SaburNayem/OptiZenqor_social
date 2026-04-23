@@ -24,4 +24,14 @@ class FormStateModel {
       successMessage: successMessage,
     );
   }
+
+  @override
+  String toString() {
+    return 'FormStateModel('
+        'isSubmitting: $isSubmitting, '
+        'isValid: $isValid, '
+        'errorMessage: $errorMessage, '
+        'successMessage: $successMessage'
+        ')';
+  }
 }

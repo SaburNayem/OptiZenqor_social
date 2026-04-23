@@ -1,10 +1,21 @@
 part of '../screen/signup_screen.dart';
 
 class _SignupProfileStep extends StatelessWidget {
-  const _SignupProfileStep();
+  const _SignupProfileStep({
+    required this.state,
+    required this.profileDetailsFormKey,
+  });
+
+  final _SignupState state;
+  final GlobalKey<FormState> profileDetailsFormKey;
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<_SignupCubit>();
+    final String? profilePhotoPath = state.profilePhotoPath;
+    final bool hasProfilePhoto =
+        profilePhotoPath != null && profilePhotoPath.trim().isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -26,30 +37,30 @@ class _SignupProfileStep extends StatelessWidget {
         Center(
           child: Column(
             children: [
-              Container(
-                height: 110,
-                width: 110,
-                decoration: const BoxDecoration(
-                  color: AppColors.hexFFF9FAFB,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.camera_alt_outlined,
-                  size: 36,
-                  color: AppColors.hexFF98A2B3,
+              GestureDetector(
+                onTap: () => _showProfilePhotoSourceSheet(context),
+                child: Container(
+                  height: 110,
+                  width: 110,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: const BoxDecoration(
+                    color: AppColors.hexFFF9FAFB,
+                    shape: BoxShape.circle,
+                  ),
+                  child: hasProfilePhoto
+                      ? Image.file(File(profilePhotoPath), fit: BoxFit.cover)
+                      : const Icon(
+                          Icons.camera_alt_outlined,
+                          size: 36,
+                          color: AppColors.hexFF98A2B3,
+                        ),
                 ),
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () {
-                  AppGet.snackbar(
-                    'Upload Photo',
-                    'Static profile photo picker opened',
-                    snackPosition: SnackPosition.bottom,
-                  );
-                },
-                child: const Text(
-                  'Upload Photo',
+                onPressed: () => _showProfilePhotoSourceSheet(context),
+                child: Text(
+                  hasProfilePhoto ? 'Change Photo' : 'Upload Photo',
                   style: TextStyle(
                     color: AppColors.splashBackground,
                     fontWeight: FontWeight.bold,
@@ -57,75 +68,191 @@ class _SignupProfileStep extends StatelessWidget {
                   ),
                 ),
               ),
+              if (hasProfilePhoto)
+                TextButton(
+                  onPressed: cubit.clearProfilePhoto,
+                  child: const Text(
+                    'Remove Photo',
+                    style: TextStyle(
+                      color: AppColors.hexFF667085,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        const _SignupFieldLabel('Username'),
-        const _SignupTextField(hint: 'johndoe'),
-        const SizedBox(height: 24),
-        const _SignupFieldLabel('Bio'),
-        TextFormField(
-          maxLines: 4,
-          decoration: InputDecoration(
-            hintText: 'Write a short bio about yourself...',
-            hintStyle: const TextStyle(color: AppColors.hexFF98A2B3, fontSize: 14),
-            fillColor: AppColors.hexFFF9FAFB,
-            filled: true,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            counterText: '0/150',
-            counterStyle: const TextStyle(color: AppColors.hexFF98A2B3),
+        Form(
+          key: profileDetailsFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _SignupFieldLabel('Username'),
+              _SignupTextField(
+                controller: cubit.usernameController,
+                hint: 'johndoe',
+                onChanged: (_) => cubit.clearError(),
+                validator: (value) {
+                  final String username = value?.trim() ?? '';
+                  if (username.isEmpty) {
+                    return 'Username is required';
+                  }
+                  if (username.length < 3) {
+                    return 'Username must be at least 3 characters';
+                  }
+                  if (!RegExp(r'^[a-zA-Z0-9._]+$').hasMatch(username)) {
+                    return 'Use only letters, numbers, dots, or underscores';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              const _SignupFieldLabel('Bio'),
+              TextFormField(
+                controller: cubit.bioController,
+                maxLines: 4,
+                maxLength: 150,
+                onChanged: (_) => cubit.clearError(),
+                decoration: InputDecoration(
+                  hintText: 'Write a short bio about yourself...',
+                  hintStyle: const TextStyle(
+                    color: AppColors.hexFF98A2B3,
+                    fontSize: 14,
+                  ),
+                  fillColor: AppColors.hexFFF9FAFB,
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  counterStyle: const TextStyle(color: AppColors.hexFF98A2B3),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
-        const SizedBox(height: 24),
-        const _SignupFieldLabel('Interests (Select up to 5)'),
-        const Wrap(
+        Row(
+          children: [
+            const Expanded(
+              child: _SignupFieldLabel('Interests (Select up to 5)'),
+            ),
+            Text(
+              '${state.selectedInterests.length}/$_maxSignupInterests',
+              style: const TextStyle(
+                color: AppColors.hexFF667085,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            _SignupInterestChip('Art'),
-            _SignupInterestChip('Music'),
-            _SignupInterestChip('Tech'),
-            _SignupInterestChip('Travel'),
-            _SignupInterestChip('Food'),
-            _SignupInterestChip('Fashion'),
-            _SignupInterestChip('Sports'),
-            _SignupInterestChip('Gaming'),
-            _SignupInterestChip('Photography'),
-            _SignupInterestChip('Design'),
-            _SignupInterestChip('Writing'),
-            _SignupInterestChip('Film'),
-          ],
+          children: _availableSignupInterests
+              .map((String interest) {
+                return _SignupInterestChip(
+                  label: interest,
+                  selected: state.selectedInterests.contains(interest),
+                  onTap: () => cubit.toggleInterest(interest),
+                );
+              })
+              .toList(growable: false),
         ),
         const SizedBox(height: 32),
       ],
     );
   }
+
+  Future<void> _showProfilePhotoSourceSheet(BuildContext context) async {
+    final cubit = context.read<_SignupCubit>();
+    final String? action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (BuildContext bottomSheetContext) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Choose from Gallery'),
+                onTap: () => Navigator.of(bottomSheetContext).pop('gallery'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text('Take Photo'),
+                onTap: () => Navigator.of(bottomSheetContext).pop('camera'),
+              ),
+              if (state.profilePhotoPath != null)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline),
+                  title: const Text('Remove Photo'),
+                  onTap: () => Navigator.of(bottomSheetContext).pop('remove'),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!context.mounted || action == null) {
+      return;
+    }
+
+    switch (action) {
+      case 'gallery':
+        await cubit.pickProfilePhotoFromGallery();
+        return;
+      case 'camera':
+        await cubit.captureProfilePhoto();
+        return;
+      case 'remove':
+        cubit.clearProfilePhoto();
+        return;
+    }
+  }
 }
 
 class _SignupInterestChip extends StatelessWidget {
-  const _SignupInterestChip(this.label);
+  const _SignupInterestChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.hexFFEAECF0),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.hexFF344054,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.splashBackground.withValues(alpha: 0.12)
+              : AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected
+                ? AppColors.splashBackground
+                : AppColors.hexFFEAECF0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected
+                ? AppColors.splashBackground
+                : AppColors.hexFF344054,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
         ),
       ),
     );
@@ -161,6 +288,7 @@ class _SignupTextField extends StatelessWidget {
     this.keyboardType,
     this.validator,
     this.suffixIcon,
+    this.onChanged,
   });
 
   final TextEditingController? controller;
@@ -169,6 +297,7 @@ class _SignupTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
   final Widget? suffixIcon;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -177,6 +306,7 @@ class _SignupTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
+      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: AppColors.hexFFD0D5DD, fontSize: 14),

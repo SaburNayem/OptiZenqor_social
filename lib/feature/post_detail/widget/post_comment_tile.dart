@@ -20,7 +20,7 @@ class PostCommentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String avatarUrl = _avatarFor(comment.author);
+    final String avatarUrl = _avatarFor(comment);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -61,7 +61,7 @@ class PostCommentTile extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: '@${comment.author}  ',
+                          text: '@${comment.authorUsername ?? comment.author}  ',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextSpan(text: comment.message),
@@ -140,8 +140,11 @@ class PostCommentTile extends StatelessWidget {
     );
   }
 
-  String _avatarFor(String username) {
-    final match = MockData.users.where((user) => user.username == username);
+  String _avatarFor(PostCommentModel comment) {
+    if (comment.authorAvatar != null && comment.authorAvatar!.isNotEmpty) {
+      return comment.authorAvatar!;
+    }
+    final match = MockData.users.where((user) => user.id == comment.authorId);
     if (match.isNotEmpty) {
       return match.first.avatar;
     }

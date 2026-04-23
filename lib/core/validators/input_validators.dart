@@ -13,6 +13,9 @@ class InputValidators {
   }
 
   static String? password(String value) {
+    if (value.trim().isEmpty) {
+      return 'Password is required';
+    }
     if (value.trim().length < 8) {
       return 'Password must be at least 8 characters';
     }
@@ -20,9 +23,6 @@ class InputValidators {
   }
 
   static String? loginPassword(String value) {
-    if (value.trim().isEmpty) {
-      return 'Password is required';
-    }
-    return null;
+    return password(value);
   }
 }

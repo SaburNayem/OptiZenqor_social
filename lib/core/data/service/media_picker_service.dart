@@ -33,13 +33,31 @@ class MediaPickerService {
     return files.map((file) => file.path).toList(growable: false);
   }
 
-  Future<String?> pickImage() async {
-    final file = await _picker.pickImage(source: ImageSource.gallery);
+  Future<String?> pickImage({
+    int? imageQuality,
+    double? maxWidth,
+    double? maxHeight,
+  }) async {
+    final XFile? file = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: imageQuality,
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+    );
     return file?.path;
   }
 
-  Future<String?> captureImage() async {
-    final file = await _picker.pickImage(source: ImageSource.camera);
+  Future<String?> captureImage({
+    int? imageQuality,
+    double? maxWidth,
+    double? maxHeight,
+  }) async {
+    final XFile? file = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: imageQuality,
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+    );
     return file?.path;
   }
 

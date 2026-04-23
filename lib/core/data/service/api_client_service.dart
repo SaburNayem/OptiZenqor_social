@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 
 import '../../config/app_config.dart';
 import '../../constants/storage_keys.dart';
@@ -39,6 +41,98 @@ class ApiClientService {
     return _send(method: 'POST', endpoint: endpoint, payload: payload);
   }
 
+  Future<ServiceResponseModel<Map<String, dynamic>>> postMultipart(
+    String endpoint, {
+    required String fileField,
+    required String filePath,
+    Map<String, String>? fields,
+    String? filename,
+  }) async {
+    final String resolvedEndpoint = _resolveEndpoint(endpoint);
+    final Uri uri = Uri.parse(resolvedEndpoint);
+    final Stopwatch stopwatch = Stopwatch()..start();
+    final Map<String, String> headers = await _buildHeaders(
+      includeJsonContentType: false,
+    );
+    _logRequest(
+      method: 'POST',
+      endpoint: resolvedEndpoint,
+      headers: headers,
+      payload: <String, dynamic>{
+        'multipart': true,
+        'fileField': fileField,
+        'fileName': filename ?? path.basename(filePath),
+        'fields': fields ?? const <String, String>{},
+      },
+    );
+
+    try {
+      final http.MultipartRequest request = http.MultipartRequest('POST', uri)
+        ..headers.addAll(headers)
+        ..fields.addAll(fields ?? const <String, String>{})
+        ..files.add(
+          await http.MultipartFile.fromPath(
+            fileField,
+            filePath,
+            filename: filename ?? path.basename(filePath),
+          ),
+        );
+
+      final http.StreamedResponse streamedResponse = await _client
+          .send(request)
+          .timeout(Duration(milliseconds: AppConfig.uploadTimeoutMs));
+      final http.Response response = await http.Response.fromStream(
+        streamedResponse,
+      );
+      final Map<String, dynamic> responseBody = _decodeResponseBody(
+        response.bodyBytes,
+      );
+      stopwatch.stop();
+      _logResponse(
+        method: 'POST',
+        endpoint: resolvedEndpoint,
+        statusCode: response.statusCode,
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        responseBody: responseBody,
+      );
+
+      return ServiceResponseModel<Map<String, dynamic>>(
+        endpoint: resolvedEndpoint,
+        statusCode: response.statusCode,
+        data: responseBody,
+        message: _extractMessage(responseBody, response.reasonPhrase),
+      );
+    } on TimeoutException {
+      final String timeoutMessage = _buildTimeoutMessage();
+      _logNetworkIssue('timeout', resolvedEndpoint, timeoutMessage);
+      return ServiceResponseModel<Map<String, dynamic>>(
+        endpoint: resolvedEndpoint,
+        statusCode: 408,
+        data: <String, dynamic>{'success': false, 'message': timeoutMessage},
+        message: timeoutMessage,
+      );
+    } on http.ClientException catch (error) {
+      final String clientErrorMessage = _buildClientErrorMessage(error.message);
+      _logNetworkIssue('client_error', resolvedEndpoint, clientErrorMessage);
+      return ServiceResponseModel<Map<String, dynamic>>(
+        endpoint: resolvedEndpoint,
+        statusCode: 503,
+        data: <String, dynamic>{
+          'success': false,
+          'message': clientErrorMessage,
+        },
+        message: clientErrorMessage,
+      );
+    } on Exception catch (error) {
+      return ServiceResponseModel<Map<String, dynamic>>(
+        endpoint: resolvedEndpoint,
+        statusCode: 400,
+        data: <String, dynamic>{'success': false, 'message': error.toString()},
+        message: error.toString(),
+      );
+    }
+  }
+
   Future<ServiceResponseModel<Map<String, dynamic>>> patch(
     String endpoint,
     Map<String, dynamic> payload,
@@ -70,10 +164,17 @@ class ApiClientService {
         ..headers.addAll(
           await _buildHeaders(includeJsonContentType: method != 'GET'),
         );
+      final Stopwatch stopwatch = Stopwatch()..start();
 
       if (payload != null && payload.isNotEmpty) {
         request.body = jsonEncode(payload);
       }
+      _logRequest(
+        method: method,
+        endpoint: resolvedEndpoint,
+        headers: request.headers,
+        payload: payload,
+      );
 
       final http.StreamedResponse streamedResponse = await _client
           .send(request)
@@ -84,6 +185,14 @@ class ApiClientService {
       final Map<String, dynamic> responseBody = _decodeResponseBody(
         response.bodyBytes,
       );
+      stopwatch.stop();
+      _logResponse(
+        method: method,
+        endpoint: resolvedEndpoint,
+        statusCode: response.statusCode,
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        responseBody: responseBody,
+      );
 
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
@@ -92,21 +201,25 @@ class ApiClientService {
         message: _extractMessage(responseBody, response.reasonPhrase),
       );
     } on TimeoutException {
+      final String timeoutMessage = _buildTimeoutMessage();
+      _logNetworkIssue('timeout', resolvedEndpoint, timeoutMessage);
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
         statusCode: 408,
-        data: <String, dynamic>{
-          'success': false,
-          'message': 'Request timed out.',
-        },
-        message: 'Request timed out.',
+        data: <String, dynamic>{'success': false, 'message': timeoutMessage},
+        message: timeoutMessage,
       );
     } on http.ClientException catch (error) {
+      final String clientErrorMessage = _buildClientErrorMessage(error.message);
+      _logNetworkIssue('client_error', resolvedEndpoint, clientErrorMessage);
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
         statusCode: 503,
-        data: <String, dynamic>{'success': false, 'message': error.message},
-        message: error.message,
+        data: <String, dynamic>{
+          'success': false,
+          'message': clientErrorMessage,
+        },
+        message: clientErrorMessage,
       );
     }
   }
@@ -161,6 +274,136 @@ class ApiClientService {
       return message;
     }
     return fallback;
+  }
+
+  String _buildTimeoutMessage() {
+    return _appendDebugHint(
+      'Request timed out. Check your connection and try again.',
+    );
+  }
+
+  String _buildClientErrorMessage(String message) {
+    final String trimmedMessage = message.trim();
+    if (trimmedMessage.isEmpty) {
+      return _appendDebugHint(
+        'Unable to reach the server. Check your connection and try again.',
+      );
+    }
+    return _appendDebugHint(trimmedMessage);
+  }
+
+  String _appendDebugHint(String message) {
+    if (!kDebugMode) {
+      return message;
+    }
+
+    final StringBuffer buffer = StringBuffer(message)
+      ..write(' Using API: ')
+      ..write(baseUrl)
+      ..write('.');
+    final String? hint = AppConfig.debugLocalNetworkHint;
+    if (hint != null) {
+      buffer
+        ..write(' ')
+        ..write(hint);
+    }
+    return buffer.toString();
+  }
+
+  void _logNetworkIssue(String type, String endpoint, String message) {
+    if (!kDebugMode) {
+      return;
+    }
+
+    debugPrint(
+      '[ApiClientService] $type baseUrl=$baseUrl endpoint=$endpoint '
+      'message=$message',
+    );
+  }
+
+  void _logRequest({
+    required String method,
+    required String endpoint,
+    required Map<String, String> headers,
+    Object? payload,
+  }) {
+    if (!kDebugMode) {
+      return;
+    }
+
+    debugPrint(
+      '[ApiRequest] method=$method endpoint=$endpoint '
+      'headers=${_encodeForLog(_sanitizeValue(headers))} '
+      'payload=${_encodeForLog(_sanitizeValue(payload))}',
+    );
+  }
+
+  void _logResponse({
+    required String method,
+    required String endpoint,
+    required int statusCode,
+    required int elapsedMs,
+    required Object? responseBody,
+  }) {
+    if (!kDebugMode) {
+      return;
+    }
+
+    debugPrint(
+      '[ApiResponse] method=$method endpoint=$endpoint '
+      'status=$statusCode elapsedMs=$elapsedMs '
+      'body=${_encodeForLog(_sanitizeValue(responseBody))}',
+    );
+  }
+
+  Object? _sanitizeValue(Object? value, {String? keyHint}) {
+    if (value == null) {
+      return null;
+    }
+    if (value is Map) {
+      return value.map<String, Object?>((dynamic key, dynamic nestedValue) {
+        final String keyText = key.toString();
+        return MapEntry(keyText, _sanitizeValue(nestedValue, keyHint: keyText));
+      });
+    }
+    if (value is List) {
+      return value
+          .map<Object?>((Object? item) => _sanitizeValue(item))
+          .toList(growable: false);
+    }
+    if (value is String) {
+      final String loweredKey = keyHint?.toLowerCase() ?? '';
+      if (_shouldRedact(loweredKey)) {
+        return '[redacted]';
+      }
+      return _truncateForLog(value);
+    }
+    return value;
+  }
+
+  bool _shouldRedact(String key) {
+    return key.contains('authorization') ||
+        key.contains('token') ||
+        key.contains('password') ||
+        key.contains('secret') ||
+        key == 'code';
+  }
+
+  String _encodeForLog(Object? value) {
+    try {
+      return _truncateForLog(jsonEncode(value));
+    } on Object {
+      return _truncateForLog(value.toString());
+    }
+  }
+
+  String _truncateForLog(String value) {
+    const int maxLength = 900;
+    final String normalized = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.length <= maxLength) {
+      return normalized;
+    }
+    return '${normalized.substring(0, maxLength)}...';
   }
 
   String _resolveEndpoint(

@@ -43,9 +43,12 @@ class AppRouter {
       case RouteNames.forgotPassword:
         return const ForgotPasswordScreen();
       case RouteNames.otpVerification:
-        return const OtpVerificationScreen();
+        return OtpVerificationScreen(email: _emailFromArguments(arguments));
       case RouteNames.resetPassword:
-        return const ResetPasswordScreen();
+        return ResetPasswordScreen(
+          email: _emailFromArguments(arguments),
+          otp: _otpFromArguments(arguments),
+        );
       case RouteNames.shell:
         return MainShellScreen(arguments: arguments);
       case RouteNames.searchDiscovery:
@@ -232,6 +235,16 @@ class AppRouter {
     return null;
   }
 
+  static String? _otpFromArguments(Object? arguments) {
+    if (arguments is Map) {
+      final Object? otp = arguments['otp'];
+      if (otp is String && otp.trim().isNotEmpty) {
+        return otp.trim();
+      }
+    }
+    return null;
+  }
+
   static MediaViewerRouteArguments? _mediaViewerArguments(Object? arguments) {
     if (arguments is MediaViewerRouteArguments) {
       return arguments;
@@ -261,4 +274,3 @@ class AppRouter {
     return null;
   }
 }
-

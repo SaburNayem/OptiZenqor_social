@@ -4,6 +4,8 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../app_route/route_names.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../model/auth_exception.dart';
+import '../../repository/auth_repository.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key, this.email});
@@ -17,8 +19,14 @@ class EmailVerificationScreen extends StatefulWidget {
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   static const int _codeLength = 6;
+
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
+  final AuthRepository _authRepository = AuthRepository();
+
+  bool _isSubmitting = false;
+  bool _isResending = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -27,10 +35,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       _codeLength,
       (_) => TextEditingController(),
     );
-    _focusNodes = List<FocusNode>.generate(
-      _codeLength,
-      (_) => FocusNode(),
-    );
+    _focusNodes = List<FocusNode>.generate(_codeLength, (_) => FocusNode());
   }
 
   @override
@@ -45,6 +50,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   String get _code => _controllers.map((controller) => controller.text).join();
+
+  String get _trimmedEmail => widget.email?.trim() ?? '';
+
+  bool get _hasEmail => _trimmedEmail.isNotEmpty;
 
   bool get _isCodeComplete => _code.length == _codeLength;
 
@@ -62,34 +71,141 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     } else if (digit.isNotEmpty && index < _focusNodes.length - 1) {
       _focusNodes[index + 1].requestFocus();
     }
-    if (mounted) {
-      setState(() {});
+
+    if (_errorMessage != null || mounted) {
+      setState(() {
+        _errorMessage = null;
+      });
     }
   }
 
-  void _confirmCode() {
-    if (!_isCodeComplete) {
-      AppGet.snackbar(
-        'Enter Code',
-        'Please enter the full 6-digit verification code.',
-        snackPosition: SnackPosition.bottom,
-      );
+  Future<void> _confirmCode() async {
+    if (_isSubmitting || _isResending) {
       return;
     }
-    AppGet.offAllNamed(RouteNames.shell);
+
+    if (!_hasEmail) {
+      setState(() {
+        _errorMessage =
+            'Email address is missing. Please go back and create your account again.';
+      });
+      return;
+    }
+
+    if (!_isCodeComplete) {
+      setState(() {
+        _errorMessage = 'Please enter the full 6-digit verification code.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await _authRepository.confirmEmailVerification(
+        email: _trimmedEmail,
+        code: _code,
+      );
+      final bool hasSession = await _authRepository.hasSession();
+      if (!mounted) {
+        return;
+      }
+
+      AppGet.snackbar(
+        'Email Verified',
+        hasSession
+            ? 'Your account is ready to use.'
+            : 'Your email is verified. Please log in to continue.',
+        snackPosition: SnackPosition.bottom,
+      );
+      AppGet.offAllNamed(hasSession ? RouteNames.shell : RouteNames.login);
+    } on AuthException catch (error, stackTrace) {
+      debugPrint('[EmailVerification] Failed: ${error.message}');
+      debugPrint('$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = error.message;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('[EmailVerification] Failed: $error');
+      debugPrint('$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = 'Unable to verify your email right now.';
+      });
+    }
   }
 
-  void _resendCode(String displayEmail) {
-    for (final controller in _controllers) {
-      controller.clear();
+  Future<void> _resendCode(String displayEmail) async {
+    if (_isSubmitting || _isResending) {
+      return;
     }
-    _focusNodes.first.requestFocus();
-    setState(() {});
-    AppGet.snackbar(
-      'Code Sent',
-      'A new 6-digit code was sent to $displayEmail.',
-      snackPosition: SnackPosition.bottom,
-    );
+
+    if (!_hasEmail) {
+      setState(() {
+        _errorMessage =
+            'Email address is missing. Please go back and create your account again.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isResending = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final String message = await _authRepository.resendEmailVerificationCode(
+        email: _trimmedEmail,
+      );
+      if (!mounted) {
+        return;
+      }
+
+      for (final controller in _controllers) {
+        controller.clear();
+      }
+      _focusNodes.first.requestFocus();
+      setState(() {
+        _isResending = false;
+      });
+      AppGet.snackbar(
+        'Code Sent',
+        message.isNotEmpty
+            ? message
+            : 'A new 6-digit code was sent to $displayEmail.',
+        snackPosition: SnackPosition.bottom,
+      );
+    } on AuthException catch (error, stackTrace) {
+      debugPrint('[EmailVerification] Resend failed: ${error.message}');
+      debugPrint('$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isResending = false;
+        _errorMessage = error.message;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('[EmailVerification] Resend failed: $error');
+      debugPrint('$stackTrace');
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isResending = false;
+        _errorMessage = 'Unable to resend the verification code right now.';
+      });
+    }
   }
 
   Widget _buildCodeField({
@@ -108,6 +224,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       child: TextField(
         controller: _controllers[index],
         focusNode: _focusNodes[index],
+        enabled: !_isSubmitting && !_isResending,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         textInputAction: index == _codeLength - 1
@@ -119,9 +236,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           color: AppColors.hexFF101828,
         ),
         maxLength: 1,
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-        ],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         decoration: InputDecoration(
           counterText: '',
           filled: true,
@@ -129,9 +244,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           contentPadding: EdgeInsets.zero,
           border: OutlineInputBorder(
             borderRadius: borderRadius,
-            borderSide: const BorderSide(
-              color: AppColors.hexFFEAECF0,
-            ),
+            borderSide: const BorderSide(color: AppColors.hexFFEAECF0),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: borderRadius,
@@ -161,9 +274,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String displayEmail = (widget.email?.trim().isNotEmpty ?? false)
-        ? widget.email!.trim()
-        : 'your email';
+    final String displayEmail = _hasEmail ? _trimmedEmail : 'your email';
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -172,7 +283,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.hexFF868E96),
-          onPressed: AppGet.back,
+          onPressed: _isSubmitting ? null : AppGet.back,
         ),
       ),
       body: SafeArea(
@@ -198,7 +309,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'We sent a 6-digit code to $displayEmail. Enter it below to confirm your account.',
+                'Enter the 6-digit code sent to $displayEmail to confirm your account.',
                 style: const TextStyle(
                   fontSize: 16,
                   height: 1.5,
@@ -233,8 +344,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                             : 8;
                         final double fieldWidth =
                             (constraints.maxWidth -
-                                    (spacing * (_codeLength - 1))) /
-                                _codeLength;
+                                (spacing * (_codeLength - 1))) /
+                            _codeLength;
                         final double fieldHeight = fieldWidth < 40 ? 54 : 58;
                         final double fontSize = fieldWidth < 38 ? 18 : 22;
 
@@ -270,6 +381,29 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ],
                 ),
               ),
+              if (_errorMessage != null &&
+                  _errorMessage!.trim().isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.red.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -282,9 +416,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Confirm',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    _isSubmitting ? 'Confirming...' : 'Confirm',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -300,9 +437,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Resend Code',
-                    style: TextStyle(
+                  child: Text(
+                    _isResending ? 'Sending...' : 'Resend Code',
+                    style: const TextStyle(
                       color: AppColors.hexFF344054,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -313,7 +450,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               const SizedBox(height: 8),
               Center(
                 child: TextButton(
-                  onPressed: AppGet.back,
+                  onPressed: _isSubmitting ? null : AppGet.back,
                   child: const Text(
                     'Use a different email',
                     style: TextStyle(

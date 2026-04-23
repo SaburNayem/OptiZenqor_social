@@ -214,6 +214,21 @@ class PostCard extends StatelessWidget {
                           style: TextStyle(color: AppColors.grey600, fontSize: 13),
                         ),
                       ),
+                    if (post.shareCount > 0 || post.viewCount > 0) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        [
+                          if (post.shareCount > 0)
+                            '${FormatHelper.formatCompactNumber(post.shareCount)} shares',
+                          if (post.viewCount > 0)
+                            '${FormatHelper.formatCompactNumber(post.viewCount)} views',
+                        ].join(' | '),
+                        style: TextStyle(
+                          color: AppColors.grey600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

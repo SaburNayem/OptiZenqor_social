@@ -39,7 +39,9 @@ class HiddenPostsScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       children: hiddenPosts
                           .map((post) {
-                            final user = MockData.users
+                            final user =
+                                post.author ??
+                                MockData.users
                                 .where((item) => item.id == post.authorId)
                                 .firstOrNull;
                             if (user == null) {
