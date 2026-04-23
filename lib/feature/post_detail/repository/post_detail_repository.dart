@@ -126,7 +126,10 @@ class PostDetailRepository {
     required String message,
     String? replyTo,
   }) async {
-    final UserModel currentUser = await _currentUser();
+    final UserModel? currentUser = await currentUserProfile();
+    if (currentUser == null) {
+      throw Exception('You must be signed in to comment.');
+    }
     final String endpoint = replyTo == null || replyTo.trim().isEmpty
         ? ApiEndPoints.postComments(postId)
         : ApiEndPoints.postCommentReplies(postId, replyTo);

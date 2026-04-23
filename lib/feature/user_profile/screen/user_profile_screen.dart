@@ -9,6 +9,7 @@ import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../media_viewer/model/media_viewer_item_model.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
+import '../../post_detail/screen/post_detail_screen.dart';
 import '../controller/user_profile_controller.dart';
 import '../repository/user_profile_repository.dart';
 import 'edit_profile_screen.dart';
@@ -640,35 +641,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildLegacyMediaGrid({
-    required List<String> titles,
-    required List<String> badges,
-    required IconData icon,
-    required String onTapRoute,
-  }) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
-      itemCount: titles.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 2,
-      ),
-      itemBuilder: (BuildContext context, int index) {
-        return InkWell(
-          onTap: () => AppGet.toNamed(onTapRoute),
-          child: _MediaTile(
-            title: titles[index],
-            badge: badges[index].isEmpty ? null : badges[index],
-            icon: icon,
-          ),
-        );
-      },
     );
   }
 

@@ -7,7 +7,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/helpers/format_helper.dart';
-import '../../../core/widgets/app_avatar.dart';
 import '../../bookmarks/controller/bookmarks_controller.dart';
 import '../../bookmarks/widget/save_post_collection_sheet.dart';
 import '../../media_viewer/controller/media_viewer_controller.dart';
