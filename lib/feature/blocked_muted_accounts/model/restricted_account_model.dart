@@ -38,7 +38,9 @@ class RestrictedAccountModel {
         json['name'] ?? json['displayName'],
         fallback: username.isEmpty ? 'Unknown account' : username,
       ),
-      handle: username.startsWith('@') ? username : '@$username',
+      handle: username.isEmpty
+          ? '@account'
+          : (username.startsWith('@') ? username : '@$username'),
       status: status,
       avatarUrl: ApiPayloadReader.readString(
         json['avatarUrl'] ?? json['avatar'],

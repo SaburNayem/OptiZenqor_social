@@ -19,6 +19,7 @@ class VerificationRequestRepository {
     status: VerificationStatus.notRequested,
     reason: 'Submit creator or business documents to start review.',
     selectedDocuments: <String>[],
+    requiredDocuments: <String>['Government ID', 'Business proof', 'Profile photo'],
   );
 
   Future<VerificationRequestModel> load() async {

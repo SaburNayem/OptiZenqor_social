@@ -18,15 +18,19 @@ class VerificationRequestController extends ChangeNotifier {
     status: VerificationStatus.notRequested,
     reason: 'Not submitted',
     selectedDocuments: <String>[],
+    requiredDocuments: <String>[],
   );
   bool isLoading = true;
 
   Future<void> load() async {
     isLoading = true;
     notifyListeners();
-    requiredDocuments =
-        await _repository.loadRequiredDocuments() ?? requiredDocuments;
     model = await _repository.load();
+    requiredDocuments =
+        await _repository.loadRequiredDocuments() ??
+        (model.requiredDocuments.isNotEmpty
+            ? model.requiredDocuments
+            : requiredDocuments);
     isLoading = false;
     notifyListeners();
   }

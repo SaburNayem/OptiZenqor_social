@@ -50,7 +50,7 @@ class BlockedMutedAccountsRepository {
   Future<List<RestrictedAccountModel>> loadBlocked() async {
     final List<RestrictedAccountModel>? remoteBlocked = await _loadFromApi(
       status: 'blocked',
-      preferredKeys: const <String>['blocked', 'users'],
+      preferredKeys: const <String>['blocked', 'blockedAccounts', 'users'],
     );
     if (remoteBlocked != null) {
       await saveBlocked(remoteBlocked);
@@ -68,7 +68,7 @@ class BlockedMutedAccountsRepository {
   Future<List<RestrictedAccountModel>> loadMuted() async {
     final List<RestrictedAccountModel>? remoteMuted = await _loadFromApi(
       status: 'muted',
-      preferredKeys: const <String>['muted', 'users'],
+      preferredKeys: const <String>['muted', 'mutedAccounts', 'users'],
     );
     if (remoteMuted != null) {
       await saveMuted(remoteMuted);

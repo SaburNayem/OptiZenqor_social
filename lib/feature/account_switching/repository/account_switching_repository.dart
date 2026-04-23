@@ -69,10 +69,17 @@ class AccountSwitchingRepository {
     await _storage.write(StorageKeys.activeAccountId, accountId);
 
     try {
-      await _service.postEndpoint(
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.postEndpoint(
         'active',
         payload: <String, dynamic>{'accountId': accountId},
       );
+      if (response.isSuccess && response.data['success'] != false) {
+        final String resolvedAccountId = _extractActiveAccountId(response.data);
+        if (resolvedAccountId.isNotEmpty) {
+          await _storage.write(StorageKeys.activeAccountId, resolvedAccountId);
+        }
+      }
     } catch (_) {}
   }
 
@@ -106,12 +113,7 @@ class AccountSwitchingRepository {
       final ServiceResponseModel<Map<String, dynamic>> response =
           await _service.getEndpoint('active');
       if (response.isSuccess && response.data['success'] != false) {
-        final Map<String, dynamic>? active = ApiPayloadReader.readMap(
-          response.data['data'] ?? response.data['active'] ?? response.data['account'],
-        );
-        final String accountId = ApiPayloadReader.readString(
-          response.data['accountId'] ?? active?['id'],
-        );
+        final String accountId = _extractActiveAccountId(response.data);
         if (accountId.isNotEmpty) {
           await _storage.write(StorageKeys.activeAccountId, accountId);
           return accountId;
@@ -120,5 +122,18 @@ class AccountSwitchingRepository {
     } catch (_) {}
 
     return _storage.read<String>(StorageKeys.activeAccountId);
+  }
+
+  String _extractActiveAccountId(Map<String, dynamic> payload) {
+    final Map<String, dynamic>? active = ApiPayloadReader.readMap(
+      payload['active'] ?? payload['account'],
+    );
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(payload['data']);
+    return ApiPayloadReader.readString(
+      payload['activeAccountId'] ??
+          payload['accountId'] ??
+          active?['id'] ??
+          data?['id'],
+    );
   }
 }

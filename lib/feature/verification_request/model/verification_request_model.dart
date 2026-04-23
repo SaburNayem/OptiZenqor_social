@@ -7,18 +7,21 @@ class VerificationRequestModel {
     required this.status,
     required this.reason,
     required this.selectedDocuments,
+    this.requiredDocuments = const <String>[],
     this.submittedAt,
   });
 
   final VerificationStatus status;
   final String reason;
   final List<String> selectedDocuments;
+  final List<String> requiredDocuments;
   final DateTime? submittedAt;
 
   VerificationRequestModel copyWith({
     VerificationStatus? status,
     String? reason,
     List<String>? selectedDocuments,
+    List<String>? requiredDocuments,
     DateTime? submittedAt,
     bool clearSubmittedAt = false,
   }) {
@@ -26,6 +29,7 @@ class VerificationRequestModel {
       status: status ?? this.status,
       reason: reason ?? this.reason,
       selectedDocuments: selectedDocuments ?? this.selectedDocuments,
+      requiredDocuments: requiredDocuments ?? this.requiredDocuments,
       submittedAt: clearSubmittedAt ? null : submittedAt ?? this.submittedAt,
     );
   }
@@ -45,6 +49,9 @@ class VerificationRequestModel {
       selectedDocuments: List<String>.from(
         json['selectedDocuments'] as List<dynamic>? ?? const <dynamic>[],
       ),
+      requiredDocuments: List<String>.from(
+        json['requiredDocuments'] as List<dynamic>? ?? const <dynamic>[],
+      ),
       submittedAt: json['submittedAt'] == null
           ? null
           : DateTime.tryParse(json['submittedAt'] as String),
@@ -53,7 +60,9 @@ class VerificationRequestModel {
 
   factory VerificationRequestModel.fromApiJson(Map<String, dynamic> json) {
     final Map<String, dynamic> data =
-        ApiPayloadReader.readMap(json['data']) ?? json;
+        ApiPayloadReader.readMap(json['data']) ??
+        ApiPayloadReader.readMap(json['result']) ??
+        json;
 
     return VerificationRequestModel(
       status: VerificationStatus.values.firstWhere(
@@ -72,6 +81,9 @@ class VerificationRequestModel {
       selectedDocuments: ApiPayloadReader.readStringList(
         data['selectedDocuments'] ?? data['documents'],
       ),
+      requiredDocuments: ApiPayloadReader.readStringList(
+        data['requiredDocuments'] ?? json['requiredDocuments'],
+      ),
       submittedAt: ApiPayloadReader.readDateTime(data['submittedAt']),
     );
   }
@@ -81,6 +93,7 @@ class VerificationRequestModel {
       'status': status.name,
       'reason': reason,
       'selectedDocuments': selectedDocuments,
+      'requiredDocuments': requiredDocuments,
       'submittedAt': submittedAt?.toIso8601String(),
     };
   }
