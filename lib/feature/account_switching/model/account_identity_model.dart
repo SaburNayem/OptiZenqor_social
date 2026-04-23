@@ -37,7 +37,9 @@ class AccountIdentityModel {
     return AccountIdentityModel(
       id: ApiPayloadReader.readString(json['id']),
       name: name,
-      handle: username.startsWith('@') ? username : '@$username',
+      handle: username.isEmpty
+          ? '@account'
+          : (username.startsWith('@') ? username : '@$username'),
       roleLabel: ApiPayloadReader.readString(
         json['roleLabel'] ?? json['role'],
         fallback: 'Personal',

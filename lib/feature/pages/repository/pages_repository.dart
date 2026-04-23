@@ -186,8 +186,10 @@ class PagesRepository {
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
+      final Map<String, dynamic> payload =
+          ApiPayloadReader.readMap(response.data['data']) ?? response.data;
       final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
-        response.data,
+        payload,
         preferredKeys: const <String>['pages', 'items'],
       );
       if (items.isNotEmpty) {
@@ -195,6 +197,15 @@ class PagesRepository {
             .map(PageModel.fromApiJson)
             .where((PageModel item) => item.id.isNotEmpty)
             .toList(growable: false);
+      }
+      final Map<String, dynamic>? singlePage = ApiPayloadReader.readMap(
+        payload['page'] ?? payload['item'],
+      );
+      if (singlePage != null && singlePage.isNotEmpty) {
+        final PageModel page = PageModel.fromApiJson(singlePage);
+        if (page.id.isNotEmpty) {
+          return <PageModel>[page];
+        }
       }
     } catch (_) {}
     return null;

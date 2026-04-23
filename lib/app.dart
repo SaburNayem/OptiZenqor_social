@@ -18,9 +18,7 @@ class OptiZenqorApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<MainShellController>(create: (_) => MainShellController()),
-        BlocProvider<HomeFeedController>(
-          create: (_) => HomeFeedController()..loadInitial(),
-        ),
+        BlocProvider<HomeFeedController>(create: (_) => HomeFeedController()),
         BlocProvider<BookmarksController>(
           create: (_) => BookmarksController()..load(),
         ),

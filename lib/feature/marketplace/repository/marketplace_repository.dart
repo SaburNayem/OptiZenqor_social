@@ -775,60 +775,239 @@ class MarketplaceRepository {
           continue;
         }
 
-        final List<Map<String, dynamic>> productItems =
-            ApiPayloadReader.readMapList(
-              response.data,
-              preferredKeys: const <String>['products', 'items'],
-            );
+        final Map<String, dynamic> payload = _resolveMarketplacePayload(
+          response.data,
+        );
+        final List<Map<String, dynamic>> productItems = ApiPayloadReader.readMapList(
+          payload,
+          preferredKeys: const <String>['products', 'items'],
+        );
         if (productItems.isEmpty) {
           continue;
         }
 
         final List<ProductModel> products = productItems
             .map(ProductModel.fromApiJson)
-            .where((ProductModel item) => item.id.isNotEmpty)
-            .toList(growable: false);
+              .where((ProductModel item) => item.id.isNotEmpty)
+              .toList(growable: false);
         if (products.isEmpty) {
           continue;
         }
 
-        final List<SellerModel> sellers = _deriveSellers(products);
-        final List<MarketplaceCategoryModel> categories =
-            _deriveCategories(products);
+        final List<SellerModel> sellers = _readSellers(payload, products);
+        final List<MarketplaceCategoryModel> categories = _readCategories(
+          payload,
+          products,
+        );
 
         return MarketplaceSeedData(
           products: products,
           sellers: sellers,
           categories: categories,
-          savedItemIds: ApiPayloadReader.readStringList(
-            response.data['savedItemIds'],
-          ),
+          savedItemIds: ApiPayloadReader.readStringList(payload['savedItemIds']),
           followedSellerIds: ApiPayloadReader.readStringList(
-            response.data['followedSellerIds'],
+            payload['followedSellerIds'],
           ),
-          savedSearches: ApiPayloadReader.readStringList(
-            response.data['savedSearches'],
-          ),
+          savedSearches: ApiPayloadReader.readStringList(payload['savedSearches']),
           recentSearches: ApiPayloadReader.readStringList(
-            response.data['recentSearches'],
+            payload['recentSearches'],
           ),
           trendingSearches: ApiPayloadReader.readStringList(
-            response.data['trendingSearches'],
+            payload['trendingSearches'],
           ),
-          notifications: ApiPayloadReader.readStringList(
-            response.data['notifications'],
-          ),
+          notifications: ApiPayloadReader.readStringList(payload['notifications']),
           blockedKeywords: ApiPayloadReader.readStringList(
-            response.data['blockedKeywords'],
+            payload['blockedKeywords'],
           ),
-          chatMessages: const <MarketplaceChatMessage>[],
-          offerHistory: const <MarketplaceOfferEvent>[],
-          orders: const <MarketplaceOrderModel>[],
+          chatMessages: _readChatMessages(payload),
+          offerHistory: _readOfferHistory(payload),
+          orders: _readOrders(payload),
         );
       } catch (_) {}
     }
 
     return null;
+  }
+
+  Map<String, dynamic> _resolveMarketplacePayload(Map<String, dynamic> response) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(response['data']);
+    final Map<String, dynamic>? result = ApiPayloadReader.readMap(
+      response['result'],
+    );
+    final Map<String, dynamic>? payload = ApiPayloadReader.readMap(
+      response['payload'],
+    );
+    return data ?? result ?? payload ?? response;
+  }
+
+  List<SellerModel> _readSellers(
+    Map<String, dynamic> payload,
+    List<ProductModel> products,
+  ) {
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      payload,
+      preferredKeys: const <String>['sellers'],
+    );
+    if (items.isNotEmpty) {
+      final List<SellerModel> sellers = items
+          .map(SellerModel.fromApiJson)
+          .where((SellerModel item) => item.id.isNotEmpty)
+          .toList(growable: false);
+      if (sellers.isNotEmpty) {
+        return sellers;
+      }
+    }
+    return _deriveSellers(products);
+  }
+
+  List<MarketplaceCategoryModel> _readCategories(
+    Map<String, dynamic> payload,
+    List<ProductModel> products,
+  ) {
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      payload,
+      preferredKeys: const <String>['categories'],
+    );
+    if (items.isNotEmpty) {
+      final List<MarketplaceCategoryModel> categories = items
+          .map(_categoryFromApiJson)
+          .where((MarketplaceCategoryModel item) => item.name.isNotEmpty)
+          .toList(growable: false);
+      if (categories.isNotEmpty) {
+        return categories;
+      }
+    }
+    return _deriveCategories(products);
+  }
+
+  MarketplaceCategoryModel _categoryFromApiJson(Map<String, dynamic> json) {
+    final String name = ApiPayloadReader.readString(
+      json['name'] ?? json['title'],
+    );
+    return MarketplaceCategoryModel(
+      name: name,
+      icon: _iconForCategory(name),
+      subcategories: ApiPayloadReader.readStringList(
+        json['subcategories'] ?? json['children'],
+      ),
+      isFollowed:
+          ApiPayloadReader.readBool(
+            json['isFollowed'] ?? json['followed'] ?? json['following'],
+          ) ??
+          false,
+    );
+  }
+
+  List<MarketplaceChatMessage> _readChatMessages(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      payload,
+      preferredKeys: const <String>['chatMessages', 'messages', 'chats'],
+    );
+    return items
+        .map(
+          (Map<String, dynamic> item) => MarketplaceChatMessage(
+            id: ApiPayloadReader.readString(item['id']),
+            senderName: ApiPayloadReader.readString(
+              item['senderName'] ?? item['sender'] ?? item['author'],
+              fallback: 'Seller',
+            ),
+            text: ApiPayloadReader.readString(
+              item['text'] ?? item['message'] ?? item['body'],
+            ),
+            timestamp:
+                ApiPayloadReader.readDateTime(
+                  item['timestamp'] ?? item['createdAt'] ?? item['sentAt'],
+                ) ??
+                DateTime.now(),
+            productTitle: ApiPayloadReader.readString(
+              item['productTitle'] ?? item['listingTitle'],
+            ),
+          ),
+        )
+        .where((MarketplaceChatMessage item) => item.id.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  List<MarketplaceOfferEvent> _readOfferHistory(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      payload,
+      preferredKeys: const <String>['offerHistory', 'offers'],
+    );
+    return items
+        .map(
+          (Map<String, dynamic> item) => MarketplaceOfferEvent(
+            actor: ApiPayloadReader.readString(
+              item['actor'] ?? item['senderName'],
+              fallback: 'User',
+            ),
+            action: ApiPayloadReader.readString(
+              item['action'] ?? item['type'],
+              fallback: 'Offered',
+            ),
+            amount: ApiPayloadReader.readDouble(
+              item['amount'] ?? item['price'],
+            ),
+            timestamp:
+                ApiPayloadReader.readDateTime(
+                  item['timestamp'] ?? item['createdAt'],
+                ) ??
+                DateTime.now(),
+          ),
+        )
+        .where((MarketplaceOfferEvent item) => item.actor.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  List<MarketplaceOrderModel> _readOrders(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      payload,
+      preferredKeys: const <String>['orders'],
+    );
+    return items
+        .map(
+          (Map<String, dynamic> item) => MarketplaceOrderModel(
+            id: ApiPayloadReader.readString(item['id']),
+            productId: ApiPayloadReader.readString(
+              item['productId'] ?? item['listingId'],
+            ),
+            productTitle: ApiPayloadReader.readString(
+              item['productTitle'] ?? item['title'],
+            ),
+            amount: ApiPayloadReader.readDouble(item['amount'] ?? item['price']),
+            status: _orderStatusFromValue(item['status']),
+            address: ApiPayloadReader.readString(item['address']),
+            deliveryMethod: ApiPayloadReader.readString(
+              item['deliveryMethod'] ?? item['shippingMethod'],
+            ),
+            paymentMethod: ApiPayloadReader.readString(item['paymentMethod']),
+            createdAt:
+                ApiPayloadReader.readDateTime(item['createdAt']) ??
+                DateTime.now(),
+          ),
+        )
+        .where((MarketplaceOrderModel item) => item.id.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  MarketplaceOrderStatus _orderStatusFromValue(Object? value) {
+    switch ((value?.toString() ?? '').trim().toLowerCase()) {
+      case 'pending':
+        return MarketplaceOrderStatus.pending;
+      case 'processing':
+      case 'confirmed':
+        return MarketplaceOrderStatus.confirmed;
+      case 'shipped':
+        return MarketplaceOrderStatus.shipped;
+      case 'delivered':
+        return MarketplaceOrderStatus.delivered;
+      case 'cancelled':
+      case 'canceled':
+        return MarketplaceOrderStatus.cancelled;
+      case 'returned':
+        return MarketplaceOrderStatus.returned;
+      default:
+        return MarketplaceOrderStatus.pending;
+    }
   }
 
   List<SellerModel> _deriveSellers(List<ProductModel> products) {

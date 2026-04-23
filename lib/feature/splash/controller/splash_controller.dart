@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/repository/auth_repository.dart';
@@ -18,9 +19,18 @@ class SplashController {
 
   Future<void> bootstrap(BuildContext context) async {
     state = state.copyWith(status: SplashStatus.bootstrapping);
-    await Future<void>.delayed(const Duration(seconds: 2));
-    final hasCompletedOnboarding = await _onboardingRepository.isCompleted();
-    final hasSession = await _authRepository.hasSession();
+    final Future<bool> onboardingFuture = _onboardingRepository.isCompleted();
+    final Future<bool> sessionFuture = _authRepository.hasSession();
+    final Future<void> splashDelay = Future<void>.delayed(
+      kDebugMode ? const Duration(milliseconds: 150) : const Duration(milliseconds: 450),
+    );
+    final List<Object?> bootstrapResults = await Future.wait<Object?>(<Future<Object?>>[
+      onboardingFuture,
+      sessionFuture,
+      splashDelay,
+    ]);
+    final bool hasCompletedOnboarding = bootstrapResults[0] as bool;
+    final bool hasSession = bootstrapResults[1] as bool;
     if (!context.mounted) {
       return;
     }

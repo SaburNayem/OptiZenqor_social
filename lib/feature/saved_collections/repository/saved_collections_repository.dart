@@ -67,11 +67,14 @@ class SavedCollectionsRepository {
         return null;
       }
 
+      final Map<String, dynamic> payload =
+          ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+
       final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
-        response.data,
+        payload,
         preferredKeys: const <String>['collections', 'items'],
       );
-      if (items.isNotEmpty || response.data.isNotEmpty) {
+      if (items.isNotEmpty) {
         return items
             .map(
               (Map<String, dynamic> item) => SavedCollectionModel(
@@ -87,6 +90,22 @@ class SavedCollectionsRepository {
                   item.id.isNotEmpty && item.name.isNotEmpty,
             )
             .toList(growable: false);
+      }
+
+      final Map<String, dynamic>? singleItem = ApiPayloadReader.readMap(
+        payload['collection'] ?? payload['item'],
+      );
+      if (singleItem != null && singleItem.isNotEmpty) {
+        final SavedCollectionModel item = SavedCollectionModel(
+          id: ApiPayloadReader.readString(singleItem['id']),
+          name: ApiPayloadReader.readString(singleItem['name']),
+          itemIds: ApiPayloadReader.readStringList(
+            singleItem['itemIds'] ?? singleItem['items'],
+          ),
+        );
+        if (item.id.isNotEmpty && item.name.isNotEmpty) {
+          return <SavedCollectionModel>[item];
+        }
       }
     } catch (_) {}
 
