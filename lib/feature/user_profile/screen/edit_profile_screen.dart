@@ -3,8 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/data/models/user_model.dart';
+import '../../../core/data/service/upload_service.dart';
+import '../../../core/navigation/app_get.dart';
+import '../model/profile_update_model.dart';
+import '../repository/user_profile_repository.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -15,7 +19,8 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final ImagePicker _imagePicker = ImagePicker();
-  final user = MockData.users.first;
+  final UserProfileRepository _repository = UserProfileRepository();
+  final UploadService _uploadService = UploadService();
 
   late final TextEditingController _nameController;
   late final TextEditingController _usernameController;
@@ -23,21 +28,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _websiteController;
   late final TextEditingController _locationController;
 
+  UserModel? _user;
   File? _profileImageFile;
   File? _coverImageFile;
   Offset _profileImageOffset = Offset.zero;
   Offset _coverImageOffset = Offset.zero;
+  bool _isLoading = true;
+  bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: user.name);
-    _usernameController = TextEditingController(text: user.username);
-    _bioController = TextEditingController(
-      text: 'Digital nomad and visual storyteller.',
-    );
-    _websiteController = TextEditingController(text: 'https://optizenqor.app');
-    _locationController = TextEditingController(text: 'Dhaka, Bangladesh');
+    _nameController = TextEditingController();
+    _usernameController = TextEditingController();
+    _bioController = TextEditingController();
+    _websiteController = TextEditingController();
+    _locationController = TextEditingController();
+    _loadProfile();
   }
 
   @override
@@ -50,6 +57,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _loadProfile() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final UserModel? profile = await _repository.getCurrentProfile();
+    if (!mounted) {
+      return;
+    }
+
+    _user = profile;
+    _nameController.text = profile?.name ?? '';
+    _usernameController.text = profile?.username ?? '';
+    _bioController.text = profile?.bio ?? '';
+    _websiteController.text = profile?.website ?? '';
+    _locationController.text = profile?.location ?? '';
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,51 +86,55 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: const Text('Edit Profile'),
         actions: [
           TextButton(
-            onPressed: _saveProfile,
-            child: const Text('Save'),
+            onPressed: _isLoading || _isSaving ? null : _saveProfile,
+            child: Text(_isSaving ? 'Saving...' : 'Save'),
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 32),
-        children: [
-          _buildCoverEditor(),
-          Transform.translate(
-            offset: const Offset(0, -34),
-            child: Center(child: _buildAvatarEditor()),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
+          : ListView(
+              padding: const EdgeInsets.only(bottom: 32),
               children: [
-                _buildField(
-                  controller: _nameController,
-                  label: 'Name',
+                _buildCoverEditor(),
+                Transform.translate(
+                  offset: const Offset(0, -34),
+                  child: Center(child: _buildAvatarEditor()),
                 ),
-                _buildField(
-                  controller: _usernameController,
-                  label: 'Username',
-                  prefixText: '@',
-                ),
-                _buildField(
-                  controller: _bioController,
-                  label: 'Bio',
-                  maxLines: 4,
-                ),
-                _buildField(
-                  controller: _websiteController,
-                  label: 'Website',
-                ),
-                _buildField(
-                  controller: _locationController,
-                  label: 'Location',
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      _buildField(
+                        controller: _nameController,
+                        label: 'Name',
+                      ),
+                      _buildField(
+                        controller: _usernameController,
+                        label: 'Username',
+                        prefixText: '@',
+                      ),
+                      _buildField(
+                        controller: _bioController,
+                        label: 'Bio',
+                        maxLines: 4,
+                      ),
+                      _buildField(
+                        controller: _websiteController,
+                        label: 'Website',
+                      ),
+                      _buildField(
+                        controller: _locationController,
+                        label: 'Location',
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -109,7 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Stack(
       children: [
         GestureDetector(
-          onPanUpdate: (details) {
+          onPanUpdate: (DragUpdateDetails details) {
             setState(() {
               _coverImageOffset += details.delta;
             });
@@ -125,6 +158,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         scale: 1.18,
                         child: Image.file(
                           _coverImageFile!,
+                          width: double.infinity,
+                          height: 180,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  )
+                : _user?.coverImageUrl.trim().isNotEmpty == true
+                ? ClipRect(
+                    child: Transform.translate(
+                      offset: _coverImageOffset,
+                      child: Transform.scale(
+                        scale: 1.04,
+                        child: Image.network(
+                          _user!.coverImageUrl.trim(),
                           width: double.infinity,
                           height: 180,
                           fit: BoxFit.cover,
@@ -184,6 +232,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildAvatarEditor() {
+    final ImageProvider imageProvider = _profileImageFile != null
+        ? FileImage(_profileImageFile!)
+        : (_user?.avatar.trim().isNotEmpty == true
+              ? NetworkImage(_user!.avatar.trim())
+              : const NetworkImage('https://placehold.co/120x120'))
+            as ImageProvider;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -194,7 +249,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             shape: BoxShape.circle,
           ),
           child: GestureDetector(
-            onPanUpdate: (details) {
+            onPanUpdate: (DragUpdateDetails details) {
               setState(() {
                 _profileImageOffset += details.delta;
               });
@@ -208,9 +263,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: Transform.scale(
                     scale: 1.18,
                     child: Image(
-                      image: _profileImageFile != null
-                          ? FileImage(_profileImageFile!)
-                          : NetworkImage(user.avatar) as ImageProvider,
+                      image: imageProvider,
                       width: 108,
                       height: 108,
                       fit: BoxFit.cover,
@@ -288,7 +341,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _pickImage({bool isCover = false}) async {
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         return SafeArea(
           child: Wrap(
             children: [
@@ -330,12 +383,113 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
-  void _saveProfile() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Profile changes saved locally')),
+  Future<void> _saveProfile() async {
+    final String name = _nameController.text.trim();
+    final String username = _usernameController.text.trim();
+    if (name.isEmpty || username.isEmpty) {
+      AppGet.snackbar('Edit Profile', 'Name and username are required.');
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      String? avatarUrl = _user?.avatar;
+      String? coverImageUrl = _user?.coverImageUrl;
+      final List<String> warnings = <String>[];
+
+      if (_profileImageFile != null) {
+        try {
+          avatarUrl = await _uploadImage(
+            _profileImageFile!.path,
+            folder: 'optizenqor/profile/avatar',
+          );
+        } catch (_) {
+          warnings.add('Avatar upload was skipped.');
+        }
+      }
+
+      if (_coverImageFile != null) {
+        try {
+          coverImageUrl = await _uploadImage(
+            _coverImageFile!.path,
+            folder: 'optizenqor/profile/cover',
+          );
+        } catch (_) {
+          warnings.add('Cover upload was skipped.');
+        }
+      }
+
+      final ProfileSaveResult result = await _repository.updateCurrentProfile(
+        ProfileUpdateModel(
+          name: name,
+          username: username,
+          bio: _bioController.text.trim(),
+          website: _normalizeOptionalText(_websiteController.text),
+          location: _normalizeOptionalText(_locationController.text),
+          avatarUrl: avatarUrl,
+          coverImageUrl: coverImageUrl,
+        ),
       );
+
+      if (!mounted) {
+        return;
+      }
+
+      final String warningText = warnings.isEmpty ? '' : ' ${warnings.join(' ')}';
+      AppGet.snackbar('Edit Profile', '${result.message}$warningText');
+      AppGet.back(result: true);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      AppGet.snackbar(
+        'Edit Profile',
+        'Unable to save profile right now. $error',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  Future<String> _uploadImage(String localPath, {required String folder}) async {
+    final String taskId =
+        'profile-${DateTime.now().microsecondsSinceEpoch}-${folder.hashCode}';
+    UploadProgress? lastProgress;
+
+    await for (final UploadProgress progress in _uploadService.uploadFile(
+      taskId: taskId,
+      localPath: localPath,
+      fields: <String, String>{
+        'resourceType': 'image',
+        'folder': folder,
+        'publicId': taskId,
+      },
+    )) {
+      lastProgress = progress;
+    }
+
+    if (lastProgress == null ||
+        lastProgress.status != UploadStatus.completed ||
+        lastProgress.remotePath == null ||
+        lastProgress.remotePath!.trim().isEmpty) {
+      throw Exception(lastProgress?.error ?? 'Image upload failed.');
+    }
+
+    return lastProgress.remotePath!.trim();
+  }
+
+  String? _normalizeOptionalText(String value) {
+    final String trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
   }
 }
-

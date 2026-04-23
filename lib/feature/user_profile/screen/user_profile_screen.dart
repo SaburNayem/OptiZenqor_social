@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/data/models/post_model.dart';
+import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../media_viewer/model/media_viewer_item_model.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
-import '../../../app_route/route_names.dart';
 import '../controller/user_profile_controller.dart';
+import '../repository/user_profile_repository.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key, this.userId, this.showAppBar = true});
@@ -45,10 +48,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profileContent = AnimatedBuilder(
+    final Widget profileContent = AnimatedBuilder(
       animation: _controller,
-      builder: (context, child) {
-        final user = _controller.user;
+      builder: (BuildContext context, Widget? child) {
+        final UserModel? user = _controller.user;
 
         if (_controller.state.isLoading && user == null) {
           return const Center(
@@ -106,14 +109,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_controller.state.isLoading)
+                const LinearProgressIndicator(minHeight: 2),
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Container(
-                    height: 120,
-                    width: double.infinity,
-                    color: AppColors.hexFF26C6DA,
-                  ),
+                  _buildCover(user),
                   Positioned(
                     bottom: -50,
                     left: 16,
@@ -155,6 +156,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   width: 3,
                                 ),
                               ),
+                              child: const Icon(
+                                Icons.open_in_full_rounded,
+                                size: 11,
+                                color: AppColors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -165,28 +171,43 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.only(right: 16),
+                padding: const EdgeInsets.only(right: 16, left: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    OutlinedButton.icon(
-                      onPressed: () =>
-                          AppGet.toNamed(RouteNames.userProfileEdit),
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        size: 18,
-                        color: AppColors.hexFF26C6DA,
-                      ),
-                      label: const Text(
-                        'Edit',
-                        style: TextStyle(color: AppColors.hexFF26C6DA),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 56),
-                        side: const BorderSide(color: AppColors.hexFF26C6DA),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _openEditProfile,
+                              icon: const Icon(
+                                Icons.edit_outlined,
+                                size: 18,
+                                color: AppColors.hexFF26C6DA,
+                              ),
+                              label: const Text(
+                                'Edit Profile',
+                                style: TextStyle(
+                                  color: AppColors.hexFF26C6DA,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(0, 48),
+                                side: const BorderSide(
+                                  color: AppColors.hexFF26C6DA,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (!_controller.isOwnProfile) ...[
+                            const SizedBox(width: 8),
+                            Expanded(child: _buildFollowActionButton()),
+                          ],
+                        ],
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -208,14 +229,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            user.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -225,9 +247,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             color: AppColors.hexFFE0F7FA,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'creator',
-                            style: TextStyle(
+                          child: Text(
+                            _roleLabel(user),
+                            style: const TextStyle(
                               color: AppColors.hexFF00ACC1,
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -243,7 +265,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Text(
                       user.bio.isNotEmpty
                           ? user.bio
@@ -254,6 +276,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         height: 1.4,
                       ),
                     ),
+                    if (user.website.trim().isNotEmpty ||
+                        user.location.trim().isNotEmpty)
+                      const SizedBox(height: 12),
+                    if (user.website.trim().isNotEmpty)
+                      _buildMetaRow(Icons.link_rounded, user.website.trim()),
+                    if (user.location.trim().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: _buildMetaRow(
+                          Icons.location_on_outlined,
+                          user.location.trim(),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -268,7 +303,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   _buildStatDivider(),
                   _buildStatColumn(
-                    '${user.followers}',
+                    '${_controller.followerCount}',
                     'Followers',
                     onTap: () => AppGet.toNamed(
                       RouteNames.userProfileFollowers,
@@ -277,7 +312,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   _buildStatDivider(),
                   _buildStatColumn(
-                    '${user.following}',
+                    '${_controller.followingCount}',
                     'Following',
                     onTap: () => AppGet.toNamed(
                       RouteNames.userProfileFollowing,
@@ -357,77 +392,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                 ],
               ),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.zero,
-                itemCount: 9,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
-                ),
-                itemBuilder: (context, index) {
-                  final List<String> images = [
-                    'https://picsum.photos/seed/p1/400/400',
-                    'https://picsum.photos/seed/p2/400/400',
-                    'https://picsum.photos/seed/p3/400/400',
-                    'https://picsum.photos/seed/p4/400/400',
-                    'https://picsum.photos/seed/p5/400/400',
-                    'https://picsum.photos/seed/p6/400/400',
-                    'https://picsum.photos/seed/p7/400/400',
-                    'https://picsum.photos/seed/p8/400/400',
-                    'https://picsum.photos/seed/p9/400/400',
-                  ];
-                  final List<String> likes = [
-                    '1k+',
-                    '856',
-                    '342',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                  ];
-
-                  return InkWell(
-                    onTap: () => AppGet.toNamed(RouteNames.postDetail),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(images[index], fit: BoxFit.cover),
-                        if (likes[index].isNotEmpty)
-                          Positioned.fill(
-                            child: Container(
-                              alignment: Alignment.center,
-                              color: AppColors.black.withValues(alpha: 0.1),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.favorite,
-                                    color: AppColors.white,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    likes[index],
-                                    style: const TextStyle(
-                                      color: AppColors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+              _buildSelectedTabContent(),
             ],
           ),
         );
@@ -443,6 +408,267 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       appBar: AppBar(title: const Text('Profile')),
       body: profileContent,
     );
+  }
+
+  Widget _buildCover(UserModel user) {
+    if (user.coverImageUrl.trim().isEmpty) {
+      return Container(
+        height: 140,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: <Color>[AppColors.hexFF26C6DA, AppColors.hexFF80DEEA],
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 140,
+      width: double.infinity,
+      child: Image.network(
+        user.coverImageUrl.trim(),
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildFollowActionButton() {
+    if (_controller.followRequestPending) {
+      return FilledButton.tonal(
+        onPressed: _controller.toggleFollow,
+        style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+        child: const Text('Requested'),
+      );
+    }
+    if (_controller.isFollowing) {
+      return OutlinedButton(
+        onPressed: _controller.toggleFollow,
+        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
+        child: const Text('Following'),
+      );
+    }
+    return FilledButton(
+      onPressed: _controller.toggleFollow,
+      style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+      child: const Text('Follow'),
+    );
+  }
+
+  Widget _buildSelectedTabContent() {
+    switch (_controller.selectedTabIndex) {
+      case 1:
+        return _buildReelsGrid();
+      case 2:
+        return _buildTaggedGrid();
+      case 0:
+      default:
+        return _buildPostsGrid();
+    }
+  }
+
+  Widget _buildPostsGrid() {
+    final List<PostModel> posts = _controller.posts;
+    if (posts.isEmpty) {
+      return _buildLegacyMediaGrid(
+        titles: _legacySampleCaptions,
+        badges: _legacySampleLikes,
+        icon: Icons.favorite,
+        onTapRoute: RouteNames.postDetail,
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: posts.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemBuilder: (BuildContext context, int index) {
+        final PostModel post = posts[index];
+        return InkWell(
+          onTap: () => AppGet.toNamed(RouteNames.postDetail),
+          child: _MediaTile(
+            imageUrl: post.media.isNotEmpty ? post.media.first : null,
+            title: post.caption,
+            badge: post.likes > 0 ? '${post.likes}' : null,
+            icon: Icons.favorite,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReelsGrid() {
+    final List<ReelModel> reels = _controller.reels;
+    if (reels.isEmpty) {
+      return _buildLegacyMediaGrid(
+        titles: _legacySampleCaptions,
+        badges: _legacySampleLikes,
+        icon: Icons.play_arrow_rounded,
+        onTapRoute: RouteNames.reels,
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: reels.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemBuilder: (BuildContext context, int index) {
+        final ReelModel reel = reels[index];
+        final String? imageUrl = reel.coverUrl?.trim().isNotEmpty == true
+            ? reel.coverUrl!.trim()
+            : reel.thumbnail.trim().isNotEmpty
+            ? reel.thumbnail.trim()
+            : null;
+        return InkWell(
+          onTap: () => AppGet.toNamed(RouteNames.reels),
+          child: _MediaTile(
+            imageUrl: imageUrl,
+            title: reel.caption,
+            badge: reel.likes > 0 ? '${reel.likes}' : null,
+            icon: Icons.play_arrow_rounded,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTaggedGrid() {
+    final List<PostTagSummary> taggedPosts = _controller.taggedPosts;
+    if (taggedPosts.isEmpty) {
+      return _buildLegacyMediaGrid(
+        titles: _legacySampleTaggedTitles,
+        badges: const <String>['', '', '', '', '', '', '', '', ''],
+        icon: Icons.alternate_email_rounded,
+        onTapRoute: RouteNames.postDetail,
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(2),
+      itemCount: taggedPosts.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemBuilder: (BuildContext context, int index) {
+        final PostTagSummary item = taggedPosts[index];
+        return Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.hexFFF2F4F7,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(
+                Icons.alternate_email_rounded,
+                color: AppColors.hexFF26C6DA,
+              ),
+              Text(
+                item.title,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                item.location?.trim().isNotEmpty == true
+                    ? item.location!.trim()
+                    : '${item.mediaCount} media',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.grey,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLegacyMediaGrid({
+    required List<String> titles,
+    required List<String> badges,
+    required IconData icon,
+    required String onTapRoute,
+  }) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: titles.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemBuilder: (BuildContext context, int index) {
+        return InkWell(
+          onTap: () => AppGet.toNamed(onTapRoute),
+          child: _MediaTile(
+            title: titles[index],
+            badge: badges[index].isEmpty ? null : badges[index],
+            icon: icon,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMetaRow(IconData icon, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.grey600),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.black87,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _roleLabel(UserModel user) {
+    final String role = user.role.name.trim();
+    if (role.isEmpty) {
+      return 'Member';
+    }
+    return role[0].toUpperCase() + role.substring(1);
+  }
+
+  Future<void> _openEditProfile() async {
+    final bool? updated = await AppGet.toNamed<bool>(RouteNames.userProfileEdit);
+    if (updated == true) {
+      await _controller.load(userId: widget.userId);
+    }
   }
 
   Widget _buildStatColumn(String value, String label, {VoidCallback? onTap}) {
@@ -473,14 +699,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _showShareProfileSheet(UserModel user) async {
-    final profileUrl = user.publicProfileUrl.isNotEmpty
+    final String profileUrl = user.publicProfileUrl.isNotEmpty
         ? user.publicProfileUrl
         : 'https://optizenqor.app/@${user.username}';
 
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
-      builder: (sheetContext) {
+      builder: (BuildContext sheetContext) {
         return SafeArea(
           child: Wrap(
             children: [
@@ -583,3 +809,120 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
+const List<String> _legacySampleCaptions = <String>[
+  'Creator spotlight',
+  'Workspace reel',
+  'Behind the scenes',
+  'Campaign preview',
+  'Daily update',
+  'Travel diary',
+  'Studio notes',
+  'Collab teaser',
+  'Weekend dump',
+];
+
+const List<String> _legacySampleLikes = <String>[
+  '1k+',
+  '856',
+  '342',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '',
+];
+
+const List<String> _legacySampleTaggedTitles = <String>[
+  'Tagged update',
+  'Mentioned post',
+  'Collab note',
+  'Community drop',
+  'Event recap',
+  'Launch post',
+  'Studio share',
+  'Creator tag',
+  'Feature mention',
+];
+
+class _MediaTile extends StatelessWidget {
+  const _MediaTile({
+    this.imageUrl,
+    required this.title,
+    this.badge,
+    required this.icon,
+  });
+
+  final String? imageUrl;
+  final String title;
+  final String? badge;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget background = imageUrl != null && imageUrl!.trim().isNotEmpty
+        ? Image.network(imageUrl!.trim(), fit: BoxFit.cover)
+        : Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: <Color>[AppColors.hexFF0284C7, AppColors.hexFF4FC3F7],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                title,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          );
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        background,
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.black.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Icon(icon, color: AppColors.white, size: 16),
+          ),
+        ),
+        if (badge != null && badge!.trim().isNotEmpty)
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.black.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                badge!,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}

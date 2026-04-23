@@ -19,6 +19,10 @@ class ApiClientService {
        _client = client ?? http.Client(),
        _storage = storage ?? AppSharedPreferences();
 
+  static const Duration _transportFailureCooldown = Duration(seconds: 3);
+  static final Map<String, DateTime> _recentTransportFailures =
+      <String, DateTime>{};
+
   final String baseUrl;
   final http.Client _client;
   final AppSharedPreferences _storage;
@@ -49,6 +53,11 @@ class ApiClientService {
     String? filename,
   }) async {
     final String resolvedEndpoint = _resolveEndpoint(endpoint);
+    final ServiceResponseModel<Map<String, dynamic>>? cooldownResponse =
+        _buildCooldownResponse(resolvedEndpoint);
+    if (cooldownResponse != null) {
+      return cooldownResponse;
+    }
     final Uri uri = Uri.parse(resolvedEndpoint);
     final Stopwatch stopwatch = Stopwatch()..start();
     final Map<String, String> headers = await _buildHeaders(
@@ -87,6 +96,7 @@ class ApiClientService {
       final Map<String, dynamic> responseBody = _decodeResponseBody(
         response.bodyBytes,
       );
+      _clearRecentTransportFailure();
       stopwatch.stop();
       _logResponse(
         method: 'POST',
@@ -104,6 +114,7 @@ class ApiClientService {
       );
     } on TimeoutException {
       final String timeoutMessage = _buildTimeoutMessage();
+      _rememberRecentTransportFailure();
       _logNetworkIssue('timeout', resolvedEndpoint, timeoutMessage);
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
@@ -113,6 +124,7 @@ class ApiClientService {
       );
     } on http.ClientException catch (error) {
       final String clientErrorMessage = _buildClientErrorMessage(error.message);
+      _rememberRecentTransportFailure();
       _logNetworkIssue('client_error', resolvedEndpoint, clientErrorMessage);
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
@@ -157,6 +169,11 @@ class ApiClientService {
       endpoint,
       queryParameters: queryParameters,
     );
+    final ServiceResponseModel<Map<String, dynamic>>? cooldownResponse =
+        _buildCooldownResponse(resolvedEndpoint);
+    if (cooldownResponse != null) {
+      return cooldownResponse;
+    }
     final Uri uri = Uri.parse(resolvedEndpoint);
 
     try {
@@ -185,6 +202,7 @@ class ApiClientService {
       final Map<String, dynamic> responseBody = _decodeResponseBody(
         response.bodyBytes,
       );
+      _clearRecentTransportFailure();
       stopwatch.stop();
       _logResponse(
         method: method,
@@ -202,6 +220,7 @@ class ApiClientService {
       );
     } on TimeoutException {
       final String timeoutMessage = _buildTimeoutMessage();
+      _rememberRecentTransportFailure();
       _logNetworkIssue('timeout', resolvedEndpoint, timeoutMessage);
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
@@ -211,6 +230,7 @@ class ApiClientService {
       );
     } on http.ClientException catch (error) {
       final String clientErrorMessage = _buildClientErrorMessage(error.message);
+      _rememberRecentTransportFailure();
       _logNetworkIssue('client_error', resolvedEndpoint, clientErrorMessage);
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
@@ -292,6 +312,13 @@ class ApiClientService {
     return _appendDebugHint(trimmedMessage);
   }
 
+  String _buildCooldownMessage() {
+    return _appendDebugHint(
+      'Skipping repeated request after a recent network failure. '
+      'Check your backend connection and try again.',
+    );
+  }
+
   String _appendDebugHint(String message) {
     if (!kDebugMode) {
       return message;
@@ -320,6 +347,40 @@ class ApiClientService {
       'message=$message',
     );
   }
+
+  ServiceResponseModel<Map<String, dynamic>>? _buildCooldownResponse(
+    String endpoint,
+  ) {
+    final DateTime? lastFailureAt = _recentTransportFailures[_transportKey];
+    if (lastFailureAt == null) {
+      return null;
+    }
+
+    final Duration elapsed = DateTime.now().difference(lastFailureAt);
+    if (elapsed >= _transportFailureCooldown) {
+      _recentTransportFailures.remove(_transportKey);
+      return null;
+    }
+
+    final String message = _buildCooldownMessage();
+    _logNetworkIssue('cooldown_skip', endpoint, message);
+    return ServiceResponseModel<Map<String, dynamic>>(
+      endpoint: endpoint,
+      statusCode: 503,
+      data: <String, dynamic>{'success': false, 'message': message},
+      message: message,
+    );
+  }
+
+  void _rememberRecentTransportFailure() {
+    _recentTransportFailures[_transportKey] = DateTime.now();
+  }
+
+  void _clearRecentTransportFailure() {
+    _recentTransportFailures.remove(_transportKey);
+  }
+
+  String get _transportKey => baseUrl.trim();
 
   void _logRequest({
     required String method,

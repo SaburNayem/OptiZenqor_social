@@ -10,6 +10,9 @@ class UserModel {
     required this.role,
     required this.followers,
     required this.following,
+    this.website = '',
+    this.location = '',
+    this.coverImageUrl = '',
     this.isPrivate = false,
     this.verified = false,
     this.verificationStatus = 'not_requested',
@@ -44,6 +47,14 @@ class UserModel {
       role: _parseRole(json['role']),
       followers: _readInt(json['followers']),
       following: _readInt(json['following']),
+      website: (json['website'] as String? ?? '').trim(),
+      location: (json['location'] as String? ?? '').trim(),
+      coverImageUrl:
+          (json['coverImageUrl'] as String? ??
+                  json['coverUrl'] as String? ??
+                  json['coverPhotoUrl'] as String? ??
+                  '')
+              .trim(),
       isPrivate: json['isPrivate'] as bool? ?? false,
       verified:
           json['verified'] as bool? ??
@@ -51,7 +62,10 @@ class UserModel {
       verificationStatus: verificationStatus,
       verificationReason: json['verificationReason'] as String?,
       badgeStyle: (json['badgeStyle'] as String? ?? 'standard').trim(),
-      publicProfileUrl: username.isEmpty ? '' : 'https://optizenqor.app/@$username',
+      publicProfileUrl:
+          (json['publicProfileUrl'] as String? ??
+                  (username.isEmpty ? '' : 'https://optizenqor.app/@$username'))
+              .trim(),
       profilePreview: (json['profilePreview'] as String? ?? '').trim(),
       note: json['note'] as String?,
       notePrivacy: (json['notePrivacy'] as String? ?? 'followers').trim(),
@@ -67,6 +81,9 @@ class UserModel {
   final UserRole role;
   final int followers;
   final int following;
+  final String website;
+  final String location;
+  final String coverImageUrl;
   final bool isPrivate;
   final bool verified;
   final String verificationStatus;
@@ -78,6 +95,54 @@ class UserModel {
   final String notePrivacy;
   final bool supporterBadge;
 
+  UserModel copyWith({
+    String? id,
+    String? name,
+    String? username,
+    String? avatar,
+    String? bio,
+    UserRole? role,
+    int? followers,
+    int? following,
+    String? website,
+    String? location,
+    String? coverImageUrl,
+    bool? isPrivate,
+    bool? verified,
+    String? verificationStatus,
+    String? verificationReason,
+    String? badgeStyle,
+    String? publicProfileUrl,
+    String? profilePreview,
+    String? note,
+    String? notePrivacy,
+    bool? supporterBadge,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      username: username ?? this.username,
+      avatar: avatar ?? this.avatar,
+      bio: bio ?? this.bio,
+      role: role ?? this.role,
+      followers: followers ?? this.followers,
+      following: following ?? this.following,
+      website: website ?? this.website,
+      location: location ?? this.location,
+      coverImageUrl: coverImageUrl ?? this.coverImageUrl,
+      isPrivate: isPrivate ?? this.isPrivate,
+      verified: verified ?? this.verified,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      verificationReason: verificationReason ?? this.verificationReason,
+      badgeStyle: badgeStyle ?? this.badgeStyle,
+      publicProfileUrl: publicProfileUrl ?? this.publicProfileUrl,
+      profilePreview: profilePreview ?? this.profilePreview,
+      note: note ?? this.note,
+      notePrivacy: notePrivacy ?? this.notePrivacy,
+      supporterBadge: supporterBadge ?? this.supporterBadge,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'id': id,
@@ -88,6 +153,9 @@ class UserModel {
       'role': role.name,
       'followers': followers,
       'following': following,
+      'website': website,
+      'location': location,
+      'coverImageUrl': coverImageUrl,
       'isPrivate': isPrivate,
       'verified': verified,
       'verificationStatus': verificationStatus,
@@ -102,6 +170,9 @@ class UserModel {
   }
 
   static int _readInt(Object? value) {
+    if (value is List) {
+      return value.length;
+    }
     if (value is int) {
       return value;
     }

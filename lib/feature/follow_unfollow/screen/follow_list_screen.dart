@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/data/mock/mock_data.dart';
-import '../../../core/data/models/user_model.dart';
+import '../../../app_route/route_names.dart';
 import '../../../core/helpers/format_helper.dart';
 import '../../../core/widgets/app_avatar.dart';
-import '../../../app_route/route_names.dart';
+import '../../user_profile/repository/user_profile_repository.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
-import '../controller/follow_controller.dart';
-import '../model/follow_state_model.dart';
+import '../../../core/data/models/user_model.dart';
 
 enum FollowListTab { followers, following }
 
@@ -26,79 +24,193 @@ class FollowListScreen extends StatefulWidget {
 }
 
 class _FollowListScreenState extends State<FollowListScreen> {
-  late final FollowController _controller;
+  final UserProfileRepository _repository = UserProfileRepository();
+
+  UserModel? _targetUser;
+  UserModel? _currentUser;
+  List<UserModel> _followers = <UserModel>[];
+  List<UserModel> _following = <UserModel>[];
+  List<UserModel> _sampleUsers = <UserModel>[];
+  Set<String> _followingIds = <String>{};
+  Set<String> _pendingRequestIds = <String>{};
+  bool _isLoading = true;
+
+  String get _currentUserId => _currentUser?.id ?? '';
 
   @override
   void initState() {
     super.initState();
-    _controller = FollowController()..init();
+    _loadConnections();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Future<void> _loadConnections() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final String targetUserId = widget.userId?.trim() ?? '';
+    final UserModel? currentUser = await _repository.getCurrentProfile();
+    final UserModel? targetUser = targetUserId.isNotEmpty
+        ? await _repository.getProfileById(targetUserId)
+        : currentUser;
+
+    if (targetUser == null) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _targetUser = null;
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final List<Object> results = await Future.wait<Object>(<Future<Object>>[
+      _repository.getFollowers(targetUser.id),
+      _repository.getFollowing(targetUser.id),
+      currentUser == null
+          ? Future<List<UserModel>>.value(const <UserModel>[])
+          : _repository.getFollowing(currentUser.id),
+      _repository.suggestedContacts(excludeUserId: targetUser.id),
+    ]);
+
+    if (!mounted) {
+      return;
+    }
+
+    final List<UserModel> currentFollowing = results[2] as List<UserModel>;
+    setState(() {
+      _targetUser = targetUser;
+      _currentUser = currentUser;
+      _followers = results[0] as List<UserModel>;
+      _following = results[1] as List<UserModel>;
+      _sampleUsers = results[3] as List<UserModel>;
+      _followingIds = currentFollowing
+          .map((UserModel item) => item.id)
+          .toSet();
+      _pendingRequestIds = <String>{};
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _toggleFollow(UserModel user) async {
+    final bool isFollowing = _followingIds.contains(user.id);
+    final bool isPending = _pendingRequestIds.contains(user.id);
+    final FollowToggleResult result = await _repository.toggleFollow(
+      user,
+      isCurrentlyFollowing: isFollowing,
+      hasPendingRequest: isPending,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      if (result.isFollowing) {
+        _followingIds.add(user.id);
+        _pendingRequestIds.remove(user.id);
+      } else if (result.hasPendingRequest) {
+        _followingIds.remove(user.id);
+        _pendingRequestIds.add(user.id);
+      } else {
+        _followingIds.remove(user.id);
+        _pendingRequestIds.remove(user.id);
+      }
+
+      if (_targetUser?.id == _currentUserId) {
+        if (result.isFollowing) {
+          final bool alreadyPresent = _following.any(
+            (UserModel item) => item.id == user.id,
+          );
+          if (!alreadyPresent) {
+            _following = <UserModel>[user, ..._following];
+          }
+        } else if (!result.hasPendingRequest) {
+          _following = _following
+              .where((UserModel item) => item.id != user.id)
+              .toList(growable: false);
+        }
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final targetUser = MockData.users.firstWhere(
-      (user) => user.id == widget.userId,
-      orElse: () => MockData.users.first,
-    );
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final UserModel? targetUser = _targetUser;
+    if (targetUser == null) {
+      return const Scaffold(
+        body: Center(child: Text('Profile not found')),
+      );
+    }
 
     return DefaultTabController(
       length: 2,
       initialIndex: widget.initialTab == FollowListTab.followers ? 0 : 1,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final followers = _controller.followers(targetUser.id);
-          final following = _controller.following(targetUser.id);
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(targetUser.name),
+              Text(
+                '@${targetUser.username}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Followers'),
+              Tab(text: 'Following'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _ConnectionsTab(
+              users: _followers,
+              sampleUsers: _sampleUsers,
+              emptyTitle: 'No followers yet',
+              emptyMessage:
+                  'When people follow this profile, they will appear here.',
+              currentUserId: _currentUserId,
+              followingIds: _followingIds,
+              pendingRequestIds: _pendingRequestIds,
+              onTapUser: _openUserProfile,
+              onToggleFollow: _toggleFollow,
+            ),
+            _ConnectionsTab(
+              users: _following,
+              sampleUsers: _sampleUsers,
+              emptyTitle: 'Not following anyone yet',
+              emptyMessage:
+                  'Accounts this profile follows will appear here.',
+              currentUserId: _currentUserId,
+              followingIds: _followingIds,
+              pendingRequestIds: _pendingRequestIds,
+              onTapUser: _openUserProfile,
+              onToggleFollow: _toggleFollow,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-          return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            appBar: AppBar(
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(targetUser.name),
-                  Text(
-                    '@${targetUser.username}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-              bottom: TabBar(
-                tabs: const [
-                  Tab(text: 'Followers'),
-                  Tab(text: 'Following'),
-                ],
-              ),
-            ),
-            body: TabBarView(
-              children: [
-                _ConnectionsTab(
-                  users: followers,
-                  emptyTitle: 'No followers yet',
-                  emptyMessage:
-                      'When people follow this profile, they will appear here.',
-                  controller: _controller,
-                  targetUserId: targetUser.id,
-                ),
-                _ConnectionsTab(
-                  users: following,
-                  emptyTitle: 'Not following anyone yet',
-                  emptyMessage:
-                      'Accounts this profile follows will appear here.',
-                  controller: _controller,
-                  targetUserId: targetUser.id,
-                ),
-              ],
-            ),
-          );
-        },
+  void _openUserProfile(UserModel user) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => UserProfileScreen(userId: user.id),
+        settings: const RouteSettings(name: RouteNames.userProfile),
       ),
     );
   }
@@ -107,51 +219,47 @@ class _FollowListScreenState extends State<FollowListScreen> {
 class _ConnectionsTab extends StatelessWidget {
   const _ConnectionsTab({
     required this.users,
+    required this.sampleUsers,
     required this.emptyTitle,
     required this.emptyMessage,
-    required this.controller,
-    required this.targetUserId,
+    required this.currentUserId,
+    required this.followingIds,
+    required this.pendingRequestIds,
+    required this.onTapUser,
+    required this.onToggleFollow,
   });
 
   final List<UserModel> users;
+  final List<UserModel> sampleUsers;
   final String emptyTitle;
   final String emptyMessage;
-  final FollowController controller;
-  final String targetUserId;
+  final String currentUserId;
+  final Set<String> followingIds;
+  final Set<String> pendingRequestIds;
+  final ValueChanged<UserModel> onTapUser;
+  final ValueChanged<UserModel> onToggleFollow;
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = controller.currentUser();
-    final displayUsers = users.isEmpty
-        ? MockData.users
-            .where((user) => user.id != targetUserId)
-            .take(4)
-            .toList(growable: false)
-        : users;
-    final showingDummyCards = users.isEmpty;
+    final List<UserModel> displayUsers = users.isEmpty ? sampleUsers : users;
+    final bool showingDummyCards = users.isEmpty;
 
-    final items = <Widget>[
+    final List<Widget> items = <Widget>[
       if (showingDummyCards)
         _SampleConnectionsBanner(
           title: emptyTitle,
-          message: '$emptyMessage Showing sample person cards for now.',
+          message: '$emptyMessage Showing suggested people for now.',
         ),
       ...displayUsers.map(
-        (user) => _ConnectionPersonCard(
+        (UserModel user) => _ConnectionPersonCard(
           user: user,
-          relation: controller.stateFor(user),
-          isCurrentUser: user.id == currentUser.id,
+          isCurrentUser: user.id == currentUserId,
+          isFollowing: followingIds.contains(user.id),
+          hasPendingRequest: pendingRequestIds.contains(user.id),
           showSampleBadge: showingDummyCards,
-          actionLabel: targetUserId == currentUser.id ? 'Follow back' : 'Follow',
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => UserProfileScreen(userId: user.id),
-                settings: const RouteSettings(name: RouteNames.userProfile),
-              ),
-            );
-          },
-          onFollowTap: () => controller.toggleFollow(user),
+          actionLabel: 'Follow',
+          onTap: () => onTapUser(user),
+          onFollowTap: () => onToggleFollow(user),
         ),
       ),
     ];
@@ -160,7 +268,7 @@ class _ConnectionsTab extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: items.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
+      itemBuilder: (BuildContext context, int index) {
         return items[index];
       },
     );
@@ -170,8 +278,9 @@ class _ConnectionsTab extends StatelessWidget {
 class _ConnectionPersonCard extends StatelessWidget {
   const _ConnectionPersonCard({
     required this.user,
-    required this.relation,
     required this.isCurrentUser,
+    required this.isFollowing,
+    required this.hasPendingRequest,
     required this.actionLabel,
     required this.onTap,
     required this.onFollowTap,
@@ -179,8 +288,9 @@ class _ConnectionPersonCard extends StatelessWidget {
   });
 
   final UserModel user;
-  final FollowStateModel relation;
   final bool isCurrentUser;
+  final bool isFollowing;
+  final bool hasPendingRequest;
   final bool showSampleBadge;
   final String actionLabel;
   final VoidCallback onTap;
@@ -188,8 +298,8 @@ class _ConnectionPersonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final preview = user.profilePreview.isNotEmpty ? user.profilePreview : user.bio;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final String preview = user.profilePreview.isNotEmpty ? user.profilePreview : user.bio;
 
     return Material(
       color: colorScheme.surfaceContainerLowest,
@@ -248,8 +358,9 @@ class _ConnectionPersonCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   _FollowActionButton(
-                    relation: relation,
                     isCurrentUser: isCurrentUser,
+                    isFollowing: isFollowing,
+                    hasPendingRequest: hasPendingRequest,
                     actionLabel: actionLabel,
                     onPressed: onFollowTap,
                   ),
@@ -286,7 +397,7 @@ class _ConnectionPersonCard extends StatelessWidget {
                   if (showSampleBadge)
                     const _ConnectionMetaChip(
                       icon: Icons.auto_awesome_rounded,
-                      label: 'Sample card',
+                      label: 'Suggested',
                     ),
                 ],
               ),
@@ -307,14 +418,16 @@ class _ConnectionPersonCard extends StatelessWidget {
 
 class _FollowActionButton extends StatelessWidget {
   const _FollowActionButton({
-    required this.relation,
     required this.isCurrentUser,
+    required this.isFollowing,
+    required this.hasPendingRequest,
     required this.actionLabel,
     required this.onPressed,
   });
 
-  final FollowStateModel relation;
   final bool isCurrentUser;
+  final bool isFollowing;
+  final bool hasPendingRequest;
   final String actionLabel;
   final VoidCallback onPressed;
 
@@ -323,10 +436,10 @@ class _FollowActionButton extends StatelessWidget {
     if (isCurrentUser) {
       return const Chip(label: Text('You'));
     }
-    if (relation.hasPendingRequest) {
+    if (hasPendingRequest) {
       return const Chip(label: Text('Requested'));
     }
-    if (relation.isFollowing) {
+    if (isFollowing) {
       return OutlinedButton(
         onPressed: onPressed,
         child: const Text('Following'),
@@ -350,7 +463,7 @@ class _ConnectionMetaChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
@@ -385,7 +498,7 @@ class _SampleConnectionsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
