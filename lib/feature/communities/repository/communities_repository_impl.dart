@@ -44,6 +44,89 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
     return cachedGroups;
   }
 
+  @override
+  Future<CommunityGroupModel?> createCommunity({
+    required String name,
+    required String description,
+  }) async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.apiClient.post(ApiEndPoints.communities, <String, dynamic>{
+            'name': name.trim(),
+            'description': description.trim(),
+          });
+      if (!response.isSuccess || response.data['success'] == false) {
+        return null;
+      }
+      final Map<String, dynamic>? payload = _extractGroupPayload(response.data);
+      if (payload == null) {
+        return null;
+      }
+      return _groupFromApiJson(payload);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<CommunityGroupModel?> updateCommunity(CommunityGroupModel group) async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.apiClient.patch(
+            ApiEndPoints.communityById(group.id),
+            <String, dynamic>{
+              'name': group.name,
+              'description': group.description,
+              'category': group.category,
+              'privacy': group.privacy.name,
+              'approvalRequired': group.approvalRequired,
+              'allowEvents': group.allowEvents,
+              'allowLive': group.allowLive,
+              'allowPolls': group.allowPolls,
+              'allowMarketplace': group.allowMarketplace,
+              'allowChatRoom': group.allowChatRoom,
+              'notificationLevel': group.notificationLevel.name,
+            },
+          );
+      if (!response.isSuccess || response.data['success'] == false) {
+        return null;
+      }
+      final Map<String, dynamic>? payload = _extractGroupPayload(response.data);
+      if (payload == null) {
+        return group;
+      }
+      return _groupFromApiJson(payload);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<CommunityGroupModel?> setJoined({
+    required String communityId,
+    required bool joined,
+  }) async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.apiClient.post(
+            joined
+                ? ApiEndPoints.communityJoin(communityId)
+                : ApiEndPoints.communityLeave(communityId),
+            const <String, dynamic>{},
+          );
+      if (!response.isSuccess || response.data['success'] == false) {
+        return null;
+      }
+      final Map<String, dynamic>? payload = _extractGroupPayload(response.data);
+      if (payload == null) {
+        return null;
+      }
+      return _groupFromApiJson(payload);
+    } catch (_) {
+      return null;
+    }
+  }
+
   CommunityGroupModel _groupFromApiJson(Map<String, dynamic> json) {
     return CommunityGroupModel(
       id: ApiPayloadReader.readString(json['id']),
@@ -78,6 +161,27 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
       allowChatRoom: ApiPayloadReader.readBool(json['allowChatRoom']) ?? true,
       notificationLevel: _notificationLevelFromValue(json['notificationLevel']),
     );
+  }
+
+  Map<String, dynamic>? _extractGroupPayload(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
+      payload.containsKey('id') ? payload : null,
+      ApiPayloadReader.readMap(payload['community']),
+      ApiPayloadReader.readMap(payload['group']),
+      ApiPayloadReader.readMap(payload['data']),
+      ApiPayloadReader.readMap(payload['result']),
+      ApiPayloadReader.readMap(ApiPayloadReader.readMap(payload['data'])?['community']),
+      ApiPayloadReader.readMap(ApiPayloadReader.readMap(payload['data'])?['group']),
+    ];
+    for (final Map<String, dynamic>? candidate in candidates) {
+      if (candidate == null) {
+        continue;
+      }
+      if (ApiPayloadReader.readString(candidate['id']).isNotEmpty) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   List<CommunityPostModel> _readPostList(Object? value) {

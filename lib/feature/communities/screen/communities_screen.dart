@@ -21,11 +21,13 @@ class CommunitiesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final CommunitiesRepositoryImpl repository = CommunitiesRepositoryImpl();
     return BlocProvider(
       create: (_) => CommunitiesCubit(
         getCommunitiesUseCase: GetCommunitiesUseCase(
-          CommunitiesRepositoryImpl(),
+          repository,
         ),
+        repository: repository,
         showJoinedFirst: showJoinedFirst,
       )..load(),
       child: _CommunitiesView(title: title),

@@ -15,6 +15,25 @@ class StoryTextComposerController extends ChangeNotifier {
     'Neon Memory',
     'Soft Horizon',
   ];
+  static const List<String> stickerOptions = <String>[
+    'Mood',
+    'Location',
+    'Flash',
+    'Vibes',
+    'New',
+  ];
+  static const List<String> effectOptions = <String>[
+    'Clean',
+    'Glow',
+    'Film',
+    'Dream',
+    'Neon',
+  ];
+  static const List<String> privacyOptions = <String>[
+    'Everyone',
+    'Followers',
+    'Close Friends',
+  ];
 
   static const List<List<int>> gradients = <List<int>>[
     <int>[0xFF1E40AF, 0xFF2BB0A1],
@@ -38,6 +57,12 @@ class StoryTextComposerController extends ChangeNotifier {
   int _gradientIndex = 0;
   Color _selectedTextColor = textColors.first;
   int _textStyleIndex = 0;
+  String _selectedSticker = stickerOptions.first;
+  String _selectedEffect = effectOptions.first;
+  String _selectedPrivacy = privacyOptions.first;
+  String _mentionUsername = '';
+  String _linkLabel = '';
+  String _linkUrl = '';
 
   String get selectedMusic => _selectedMusic;
   int get gradientIndex => _gradientIndex;
@@ -46,6 +71,14 @@ class StoryTextComposerController extends ChangeNotifier {
   bool get hasText => textController.text.trim().isNotEmpty;
   bool get showMusic => config.startWithMusic || _selectedMusic.isNotEmpty;
   String get currentText => textController.text.trim();
+  String get selectedSticker => _selectedSticker;
+  String get selectedEffect => _selectedEffect;
+  String get selectedPrivacy => _selectedPrivacy;
+  String get mentionUsername => _mentionUsername;
+  String get linkLabel => _linkLabel;
+  String get linkUrl => _linkUrl;
+  bool get hasMention => _mentionUsername.trim().isNotEmpty;
+  bool get hasLink => _linkUrl.trim().isNotEmpty;
 
   FontWeight get selectedFontWeight {
     switch (_textStyleIndex) {
@@ -107,6 +140,32 @@ class StoryTextComposerController extends ChangeNotifier {
 
   void cycleTextStyle() {
     _textStyleIndex = (_textStyleIndex + 1) % 3;
+    notifyListeners();
+  }
+
+  void setSticker(String sticker) {
+    _selectedSticker = sticker;
+    notifyListeners();
+  }
+
+  void setEffect(String effect) {
+    _selectedEffect = effect;
+    notifyListeners();
+  }
+
+  void setPrivacy(String privacy) {
+    _selectedPrivacy = privacy;
+    notifyListeners();
+  }
+
+  void setMention(String username) {
+    _mentionUsername = username.trim().replaceFirst('@', '');
+    notifyListeners();
+  }
+
+  void setLink({required String label, required String url}) {
+    _linkLabel = label.trim();
+    _linkUrl = url.trim();
     notifyListeners();
   }
 

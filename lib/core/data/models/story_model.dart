@@ -14,6 +14,12 @@ class StoryModel {
     this.textColorValue = 0xFFFFFFFF,
     this.createdAt,
     this.author,
+    this.sticker,
+    this.effectName,
+    this.mentionUsername,
+    this.linkLabel,
+    this.linkUrl,
+    this.privacy = 'Everyone',
   });
 
   final String id;
@@ -27,6 +33,12 @@ class StoryModel {
   final int textColorValue;
   final DateTime? createdAt;
   final UserModel? author;
+  final String? sticker;
+  final String? effectName;
+  final String? mentionUsername;
+  final String? linkLabel;
+  final String? linkUrl;
+  final String privacy;
 
   bool get hasMedia => media.trim().isNotEmpty;
   bool get hasText => (text ?? '').trim().isNotEmpty;
@@ -44,6 +56,12 @@ class StoryModel {
       'textColorValue': textColorValue,
       'createdAt': createdAt?.toIso8601String(),
       if (author != null) 'author': author!.toJson(),
+      'sticker': sticker,
+      'effectName': effectName,
+      'mentionUsername': mentionUsername,
+      'linkLabel': linkLabel,
+      'linkUrl': linkUrl,
+      'privacy': privacy,
     };
   }
 
@@ -67,6 +85,15 @@ class StoryModel {
       ),
       createdAt: ApiPayloadReader.readDateTime(json['createdAt']),
       author: author == null ? null : UserModel.fromApiJson(author),
+      sticker: ApiPayloadReader.readString(json['sticker']),
+      effectName: ApiPayloadReader.readString(json['effectName']),
+      mentionUsername: ApiPayloadReader.readString(json['mentionUsername']),
+      linkLabel: ApiPayloadReader.readString(json['linkLabel']),
+      linkUrl: ApiPayloadReader.readString(json['linkUrl']),
+      privacy: ApiPayloadReader.readString(
+        json['privacy'],
+        fallback: 'Everyone',
+      ),
     );
   }
 
@@ -82,6 +109,12 @@ class StoryModel {
     int? textColorValue,
     DateTime? createdAt,
     UserModel? author,
+    String? sticker,
+    String? effectName,
+    String? mentionUsername,
+    String? linkLabel,
+    String? linkUrl,
+    String? privacy,
   }) {
     return StoryModel(
       id: id ?? this.id,
@@ -95,6 +128,12 @@ class StoryModel {
       textColorValue: textColorValue ?? this.textColorValue,
       createdAt: createdAt ?? this.createdAt,
       author: author ?? this.author,
+      sticker: sticker ?? this.sticker,
+      effectName: effectName ?? this.effectName,
+      mentionUsername: mentionUsername ?? this.mentionUsername,
+      linkLabel: linkLabel ?? this.linkLabel,
+      linkUrl: linkUrl ?? this.linkUrl,
+      privacy: privacy ?? this.privacy,
     );
   }
 

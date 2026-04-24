@@ -1,11 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../model/community_group_model.dart';
+import '../repository/communities_repository.dart';
 import 'community_group_state.dart';
 
 class CommunityGroupCubit extends Cubit<CommunityGroupState> {
-  CommunityGroupCubit({required CommunityGroupModel group})
-    : super(
+  CommunityGroupCubit({
+    required CommunityGroupModel group,
+    required CommunitiesRepository repository,
+  }) : _repository = repository,
+       super(
         CommunityGroupState(
           group: group,
           posts: group.posts,
@@ -13,6 +17,8 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
           events: group.events,
         ),
       );
+
+  final CommunitiesRepository _repository;
 
   CommunityGroupModel get group => state.group;
   List<CommunityPostModel> get posts => state.filteredPosts;
@@ -31,10 +37,17 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
   List<CommunityMemberModel> get topContributors => state.topContributors;
   List<CommunityMemberModel> get visibleMembers => state.visibleMembers;
 
-  void toggleJoin() {
-    emit(
-      state.copyWith(group: state.group.copyWith(joined: !state.group.joined)),
+  Future<void> toggleJoin() async {
+    final CommunityGroupModel previous = state.group;
+    final CommunityGroupModel optimistic = previous.copyWith(
+      joined: !previous.joined,
     );
+    emit(state.copyWith(group: optimistic));
+    final CommunityGroupModel? remote = await _repository.setJoined(
+      communityId: previous.id,
+      joined: optimistic.joined,
+    );
+    emit(state.copyWith(group: remote ?? previous));
   }
 
   void setPostFilter(String value) {
@@ -110,58 +123,64 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
     );
   }
 
-  void updateGeneral({
+  Future<void> updateGeneral({
     required String name,
     required String description,
     required String category,
-  }) {
-    emit(
-      state.copyWith(
-        group: state.group.copyWith(
-          name: name.trim().isEmpty ? state.group.name : name.trim(),
-          description: description.trim().isEmpty
-              ? state.group.description
-              : description.trim(),
-          category: category.trim().isEmpty
-              ? state.group.category
-              : category.trim(),
-        ),
-      ),
+  }) async {
+    final CommunityGroupModel previous = state.group;
+    final CommunityGroupModel optimistic = state.group.copyWith(
+      name: name.trim().isEmpty ? state.group.name : name.trim(),
+      description: description.trim().isEmpty
+          ? state.group.description
+          : description.trim(),
+      category: category.trim().isEmpty
+          ? state.group.category
+          : category.trim(),
     );
+    emit(state.copyWith(group: optimistic));
+    final CommunityGroupModel? remote = await _repository.updateCommunity(
+      optimistic,
+    );
+    emit(state.copyWith(group: remote ?? previous));
   }
 
-  void updatePrivacy({
+  Future<void> updatePrivacy({
     required CommunityPrivacy privacy,
     required bool approvalRequired,
-  }) {
-    emit(
-      state.copyWith(
-        group: state.group.copyWith(
-          privacy: privacy,
-          approvalRequired: approvalRequired,
-        ),
-      ),
+  }) async {
+    final CommunityGroupModel previous = state.group;
+    final CommunityGroupModel optimistic = state.group.copyWith(
+      privacy: privacy,
+      approvalRequired: approvalRequired,
     );
+    emit(state.copyWith(group: optimistic));
+    final CommunityGroupModel? remote = await _repository.updateCommunity(
+      optimistic,
+    );
+    emit(state.copyWith(group: remote ?? previous));
   }
 
-  void updateFeatures({
+  Future<void> updateFeatures({
     bool? events,
     bool? live,
     bool? polls,
     bool? marketplace,
     bool? chatRoom,
-  }) {
-    emit(
-      state.copyWith(
-        group: state.group.copyWith(
-          allowEvents: events,
-          allowLive: live,
-          allowPolls: polls,
-          allowMarketplace: marketplace,
-          allowChatRoom: chatRoom,
-        ),
-      ),
+  }) async {
+    final CommunityGroupModel previous = state.group;
+    final CommunityGroupModel optimistic = state.group.copyWith(
+      allowEvents: events,
+      allowLive: live,
+      allowPolls: polls,
+      allowMarketplace: marketplace,
+      allowChatRoom: chatRoom,
     );
+    emit(state.copyWith(group: optimistic));
+    final CommunityGroupModel? remote = await _repository.updateCommunity(
+      optimistic,
+    );
+    emit(state.copyWith(group: remote ?? previous));
   }
 
   void loadMorePosts() {

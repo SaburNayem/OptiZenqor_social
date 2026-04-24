@@ -232,6 +232,20 @@ class CreatePostController extends ChangeNotifier {
   }
 
   CreatePostResult buildResult() {
+    final Map<String, UserModel> availableByUsername = <String, UserModel>{
+      for (final UserModel item in availableUsers)
+        item.username.trim().toLowerCase(): item,
+    };
+    final List<String> resolvedTaggedUserIds = taggedPeople
+        .map((String item) => item.replaceFirst('@', '').trim().toLowerCase())
+        .map((String username) => availableByUsername[username]?.id ?? '')
+        .where((String id) => id.isNotEmpty)
+        .toList(growable: false);
+    final List<String> resolvedMentionUsernames = coAuthors
+        .map((String item) => item.replaceFirst('@', '').trim())
+        .where((String username) => username.isNotEmpty)
+        .toList(growable: false);
+
     return CreatePostResult(
       caption: captionController.text.trim(),
       mediaPaths: mediaPaths,
@@ -239,7 +253,9 @@ class CreatePostController extends ChangeNotifier {
       audience: audience,
       location: location,
       taggedPeople: taggedPeople,
+      taggedUserIds: resolvedTaggedUserIds,
       coAuthors: coAuthors,
+      mentionUsernames: resolvedMentionUsernames,
       altText: altText,
       editHistory: feeling == null ? const <String>[] : <String>['Feeling: $feeling'],
       feeling: feeling,

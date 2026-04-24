@@ -1,11 +1,11 @@
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/api/api_end_points.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/local_storage_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
+import '../../../core/enums/user_role.dart';
 import '../model/profile_update_model.dart';
 import '../service/user_profile_service.dart';
 
@@ -19,15 +19,6 @@ class UserProfileRepository {
   final LocalStorageService _storage;
   final UserProfileService _service;
 
-  static const Map<String, List<String>> _seedFollowing =
-      <String, List<String>>{
-        'u1': <String>['u2', 'u4'],
-        'u2': <String>['u1', 'u4'],
-        'u3': <String>['u1'],
-        'u4': <String>['u1', 'u2'],
-        'u5': <String>['u1', 'u2'],
-      };
-
   Future<UserModel?> getCurrentProfile() async {
     final UserModel? apiUser = await _fetchCurrentProfileFromApi();
     if (apiUser != null) {
@@ -35,18 +26,7 @@ class UserProfileRepository {
       await _persistUserInSession(apiUser);
       return apiUser;
     }
-
-    final UserModel? cached = await readCachedProfile();
-    if (cached != null) {
-      return cached;
-    }
-
-    await Future<void>.delayed(const Duration(milliseconds: 180));
-    final UserModel? user = MockData.users.firstOrNull;
-    if (user != null) {
-      await _cacheProfile(user);
-    }
-    return user;
+    return readCachedProfile();
   }
 
   Future<UserModel?> getProfileById(String userId) async {
@@ -69,9 +49,7 @@ class UserProfileRepository {
     if (cached != null && cached.id == trimmedUserId) {
       return cached;
     }
-
-    await Future<void>.delayed(const Duration(milliseconds: 160));
-    return MockData.users.where((item) => item.id == trimmedUserId).firstOrNull;
+    return null;
   }
 
   Future<String> getCurrentUserId() async {
@@ -88,13 +66,7 @@ class UserProfileRepository {
     final Map<String, dynamic>? cachedProfile = await _storage.readJson(
       StorageKeys.cachedProfile,
     );
-    final String cachedProfileId =
-        (cachedProfile?['id'] as Object? ?? '').toString().trim();
-    if (cachedProfileId.isNotEmpty) {
-      return cachedProfileId;
-    }
-
-    return MockData.users.firstOrNull?.id ?? '';
+    return (cachedProfile?['id'] as Object? ?? '').toString().trim();
   }
 
   Future<List<UserModel>> suggestedContacts({String? excludeUserId}) async {
@@ -102,16 +74,11 @@ class UserProfileRepository {
       ApiEndPoints.users,
       allowEmptyResult: true,
     );
-    if (remoteUsers != null) {
-      return remoteUsers
-          .where((item) => item.id != excludeUserId)
-          .take(4)
-          .toList(growable: false);
+    if (remoteUsers == null) {
+      return const <UserModel>[];
     }
-
-    await Future<void>.delayed(const Duration(milliseconds: 120));
-    return MockData.users
-        .where((item) => item.id != excludeUserId)
+    return remoteUsers
+        .where((UserModel item) => item.id != excludeUserId)
         .take(4)
         .toList(growable: false);
   }
@@ -121,18 +88,11 @@ class UserProfileRepository {
     if (trimmedUserId.isEmpty) {
       return const <PostModel>[];
     }
-
     final List<PostModel>? remotePosts = await _fetchPostList(
       ApiEndPoints.posts,
       userId: trimmedUserId,
     );
-    if (remotePosts != null) {
-      return remotePosts;
-    }
-
-    return MockData.posts
-        .where((PostModel post) => post.authorId == trimmedUserId)
-        .toList(growable: false);
+    return remotePosts ?? const <PostModel>[];
   }
 
   Future<List<ReelModel>> getReelsByUser(String userId) async {
@@ -140,18 +100,11 @@ class UserProfileRepository {
     if (trimmedUserId.isEmpty) {
       return const <ReelModel>[];
     }
-
     final List<ReelModel>? remoteReels = await _fetchReelList(
       ApiEndPoints.reels,
       userId: trimmedUserId,
     );
-    if (remoteReels != null) {
-      return remoteReels;
-    }
-
-    return MockData.reels
-        .where((ReelModel reel) => reel.authorId == trimmedUserId)
-        .toList(growable: false);
+    return remoteReels ?? const <ReelModel>[];
   }
 
   Future<List<UserModel>> getFollowers(String userId) async {
@@ -173,7 +126,7 @@ class UserProfileRepository {
       }
     }
 
-    return _localFollowersFor(trimmedUserId);
+    return const <UserModel>[];
   }
 
   Future<List<UserModel>> getFollowing(String userId) async {
@@ -195,17 +148,61 @@ class UserProfileRepository {
       }
     }
 
-    return _localFollowingFor(trimmedUserId);
+    return const <UserModel>[];
+  }
+
+  Future<FollowRemoteState> getFollowState(String targetUserId) async {
+    final String trimmedTargetUserId = targetUserId.trim();
+    if (trimmedTargetUserId.isEmpty) {
+      return const FollowRemoteState();
+    }
+
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.apiClient.get(ApiEndPoints.userFollowState(trimmedTargetUserId));
+      if (!response.isSuccess || response.data['success'] == false) {
+        return const FollowRemoteState();
+      }
+      return FollowRemoteState(
+        isFollowing:
+            _extractBoolean(
+              response.data,
+              const <String>['isFollowing', 'following', 'followed'],
+            ) ??
+            false,
+        hasPendingRequest:
+            _extractBoolean(
+              response.data,
+              const <String>[
+                'hasPendingRequest',
+                'pending',
+                'requested',
+                'requestPending',
+              ],
+            ) ??
+            false,
+      );
+    } catch (_) {
+      return const FollowRemoteState();
+    }
+  }
+
+  Future<List<UserModel>> getMutualConnections(String userId) async {
+    final String trimmedUserId = userId.trim();
+    if (trimmedUserId.isEmpty) {
+      return const <UserModel>[];
+    }
+
+    final List<UserModel>? users = await _fetchUserList(
+      ApiEndPoints.followUnfollowMutuals(trimmedUserId),
+      allowEmptyResult: true,
+    );
+    return users ?? const <UserModel>[];
   }
 
   Future<bool> isCurrentUserFollowing(String targetUserId) async {
-    final String currentUserId = await getCurrentUserId();
-    if (currentUserId.isEmpty || currentUserId == targetUserId) {
-      return false;
-    }
-
-    final List<UserModel> following = await getFollowing(currentUserId);
-    return following.any((UserModel user) => user.id == targetUserId);
+    final FollowRemoteState state = await getFollowState(targetUserId);
+    return state.isFollowing;
   }
 
   Future<FollowToggleResult> toggleFollow(
@@ -225,11 +222,7 @@ class UserProfileRepository {
       if (response.isSuccess && response.data['success'] != false) {
         final bool resolvedIsFollowing = _extractBoolean(
               response.data,
-              const <String>[
-                'isFollowing',
-                'following',
-                'followed',
-              ],
+              const <String>['isFollowing', 'following', 'followed'],
             ) ??
             (wantsPendingRequest ? false : !isCurrentlyFollowing);
         final bool resolvedPending = _extractBoolean(
@@ -250,39 +243,35 @@ class UserProfileRepository {
       }
     } catch (_) {}
 
-    if (wantsPendingRequest) {
-      return FollowToggleResult(
-        isFollowing: false,
-        hasPendingRequest: true,
-        syncedRemotely: false,
-      );
-    }
-
     return FollowToggleResult(
-      isFollowing: !isCurrentlyFollowing,
-      hasPendingRequest: false,
+      isFollowing: isCurrentlyFollowing,
+      hasPendingRequest: hasPendingRequest,
       syncedRemotely: false,
     );
   }
 
   Future<ProfileSaveResult> updateCurrentProfile(ProfileUpdateModel update) async {
-    final UserModel? currentUser = await getCurrentProfile();
-    final UserModel mergedUser = (currentUser ?? MockData.users.first).copyWith(
-      name: update.name.trim(),
-      username: update.username.trim(),
-      bio: update.bio.trim(),
-      website: update.website?.trim() ?? '',
-      location: update.location?.trim() ?? '',
-      avatar: update.avatarUrl?.trim().isNotEmpty == true
-          ? update.avatarUrl!.trim()
-          : currentUser?.avatar ?? MockData.users.first.avatar,
-      coverImageUrl: update.coverImageUrl?.trim().isNotEmpty == true
-          ? update.coverImageUrl!.trim()
-          : currentUser?.coverImageUrl ?? '',
-      publicProfileUrl: update.username.trim().isEmpty
-          ? currentUser?.publicProfileUrl ?? ''
-          : 'https://optizenqor.app/@${update.username.trim()}',
-    );
+    final UserModel mergedUser =
+        (await getCurrentProfile()) ??
+        UserModel(
+          id: await getCurrentUserId(),
+          name: update.name.trim(),
+          username: update.username.trim(),
+          avatar:
+              update.avatarUrl?.trim().isNotEmpty == true
+                  ? update.avatarUrl!.trim()
+                  : 'https://placehold.co/120x120',
+          bio: update.bio.trim(),
+          role: UserRole.user,
+          followers: 0,
+          following: 0,
+          website: update.website?.trim() ?? '',
+          location: update.location?.trim() ?? '',
+          coverImageUrl: update.coverImageUrl?.trim() ?? '',
+          publicProfileUrl: update.username.trim().isEmpty
+              ? ''
+              : 'https://optizenqor.app/@${update.username.trim()}',
+        );
 
     try {
       final ServiceResponseModel<Map<String, dynamic>> response =
@@ -307,36 +296,62 @@ class UserProfileRepository {
     return ProfileSaveResult(
       user: mergedUser,
       savedRemotely: false,
-      message: 'Profile changes saved locally.',
+      message: 'Profile update could not be synced right now.',
     );
   }
 
-  List<PostTagSummary> taggedPostSummaries(String userId) {
-    return MockData.posts
-        .where((post) => post.taggedUserIds.contains(userId))
-        .map(
-          (post) => PostTagSummary(
-            id: post.id,
-            title: post.caption,
-            location: post.location,
-            mediaCount: post.media.length,
-          ),
-        )
-        .toList(growable: false);
+  Future<List<PostTagSummary>> taggedPostSummaries(String userId) async {
+    final String trimmedUserId = userId.trim();
+    if (trimmedUserId.isEmpty) {
+      return const <PostTagSummary>[];
+    }
+
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.apiClient.get(ApiEndPoints.profileTaggedPosts(trimmedUserId));
+      if (!response.isSuccess || response.data['success'] == false) {
+        return const <PostTagSummary>[];
+      }
+      return _readMapList(response.data)
+          .map(
+            (Map<String, dynamic> item) => PostTagSummary(
+              id: (item['id'] as Object? ?? '').toString(),
+              title: (item['title'] as Object? ?? '').toString(),
+              location: item['location']?.toString(),
+              mediaCount: _readInt(item['mediaCount']),
+            ),
+          )
+          .where((PostTagSummary item) => item.id.isNotEmpty)
+          .toList(growable: false);
+    } catch (_) {
+      return const <PostTagSummary>[];
+    }
   }
 
-  List<String> mentionHistory(String userId) {
-    final String? username = MockData.users
-        .where((item) => item.id == userId)
-        .firstOrNull
-        ?.username;
-    if (username == null) {
+  Future<List<String>> mentionHistory(String userId) async {
+    final String trimmedUserId = userId.trim();
+    if (trimmedUserId.isEmpty) {
       return const <String>[];
     }
-    return MockData.posts
-        .where((post) => post.mentionUsernames.contains(username))
-        .map((post) => '@$username mentioned in "${post.caption}"')
-        .toList(growable: false);
+
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.apiClient.get(ApiEndPoints.profileMentionHistory(trimmedUserId));
+      if (!response.isSuccess || response.data['success'] == false) {
+        return const <String>[];
+      }
+      final List<Map<String, dynamic>> items = _readMapList(response.data);
+      if (items.isNotEmpty) {
+        return items
+            .map((Map<String, dynamic> item) => (item['message'] as Object? ?? '').toString().trim())
+            .where((String item) => item.isNotEmpty)
+            .toList(growable: false);
+      }
+      final List<String> rawItems = _readStringList(response.data);
+      return rawItems.where((String item) => item.trim().isNotEmpty).toList(growable: false);
+    } catch (_) {
+      return const <String>[];
+    }
   }
 
   Future<Map<String, dynamic>> buildDataExport(UserModel user) async {
@@ -347,29 +362,24 @@ class UserProfileRepository {
             <String, dynamic>{'userId': user.id},
           );
       if (response.isSuccess && response.data['success'] != false) {
+        final List<Map<String, dynamic>> requests = await _storage.readJsonList(
+          StorageKeys.dataExportRequests,
+        );
+        await _storage.writeJsonList(
+          StorageKeys.dataExportRequests,
+          <Map<String, dynamic>>[response.data, ...requests],
+        );
         return response.data;
       }
     } catch (_) {}
 
-    await Future<void>.delayed(const Duration(milliseconds: 220));
-    final Map<String, dynamic> export = <String, dynamic>{
+    return <String, dynamic>{
       'userId': user.id,
       'username': user.username,
       'requestedAt': DateTime.now().toIso8601String(),
-      'posts': MockData.posts.where((item) => item.authorId == user.id).length,
-      'reels': MockData.reels.where((item) => item.authorId == user.id).length,
-      'followers': user.followers,
-      'following': user.following,
-      'verificationStatus': user.verificationStatus,
+      'status': 'failed',
+      'message': 'Unable to request export right now.',
     };
-    final List<Map<String, dynamic>> requests = await _storage.readJsonList(
-      StorageKeys.dataExportRequests,
-    );
-    await _storage.writeJsonList(
-      StorageKeys.dataExportRequests,
-      <Map<String, dynamic>>[export, ...requests],
-    );
-    return export;
   }
 
   Future<UserModel?> readCachedProfile() async {
@@ -512,12 +522,25 @@ class UserProfileRepository {
   }
 
   List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    final Object? raw =
-        payload['data'] ??
-        payload['items'] ??
-        payload['results'] ??
-        payload['value'];
-    if (raw is List) {
+    for (final Object? raw in <Object?>[
+      payload['data'],
+      payload['items'],
+      payload['results'],
+      payload['value'],
+      payload['users'],
+      payload['followers'],
+      payload['following'],
+      payload['mutuals'],
+      _readMap(payload['data'])?['items'],
+      _readMap(payload['data'])?['results'],
+      _readMap(payload['data'])?['users'],
+      _readMap(payload['data'])?['followers'],
+      _readMap(payload['data'])?['following'],
+      _readMap(payload['data'])?['mutuals'],
+    ]) {
+      if (raw is! List) {
+        continue;
+      }
       return raw
           .whereType<Object>()
           .map(
@@ -527,22 +550,28 @@ class UserProfileRepository {
           )
           .toList(growable: false);
     }
+    return const <Map<String, dynamic>>[];
+  }
 
-    final Map<String, dynamic>? nestedData = _readMap(payload['data']);
-    final Object? nestedList =
-        nestedData?['items'] ?? nestedData?['results'] ?? nestedData?['users'];
-    if (nestedList is List) {
-      return nestedList
-          .whereType<Object>()
-          .map(
-            (Object item) => item is Map<String, dynamic>
-                ? item
-                : Map<String, dynamic>.from(item as Map),
-          )
+  List<String> _readStringList(Map<String, dynamic> payload) {
+    for (final Object? raw in <Object?>[
+      payload['data'],
+      payload['items'],
+      payload['results'],
+      payload['value'],
+      _readMap(payload['data'])?['items'],
+      _readMap(payload['data'])?['results'],
+      _readMap(payload['data'])?['value'],
+    ]) {
+      if (raw is! List) {
+        continue;
+      }
+      return raw
+          .map((Object? item) => item?.toString() ?? '')
+          .where((String item) => item.isNotEmpty)
           .toList(growable: false);
     }
-
-    return const <Map<String, dynamic>>[];
+    return const <String>[];
   }
 
   Map<String, dynamic>? _readMap(Object? value) {
@@ -555,10 +584,7 @@ class UserProfileRepository {
     return null;
   }
 
-  bool? _extractBoolean(
-    Map<String, dynamic> payload,
-    List<String> keys,
-  ) {
+  bool? _extractBoolean(Map<String, dynamic> payload, List<String> keys) {
     for (final String key in keys) {
       final Object? value = payload[key];
       if (value is bool) {
@@ -583,21 +609,14 @@ class UserProfileRepository {
     return null;
   }
 
-  List<UserModel> _localFollowersFor(String userId) {
-    final Set<String> followerIds = _seedFollowing.entries
-        .where((entry) => entry.value.contains(userId))
-        .map((entry) => entry.key)
-        .toSet();
-    return MockData.users
-        .where((UserModel user) => followerIds.contains(user.id))
-        .toList(growable: false);
-  }
-
-  List<UserModel> _localFollowingFor(String userId) {
-    final Set<String> followedIds = <String>{...?_seedFollowing[userId]};
-    return MockData.users
-        .where((UserModel user) => followedIds.contains(user.id))
-        .toList(growable: false);
+  int _readInt(Object? value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is double) {
+      return value.toInt();
+    }
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   Future<void> _cacheProfile(UserModel user) async {
@@ -641,6 +660,16 @@ class FollowToggleResult {
   final bool isFollowing;
   final bool hasPendingRequest;
   final bool syncedRemotely;
+}
+
+class FollowRemoteState {
+  const FollowRemoteState({
+    this.isFollowing = false,
+    this.hasPendingRequest = false,
+  });
+
+  final bool isFollowing;
+  final bool hasPendingRequest;
 }
 
 class PostTagSummary {

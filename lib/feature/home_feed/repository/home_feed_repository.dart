@@ -2,6 +2,7 @@ import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/data/service/upload_service.dart';
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../../../core/data/service_model/service_response_model.dart';
@@ -13,11 +14,14 @@ class HomeFeedRepository {
   HomeFeedRepository({
     AppSharedPreferences? storage,
     HomeFeedService? service,
+    UploadService? uploadService,
   }) : _storage = storage ?? AppSharedPreferences(),
-       _service = service ?? HomeFeedService();
+       _service = service ?? HomeFeedService(),
+       _uploadService = uploadService ?? UploadService();
 
   final AppSharedPreferences _storage;
   final HomeFeedService _service;
+  final UploadService _uploadService;
 
   Future<List<PostModel>> fetchFeed({
     required FeedSegment segment,
@@ -26,6 +30,8 @@ class HomeFeedRepository {
     if (page > 1) {
       return <PostModel>[];
     }
+
+    final List<PostModel> localPosts = await readLocalCreatedPosts();
 
     try {
       final response = await _service.apiClient.get(_feedEndpointFor(segment));
@@ -39,16 +45,16 @@ class HomeFeedRepository {
           StorageKeys.cachedFeed,
           posts.map((PostModel post) => post.toCacheJson()).toList(),
         );
-        return posts;
+        return _mergePosts(localPosts, posts);
       }
     } catch (_) {}
 
     final List<PostModel> cached = await readCachedFeed();
     if (cached.isNotEmpty) {
-      return cached;
+      return _mergePosts(localPosts, cached);
     }
 
-    return const <PostModel>[];
+    return localPosts;
   }
 
   Future<List<PostModel>> readCachedFeed() async {
@@ -59,6 +65,84 @@ class HomeFeedRepository {
     return cached
         .map(PostModel.fromApiJson)
         .toList(growable: false);
+  }
+
+  Future<List<PostModel>> readLocalCreatedPosts() async {
+    final List<Map<String, dynamic>> cached = await _storage.readJsonList(
+      StorageKeys.localCreatedPosts,
+    );
+    if (cached.isEmpty) {
+      return <PostModel>[];
+    }
+    return cached
+        .map(PostModel.fromApiJson)
+        .where((PostModel post) => post.id.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<void> saveLocalCreatedPosts(List<PostModel> posts) {
+    return _storage.writeJsonList(
+      StorageKeys.localCreatedPosts,
+      posts.map((PostModel post) => post.toCacheJson()).toList(),
+    );
+  }
+
+  Future<PostModel> createPost({
+    required String caption,
+    List<String> mediaPaths = const <String>[],
+    bool isVideo = false,
+    String audience = 'Everyone',
+    String? location,
+    List<String> taggedUserIds = const <String>[],
+    List<String> mentionUsernames = const <String>[],
+    String? altText,
+    List<String> editHistory = const <String>[],
+  }) async {
+    final UserModel? currentUser = await currentUserProfile();
+    if (currentUser == null || currentUser.id.trim().isEmpty) {
+      throw Exception('You need to be logged in to create a post.');
+    }
+
+    final List<String> remoteMedia = await _uploadPostMedia(
+      mediaPaths: mediaPaths,
+      isVideo: isVideo,
+      authorId: currentUser.id,
+    );
+    final Map<String, dynamic> payload = <String, dynamic>{
+      'caption': caption.trim(),
+      'media': remoteMedia,
+      'audience': audience,
+      if (location != null && location.trim().isNotEmpty)
+        'location': location.trim(),
+      if (taggedUserIds.isNotEmpty) 'taggedUserIds': taggedUserIds,
+      if (mentionUsernames.isNotEmpty) 'mentionUsernames': mentionUsernames,
+      if (altText != null && altText.trim().isNotEmpty) 'altText': altText.trim(),
+      if (editHistory.isNotEmpty) 'editHistory': editHistory,
+    };
+
+    ServiceResponseModel<Map<String, dynamic>> response = await _service.apiClient
+        .post(ApiEndPoints.postsCreate, payload);
+    if (!response.isSuccess || response.data['success'] == false) {
+      response = await _service.apiClient.post(ApiEndPoints.posts, payload);
+    }
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to create post right now.');
+    }
+
+    final Map<String, dynamic>? postPayload = _extractPostPayload(response.data);
+    if (postPayload == null) {
+      throw Exception('Post created but the API did not return a post object.');
+    }
+
+    PostModel created = PostModel.fromApiJson(postPayload);
+    if (created.id.isEmpty) {
+      throw Exception('Post created but the returned post id was missing.');
+    }
+    if (created.author == null) {
+      created = created.copyWith(author: currentUser);
+    }
+
+    return created;
   }
 
   Future<void> setPostLiked({
@@ -77,6 +161,7 @@ class HomeFeedRepository {
 
   Future<List<StoryModel>> fetchStories() async {
     final List<StoryModel> localStories = await readLocalStories();
+    final Set<String> seenStoryIds = await readSeenStoryIds();
     try {
       final ServiceResponseModel<Map<String, dynamic>> response =
           await _service.getEndpoint('stories');
@@ -91,11 +176,14 @@ class HomeFeedRepository {
               .where((StoryModel story) => story.id.isNotEmpty)
               .toList(growable: false),
         );
-        return <StoryModel>[...localStories, ...remoteStories];
+        return _applySeenState(
+          _sortStories(<StoryModel>[...localStories, ...remoteStories]),
+          seenStoryIds,
+        );
       }
     } catch (_) {}
 
-    return localStories;
+    return _applySeenState(_sortStories(localStories), seenStoryIds);
   }
 
   Future<List<StoryModel>> readLocalStories() async {
@@ -110,6 +198,26 @@ class HomeFeedRepository {
     return _storage.writeJsonList(
       StorageKeys.localStories,
       stories.map((story) => story.toJson()).toList(),
+    );
+  }
+
+  Future<Set<String>> readSeenStoryIds() async {
+    final List<dynamic>? raw = await _storage.read<List<dynamic>>(
+      StorageKeys.seenStoryIds,
+    );
+    if (raw == null || raw.isEmpty) {
+      return <String>{};
+    }
+    return raw
+        .map((dynamic item) => item.toString().trim())
+        .where((String item) => item.isNotEmpty)
+        .toSet();
+  }
+
+  Future<void> saveSeenStoryIds(Set<String> storyIds) {
+    return _storage.write(
+      StorageKeys.seenStoryIds,
+      storyIds.toList(growable: false),
     );
   }
 
@@ -308,6 +416,36 @@ class HomeFeedRepository {
     return null;
   }
 
+  Map<String, dynamic>? _extractPostPayload(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
+      _looksLikePost(payload) ? payload : null,
+      _readMap(payload['post']),
+      _readMap(payload['data']),
+      _readMap(payload['result']),
+    ];
+    for (final Map<String, dynamic>? candidate in candidates) {
+      if (candidate == null || candidate.isEmpty) {
+        continue;
+      }
+      if (_looksLikePost(candidate)) {
+        return candidate;
+      }
+      final Map<String, dynamic>? nestedPost = _readMap(candidate['post']);
+      if (nestedPost != null && _looksLikePost(nestedPost)) {
+        return nestedPost;
+      }
+    }
+    return null;
+  }
+
+  bool _looksLikePost(Map<String, dynamic> payload) {
+    return payload.containsKey('id') &&
+        (payload.containsKey('caption') ||
+            payload.containsKey('media') ||
+            payload.containsKey('authorId') ||
+            payload.containsKey('author'));
+  }
+
   Map<String, dynamic>? _readMap(Object? value) {
     if (value is Map<String, dynamic>) {
       return value;
@@ -316,5 +454,104 @@ class HomeFeedRepository {
       return Map<String, dynamic>.from(value);
     }
     return null;
+  }
+
+  List<StoryModel> _applySeenState(
+    List<StoryModel> stories,
+    Set<String> seenStoryIds,
+  ) {
+    return stories
+        .map(
+          (StoryModel story) => seenStoryIds.contains(story.id)
+              ? story.copyWith(seen: true)
+              : story,
+        )
+        .toList(growable: false);
+  }
+
+  List<StoryModel> _sortStories(List<StoryModel> stories) {
+    final List<StoryModel> ordered = List<StoryModel>.from(stories);
+    ordered.sort((StoryModel a, StoryModel b) {
+      final DateTime aTime =
+          a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final DateTime bTime =
+          b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+    return ordered;
+  }
+
+  List<PostModel> _mergePosts(List<PostModel> localPosts, List<PostModel> remotePosts) {
+    final Map<String, PostModel> merged = <String, PostModel>{};
+    for (final PostModel post in remotePosts) {
+      merged[post.id] = post;
+    }
+    for (final PostModel post in localPosts) {
+      merged[post.id] = post;
+    }
+    final List<PostModel> ordered = merged.values.toList(growable: false);
+    ordered.sort((PostModel a, PostModel b) => b.createdAt.compareTo(a.createdAt));
+    return ordered;
+  }
+
+  Future<List<String>> _uploadPostMedia({
+    required List<String> mediaPaths,
+    required bool isVideo,
+    required String authorId,
+  }) async {
+    if (mediaPaths.isEmpty) {
+      return const <String>[];
+    }
+
+    final List<String> uploaded = <String>[];
+    for (final String rawPath in mediaPaths) {
+      final String localPath = rawPath.trim();
+      if (localPath.isEmpty) {
+        continue;
+      }
+      if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
+        uploaded.add(localPath);
+        continue;
+      }
+
+      final String taskId =
+          'post-${DateTime.now().microsecondsSinceEpoch}-${uploaded.length}';
+      UploadProgress? lastProgress;
+      await for (final UploadProgress progress in _uploadService.uploadFile(
+        taskId: taskId,
+        localPath: localPath,
+        fields: <String, String>{
+          'resourceType': _resourceTypeFor(localPath, isVideo: isVideo),
+          'folder': 'optizenqor/posts/$authorId',
+          'publicId': taskId,
+        },
+      )) {
+        lastProgress = progress;
+      }
+
+      if (lastProgress == null ||
+          lastProgress.status != UploadStatus.completed ||
+          lastProgress.remotePath == null ||
+          lastProgress.remotePath!.trim().isEmpty) {
+        throw Exception(lastProgress?.error ?? 'Media upload failed.');
+      }
+      final String remotePath = lastProgress.remotePath!.trim();
+      uploaded.add(remotePath);
+    }
+    return uploaded;
+  }
+
+  String _resourceTypeFor(String path, {required bool isVideo}) {
+    if (isVideo) {
+      return 'video';
+    }
+    final String lower = path.toLowerCase();
+    if (lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.m4v') ||
+        lower.endsWith('.webm')) {
+      return 'video';
+    }
+    return 'image';
   }
 }

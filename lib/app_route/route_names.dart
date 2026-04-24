@@ -24,6 +24,7 @@ class RouteNames {
   static const reels = '/reels';
   static const storiesCreate = '/stories/create';
   static const storiesView = '/stories/view';
+  static const storyBuddies = '/stories/buddies';
 
   static const searchDiscovery = '/search-discovery';
   static const communities = '/communities';

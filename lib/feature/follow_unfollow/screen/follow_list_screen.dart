@@ -30,7 +30,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
   UserModel? _currentUser;
   List<UserModel> _followers = <UserModel>[];
   List<UserModel> _following = <UserModel>[];
-  List<UserModel> _sampleUsers = <UserModel>[];
   Set<String> _followingIds = <String>{};
   Set<String> _pendingRequestIds = <String>{};
   bool _isLoading = true;
@@ -71,7 +70,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
       currentUser == null
           ? Future<List<UserModel>>.value(const <UserModel>[])
           : _repository.getFollowing(currentUser.id),
-      _repository.suggestedContacts(excludeUserId: targetUser.id),
     ]);
 
     if (!mounted) {
@@ -84,7 +82,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
       _currentUser = currentUser;
       _followers = results[0] as List<UserModel>;
       _following = results[1] as List<UserModel>;
-      _sampleUsers = results[3] as List<UserModel>;
       _followingIds = currentFollowing
           .map((UserModel item) => item.id)
           .toSet();
@@ -178,7 +175,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
           children: [
             _ConnectionsTab(
               users: _followers,
-              sampleUsers: _sampleUsers,
               emptyTitle: 'No followers yet',
               emptyMessage:
                   'When people follow this profile, they will appear here.',
@@ -190,7 +186,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
             ),
             _ConnectionsTab(
               users: _following,
-              sampleUsers: _sampleUsers,
               emptyTitle: 'Not following anyone yet',
               emptyMessage:
                   'Accounts this profile follows will appear here.',
@@ -219,7 +214,6 @@ class _FollowListScreenState extends State<FollowListScreen> {
 class _ConnectionsTab extends StatelessWidget {
   const _ConnectionsTab({
     required this.users,
-    required this.sampleUsers,
     required this.emptyTitle,
     required this.emptyMessage,
     required this.currentUserId,
@@ -230,7 +224,6 @@ class _ConnectionsTab extends StatelessWidget {
   });
 
   final List<UserModel> users;
-  final List<UserModel> sampleUsers;
   final String emptyTitle;
   final String emptyMessage;
   final String currentUserId;
@@ -241,22 +234,25 @@ class _ConnectionsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<UserModel> displayUsers = users.isEmpty ? sampleUsers : users;
-    final bool showingDummyCards = users.isEmpty;
+    if (users.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _SampleConnectionsBanner(
+            title: emptyTitle,
+            message: emptyMessage,
+          ),
+        ],
+      );
+    }
 
     final List<Widget> items = <Widget>[
-      if (showingDummyCards)
-        _SampleConnectionsBanner(
-          title: emptyTitle,
-          message: '$emptyMessage Showing suggested people for now.',
-        ),
-      ...displayUsers.map(
+      ...users.map(
         (UserModel user) => _ConnectionPersonCard(
           user: user,
           isCurrentUser: user.id == currentUserId,
           isFollowing: followingIds.contains(user.id),
           hasPendingRequest: pendingRequestIds.contains(user.id),
-          showSampleBadge: showingDummyCards,
           actionLabel: 'Follow',
           onTap: () => onTapUser(user),
           onFollowTap: () => onToggleFollow(user),
@@ -284,14 +280,12 @@ class _ConnectionPersonCard extends StatelessWidget {
     required this.actionLabel,
     required this.onTap,
     required this.onFollowTap,
-    this.showSampleBadge = false,
   });
 
   final UserModel user;
   final bool isCurrentUser;
   final bool isFollowing;
   final bool hasPendingRequest;
-  final bool showSampleBadge;
   final String actionLabel;
   final VoidCallback onTap;
   final VoidCallback onFollowTap;
@@ -394,11 +388,6 @@ class _ConnectionPersonCard extends StatelessWidget {
                     icon: Icons.verified_user_outlined,
                     label: _capitalize(user.role.name),
                   ),
-                  if (showSampleBadge)
-                    const _ConnectionMetaChip(
-                      icon: Icons.auto_awesome_rounded,
-                      label: 'Suggested',
-                    ),
                 ],
               ),
             ],

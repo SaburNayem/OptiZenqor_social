@@ -554,7 +554,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       return _buildEmptyTabState(
         icon: Icons.alternate_email_rounded,
         title: 'No tagged posts',
-        message: 'Tagged posts will appear here when backend support is added.',
+        message: 'Tagged posts from backend will appear here.',
       );
     }
 

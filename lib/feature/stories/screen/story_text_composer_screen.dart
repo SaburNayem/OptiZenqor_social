@@ -71,7 +71,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                       Row(
                         children: [
                           IconButton(
-                            onPressed: () => Navigator.of(context).pop(),
+                            onPressed: () => Navigator.of(context).maybePop(),
                             icon: const Icon(
                               Icons.arrow_back_ios_new_rounded,
                               color: AppColors.white,
@@ -104,6 +104,25 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                 : const Text('Share'),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildOverlayChip(
+                              icon: Icons.shield_outlined,
+                              label: _controller.selectedPrivacy,
+                            ),
+                            if (_controller.hasMention)
+                              _buildOverlayChip(
+                                icon: Icons.alternate_email_rounded,
+                                label: '@${_controller.mentionUsername}',
+                              ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       if (_controller.showMusic)
@@ -180,7 +199,6 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                       child: TextField(
                                         controller: _controller.textController,
                                         focusNode: _controller.textFocusNode,
-                                        onTap: _focusTextInput,
                                         onChanged: (_) =>
                                             _controller.onTextChanged(),
                                         maxLines: 6,
@@ -205,20 +223,27 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                 children: [
                                   _buildSideTool(
                                     icon: Icons.palette_outlined,
-                                    label: 'Theme',
                                     onTap: _controller.cycleBackground,
                                   ),
                                   const SizedBox(height: 12),
                                   _buildSideTool(
                                     icon: Icons.text_fields_rounded,
-                                    label: 'Text',
                                     onTap: _handleTextStyleTap,
                                   ),
                                   const SizedBox(height: 12),
                                   _buildSideTool(
                                     icon: Icons.music_note_outlined,
-                                    label: 'Music',
                                     onTap: _showMusicPicker,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildSideTool(
+                                    icon: Icons.alternate_email_rounded,
+                                    onTap: _showMentionDialog,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildSideTool(
+                                    icon: Icons.privacy_tip_outlined,
+                                    onTap: _showPrivacyPicker,
                                   ),
                                 ],
                               ),
@@ -239,7 +264,6 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
 
   Widget _buildSideTool({
     required IconData icon,
-    required String label,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -256,13 +280,6 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
           children: [
             Icon(icon, color: AppColors.white, size: 18),
             const SizedBox(height: 8),
-            // Text(
-            //   label,
-            //   style: const TextStyle(
-            //     color: AppColors.white,
-            //     fontWeight: FontWeight.w600,
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -298,6 +315,38 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     );
   }
 
+  Widget _buildOverlayChip({
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.white.withValues(alpha: 0.24)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColors.white, size: 16),
+          const SizedBox(width: 6),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 170),
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   TextStyle _composerTextStyle() {
     return TextStyle(
       color: _controller.selectedTextColor,
@@ -311,21 +360,9 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
   }
 
   void _focusTextInput() {
-    if (!_controller.textFocusNode.hasFocus) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          FocusScope.of(context).requestFocus(_controller.textFocusNode);
-        }
-      });
-      return;
+    if (mounted) {
+      FocusScope.of(context).requestFocus(_controller.textFocusNode);
     }
-
-    _controller.textFocusNode.unfocus();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        FocusScope.of(context).requestFocus(_controller.textFocusNode);
-      }
-    });
   }
 
   void _handleTextStyleTap() {
@@ -516,6 +553,69 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     _controller.setMusic(next);
   }
 
+  Future<void> _showMentionDialog() async {
+    final TextEditingController mentionController = TextEditingController(
+      text: _controller.mentionUsername,
+    );
+    final String? mention = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add mention'),
+          content: TextField(
+            controller: mentionController,
+            decoration: const InputDecoration(
+              hintText: 'username',
+              prefixText: '@',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(mentionController.text),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    if (mention != null) {
+      _controller.setMention(mention);
+    }
+  }
+
+  Future<void> _showPrivacyPicker() async {
+    final String? next = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: StoryTextComposerController.privacyOptions.map((
+              String value,
+            ) {
+              return ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: Text(value),
+                trailing: value == _controller.selectedPrivacy
+                    ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                    : null,
+                onTap: () => Navigator.of(context).pop(value),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+    if (next != null) {
+      _controller.setPrivacy(next);
+    }
+  }
+
   Future<void> _shareStory() async {
     if (!_controller.hasText) {
       AppFeedback.showSnackbar(
@@ -541,9 +641,11 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
       music: _controller.showMusic ? _controller.selectedMusic : null,
       backgroundColors: gradient,
       textColorValue: _controller.selectedTextColor.toARGB32(),
+      mentionUsername: _controller.hasMention
+          ? _controller.mentionUsername
+          : null,
+      privacy: _controller.selectedPrivacy,
     );
     Navigator.of(context).pop(story);
   }
 }
-
-

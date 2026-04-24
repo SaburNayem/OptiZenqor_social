@@ -97,23 +97,38 @@ class MainShellScreen extends StatelessWidget {
           ),
         );
     if (result != null && context.mounted) {
-      await homeFeedController.createLocalPost(
-        caption: result.caption,
-        mediaPaths: result.mediaPaths,
-        isVideo: result.isVideo,
-        audience: result.audience,
-        location: result.location,
-        taggedPeople: result.taggedPeople,
-        coAuthors: result.coAuthors,
-        altText: result.altText,
-        editHistory: result.editHistory,
-      );
-      if (!context.mounted) {
-        return;
+      try {
+        await homeFeedController.createPost(
+          caption: result.caption,
+          mediaPaths: result.mediaPaths,
+          isVideo: result.isVideo,
+          audience: result.audience,
+          location: result.location,
+          taggedUserIds: result.taggedUserIds,
+          mentionUsernames: result.mentionUsernames,
+          altText: result.altText,
+          editHistory: result.editHistory,
+        );
+        if (!context.mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('Post created')));
+      } catch (error) {
+        if (!context.mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                error.toString().replaceFirst('Exception: ', ''),
+              ),
+            ),
+          );
       }
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Post created')));
     }
   }
 }

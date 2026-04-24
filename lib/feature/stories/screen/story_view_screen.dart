@@ -1,9 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../../app_route/route_names.dart';
+import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/data/service/api_client_service.dart';
+import '../../../core/functions/app_feedback.dart';
+import '../../../core/navigation/app_get.dart';
 import '../controller/stories_controller.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -12,12 +18,14 @@ class StoryViewScreen extends StatefulWidget {
     required this.stories,
     required this.users,
     required this.initialStoryId,
+    this.onStoriesSeen,
     super.key,
   });
 
   final List<StoryModel> stories;
   final List<UserModel> users;
   final String initialStoryId;
+  final ValueChanged<List<String>>? onStoriesSeen;
 
   @override
   State<StoryViewScreen> createState() => _StoryViewScreenState();
@@ -25,6 +33,9 @@ class StoryViewScreen extends StatefulWidget {
 
 class _StoryViewScreenState extends State<StoryViewScreen> {
   late StoriesController _controller;
+  final ApiClientService _apiClient = ApiClientService();
+  List<UserModel> _viewers = <UserModel>[];
+  final Set<String> _seenStoryIds = <String>{};
 
   @override
   void initState() {
@@ -36,6 +47,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       stories: widget.stories,
       startIndex: startIndex < 0 ? 0 : startIndex,
     );
+    _markCurrentStorySeen();
+    _loadViewersForCurrentStory();
   }
 
   @override
@@ -57,11 +70,37 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
               PageView.builder(
                 controller: _controller.pageController,
                 itemCount: _controller.stories.length,
-                onPageChanged: _controller.onPageChanged,
+                onPageChanged: (int index) {
+                  _controller.onPageChanged(index);
+                  _markCurrentStorySeen();
+                  _loadViewersForCurrentStory();
+                },
                 itemBuilder: (context, index) {
                   final story = _controller.stories[index];
                   return _buildStoryContent(story);
                 },
+              ),
+              Positioned.fill(
+                top: 110,
+                bottom: 120,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: _goPrevious,
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: _goNext,
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // Top UI (Progress bars & User info)
@@ -132,22 +171,24 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '25 min',
+                            _timeLabelFor(
+                              _controller.stories[_controller.currentIndex],
+                            ),
                             style: TextStyle(
                               color: AppColors.white.withValues(alpha: 0.6),
                               fontSize: 12,
                             ),
                           ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.more_vert,
-                              color: AppColors.white,
-                            ),
-                            onPressed: () {},
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: AppColors.white,
                           ),
-                        ],
-                      ),
+                          onPressed: _showViewersSheet,
+                        ),
+                      ],
+                    ),
                     ),
                   ],
                 ),
@@ -190,7 +231,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                               ),
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'Send a message',
+                                'Reply to story',
                                 style: TextStyle(
                                   color: AppColors.white.withValues(alpha: 0.8),
                                   fontSize: 14,
@@ -205,10 +246,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                             size: 28,
                           ),
                           const SizedBox(width: 16),
-                          const Icon(
-                            Icons.send_outlined,
-                            color: AppColors.white,
-                            size: 28,
+                          GestureDetector(
+                            onTap: _shareCurrentStory,
+                            child: const Icon(
+                              Icons.ios_share_rounded,
+                              color: AppColors.white,
+                              size: 28,
+                            ),
                           ),
                         ],
                       ),
@@ -226,6 +270,136 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   UserModel? _getUser(StoryModel story) {
     return story.author ??
         widget.users.where((u) => u.id == story.userId).firstOrNull;
+  }
+
+  void _markCurrentStorySeen() {
+    final StoryModel story = _controller.stories[_controller.currentIndex];
+    if (story.id.isEmpty || !_seenStoryIds.add(story.id)) {
+      return;
+    }
+    widget.onStoriesSeen?.call(<String>[story.id]);
+  }
+
+  Future<void> _goPrevious() async {
+    if (_controller.currentIndex <= 0) {
+      return;
+    }
+    await _controller.pageController.previousPage(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Future<void> _goNext() async {
+    if (_controller.currentIndex >= _controller.stories.length - 1) {
+      if (mounted) {
+        Navigator.of(context).maybePop();
+      }
+      return;
+    }
+    await _controller.pageController.nextPage(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Future<void> _loadViewersForCurrentStory() async {
+    final StoryModel story = _controller.stories[_controller.currentIndex];
+    try {
+      final response = await _apiClient.get(ApiEndPoints.storyViewers(story.id));
+      if (!response.isSuccess || response.data['success'] == false) {
+        if (mounted) {
+          setState(() {
+            _viewers = <UserModel>[];
+          });
+        }
+        return;
+      }
+      final List<UserModel> viewers = _readMapList(response.data)
+          .map(UserModel.fromApiJson)
+          .where((UserModel user) => user.id.isNotEmpty)
+          .toList(growable: false);
+      if (mounted) {
+        setState(() {
+          _viewers = viewers;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _viewers = <UserModel>[];
+        });
+      }
+    }
+  }
+
+  Future<void> _showViewersSheet() async {
+    await _loadViewersForCurrentStory();
+    if (!mounted) {
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext context) {
+        if (_viewers.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Text('No viewers yet.'),
+          );
+        }
+        return ListView.separated(
+          shrinkWrap: true,
+          itemCount: _viewers.length,
+          separatorBuilder: (_, _) => const Divider(height: 1),
+          itemBuilder: (BuildContext context, int index) {
+            final UserModel viewer = _viewers[index];
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(
+                  viewer.avatar.isNotEmpty
+                      ? viewer.avatar
+                      : 'https://placehold.co/80x80',
+                ),
+              ),
+              title: Text(viewer.name),
+              subtitle: Text('@${viewer.username}'),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
+    for (final Object? raw in <Object?>[
+      payload['data'],
+      payload['items'],
+      payload['results'],
+      _readMap(payload['data'])?['items'],
+      _readMap(payload['data'])?['results'],
+    ]) {
+      if (raw is! List) {
+        continue;
+      }
+      return raw
+          .whereType<Object>()
+          .map((Object item) => item is Map<String, dynamic>
+              ? item
+              : Map<String, dynamic>.from(item as Map))
+          .toList(growable: false);
+    }
+    return const <Map<String, dynamic>>[];
+  }
+
+  Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
   }
 
   Widget _buildStoryContent(StoryModel story) {
@@ -288,6 +462,47 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                       ),
                     if ((story.music ?? '').trim().isNotEmpty)
                       const SizedBox(height: 20),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _buildStoryChip(
+                          icon: Icons.shield_outlined,
+                          label: story.privacy,
+                        ),
+                        if ((story.effectName ?? '').trim().isNotEmpty)
+                          _buildStoryChip(
+                            icon: Icons.auto_awesome_rounded,
+                            label: story.effectName!,
+                          ),
+                        if ((story.sticker ?? '').trim().isNotEmpty)
+                          _buildStoryChip(
+                            icon: Icons.emoji_emotions_outlined,
+                            label: story.sticker!,
+                          ),
+                        if ((story.mentionUsername ?? '').trim().isNotEmpty)
+                          _buildStoryChip(
+                            icon: Icons.alternate_email_rounded,
+                            label: '@${story.mentionUsername!}',
+                          ),
+                        if ((story.linkUrl ?? '').trim().isNotEmpty)
+                          GestureDetector(
+                            onTap: () => _openStoryLink(story),
+                            child: _buildStoryChip(
+                              icon: Icons.link_rounded,
+                              label: (story.linkLabel ?? '').trim().isNotEmpty
+                                  ? story.linkLabel!
+                                  : story.linkUrl!,
+                            ),
+                          ),
+                      ],
+                    ),
+                    if ((story.effectName ?? '').trim().isNotEmpty ||
+                        (story.sticker ?? '').trim().isNotEmpty ||
+                        (story.mentionUsername ?? '').trim().isNotEmpty ||
+                        (story.linkUrl ?? '').trim().isNotEmpty)
+                      const SizedBox(height: 20),
                     if (story.hasText)
                       Text(
                         story.text!,
@@ -330,6 +545,89 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       decoration: BoxDecoration(color: AppColors.black.withValues(alpha: 0.2)),
       child: child,
     );
+  }
+
+  Widget _buildStoryChip({
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.black.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColors.white, size: 16),
+          const SizedBox(width: 6),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 180),
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openStoryLink(StoryModel story) {
+    final String target = (story.linkUrl ?? '').trim();
+    if (target.isEmpty) {
+      return;
+    }
+    if (target == RouteNames.privacySettings ||
+        target.contains('privacySettings') ||
+        target.contains('/settings/privacy')) {
+      AppGet.toNamed(RouteNames.privacySettings);
+      return;
+    }
+    Clipboard.setData(ClipboardData(text: target));
+    AppFeedback.showSnackbar(
+      title: 'Story link',
+      message: 'Link copied to clipboard',
+    );
+  }
+
+  Future<void> _shareCurrentStory() async {
+    final StoryModel story = _controller.stories[_controller.currentIndex];
+    final String shareText = (story.linkUrl ?? '').trim().isNotEmpty
+        ? (story.linkLabel ?? '').trim().isNotEmpty
+              ? '${story.linkLabel}: ${story.linkUrl}'
+              : story.linkUrl!
+        : story.text?.trim().isNotEmpty == true
+        ? story.text!.trim()
+        : 'Story shared from OptiZenqor';
+    await Clipboard.setData(ClipboardData(text: shareText));
+    AppFeedback.showSnackbar(
+      title: 'Story',
+      message: 'Story share text copied',
+    );
+  }
+
+  String _timeLabelFor(StoryModel story) {
+    final DateTime? createdAt = story.createdAt;
+    if (createdAt == null) {
+      return 'Now';
+    }
+    final Duration diff = DateTime.now().difference(createdAt);
+    if (diff.inMinutes < 1) {
+      return 'Just now';
+    }
+    if (diff.inHours < 1) {
+      return '${diff.inMinutes} min';
+    }
+    if (diff.inDays < 1) {
+      return '${diff.inHours} h';
+    }
+    return '${diff.inDays} d';
   }
 }
 

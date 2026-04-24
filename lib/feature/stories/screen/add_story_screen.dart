@@ -5,6 +5,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/service/media_picker_service.dart';
@@ -335,7 +336,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                           child: Icon(Icons.broken_image_outlined),
                         ),
                   ),
-                  if (index == 0)
+                  if (_galleryItems[index].type == AssetType.video)
                     Positioned(
                       left: 8,
                       bottom: 8,
@@ -348,9 +349,9 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                           color: AppColors.black54,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          '00:06',
-                          style: TextStyle(
+                        child: Text(
+                          _formatDuration(_galleryItems[index].videoDuration),
+                          style: const TextStyle(
                             color: AppColors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -439,12 +440,12 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   Widget _buildFloatingAction() {
     if (_isMultiSelectEnabled) {
       return FloatingActionButton.extended(
-        onPressed: _selectedAssetIds.isEmpty ? null : _shareMultipleNow,
+        onPressed: _selectedAssetIds.isEmpty ? null : _previewMultipleSelections,
         backgroundColor: AppColors.splashBackground,
         foregroundColor: AppColors.white,
-        icon: const Icon(Icons.send_rounded),
+        icon: const Icon(Icons.visibility_rounded),
         label: const Text(
-          'Share now',
+          'Preview',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       );
@@ -508,9 +509,17 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         );
         return;
       }
-      _openStoryPreview(
-        StoryPreviewModel(mediaPath: file.path, isLocalFile: true),
+      final StoryModel? story = await _openStoryPreview(
+        StoryPreviewModel(
+          mediaPath: file.path,
+          isLocalFile: true,
+          isVideo: asset.type == AssetType.video,
+        ),
       );
+      if (!mounted || story == null) {
+        return;
+      }
+      Navigator.of(context).pop(<StoryModel>[story]);
     }
   }
 
@@ -537,7 +546,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     }
 
     final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
-      type: RequestType.image,
+      type: RequestType.common,
       hasAll: true,
     );
     if (!mounted) {
@@ -681,22 +690,8 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       _selectedMediaPath = path;
       _selectedAssetIds.clear();
     });
-    _openStoryPreview(StoryPreviewModel(mediaPath: path, isLocalFile: true));
-  }
-
-  void _showSettingsMessage() {
-    AppFeedback.showSnackbar(
-      title: 'Settings',
-      message: 'Story settings coming soon',
-    );
-  }
-
-  Future<void> _openStoryPreview(StoryPreviewModel preview) async {
-    final StoryModel? story = await Navigator.of(context).push<StoryModel>(
-      MaterialPageRoute<StoryModel>(
-        builder: (_) =>
-            StoryPreviewScreen(preview: preview, userId: widget.userId),
-      ),
+    final StoryModel? story = await _openStoryPreview(
+      StoryPreviewModel(mediaPath: path, isLocalFile: true),
     );
     if (!mounted || story == null) {
       return;
@@ -704,13 +699,21 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     Navigator.of(context).pop(<StoryModel>[story]);
   }
 
-  Future<void> _shareMultipleNow() async {
-    if (_selectedAssetIds.isEmpty) {
-      return;
-    }
+  void _showSettingsMessage() {
+    AppGet.toNamed(RouteNames.privacySettings);
+  }
 
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (!mounted) {
+  Future<StoryModel?> _openStoryPreview(StoryPreviewModel preview) {
+    return Navigator.of(context).push<StoryModel>(
+      MaterialPageRoute<StoryModel>(
+        builder: (_) =>
+            StoryPreviewScreen(preview: preview, userId: widget.userId),
+      ),
+    );
+  }
+
+  Future<void> _previewMultipleSelections() async {
+    if (_selectedAssetIds.isEmpty) {
       return;
     }
 
@@ -724,14 +727,16 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       if (file == null) {
         continue;
       }
-      stories.add(
-        StoryModel(
-          id: 'local_story_${DateTime.now().microsecondsSinceEpoch}_$assetId',
-          userId: widget.userId,
-          media: file.path,
+      final StoryModel? story = await _openStoryPreview(
+        StoryPreviewModel(
+          mediaPath: file.path,
           isLocalFile: true,
+          isVideo: asset?.type == AssetType.video,
         ),
       );
+      if (story != null) {
+        stories.add(story);
+      }
     }
     if (!mounted || stories.isEmpty) {
       return;
@@ -768,6 +773,12 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       return;
     }
     Navigator.of(context).pop(<StoryModel>[story]);
+  }
+
+  String _formatDuration(Duration duration) {
+    final int minutes = duration.inMinutes;
+    final int seconds = duration.inSeconds.remainder(60);
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 }
 

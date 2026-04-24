@@ -45,6 +45,11 @@ class MainShellDrawer extends StatelessWidget {
                   ),
                   const Divider(),
                   _MainShellDrawerItem(
+                    icon: Icons.people_outline_rounded,
+                    label: 'Story Buddies',
+                    routeName: RouteNames.storyBuddies,
+                  ),
+                  _MainShellDrawerItem(
                     icon: Icons.settings_outlined,
                     label: 'Settings',
                     routeName: RouteNames.settings,

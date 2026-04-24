@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../model/community_group_model.dart';
 import '../helper/community_group_actions.dart';
 import '../helper/community_group_customize_sheet.dart';
+import '../repository/communities_repository_impl.dart';
 import '../widget/community_group_detail_widgets.dart';
 import '../widget/community_group_header.dart';
 import '../widget/community_group_tabs.dart';
@@ -18,8 +19,9 @@ class CommunityGroupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final CommunitiesRepositoryImpl repository = CommunitiesRepositoryImpl();
     return BlocProvider(
-      create: (_) => CommunityGroupCubit(group: group),
+      create: (_) => CommunityGroupCubit(group: group, repository: repository),
       child: const _CommunityGroupView(),
     );
   }

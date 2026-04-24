@@ -268,6 +268,13 @@ class HomeFeedController extends Cubit<int> {
     );
 
     posts = <PostModel>[post, ...posts];
+    final List<PostModel> localPosts = <PostModel>[
+      post,
+      ...(await _repository.readLocalCreatedPosts()).where(
+        (PostModel item) => item.id != post.id,
+      ),
+    ];
+    await _repository.saveLocalCreatedPosts(localPosts);
     loadState = loadState.copyWith(
       isEmpty: posts.isEmpty,
       isSuccess: posts.isNotEmpty,
@@ -282,24 +289,129 @@ class HomeFeedController extends Cubit<int> {
     _notify();
   }
 
+  Future<void> createPost({
+    required String caption,
+    List<String> mediaPaths = const <String>[],
+    bool isVideo = false,
+    String audience = 'Everyone',
+    String? location,
+    List<String> taggedUserIds = const <String>[],
+    List<String> mentionUsernames = const <String>[],
+    String? altText,
+    List<String> editHistory = const <String>[],
+  }) async {
+    loadState = loadState.copyWith(
+      hasError: false,
+      errorMessage: null,
+      isLoading: true,
+    );
+    _notify();
+    try {
+      final PostModel post = await _repository.createPost(
+        caption: caption,
+        mediaPaths: mediaPaths,
+        isVideo: isVideo,
+        audience: audience,
+        location: location,
+        taggedUserIds: taggedUserIds,
+        mentionUsernames: mentionUsernames,
+        altText: altText,
+        editHistory: editHistory,
+      );
+      posts = <PostModel>[
+        post,
+        ...posts.where((PostModel item) => item.id != post.id),
+      ];
+      final List<PostModel> localPosts = await _repository.readLocalCreatedPosts();
+      if (localPosts.any((PostModel item) => item.id == post.id)) {
+        await _repository.saveLocalCreatedPosts(
+          localPosts.where((PostModel item) => item.id != post.id).toList(),
+        );
+      }
+      loadState = loadState.copyWith(
+        isLoading: false,
+        isEmpty: posts.isEmpty,
+        isSuccess: posts.isNotEmpty,
+      );
+      await _analytics.logEvent(
+        'post_created',
+        params: <String, dynamic>{
+          'hasMedia': post.media.isNotEmpty,
+          'isVideo': isVideo,
+        },
+      );
+      _notify();
+    } catch (error) {
+      loadState = loadState.copyWith(
+        isLoading: false,
+        hasError: true,
+        errorMessage: error.toString().replaceFirst('Exception: ', ''),
+      );
+      _notify();
+      rethrow;
+    }
+  }
+
   Future<void> addLocalStories(List<StoryModel> newStories) async {
     if (newStories.isEmpty) {
       return;
     }
 
-    stories = <StoryModel>[...newStories, ...stories];
+    final currentUser = await _repository.currentUserProfile();
+    final List<StoryModel> resolvedStories = newStories
+        .map(
+          (StoryModel story) =>
+              currentUser != null &&
+                  story.author == null &&
+                  story.userId == currentUser.id
+              ? story.copyWith(author: currentUser)
+              : story,
+        )
+        .toList(growable: false);
+
+    stories = _sortStories(<StoryModel>[...resolvedStories, ...stories]);
     await _repository.saveLocalStories(
       stories.where((story) => story.id.startsWith('local_story_')).toList(),
     );
     await _analytics.logEvent(
       'story_created_local',
       params: <String, dynamic>{
-        'count': newStories.length,
-        'hasMedia': newStories.any((story) => story.hasMedia),
-        'hasText': newStories.any((story) => story.hasText),
+      'count': newStories.length,
+        'hasMedia': resolvedStories.any((story) => story.hasMedia),
+        'hasText': resolvedStories.any((story) => story.hasText),
       },
     );
     _notify();
+  }
+
+  Future<void> markStoriesSeen(List<String> storyIds) async {
+    final Set<String> ids = storyIds
+        .map((String id) => id.trim())
+        .where((String id) => id.isNotEmpty)
+        .toSet();
+    if (ids.isEmpty) {
+      return;
+    }
+
+    bool changed = false;
+    stories = stories.map((StoryModel story) {
+      if (!ids.contains(story.id) || story.seen) {
+        return story;
+      }
+      changed = true;
+      return story.copyWith(seen: true);
+    }).toList(growable: false);
+
+    final Set<String> seenStoryIds = await _repository.readSeenStoryIds();
+    final int previousLength = seenStoryIds.length;
+    seenStoryIds.addAll(ids);
+    await _repository.saveSeenStoryIds(seenStoryIds);
+    await _repository.saveLocalStories(
+      stories.where((StoryModel story) => story.id.startsWith('local_story_')).toList(),
+    );
+    if (changed || seenStoryIds.length != previousLength) {
+      _notify();
+    }
   }
 
   FeedSegment _segmentForTab(FeedTab tab) {
@@ -327,6 +439,18 @@ class HomeFeedController extends Cubit<int> {
         hiddenTopics: _hiddenTopics,
       ),
     );
+  }
+
+  List<StoryModel> _sortStories(List<StoryModel> input) {
+    final List<StoryModel> ordered = List<StoryModel>.from(input);
+    ordered.sort((StoryModel a, StoryModel b) {
+      final DateTime aTime =
+          a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final DateTime bTime =
+          b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+    return ordered;
   }
 
   void _notify() => emit(state + 1);

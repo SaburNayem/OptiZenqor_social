@@ -15,6 +15,25 @@ class StoryPreviewController extends ChangeNotifier {
     'Neon Memory',
     'Soft Horizon',
   ];
+  static const List<String> stickerOptions = <String>[
+    'Mood',
+    'Location',
+    'Flash',
+    'Vibes',
+    'New',
+  ];
+  static const List<String> effectOptions = <String>[
+    'Clean',
+    'Glow',
+    'Film',
+    'Dream',
+    'Neon',
+  ];
+  static const List<String> privacyOptions = <String>[
+    'Everyone',
+    'Followers',
+    'Close Friends',
+  ];
 
   static const List<Color> textColors = <Color>[
     AppColors.white,
@@ -31,12 +50,26 @@ class StoryPreviewController extends ChangeNotifier {
   String _selectedMusic;
   bool _isEditingText = false;
   Color _selectedTextColor = textColors.first;
+  String _selectedSticker = stickerOptions.first;
+  String _selectedEffect = effectOptions.first;
+  String _selectedPrivacy = privacyOptions.first;
+  String _mentionUsername = '';
+  String _linkLabel = '';
+  String _linkUrl = '';
 
   String get selectedMusic => _selectedMusic;
   bool get isEditingText => _isEditingText;
   Color get selectedTextColor => _selectedTextColor;
   bool get hasText => textController.text.trim().isNotEmpty;
   String get currentText => textController.text.trim();
+  String get selectedSticker => _selectedSticker;
+  String get selectedEffect => _selectedEffect;
+  String get selectedPrivacy => _selectedPrivacy;
+  String get mentionUsername => _mentionUsername;
+  String get linkLabel => _linkLabel;
+  String get linkUrl => _linkUrl;
+  bool get hasMention => _mentionUsername.trim().isNotEmpty;
+  bool get hasLink => _linkUrl.trim().isNotEmpty;
 
   void startTextEditing() {
     _isEditingText = true;
@@ -67,6 +100,32 @@ class StoryPreviewController extends ChangeNotifier {
 
   void setTextColor(Color color) {
     _selectedTextColor = color;
+    notifyListeners();
+  }
+
+  void setSticker(String sticker) {
+    _selectedSticker = sticker;
+    notifyListeners();
+  }
+
+  void setEffect(String effect) {
+    _selectedEffect = effect;
+    notifyListeners();
+  }
+
+  void setPrivacy(String privacy) {
+    _selectedPrivacy = privacy;
+    notifyListeners();
+  }
+
+  void setMention(String username) {
+    _mentionUsername = username.trim().replaceFirst('@', '');
+    notifyListeners();
+  }
+
+  void setLink({required String label, required String url}) {
+    _linkLabel = label.trim();
+    _linkUrl = url.trim();
     notifyListeners();
   }
 

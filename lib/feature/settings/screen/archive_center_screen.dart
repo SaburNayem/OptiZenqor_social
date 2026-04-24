@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../home_feed/screen/hidden_posts_screen.dart';
-import '../../reels_short_video/screen/reels_screen.dart';
 import '../../saved_collections/screen/saved_collections_screen.dart';
+import 'archive_posts_screen.dart';
+import 'archive_reels_screen.dart';
+import 'archive_stories_screen.dart';
 
 class ArchiveCenterScreen extends StatelessWidget {
   const ArchiveCenterScreen({super.key});
@@ -48,7 +49,7 @@ class ArchiveCenterScreen extends StatelessWidget {
                   leading: const Icon(Icons.archive_outlined),
                   title: const Text('Archived posts'),
                   subtitle: const Text(
-                    'Posts hidden from your profile appear here.',
+                    'Open post archive from backend.',
                   ),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => _openHiddenPosts(context),
@@ -57,7 +58,7 @@ class ArchiveCenterScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.play_circle_outline),
                   title: const Text('Archived reels'),
-                  subtitle: const Text('Open your saved reel archive'),
+                  subtitle: const Text('Open reel archive from backend'),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => _openReelsArchive(context),
                 ),
@@ -65,11 +66,9 @@ class ArchiveCenterScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.auto_stories_outlined),
                   title: const Text('Story archive'),
-                  subtitle: const Text(
-                    'Story archive needs the backend archive endpoint.',
-                  ),
+                  subtitle: const Text('Open story archive from backend'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: null,
+                  onTap: () => _openStoriesArchive(context),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -89,13 +88,19 @@ class ArchiveCenterScreen extends StatelessWidget {
 
   void _openHiddenPosts(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const HiddenPostsScreen()),
+      MaterialPageRoute<void>(builder: (_) => const ArchivePostsScreen()),
     );
   }
 
   void _openReelsArchive(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => ReelsScreen()),
+      MaterialPageRoute<void>(builder: (_) => const ArchiveReelsScreen()),
+    );
+  }
+
+  void _openStoriesArchive(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const ArchiveStoriesScreen()),
     );
   }
 

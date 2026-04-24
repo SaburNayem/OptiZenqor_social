@@ -212,6 +212,8 @@ class AppRouter {
         return ChatScreen();
       case RouteNames.storiesCreate:
         return AddStoryScreen(userId: _storyUserIdFromArguments(arguments));
+      case RouteNames.storyBuddies:
+        return const StoryBuddiesScreen();
       case RouteNames.storiesView:
         final List<StoryModel> stories = _storiesFromArguments(arguments);
         if (stories.isEmpty) {

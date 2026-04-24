@@ -33,6 +33,9 @@ class UserProfileController extends ChangeNotifier {
   List<UserModel> _followers = <UserModel>[];
   List<UserModel> _following = <UserModel>[];
   List<UserModel> _suggestedContacts = <UserModel>[];
+  List<UserModel> _mutualConnections = <UserModel>[];
+  List<PostTagSummary> _taggedPosts = <PostTagSummary>[];
+  List<String> _mentionHistory = <String>[];
 
   bool get isOwnProfile =>
       _currentUserId.isNotEmpty && user != null && user!.id == _currentUserId;
@@ -46,19 +49,7 @@ class UserProfileController extends ChangeNotifier {
   List<UserModel> get followingList => List<UserModel>.unmodifiable(_following);
 
   List<UserModel> get mutualConnections {
-    if (user == null || isOwnProfile) {
-      return const <UserModel>[];
-    }
-    final Set<String> currentFollowingIds = _following
-        .map((UserModel item) => item.id)
-        .toSet();
-    final Set<String> followerIds = _followers
-        .map((UserModel item) => item.id)
-        .toSet();
-    final Set<String> mutualIds = currentFollowingIds.intersection(followerIds);
-    return _suggestedContacts
-        .where((UserModel item) => mutualIds.contains(item.id))
-        .toList(growable: false);
+    return List<UserModel>.unmodifiable(_mutualConnections);
   }
 
   int get postCount => _posts.length;
@@ -74,15 +65,12 @@ class UserProfileController extends ChangeNotifier {
 
   List<PostModel> get featuredPosts => _posts.take(2).toList(growable: false);
 
-  List<PostTagSummary> get taggedPosts => user == null
-      ? const <PostTagSummary>[]
-      : _repository.taggedPostSummaries(user!.id);
+  List<PostTagSummary> get taggedPosts => List<PostTagSummary>.unmodifiable(_taggedPosts);
 
   List<PostTagSummary> get taggedMedia =>
       taggedPosts.where((item) => item.mediaCount > 0).toList(growable: false);
 
-  List<String> get mentionHistory =>
-      user == null ? const <String>[] : _repository.mentionHistory(user!.id);
+  List<String> get mentionHistory => List<String>.unmodifiable(_mentionHistory);
 
   List<String> get highlights => <String>[
     'Travel',
@@ -156,6 +144,9 @@ class UserProfileController extends ChangeNotifier {
         _followers = <UserModel>[];
         _following = <UserModel>[];
         _suggestedContacts = <UserModel>[];
+        _mutualConnections = <UserModel>[];
+        _taggedPosts = <PostTagSummary>[];
+        _mentionHistory = <String>[];
         isFollowing = false;
         followRequestPending = false;
         state = state.copyWith(
@@ -173,6 +164,14 @@ class UserProfileController extends ChangeNotifier {
         _repository.getFollowers(user!.id),
         _repository.getFollowing(user!.id),
         _repository.suggestedContacts(excludeUserId: user!.id),
+        _repository.taggedPostSummaries(user!.id),
+        _repository.mentionHistory(user!.id),
+        isOwnProfile
+            ? Future<List<UserModel>>.value(const <UserModel>[])
+            : _repository.getMutualConnections(user!.id),
+        isOwnProfile
+            ? Future<FollowRemoteState>.value(const FollowRemoteState())
+            : _repository.getFollowState(user!.id),
       ]);
 
       _posts = resources[0] as List<PostModel>;
@@ -180,15 +179,13 @@ class UserProfileController extends ChangeNotifier {
       _followers = resources[2] as List<UserModel>;
       _following = resources[3] as List<UserModel>;
       _suggestedContacts = resources[4] as List<UserModel>;
+      _taggedPosts = resources[5] as List<PostTagSummary>;
+      _mentionHistory = resources[6] as List<String>;
+      _mutualConnections = resources[7] as List<UserModel>;
+      final FollowRemoteState followState = resources[8] as FollowRemoteState;
 
-      if (!isOwnProfile && _currentUserId.isNotEmpty) {
-        isFollowing = _followers.any(
-          (UserModel item) => item.id == _currentUserId,
-        );
-      } else {
-        isFollowing = false;
-      }
-      followRequestPending = false;
+      isFollowing = isOwnProfile ? false : followState.isFollowing;
+      followRequestPending = isOwnProfile ? false : followState.hasPendingRequest;
 
       state = state.copyWith(
         isLoading: false,

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/user_model.dart';
 import '../model/follow_state_model.dart';
 import '../repository/follow_repository.dart';
@@ -17,19 +16,19 @@ class FollowController extends ChangeNotifier {
     notifyListeners();
   }
 
-  FollowStateModel stateFor(UserModel user) {
+  Future<FollowStateModel> stateFor(UserModel user) async {
     final stored = _states[user.id];
+    final bool remoteFollowing = await _repository.isCurrentUserFollowing(user.id);
     return FollowStateModel(
       targetUserId: user.id,
       isPrivateAccount: user.isPrivate,
-      isFollowing:
-          stored?.isFollowing ?? _repository.isCurrentUserFollowing(user.id),
+      isFollowing: stored?.isFollowing ?? remoteFollowing,
       hasPendingRequest: stored?.hasPendingRequest ?? false,
     );
   }
 
   Future<void> toggleFollow(UserModel user) async {
-    final current = stateFor(user);
+    final FollowStateModel current = await stateFor(user);
     if (current.isPrivateAccount && !current.isFollowing) {
       _states[user.id] = current.copyWith(hasPendingRequest: !current.hasPendingRequest);
     } else {
@@ -42,14 +41,14 @@ class FollowController extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<UserModel> followers(String userId) => _repository.followersFor(userId, _states);
+  Future<List<UserModel>> followers(String userId) =>
+      _repository.followersFor(userId, _states);
 
-  List<UserModel> following(String userId) => _repository.followingFor(userId, _states);
+  Future<List<UserModel>> following(String userId) =>
+      _repository.followingFor(userId, _states);
 
-  List<UserModel> mutualConnections(String userId) =>
+  Future<List<UserModel>> mutualConnections(String userId) =>
       _repository.mutualConnections(userId, _states);
 
-  UserModel currentUser() {
-    return MockData.users.firstWhere((u) => u.id == _repository.currentUserId());
-  }
+  Future<String> currentUserId() => _repository.currentUserId();
 }

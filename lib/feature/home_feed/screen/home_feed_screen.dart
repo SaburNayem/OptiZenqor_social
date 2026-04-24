@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/data/models/post_model.dart';
+import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/common_widget/app_loader.dart';
 import '../../../core/common_widget/empty_state_view.dart';
@@ -82,6 +83,17 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           builder: (context, _) {
             final BookmarksController bookmarksController =
                 context.read<BookmarksController>();
+            final List<UserModel> storyUsers = <UserModel>[
+              ...controller.visiblePosts
+                  .map((PostModel post) => post.author)
+                  .whereType<UserModel>(),
+              ...controller.stories
+                  .map((StoryModel story) => story.author)
+                  .whereType<UserModel>(),
+            ];
+            final Map<String, UserModel> storyUsersById = <String, UserModel>{
+              for (final UserModel user in storyUsers) user.id: user,
+            };
             return RefreshIndicator(
               onRefresh: controller.refreshFeed,
               child: ListView(
@@ -92,11 +104,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   if (controller.stories.isNotEmpty)
                     StoryRingList(
                       stories: controller.stories,
-                      users: controller.visiblePosts
-                          .map((PostModel post) => post.author)
-                          .whereType<UserModel>()
-                          .toList(growable: false),
+                      users: storyUsersById.values.toList(growable: false),
                       onStoryAdded: controller.addLocalStories,
+                      onStoriesSeen: (List<String> storyIds) {
+                        controller.markStoriesSeen(storyIds);
+                      },
                     ),
                   const Divider(height: 32, thickness: 0.5),
                   ...controller.visiblePosts.map((post) {

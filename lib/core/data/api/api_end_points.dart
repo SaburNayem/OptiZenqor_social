@@ -202,6 +202,9 @@ class ApiEndPoints {
   static const hiddenPosts = '/hidden-posts';
   static String hiddenPostByTargetId(String targetId) =>
       '/hidden-posts/$targetId';
+  static const archivePosts = '/archive/posts';
+  static const archiveStories = '/archive/stories';
+  static const archiveReels = '/archive/reels';
 
   // HideController
   static const hide = '/hide';
@@ -225,6 +228,10 @@ class ApiEndPoints {
   static const communities = '/communities';
   static String communityById(String communityId) =>
       '/communities/$communityId';
+  static String communityJoin(String communityId) =>
+      '/communities/$communityId/join';
+  static String communityLeave(String communityId) =>
+      '/communities/$communityId/leave';
   static String communityPosts(String communityId) =>
       '/communities/$communityId/posts';
   static String communityMembers(String communityId) =>
@@ -321,6 +328,10 @@ class ApiEndPoints {
   // ProfilesController
   static const profile = '/profile';
   static String profileById(String profileId) => '/profile/$profileId';
+  static String profileTaggedPosts(String profileId) =>
+      '/profile/$profileId/tagged-posts';
+  static String profileMentionHistory(String profileId) =>
+      '/profile/$profileId/mention-history';
   static const userProfileEdit = '/user-profile/edit';
   static const userProfile = '/user-profile';
   static const userProfileFollowers = '/user-profile/followers';
@@ -334,6 +345,9 @@ class ApiEndPoints {
       '/follow-unfollow/$profileId/follow';
   static String followUnfollowUnfollow(String profileId) =>
       '/follow-unfollow/$profileId/unfollow';
+  static String followUnfollowMutuals(String profileId) =>
+      '/follow-unfollow/$profileId/mutuals';
+  static String userFollowState(String userId) => '/users/$userId/follow-state';
   static const creatorDashboard = '/creator-dashboard';
   static const businessProfile = '/business-profile';
   static const sellerProfile = '/seller-profile';
@@ -356,6 +370,8 @@ class ApiEndPoints {
   static const verificationRequestDocuments = '/verification-request/documents';
   static const verificationRequestSubmit = '/verification-request/submit';
   static const verificationRequestStatus = '/verification-request/status';
+  static const storiesArchive = '/stories/archive';
+  static String storyViewers(String storyId) => '/stories/$storyId/viewers';
 
   // MarketplaceController
   static const marketplace = '/marketplace';
