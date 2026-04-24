@@ -11,6 +11,7 @@ class StoryRingList extends StatelessWidget {
   const StoryRingList({
     required this.stories,
     required this.users,
+    required this.currentUser,
     required this.onStoryAdded,
     required this.onStoriesSeen,
     super.key,
@@ -18,21 +19,22 @@ class StoryRingList extends StatelessWidget {
 
   final List<StoryModel> stories;
   final List<UserModel> users;
+  final UserModel? currentUser;
   final ValueChanged<List<StoryModel>> onStoryAdded;
   final ValueChanged<List<String>> onStoriesSeen;
 
   @override
   Widget build(BuildContext context) {
-    final UserModel? currentUser = users.firstOrNull;
-    final List<StoryModel> currentUserStories = currentUser == null
+    final UserModel? sessionUser = currentUser;
+    final List<StoryModel> currentUserStories = sessionUser == null
         ? const <StoryModel>[]
         : stories
-              .where((StoryModel story) => story.userId == currentUser.id)
+              .where((StoryModel story) => story.userId == sessionUser.id)
               .toList(growable: false);
-    final List<StoryModel> otherStories = currentUser == null
+    final List<StoryModel> otherStories = sessionUser == null
         ? stories
         : stories
-              .where((StoryModel story) => story.userId != currentUser.id)
+              .where((StoryModel story) => story.userId != sessionUser.id)
               .toList(growable: false);
     final int extraCurrentUserTileCount = currentUserStories.isEmpty ? 0 : 1;
 
@@ -49,7 +51,7 @@ class StoryRingList extends StatelessWidget {
                 final List<StoryModel>? createdStories =
                     await Navigator.of(context).push<List<StoryModel>>(
                   MaterialPageRoute<List<StoryModel>>(
-                    builder: (_) => AddStoryScreen(userId: currentUser?.id ?? ''),
+                    builder: (_) => AddStoryScreen(userId: sessionUser?.id ?? ''),
                   ),
                 );
                 if (createdStories != null && createdStories.isNotEmpty) {
@@ -62,7 +64,7 @@ class StoryRingList extends StatelessWidget {
                     children: [
                       AppAvatar(
                         imageUrl:
-                            currentUser?.avatar ??
+                            sessionUser?.avatar ??
                             'https://placehold.co/120x120',
                         radius: 30,
                       ),
@@ -86,7 +88,7 @@ class StoryRingList extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    currentUser == null ? 'Add Story' : 'Your Story',
+                    sessionUser == null ? 'Add Story' : 'Your Story',
                     style: const TextStyle(fontSize: 11, color: AppColors.black87),
                   ),
                 ],
@@ -135,7 +137,7 @@ class StoryRingList extends StatelessWidget {
                       ),
                       child: AppAvatar(
                         imageUrl:
-                            currentUser?.avatar ?? 'https://placehold.co/120x120',
+                            sessionUser?.avatar ?? 'https://placehold.co/120x120',
                         radius: 26,
                       ),
                     ),
