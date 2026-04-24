@@ -531,7 +531,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       return Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          _buildStoryMediaItem(story, mediaItems.first),
+          _buildStoryMediaItem(story, mediaItems.first, fit: BoxFit.cover),
           Positioned.fill(
             child: BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
@@ -925,18 +925,22 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     );
   }
 
-  Widget _buildStoryMediaItem(StoryModel story, String path) {
+  Widget _buildStoryMediaItem(
+    StoryModel story,
+    String path, {
+    BoxFit fit = BoxFit.contain,
+  }) {
     if (story.isLocalFile) {
       return Image.file(
         File(path),
-        fit: BoxFit.cover,
+        fit: fit,
         errorBuilder: (context, error, stackTrace) =>
             const Icon(Icons.broken_image_outlined, color: AppColors.white),
       );
     }
     return Image.network(
       path,
-      fit: BoxFit.cover,
+      fit: fit,
       errorBuilder: (context, error, stackTrace) =>
           const Icon(Icons.broken_image_outlined, color: AppColors.white),
     );

@@ -248,6 +248,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
             _mediaPaths.first,
             targetWidth: MediaQuery.sizeOf(context).width,
             targetHeight: MediaQuery.sizeOf(context).height,
+            fit: BoxFit.cover,
           ),
           Positioned.fill(
             child: BackdropFilter(
@@ -587,6 +588,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     String path, {
     double? targetWidth,
     double? targetHeight,
+    BoxFit fit = BoxFit.contain,
   }) {
     if (_looksLikeVideo(path)) {
       return ColoredBox(
@@ -622,7 +624,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     if (widget.preview.isLocalFile) {
       return Image.file(
         File(path),
-        fit: BoxFit.cover,
+        fit: fit,
         cacheWidth: cacheWidth,
         cacheHeight: cacheHeight,
         filterQuality: FilterQuality.low,
@@ -637,7 +639,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
     return Image.network(
       path,
-      fit: BoxFit.cover,
+      fit: fit,
       cacheWidth: cacheWidth,
       cacheHeight: cacheHeight,
       filterQuality: FilterQuality.low,
