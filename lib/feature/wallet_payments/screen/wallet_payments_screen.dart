@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../home_feed/controller/main_shell_controller.dart';
 
 class WalletPaymentsScreen extends StatelessWidget {
   const WalletPaymentsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = MockData.users.first;
-
-    return Scaffold(
+    return BlocBuilder<MainShellController, int>(
+      builder: (context, _) {
+        final currentUser = context.read<MainShellController>().currentUser;
+        return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
         backgroundColor: AppColors.white,
@@ -241,6 +243,8 @@ class WalletPaymentsScreen extends StatelessWidget {
           ],
         ),
       ),
+        );
+      },
     );
   }
 

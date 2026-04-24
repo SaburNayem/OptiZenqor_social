@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app_route/route_names.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../auth/repository/auth_repository.dart';
 import '../../account_switching/repository/account_switching_repository.dart';
+import '../../home_feed/controller/main_shell_controller.dart';
 import '../../verification_request/model/verification_request_model.dart';
 import '../../verification_request/repository/verification_request_repository.dart';
 import '../../verification_request/screen/verification_request_screen.dart';
@@ -183,14 +185,16 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   Future<UserModel> _resolveActiveUser() async {
+    final UserModel shellUser = context.read<MainShellController>().currentUser;
     final activeAccountId = await AccountSwitchingRepository().readActiveAccountId();
+    final UserModel? sessionUser = await AuthRepository().currentUser();
     if (activeAccountId == null || activeAccountId.trim().isEmpty) {
-      return MockData.users.first;
+      return sessionUser ?? shellUser;
     }
-    return MockData.users.firstWhere(
-      (user) => user.id == activeAccountId,
-      orElse: () => MockData.users.first,
-    );
+    if (sessionUser != null && sessionUser.id == activeAccountId) {
+      return sessionUser;
+    }
+    return shellUser;
   }
 
   bool _canCreateListing(

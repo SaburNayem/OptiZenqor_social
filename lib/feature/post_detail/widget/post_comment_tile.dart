@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../model/post_comment_model.dart';
 
 class PostCommentTile extends StatelessWidget {
@@ -144,11 +143,7 @@ class PostCommentTile extends StatelessWidget {
     if (comment.authorAvatar != null && comment.authorAvatar!.isNotEmpty) {
       return comment.authorAvatar!;
     }
-    final match = MockData.users.where((user) => user.id == comment.authorId);
-    if (match.isNotEmpty) {
-      return match.first.avatar;
-    }
-    return MockData.users.first.avatar;
+    return 'https://placehold.co/80x80';
   }
 
   int get _effectiveDepth => depth.clamp(0, 3);

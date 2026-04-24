@@ -1,5 +1,4 @@
 import '../../../core/data/api/api_payload_reader.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/message_model.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../service/chat_service.dart';
@@ -29,9 +28,7 @@ class ChatRepository {
         }
       } catch (_) {}
     }
-
-    await Future<void>.delayed(const Duration(milliseconds: 220));
-    return MockData.messages;
+    return const <MessageModel>[];
   }
 
   Future<MessageModel> sendMessage({
@@ -47,20 +44,14 @@ class ChatRepository {
             <String, dynamic>{'senderId': senderId, 'text': text},
           );
       if (response.isSuccess && response.data['success'] != false) {
-        return MessageModel.fromApiJson(
-          ApiPayloadReader.readMap(response.data['data']) ?? response.data,
-        );
+        final Map<String, dynamic> payload =
+            ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+        final MessageModel message = MessageModel.fromApiJson(payload);
+        if (message.id.isNotEmpty) {
+          return message;
+        }
       }
     } catch (_) {}
-
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    return MessageModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      chatId: chatId,
-      senderId: senderId,
-      text: text,
-      timestamp: DateTime.now(),
-      read: false,
-    );
+    throw Exception('Unable to send message');
   }
 }

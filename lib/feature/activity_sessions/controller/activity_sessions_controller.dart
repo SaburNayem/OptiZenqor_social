@@ -31,18 +31,6 @@ class ActivitySessionsController extends ChangeNotifier {
     final bool syncedRemotely = await _repository.logoutOtherDevices();
     if (syncedRemotely) {
       sessions = await _repository.loadSessions();
-    } else {
-      sessions = sessions
-          .map(
-            (item) => item.isCurrent
-                ? item
-                : item.copyWith(
-                    active: false,
-                    lastActive: 'Signed out remotely',
-                  ),
-          )
-          .toList();
-      await _repository.saveSessions(sessions);
     }
     loggingOutOthers = false;
     notifyListeners();

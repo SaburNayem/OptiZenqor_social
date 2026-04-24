@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../live_stream/screen/live_broadcast_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../controller/create_post_controller.dart';
@@ -24,6 +23,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void initState() {
     super.initState();
     _controller = CreatePostController();
+    _controller.loadContext();
   }
 
   @override
@@ -34,11 +34,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = MockData.users.first;
-
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
+        final currentUser = _controller.currentUser;
         return Scaffold(
           backgroundColor: AppColors.white,
           appBar: AppBar(
@@ -217,7 +216,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         );
       return;
     }
-    final currentUser = MockData.users.first;
+    final currentUser = _controller.currentUser;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LiveBroadcastScreen(

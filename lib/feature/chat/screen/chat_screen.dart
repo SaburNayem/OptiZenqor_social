@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/common_widget/error_state_view.dart';
+import '../../../core/data/models/user_model.dart';
+import '../../../core/enums/user_role.dart';
+import '../../home_feed/controller/main_shell_controller.dart';
 import '../controller/chat_controller.dart';
 import 'chat_detail_screen.dart';
 import 'inbox_settings_screen.dart';
@@ -27,7 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = MockData.users.first;
+    final UserModel currentUser = context.read<MainShellController>().currentUser;
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -70,6 +73,9 @@ class _ChatScreenState extends State<ChatScreen> {
           }
 
           final inbox = _controller.inboxMessages;
+          final List<UserModel> conversationUsers = inbox
+              .map((message) => _userFor(message.senderId))
+              .toList(growable: false);
           if (inbox.isEmpty) {
             return const Center(child: Text('No chats available'));
           }
@@ -133,10 +139,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: MockData.users.length,
+                        itemCount: conversationUsers.length,
                         separatorBuilder: (_, _) => const SizedBox(width: 20),
                         itemBuilder: (context, index) {
-                          final user = MockData.users[index];
+                          final user = conversationUsers[index];
                           return InkWell(
                             onTap: () {
                               AppGet.snackbar(
@@ -205,10 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
               SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final message = inbox[index];
-                  final user = MockData.users.firstWhere(
-                    (item) => item.id == message.senderId,
-                    orElse: () => MockData.users.first,
-                  );
+                  final user = _userFor(message.senderId);
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(
@@ -530,6 +533,24 @@ class _ChatScreenState extends State<ChatScreen> {
       return '${difference.inHours}h';
     }
     return '${difference.inDays}d';
+  }
+
+  UserModel _userFor(String userId) {
+    final String cleanId = userId.trim();
+    final String username = cleanId.isEmpty ? 'user' : cleanId;
+    final String displayName = username
+        .replaceAll(RegExp(r'[_\\-]+'), ' ')
+        .trim();
+    return UserModel(
+      id: cleanId,
+      name: displayName.isEmpty ? 'Conversation' : displayName,
+      username: username,
+      avatar: 'https://placehold.co/120x120',
+      bio: '',
+      role: UserRole.user,
+      followers: 0,
+      following: 0,
+    );
   }
 }
 

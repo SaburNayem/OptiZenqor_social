@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/data/api/api_payload_reader.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/reel_filter_model.dart';
@@ -38,9 +37,7 @@ class ReelsController extends ChangeNotifier {
         }
       }
     } catch (_) {}
-
-    await Future<void>.delayed(const Duration(milliseconds: 320));
-    reels = MockData.reels;
+    reels = const <ReelModel>[];
     notifyListeners();
   }
 

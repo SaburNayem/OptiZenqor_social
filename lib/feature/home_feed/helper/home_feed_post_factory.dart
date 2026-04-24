@@ -1,4 +1,5 @@
 import '../../../core/data/models/post_model.dart';
+import '../../../core/data/models/user_model.dart';
 
 class HomeFeedPostFactory {
   HomeFeedPostFactory._();
@@ -7,6 +8,8 @@ class HomeFeedPostFactory {
     required String caption,
     required List<String> mediaPaths,
     required String audience,
+    required String authorId,
+    UserModel? author,
     String? location,
     List<String> taggedPeople = const <String>[],
     List<String> coAuthors = const <String>[],
@@ -21,7 +24,7 @@ class HomeFeedPostFactory {
 
     return PostModel(
       id: 'local_${DateTime.now().millisecondsSinceEpoch}',
-      authorId: 'u1',
+      authorId: authorId,
       caption: trimmedCaption,
       tags: const <String>['#local'],
       media: media,
@@ -42,6 +45,7 @@ class HomeFeedPostFactory {
       audience: audience,
       altText: altText,
       editHistory: editHistory,
+      author: author,
     );
   }
 

@@ -1,6 +1,5 @@
 import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/api/api_payload_reader.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/notification_model.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../service/notifications_service.dart';
@@ -31,9 +30,7 @@ class NotificationsRepository {
         }
       } catch (_) {}
     }
-
-    await Future<void>.delayed(const Duration(milliseconds: 240));
-    return MockData.notifications;
+    return const <NotificationModel>[];
   }
 
   Future<List<NotificationModel>> fetchByCategory(String category) async {

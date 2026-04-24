@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/data/mock/mock_data.dart';
+import '../../../core/constants/storage_keys.dart';
+import '../../../core/data/api/api_end_points.dart';
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/models/user_model.dart';
+import '../../../core/data/service/api_client_service.dart';
 import '../../../core/data/service/media_picker_service.dart';
+import '../../../core/data/shared_preference/app_shared_preferences.dart';
+import '../../../core/enums/user_role.dart';
 import '../../live_stream/model/live_stream_model.dart';
 import '../helper/create_post_sheet_helper.dart';
 import '../model/create_post_result_model.dart';
@@ -9,12 +15,29 @@ import '../model/create_post_result_model.dart';
 class CreatePostController extends ChangeNotifier {
   CreatePostController({
     MediaPickerService? mediaPickerService,
-  }) : _mediaPickerService = mediaPickerService ?? MediaPickerService() {
+    ApiClientService? apiClient,
+    AppSharedPreferences? storage,
+  }) : _mediaPickerService = mediaPickerService ?? MediaPickerService(),
+       _apiClient = apiClient ?? ApiClientService(),
+       _storage = storage ?? AppSharedPreferences() {
     captionController.addListener(notifyListeners);
   }
 
   final MediaPickerService _mediaPickerService;
+  final ApiClientService _apiClient;
+  final AppSharedPreferences _storage;
   final TextEditingController captionController = TextEditingController();
+  UserModel currentUser = const UserModel(
+    id: '',
+    name: 'Guest',
+    username: 'guest',
+    avatar: 'https://placehold.co/120x120',
+    bio: '',
+    role: UserRole.guest,
+    followers: 0,
+    following: 0,
+  );
+  List<UserModel> availableUsers = <UserModel>[];
 
   List<String> mediaPaths = <String>[];
   bool isVideo = false;
@@ -29,6 +52,30 @@ class CreatePostController extends ChangeNotifier {
       captionController.text.trim().isNotEmpty || mediaPaths.isNotEmpty;
 
   bool get hasAnyVideo => mediaPaths.any(CreatePostSheetHelper.isVideoPath);
+
+  Future<void> loadContext() async {
+    final Map<String, dynamic>? session = await _storage.readJson(
+      StorageKeys.authSession,
+    );
+    final Map<String, dynamic>? sessionUser = _readMap(session?['user']);
+    if (sessionUser != null && sessionUser.isNotEmpty) {
+      final UserModel resolved = UserModel.fromApiJson(sessionUser);
+      if (resolved.id.isNotEmpty) {
+        currentUser = resolved;
+      }
+    }
+
+    try {
+      final response = await _apiClient.get(ApiEndPoints.users);
+      if (response.isSuccess && response.data['success'] != false) {
+        availableUsers = ApiPayloadReader.readMapList(
+          response.data,
+          preferredKeys: const <String>['users', 'items', 'results'],
+        ).map(UserModel.fromApiJson).where((UserModel item) => item.id.isNotEmpty).toList(growable: false);
+      }
+    } catch (_) {}
+    notifyListeners();
+  }
 
   Future<void> showMediaPickerSheet(BuildContext context) async {
     final CreatePostMediaSheetAction? action =
@@ -116,13 +163,17 @@ class CreatePostController extends ChangeNotifier {
   }
 
   Future<void> pickTaggedPeople(BuildContext context) async {
+    final List<String> options = availableUsers
+        .where((UserModel item) => item.username.trim().isNotEmpty)
+        .map((UserModel item) => '@${item.username}')
+        .toList(growable: false);
+    if (options.isEmpty) {
+      return;
+    }
     final String? result = await CreatePostSheetHelper.showSimpleOptionSheet(
       context: context,
       title: 'Tag people',
-      options: MockData.users
-          .take(5)
-          .map((item) => '@${item.username}')
-          .toList(growable: false),
+      options: options,
     );
     if (result == null || taggedPeople.contains(result)) {
       return;
@@ -132,14 +183,18 @@ class CreatePostController extends ChangeNotifier {
   }
 
   Future<void> pickCoAuthors(BuildContext context) async {
+    final List<String> options = availableUsers
+        .where((UserModel item) => item.id != currentUser.id)
+        .where((UserModel item) => item.username.trim().isNotEmpty)
+        .map((UserModel item) => '@${item.username}')
+        .toList(growable: false);
+    if (options.isEmpty) {
+      return;
+    }
     final String? result = await CreatePostSheetHelper.showSimpleOptionSheet(
       context: context,
       title: 'Add collaborator',
-      options: MockData.users
-          .skip(1)
-          .take(5)
-          .map((item) => '@${item.username}')
-          .toList(growable: false),
+      options: options,
     );
     if (result == null || coAuthors.contains(result)) {
       return;
@@ -212,5 +267,15 @@ class CreatePostController extends ChangeNotifier {
       ..removeListener(notifyListeners)
       ..dispose();
     super.dispose();
+  }
+
+  Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
   }
 }

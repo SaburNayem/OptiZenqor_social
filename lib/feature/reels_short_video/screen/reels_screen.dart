@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/common_widget/inline_video_player.dart';
 import '../controller/reels_controller.dart';
 import '../../../core/constants/app_colors.dart';
@@ -83,9 +82,9 @@ class ReelsScreen extends StatelessWidget {
             itemCount: _controller.reels.length,
             itemBuilder: (context, index) {
               final reel = _controller.reels[index];
-              final user = MockData.users
-                  .where((item) => item.id == reel.authorId)
-                  .firstOrNull;
+              final String authorLabel = reel.authorId.trim().isEmpty
+                  ? 'Creator'
+                  : reel.authorId;
 
               return Stack(
                 fit: StackFit.expand,
@@ -124,7 +123,7 @@ class ReelsScreen extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              '@${user?.name.split(' ').first ?? 'Sara'}',
+                              '@$authorLabel',
                               style: const TextStyle(
                                 color: AppColors.white,
                                 fontSize: 18,
@@ -141,7 +140,9 @@ class ReelsScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          '${user?.name ?? 'Sara'} is an Indian Model with impressive portfolio and was best model and ramp walk in 2018.',
+                          reel.caption.isEmpty
+                              ? 'No caption available for this reel.'
+                              : reel.caption,
                           style: const TextStyle(
                             color: AppColors.white,
                             fontSize: 14,
@@ -174,18 +175,16 @@ class ReelsScreen extends StatelessWidget {
                               child: CircleAvatar(
                                 radius: 22,
                                 backgroundImage: NetworkImage(
-                                  user?.avatar ?? '',
+                                  'https://placehold.co/120x120',
                                 ),
                                 backgroundColor: AppColors.black,
-                                child: user?.avatar == null
-                                    ? const Text(
-                                        'S',
-                                        style: TextStyle(
-                                          color: AppColors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : null,
+                                child: const Text(
+                                  'C',
+                                  style: TextStyle(
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                             Positioned(
@@ -212,18 +211,18 @@ class ReelsScreen extends StatelessWidget {
                         const SizedBox(height: 24),
                         _ReelAction(
                           icon: Icons.favorite,
-                          label: '143.5k',
-                          onTap: () {},
+                          label: '${_controller.likeCount(reel)}',
+                          onTap: () => _controller.toggleLike(reel.id),
                         ),
                         _ReelAction(
                           icon: Icons.chat_bubble_outline,
-                          label: '42.6k',
-                          onTap: () {},
+                          label: '${_controller.commentCount(reel)}',
+                          onTap: () => _controller.addComment(reel.id),
                         ),
                         _ReelAction(
                           icon: Icons.share_outlined,
-                          label: '3.2k',
-                          onTap: () {},
+                          label: '${_controller.shareCount(reel)}',
+                          onTap: () => _controller.addShare(reel.id),
                         ),
                       ],
                     ),

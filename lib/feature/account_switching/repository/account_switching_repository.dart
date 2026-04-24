@@ -15,30 +15,6 @@ class AccountSwitchingRepository {
   final LocalStorageService _storage;
   final AccountSwitchingService _service;
 
-  static const List<AccountIdentityModel> _seedAccounts =
-      <AccountIdentityModel>[
-        AccountIdentityModel(
-          id: 'u1',
-          name: 'Maya Quinn',
-          handle: '@mayaquinn',
-          roleLabel: 'Creator',
-          isVerified: true,
-        ),
-        AccountIdentityModel(
-          id: 'u2',
-          name: 'Nexa Studio',
-          handle: '@nexa.studio',
-          roleLabel: 'Business',
-          isVerified: true,
-        ),
-        AccountIdentityModel(
-          id: 'u3',
-          name: 'Rafi Ahmed',
-          handle: '@rafiahmed',
-          roleLabel: 'Personal',
-        ),
-      ];
-
   Future<List<AccountIdentityModel>> fetchAccounts() async {
     final List<AccountIdentityModel>? remoteAccounts = await _fetchAccountsFromApi();
     if (remoteAccounts != null) {
@@ -48,8 +24,7 @@ class AccountSwitchingRepository {
 
     final raw = await _storage.readJsonList(StorageKeys.linkedAccounts);
     if (raw.isEmpty) {
-      await saveAccounts(_seedAccounts);
-      return _seedAccounts;
+      return const <AccountIdentityModel>[];
     }
     return raw.map(AccountIdentityModel.fromJson).toList();
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../model/page_model.dart';
 import '../repository/pages_repository.dart';
 
@@ -11,7 +10,7 @@ class PagesController extends ChangeNotifier {
       : _repository = repository ?? PagesRepository();
 
   final PagesRepository _repository;
-  String currentUserId = MockData.users.first.id;
+  String currentUserId = '';
   List<PageModel> pages = <PageModel>[];
   String query = '';
   PagesViewFilter selectedFilter = PagesViewFilter.discover;
@@ -99,7 +98,7 @@ class PagesController extends ChangeNotifier {
         reviewSummary: 'Page reviews will appear once your audience starts engaging.',
         visitorPostsSummary: 'Visitor posts are currently moderated by page admins.',
         followersInsight: 'New page created. Publish regularly to build reach.',
-        avatarUrl: MockData.users.first.avatar,
+        avatarUrl: 'https://placehold.co/120x120',
         coverUrl:
             'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200',
         followersCount: 0,

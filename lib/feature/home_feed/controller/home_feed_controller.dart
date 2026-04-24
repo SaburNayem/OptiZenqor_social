@@ -243,10 +243,23 @@ class HomeFeedController extends Cubit<int> {
       return;
     }
 
+    final currentUser = await _repository.currentUserProfile();
+    final String authorId = currentUser?.id ?? '';
+    if (authorId.trim().isEmpty) {
+      loadState = loadState.copyWith(
+        hasError: true,
+        errorMessage: 'You need to be logged in to create a post.',
+      );
+      _notify();
+      return;
+    }
+
     final PostModel post = HomeFeedPostFactory.buildLocalPost(
       caption: caption,
       mediaPaths: mediaPaths,
       audience: audience,
+      authorId: authorId,
+      author: currentUser,
       location: location,
       taggedPeople: taggedPeople,
       coAuthors: coAuthors,
