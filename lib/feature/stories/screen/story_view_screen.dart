@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -5,16 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../app_route/route_names.dart';
-import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/common_widget/inline_video_player.dart';
-import '../../../core/data/service/api_client_service.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../../../core/navigation/app_get.dart';
-import '../../auth/repository/auth_repository.dart';
 import '../controller/stories_controller.dart';
+import '../repository/stories_repository.dart';
 import '../../../core/constants/app_colors.dart';
 
 class StoryViewScreen extends StatefulWidget {
@@ -37,11 +36,11 @@ class StoryViewScreen extends StatefulWidget {
 
 class _StoryViewScreenState extends State<StoryViewScreen> {
   late StoriesController _controller;
-  final ApiClientService _apiClient = ApiClientService();
-  final AuthRepository _authRepository = AuthRepository();
+  final StoriesRepository _storiesRepository = StoriesRepository();
   List<UserModel> _viewers = <UserModel>[];
   final Set<String> _seenStoryIds = <String>{};
   UserModel? _currentUser;
+  final Set<String> _likedStoryIds = <String>{};
 
   @override
   void initState() {
@@ -66,14 +65,14 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final StoryModel currentStory = _controller.stories[_controller.currentIndex];
-    final bool isMyStory = _isMyStory(currentStory);
-
     return Scaffold(
       backgroundColor: AppColors.black,
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
+          final StoryModel currentStory =
+              _controller.stories[_controller.currentIndex];
+          final bool isMyStory = _isMyStory(currentStory);
           return Stack(
             children: [
               // Story Content
@@ -269,33 +268,43 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: Container(
-                                height: 48,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.transparent,
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(
-                                    color: AppColors.white.withValues(alpha: 0.3),
+                              child: GestureDetector(
+                                onTap: () => _replyToStory(currentStory),
+                                child: Container(
+                                  height: 48,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
                                   ),
-                                ),
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Reply to story',
-                                  style: TextStyle(
-                                    color: AppColors.white.withValues(alpha: 0.8),
-                                    fontSize: 14,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.transparent,
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color: AppColors.white.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Reply to story',
+                                    style: TextStyle(
+                                      color: AppColors.white.withValues(alpha: 0.8),
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 16),
-                            const Icon(
-                              Icons.favorite_border,
-                              color: AppColors.white,
-                              size: 28,
+                            GestureDetector(
+                              onTap: () => _toggleStoryLike(currentStory),
+                              child: Icon(
+                                _likedStoryIds.contains(currentStory.id)
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: _likedStoryIds.contains(currentStory.id)
+                                    ? AppColors.hexFFE91E63
+                                    : AppColors.white,
+                                size: 28,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             GestureDetector(
@@ -320,7 +329,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   }
 
   UserModel? _getUser(StoryModel story) {
-    if (_currentUser != null && story.userId == _currentUser!.id) {
+    if (_currentUser != null &&
+        (story.userId == _currentUser!.id || story.author?.id == _currentUser!.id)) {
       return _currentUser;
     }
 
@@ -334,11 +344,12 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   bool _isMyStory(StoryModel story) {
     final String currentUserId = _currentUser?.id ?? '';
-    return currentUserId.isNotEmpty && story.userId == currentUserId;
+    return currentUserId.isNotEmpty &&
+        (story.userId == currentUserId || story.author?.id == currentUserId);
   }
 
   Future<void> _loadCurrentUser() async {
-    final UserModel? user = await _authRepository.currentUser();
+    final UserModel? user = await _storiesRepository.currentUser();
     if (!mounted) {
       return;
     }
@@ -348,12 +359,53 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     });
   }
 
+  Future<void> _toggleStoryLike(StoryModel story) async {
+    final bool nextLiked = !_likedStoryIds.contains(story.id);
+    setState(() {
+      if (nextLiked) {
+        _likedStoryIds.add(story.id);
+      } else {
+        _likedStoryIds.remove(story.id);
+      }
+    });
+
+    try {
+      await _storiesRepository.setStoryReaction(
+        storyId: story.id,
+        liked: nextLiked,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        if (nextLiked) {
+          _likedStoryIds.remove(story.id);
+        } else {
+          _likedStoryIds.add(story.id);
+        }
+      });
+    }
+  }
+
+  void _replyToStory(StoryModel story) {
+    final UserModel? user = _getUser(story);
+    AppGet.toNamed(RouteNames.chat);
+    AppFeedback.showSnackbar(
+      title: 'Message',
+      message: user == null
+          ? 'Open chat to reply to this story.'
+          : 'Reply to ${user.name} in messages.',
+    );
+  }
+
   void _markCurrentStorySeen() {
     final StoryModel story = _controller.stories[_controller.currentIndex];
     if (story.id.isEmpty || !_seenStoryIds.add(story.id)) {
       return;
     }
     widget.onStoriesSeen?.call(<String>[story.id]);
+    unawaited(_storiesRepository.markStoryViewed(story.id).catchError((_) {}));
   }
 
   Future<void> _goPrevious() async {
@@ -382,21 +434,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   Future<void> _loadViewersForCurrentStory() async {
     final StoryModel story = _controller.stories[_controller.currentIndex];
     try {
-      final response = await _apiClient.get(
-        ApiEndPoints.storyViewers(story.id),
+      final List<UserModel> viewers = await _storiesRepository.fetchStoryViewers(
+        story.id,
       );
-      if (!response.isSuccess || response.data['success'] == false) {
-        if (mounted) {
-          setState(() {
-            _viewers = <UserModel>[];
-          });
-        }
-        return;
-      }
-      final List<UserModel> viewers = _readMapList(response.data)
-          .map(UserModel.fromApiJson)
-          .where((UserModel user) => user.id.isNotEmpty)
-          .toList(growable: false);
       if (mounted) {
         setState(() {
           _viewers = viewers;
@@ -441,39 +481,6 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
         );
       },
     );
-  }
-
-  List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    for (final Object? raw in <Object?>[
-      payload['data'],
-      payload['items'],
-      payload['results'],
-      _readMap(payload['data'])?['items'],
-      _readMap(payload['data'])?['results'],
-    ]) {
-      if (raw is! List) {
-        continue;
-      }
-      return raw
-          .whereType<Object>()
-          .map(
-            (Object item) => item is Map<String, dynamic>
-                ? item
-                : Map<String, dynamic>.from(item as Map),
-          )
-          .toList(growable: false);
-    }
-    return const <Map<String, dynamic>>[];
-  }
-
-  Map<String, dynamic>? _readMap(Object? value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-    if (value is Map) {
-      return Map<String, dynamic>.from(value);
-    }
-    return null;
   }
 
   Widget _buildStoryContent(StoryModel story) {
@@ -993,7 +1000,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     await Clipboard.setData(ClipboardData(text: shareText));
     AppFeedback.showSnackbar(
       title: 'Story',
-      message: 'Story share text copied',
+      message: 'Story share text copied. You can repost it to other chats or shorts.',
     );
   }
 

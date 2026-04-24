@@ -16,6 +16,7 @@ import '../../share_repost_system/widget/share_post_action_sheet.dart';
 import '../../stories/widget/story_ring_list.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
 import '../controller/home_feed_controller.dart';
+import '../controller/main_shell_controller.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   const HomeFeedScreen({super.key});
@@ -75,18 +76,17 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
             message: controller.loadState.errorMessage ?? 'Unable to load feed',
           );
         }
-        if (controller.loadState.isEmpty && controller.stories.isEmpty) {
-          return const EmptyStateView(
-            title: 'Feed is quiet',
-            message: 'Follow more people and communities to personalize this.',
-          );
-        }
 
         return BlocBuilder<BookmarksController, BookmarksState>(
           builder: (context, _) {
             final BookmarksController bookmarksController =
                 context.read<BookmarksController>();
+            final UserModel? currentUser =
+                context.read<MainShellController>().currentUser.id.isNotEmpty
+                ? context.read<MainShellController>().currentUser
+                : null;
             final List<UserModel> storyUsers = <UserModel>[
+              if (currentUser != null) currentUser,
               ...visiblePosts
                   .map((PostModel post) => post.author)
                   .whereType<UserModel>(),
@@ -104,15 +104,17 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
                   const SizedBox(height: 8),
-                  if (controller.stories.isNotEmpty)
-                    StoryRingList(
-                      stories: controller.stories,
-                      users: storyUsersById.values.toList(growable: false),
-                      onStoryAdded: controller.addLocalStories,
-                      onStoriesSeen: (List<String> storyIds) {
-                        controller.markStoriesSeen(storyIds);
-                      },
-                    ),
+                  StoryRingList(
+                    stories: controller.stories,
+                    currentUser: currentUser,
+                    users: storyUsersById.values.toList(growable: false),
+                    onStoryAdded: (List<StoryModel> createdStories) {
+                      controller.createStories(createdStories);
+                    },
+                    onStoriesSeen: (List<String> storyIds) {
+                      controller.markStoriesSeen(storyIds);
+                    },
+                  ),
                   const Divider(height: 32, thickness: 0.5),
                   if (visiblePosts.isEmpty)
                     const Padding(

@@ -10,5 +10,6 @@ class StoriesService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'stories': ApiEndPoints.stories,
+    'archive': ApiEndPoints.storiesArchive,
   };
 }

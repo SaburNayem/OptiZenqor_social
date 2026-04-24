@@ -28,7 +28,7 @@ class AddStoryScreen extends StatefulWidget {
 
 class _AddStoryScreenState extends State<AddStoryScreen> {
   final MediaPickerService _mediaPickerService = MediaPickerService();
-  static const int _maxMultiSelection = 7;
+  static const int _galleryPageSize = 300;
 
   bool _isLoadingGallery = false;
   bool _hasGalleryPermission = false;
@@ -444,7 +444,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         foregroundColor: AppColors.white,
         icon: const Icon(Icons.grid_view_rounded),
         label: Text(
-          'Preview (${_selectedAssetIds.length}/$_maxMultiSelection)',
+          'Preview (${_selectedAssetIds.length})',
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       );
@@ -469,19 +469,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   Future<void> _selectGalleryItem(int index) async {
     final AssetEntity asset = _galleryItems[index];
     if (_isMultiSelectEnabled) {
-      if (!_selectedAssetIds.contains(asset.id) &&
-          _selectedAssetIds.length >= _maxMultiSelection) {
-        AppFeedback.showSnackbar(
-          title: 'Story',
-          message: 'You can add up to 7 photos in one collage story.',
-        );
-        return;
-      }
       setState(() {
         _selectedMediaPath = null;
         if (_selectedAssetIds.contains(asset.id)) {
           _selectedAssetIds.remove(asset.id);
-        } else if (_selectedAssetIds.length < _maxMultiSelection) {
+        } else {
           _selectedAssetIds.add(asset.id);
         }
       });
@@ -495,11 +487,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         ..add(asset.id);
     });
 
-    final File? file = await asset.file;
+    final File? file = await _resolveAssetFile(asset);
     if (!mounted || file == null) {
       AppFeedback.showSnackbar(
         title: 'Story',
-        message: 'This photo could not be opened.',
+        message: 'This media could not be opened.',
       );
       return;
     }
@@ -568,10 +560,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       return;
     }
 
-    final List<AssetEntity> assets = await albums.first.getAssetListPaged(
-      page: 0,
-      size: 200,
-    );
+    final List<AssetEntity> assets = await _loadAlbumAssets(albums.first);
     if (!mounted) {
       return;
     }
@@ -598,10 +587,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       _selectedMediaPath = null;
     });
 
-    final List<AssetEntity> assets = await _albums[index].getAssetListPaged(
-      page: 0,
-      size: 200,
-    );
+    final List<AssetEntity> assets = await _loadAlbumAssets(_albums[index]);
     if (!mounted) {
       return;
     }
@@ -764,9 +750,9 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     };
     final List<String> filePaths = <String>[];
     bool containsVideo = false;
-    for (final String assetId in _selectedAssetIds.take(_maxMultiSelection)) {
+    for (final String assetId in _selectedAssetIds) {
       final AssetEntity? asset = assetsById[assetId];
-      final File? file = await asset?.file;
+      final File? file = asset == null ? null : await _resolveAssetFile(asset);
       if (file == null) {
         continue;
       }
@@ -789,6 +775,50 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       return;
     }
     Navigator.of(context).pop(<StoryModel>[story]);
+  }
+
+  Future<List<AssetEntity>> _loadAlbumAssets(AssetPathEntity album) async {
+    final List<AssetEntity> allAssets = <AssetEntity>[];
+    int page = 0;
+
+    while (true) {
+      final List<AssetEntity> pageItems = await album.getAssetListPaged(
+        page: page,
+        size: _galleryPageSize,
+      );
+      if (pageItems.isEmpty) {
+        break;
+      }
+      allAssets.addAll(pageItems);
+      if (pageItems.length < _galleryPageSize) {
+        break;
+      }
+      page += 1;
+    }
+
+    allAssets.sort((AssetEntity a, AssetEntity b) {
+      final int byDate = b.createDateTime.compareTo(a.createDateTime);
+      if (byDate != 0) {
+        return byDate;
+      }
+      return b.modifiedDateTime.compareTo(a.modifiedDateTime);
+    });
+
+    return allAssets;
+  }
+
+  Future<File?> _resolveAssetFile(AssetEntity asset) async {
+    final File? directFile = await asset.file;
+    if (directFile != null) {
+      return directFile;
+    }
+
+    final File? originFile = await asset.originFile;
+    if (originFile != null) {
+      return originFile;
+    }
+
+    return null;
   }
 }
 

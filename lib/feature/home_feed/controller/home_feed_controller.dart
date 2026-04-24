@@ -7,6 +7,7 @@ import '../../../core/data/models/story_model.dart';
 import '../../../core/data/service/analytics_service.dart';
 import '../helper/home_feed_post_factory.dart';
 import '../repository/home_feed_repository.dart';
+import '../../stories/repository/stories_repository.dart';
 
 enum FeedTab { forYou, following, trending }
 
@@ -14,12 +15,15 @@ class HomeFeedController extends Cubit<int> {
   HomeFeedController({
     HomeFeedRepository? repository,
     AnalyticsService? analytics,
+    StoriesRepository? storiesRepository,
   }) : _repository = repository ?? HomeFeedRepository(),
        _analytics = analytics ?? AnalyticsService(),
+       _storiesRepository = storiesRepository ?? StoriesRepository(),
        super(0);
 
   final HomeFeedRepository _repository;
   final AnalyticsService _analytics;
+  final StoriesRepository _storiesRepository;
 
   LoadStateModel loadState = const LoadStateModel();
   PaginationStateModel pagination = const PaginationStateModel();
@@ -394,6 +398,36 @@ class HomeFeedController extends Cubit<int> {
       },
     );
     _notify();
+  }
+
+  Future<void> createStories(List<StoryModel> draftStories) async {
+    if (draftStories.isEmpty) {
+      return;
+    }
+
+    try {
+      final List<StoryModel> created = await _storiesRepository.createStories(
+        draftStories,
+      );
+      stories = _sortStories(<StoryModel>[...created, ...stories]);
+      loadState = loadState.copyWith(
+        hasError: false,
+        errorMessage: null,
+        isSuccess: stories.isNotEmpty || posts.isNotEmpty,
+        isEmpty: stories.isEmpty && posts.isEmpty,
+      );
+      await _analytics.logEvent(
+        'story_created',
+        params: <String, dynamic>{
+          'count': created.length,
+          'hasMedia': created.any((StoryModel story) => story.hasMedia),
+          'hasText': created.any((StoryModel story) => story.hasText),
+        },
+      );
+      _notify();
+    } catch (_) {
+      await addLocalStories(draftStories);
+    }
   }
 
   Future<void> markStoriesSeen(List<String> storyIds) async {

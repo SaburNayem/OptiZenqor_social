@@ -240,7 +240,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
   }
 
   Widget _buildCanvasBackground() {
-    if (_mediaPaths.isNotEmpty && !widget.preview.isVideo) {
+    if (_mediaPaths.isNotEmpty && !_looksLikeVideo(_mediaPaths.first)) {
       return Stack(
         fit: StackFit.expand,
         children: <Widget>[
@@ -358,7 +358,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       );
     }
 
-    if (widget.preview.isVideo) {
+    if (_mediaPaths.length == 1 && _looksLikeVideo(_mediaPaths.first)) {
       return _buildSingleVideoCanvas();
     }
 
@@ -386,6 +386,14 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         autoPlay: true,
       ),
     );
+  }
+
+  bool _looksLikeVideo(String path) {
+    final String normalized = path.trim().toLowerCase();
+    return normalized.endsWith('.mp4') ||
+        normalized.endsWith('.mov') ||
+        normalized.endsWith('.m4v') ||
+        normalized.endsWith('.webm');
   }
 
   Widget _buildMoveableMediaItem({
@@ -451,7 +459,8 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       return <StoryMediaTransform>[];
     }
 
-    if (widget.preview.isVideo || _mediaPaths.length == 1) {
+    if ((_mediaPaths.length == 1 && _looksLikeVideo(_mediaPaths.first)) ||
+        _mediaPaths.length == 1) {
       return <StoryMediaTransform>[
         const StoryMediaTransform(
           offsetDx: 0,
@@ -465,26 +474,42 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       ];
     }
 
-    final math.Random random = math.Random();
+    final int count = _mediaPaths.length;
 
-    return List<StoryMediaTransform>.generate(_mediaPaths.length, (int index) {
-      final double widthFactor = 0.34 + random.nextDouble() * 0.24;
-      final double heightFactor = 0.2 + random.nextDouble() * 0.18;
-      final double offsetDx = -88 + random.nextDouble() * 176;
-      final double offsetDy = -170 + random.nextDouble() * 300;
-      final double scale = 0.78 + random.nextDouble() * 0.65;
-      final double borderRadius = 16 + random.nextDouble() * 16;
+    return List<StoryMediaTransform>.generate(count, (int index) {
+      final int columnCount = math.min(3, math.max(1, math.sqrt(count).ceil()));
+      final int row = index ~/ columnCount;
+      final int column = index % columnCount;
+      final int rowCount = (count / columnCount).ceil();
+      final double widthFactor = count <= 2
+          ? 0.72
+          : count <= 4
+          ? 0.48
+          : count <= 6
+          ? 0.38
+          : 0.32;
+      final double heightFactor = count <= 2
+          ? 0.34
+          : count <= 4
+          ? 0.26
+          : count <= 6
+          ? 0.22
+          : 0.18;
+      final double spacingX = 118;
+      final double spacingY = 150;
+      final double offsetDx = (column - (columnCount - 1) / 2) * spacingX;
+      final double offsetDy = (row - (rowCount - 1) / 2) * spacingY;
 
       return StoryMediaTransform(
         offsetDx: offsetDx,
         offsetDy: offsetDy,
-        scale: scale,
+        scale: 1,
         zIndex: index,
         widthFactor: widthFactor,
         heightFactor: heightFactor,
-        borderRadius: borderRadius,
+        borderRadius: 0,
       );
-    });
+    }, growable: false);
   }
 
   void _bringMediaToFront(int index) {
@@ -563,6 +588,34 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     double? targetWidth,
     double? targetHeight,
   }) {
+    if (_looksLikeVideo(path)) {
+      return ColoredBox(
+        color: AppColors.black,
+        child: _mediaPaths.length == 1
+            ? InlineVideoPlayer(
+                filePath: widget.preview.isLocalFile ? path : null,
+                networkUrl: widget.preview.isLocalFile ? null : path,
+                autoPlay: true,
+              )
+            : const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Icon(Icons.videocam_rounded, color: AppColors.white, size: 42),
+                    SizedBox(height: 8),
+                    Text(
+                      'Video',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      );
+    }
+
     final int? cacheWidth = _resolveCacheDimension(targetWidth);
     final int? cacheHeight = _resolveCacheDimension(targetHeight);
 
@@ -1299,7 +1352,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
     setState(() => _isSharing = false);
 
-    final List<String> mediaItems = _mediaPaths.take(7).toList(growable: false);
+    final List<String> mediaItems = List<String>.from(_mediaPaths, growable: false);
 
     final StoryModel story = StoryModel(
       id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
