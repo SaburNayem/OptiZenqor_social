@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,9 +9,11 @@ import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/app_avatar.dart';
+import '../../../core/common_widget/inline_video_player.dart';
 import '../../../core/data/service/api_client_service.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../../../core/navigation/app_get.dart';
+import '../../auth/repository/auth_repository.dart';
 import '../controller/stories_controller.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -35,8 +38,10 @@ class StoryViewScreen extends StatefulWidget {
 class _StoryViewScreenState extends State<StoryViewScreen> {
   late StoriesController _controller;
   final ApiClientService _apiClient = ApiClientService();
+  final AuthRepository _authRepository = AuthRepository();
   List<UserModel> _viewers = <UserModel>[];
   final Set<String> _seenStoryIds = <String>{};
+  UserModel? _currentUser;
 
   @override
   void initState() {
@@ -48,6 +53,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       stories: widget.stories,
       startIndex: startIndex < 0 ? 0 : startIndex,
     );
+    _loadCurrentUser();
     _markCurrentStorySeen();
     _loadViewersForCurrentStory();
   }
@@ -60,6 +66,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final StoryModel currentStory = _controller.stories[_controller.currentIndex];
+    final bool isMyStory = _isMyStory(currentStory);
+
     return Scaffold(
       backgroundColor: AppColors.black,
       body: AnimatedBuilder(
@@ -158,10 +167,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _getUser(
-                                  _controller.stories[_controller.currentIndex],
-                                )?.name ??
-                                '8Luck',
+                            _displayNameForStory(currentStory),
                             style: const TextStyle(
                               color: AppColors.white,
                               fontWeight: FontWeight.bold,
@@ -178,22 +184,39 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                               fontSize: 12,
                             ),
                           ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.more_vert,
-                            color: AppColors.white,
-                          ),
-                          onPressed: _showViewersSheet,
-                        ),
-                      ],
-                    ),
+                          const Spacer(),
+                          if (isMyStory)
+                            TextButton.icon(
+                              onPressed: _showViewersSheet,
+                              icon: const Icon(
+                                Icons.remove_red_eye_outlined,
+                                color: AppColors.white,
+                                size: 18,
+                              ),
+                              label: Text(
+                                _viewers.isEmpty ? 'Views' : '${_viewers.length}',
+                                style: const TextStyle(
+                                  color: AppColors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          else
+                            IconButton(
+                              icon: const Icon(
+                                Icons.more_vert,
+                                color: AppColors.white,
+                              ),
+                              onPressed: _showViewersSheet,
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              // Bottom UI (Input, Heart, Share)
+              // Bottom UI
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -203,58 +226,88 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        '8LUCK.COM',
-                        style: TextStyle(
-                          color: AppColors.orange,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
+                      if (isMyStory)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: GestureDetector(
+                            onTap: _showViewersSheet,
                             child: Container(
                               height: 48,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 18),
                               decoration: BoxDecoration(
-                                color: AppColors.transparent,
+                                color: AppColors.black.withValues(alpha: 0.34),
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: AppColors.white.withValues(alpha: 0.3),
+                                  color: AppColors.white.withValues(alpha: 0.18),
                                 ),
                               ),
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Reply to story',
-                                style: TextStyle(
-                                  color: AppColors.white.withValues(alpha: 0.8),
-                                  fontSize: 14,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  const Icon(
+                                    Icons.remove_red_eye_outlined,
+                                    color: AppColors.white,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    _viewers.isEmpty
+                                        ? 'Views'
+                                        : 'Views ${_viewers.length}',
+                                    style: const TextStyle(
+                                      color: AppColors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          const Icon(
-                            Icons.favorite_border,
-                            color: AppColors.white,
-                            size: 28,
-                          ),
-                          const SizedBox(width: 16),
-                          GestureDetector(
-                            onTap: _shareCurrentStory,
-                            child: const Icon(
-                              Icons.ios_share_rounded,
+                        )
+                      else
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 48,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.transparent,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: AppColors.white.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Reply to story',
+                                  style: TextStyle(
+                                    color: AppColors.white.withValues(alpha: 0.8),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Icon(
+                              Icons.favorite_border,
                               color: AppColors.white,
                               size: 28,
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: _shareCurrentStory,
+                              child: const Icon(
+                                Icons.ios_share_rounded,
+                                color: AppColors.white,
+                                size: 28,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -267,8 +320,32 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   }
 
   UserModel? _getUser(StoryModel story) {
+    if (_currentUser != null && story.userId == _currentUser!.id) {
+      return _currentUser;
+    }
+
     return story.author ??
         widget.users.where((u) => u.id == story.userId).firstOrNull;
+  }
+
+  String _displayNameForStory(StoryModel story) {
+    return _getUser(story)?.name ?? 'Story';
+  }
+
+  bool _isMyStory(StoryModel story) {
+    final String currentUserId = _currentUser?.id ?? '';
+    return currentUserId.isNotEmpty && story.userId == currentUserId;
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final UserModel? user = await _authRepository.currentUser();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _currentUser = user;
+    });
   }
 
   void _markCurrentStorySeen() {
@@ -305,7 +382,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   Future<void> _loadViewersForCurrentStory() async {
     final StoryModel story = _controller.stories[_controller.currentIndex];
     try {
-      final response = await _apiClient.get(ApiEndPoints.storyViewers(story.id));
+      final response = await _apiClient.get(
+        ApiEndPoints.storyViewers(story.id),
+      );
       if (!response.isSuccess || response.data['success'] == false) {
         if (mounted) {
           setState(() {
@@ -354,10 +433,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
           itemBuilder: (BuildContext context, int index) {
             final UserModel viewer = _viewers[index];
             return ListTile(
-              leading: AppAvatar(
-                imageUrl: viewer.avatar,
-                radius: 18,
-              ),
+              leading: AppAvatar(imageUrl: viewer.avatar, radius: 18),
               title: Text(viewer.name),
               subtitle: Text('@${viewer.username}'),
             );
@@ -380,9 +456,11 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       }
       return raw
           .whereType<Object>()
-          .map((Object item) => item is Map<String, dynamic>
-              ? item
-              : Map<String, dynamic>.from(item as Map))
+          .map(
+            (Object item) => item is Map<String, dynamic>
+                ? item
+                : Map<String, dynamic>.from(item as Map),
+          )
           .toList(growable: false);
     }
     return const <Map<String, dynamic>>[];
@@ -399,127 +477,296 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   }
 
   Widget _buildStoryContent(StoryModel story) {
-    final List<Color> backgroundColors = story.backgroundColors.length >= 2
-        ? story.backgroundColors.map(Color.new).toList(growable: false)
-        : const <Color>[AppColors.hexFF1E40AF, AppColors.hexFF2BB0A1];
     final List<String> mediaItems = story.mediaItems.isNotEmpty
         ? story.mediaItems
         : (story.media.trim().isNotEmpty ? <String>[story.media] : <String>[]);
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final Size canvasSize = constraints.biggest;
 
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: backgroundColors,
-        ),
-      ),
-      child: Stack(
+        return Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            Positioned.fill(
+              child: _buildStoryCanvasBackground(story, mediaItems),
+            ),
+            if (mediaItems.isNotEmpty)
+              ...List<Widget>.generate(mediaItems.length, (int index) {
+                final StoryMediaTransform transform =
+                    index < story.mediaTransforms.length
+                    ? story.mediaTransforms[index]
+                    : (mediaItems.length == 1
+                          ? const StoryMediaTransform(
+                              widthFactor: 1,
+                              heightFactor: 1,
+                              borderRadius: 0,
+                            )
+                          : const StoryMediaTransform());
+
+                return Positioned.fill(
+                  child: _buildMoveableStoryMedia(
+                    story: story,
+                    path: mediaItems[index],
+                    transform: transform,
+                    bodySize: canvasSize,
+                  ),
+                );
+              }),
+            Positioned.fill(child: _buildStoryTextOverlay(story, canvasSize)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStoryCanvasBackground(StoryModel story, List<String> mediaItems) {
+    if (mediaItems.isNotEmpty && !_looksLikeVideo(mediaItems.first)) {
+      return Stack(
         fit: StackFit.expand,
-        children: [
-          if (mediaItems.isNotEmpty) _buildStoryMedia(story, mediaItems),
-          if (story.hasText || (story.music ?? '').trim().isNotEmpty)
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 120, 24, 140),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if ((story.music ?? '').trim().isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.black.withValues(alpha: 0.28),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.music_note_rounded,
-                              color: AppColors.white,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                story.music!,
-                                style: const TextStyle(
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if ((story.music ?? '').trim().isNotEmpty)
-                      const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        _buildStoryChip(
-                          icon: Icons.shield_outlined,
-                          label: story.privacy,
-                        ),
-                        if ((story.effectName ?? '').trim().isNotEmpty)
-                          _buildStoryChip(
-                            icon: Icons.auto_awesome_rounded,
-                            label: story.effectName!,
-                          ),
-                        if ((story.sticker ?? '').trim().isNotEmpty)
-                          _buildStoryChip(
-                            icon: Icons.emoji_emotions_outlined,
-                            label: story.sticker!,
-                          ),
-                        if ((story.mentionUsername ?? '').trim().isNotEmpty)
-                          _buildStoryChip(
-                            icon: Icons.alternate_email_rounded,
-                            label: '@${story.mentionUsername!}',
-                          ),
-                        if ((story.linkUrl ?? '').trim().isNotEmpty)
-                          GestureDetector(
-                            onTap: () => _openStoryLink(story),
-                            child: _buildStoryChip(
-                              icon: Icons.link_rounded,
-                              label: (story.linkLabel ?? '').trim().isNotEmpty
-                                  ? story.linkLabel!
-                                  : story.linkUrl!,
-                            ),
-                          ),
-                      ],
-                    ),
-                    if ((story.effectName ?? '').trim().isNotEmpty ||
-                        (story.sticker ?? '').trim().isNotEmpty ||
-                        (story.mentionUsername ?? '').trim().isNotEmpty ||
-                        (story.linkUrl ?? '').trim().isNotEmpty)
-                      const SizedBox(height: 20),
-                    if (story.hasText)
-                      Text(
-                        story.text!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color(story.textColorValue),
-                          fontSize: 32,
-                          fontWeight: FontWeight.w700,
-                          height: 1.15,
-                        ),
-                      ),
-                  ],
+        children: <Widget>[
+          _buildStoryMediaItem(story, mediaItems.first),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.black.withValues(alpha: 0.18),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: <Color>[
+                      AppColors.black.withValues(alpha: 0.10),
+                      AppColors.black.withValues(alpha: 0.24),
+                    ],
+                  ),
                 ),
               ),
             ),
+          ),
         ],
+      );
+    }
+
+    final List<Color> backgroundColors = story.backgroundColors.isEmpty
+        ? const <Color>[AppColors.black, AppColors.grey800]
+        : story.backgroundColors.map((int color) => Color(color)).toList(
+            growable: false,
+          );
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: backgroundColors.length == 1
+              ? <Color>[backgroundColors.first, backgroundColors.first]
+              : backgroundColors,
+        ),
       ),
     );
+  }
+
+  Widget _buildStoryFixedMediaSection(
+    StoryModel story,
+    List<String> mediaItems,
+  ) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.grey100,
+          border: Border.all(color: AppColors.grey200),
+        ),
+        child: mediaItems.isEmpty
+            ? const SizedBox.expand()
+            : Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  _buildStoryHeroMedia(story, mediaItems.first),
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: Row(
+                      children: <Widget>[
+                        _buildStoryChip(
+                          icon:
+                              story.media.trim().toLowerCase().endsWith('.mp4')
+                              ? Icons.videocam_rounded
+                              : Icons.photo_rounded,
+                          label:
+                              story.media.trim().toLowerCase().endsWith('.mp4')
+                              ? 'Video'
+                              : 'Photo',
+                        ),
+                        if (mediaItems.length > 1) ...<Widget>[
+                          const SizedBox(width: 8),
+                          _buildStoryChip(
+                            icon: Icons.layers_rounded,
+                            label: '+${mediaItems.length - 1} moveable',
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildStoryBodyCanvas({
+    required StoryModel story,
+    required List<String> bodyMediaItems,
+    required Size bodySize,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          border: Border.all(color: AppColors.grey200),
+        ),
+        child: Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: <Color>[AppColors.white, AppColors.hexFFF8FAFC],
+                  ),
+                ),
+              ),
+            ),
+            for (int index = 0; index < bodyMediaItems.length; index++)
+              Positioned.fill(
+                child: _buildMoveableStoryMedia(
+                  story: story,
+                  path: bodyMediaItems[index],
+                  transform: index < story.mediaTransforms.length
+                      ? story.mediaTransforms[index]
+                      : const StoryMediaTransform(),
+                  bodySize: bodySize,
+                ),
+              ),
+            Positioned.fill(child: _buildStoryTextOverlay(story, bodySize)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoveableStoryMedia({
+    required StoryModel story,
+    required String path,
+    required StoryMediaTransform transform,
+    required Size bodySize,
+  }) {
+    return Center(
+      child: Transform.translate(
+        offset: Offset(transform.offsetDx, transform.offsetDy),
+        child: Transform.scale(
+          scale: transform.scale,
+          child: SizedBox(
+            width: bodySize.width * transform.widthFactor,
+            height: bodySize.height * transform.heightFactor,
+            child: ClipRect(child: _buildStoryMediaItem(story, path)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoryTextOverlay(StoryModel story, Size bodySize) {
+    final bool hasMeta =
+        (story.sticker ?? '').trim().isNotEmpty ||
+        (story.mentionUsername ?? '').trim().isNotEmpty;
+    final bool hasContent = story.hasText || hasMeta;
+
+    if (!hasContent) {
+      return const SizedBox.shrink();
+    }
+
+    return Center(
+      child: Transform.translate(
+        offset: Offset(story.textOffsetDx, story.textOffsetDy),
+        child: Transform.scale(
+          alignment: Alignment.centerLeft,
+          scale: story.textScale == 0 ? 1 : story.textScale,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 240),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if ((story.music ?? '').trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _buildStoryChip(
+                      icon: Icons.music_note_rounded,
+                      label: story.music!,
+                    ),
+                  ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: <Widget>[
+                    if ((story.sticker ?? '').trim().isNotEmpty)
+                      _buildStoryChip(
+                        icon: Icons.emoji_emotions_outlined,
+                        label: story.sticker!,
+                      ),
+                    if ((story.mentionUsername ?? '').trim().isNotEmpty)
+                      _buildStoryChip(
+                        icon: Icons.alternate_email_rounded,
+                        label: '@${story.mentionUsername!}',
+                      ),
+                  ],
+                ),
+                if (story.hasText) ...<Widget>[
+                  const SizedBox(height: 14),
+                  Text(
+                    story.text!,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: Color(story.textColorValue),
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      height: 1.12,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoryHeroMedia(StoryModel story, String path) {
+    if (_looksLikeVideo(path)) {
+      return ColoredBox(
+        color: AppColors.black,
+        child: InlineVideoPlayer(
+          filePath: story.isLocalFile ? path : null,
+          networkUrl: story.isLocalFile ? null : path,
+          autoPlay: true,
+        ),
+      );
+    }
+
+    return _buildStoryMediaItem(story, path);
+  }
+
+  bool _looksLikeVideo(String path) {
+    final String normalized = path.trim().toLowerCase();
+    return normalized.endsWith('.mp4') ||
+        normalized.endsWith('.mov') ||
+        normalized.endsWith('.m4v') ||
+        normalized.endsWith('.webm');
   }
 
   Widget _buildStoryMedia(StoryModel story, List<String> mediaItems) {
@@ -548,8 +795,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     final int crossAxisCount = count <= 2
         ? 1
         : count <= 4
-            ? 2
-            : 3;
+        ? 2
+        : 3;
     return Padding(
       padding: const EdgeInsets.all(8),
       child: GridView.builder(
@@ -688,10 +935,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     );
   }
 
-  Widget _buildStoryChip({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _buildStoryChip({required IconData icon, required String label}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -771,4 +1015,3 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     return '${diff.inDays} d';
   }
 }
-

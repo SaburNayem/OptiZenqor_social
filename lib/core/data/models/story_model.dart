@@ -1,6 +1,78 @@
 import '../../data/api/api_payload_reader.dart';
 import 'user_model.dart';
 
+class StoryMediaTransform {
+  const StoryMediaTransform({
+    this.offsetDx = 0,
+    this.offsetDy = 0,
+    this.scale = 1,
+    this.zIndex = 0,
+    this.widthFactor = 0.68,
+    this.heightFactor = 0.44,
+    this.borderRadius = 24,
+  });
+
+  final double offsetDx;
+  final double offsetDy;
+  final double scale;
+  final int zIndex;
+  final double widthFactor;
+  final double heightFactor;
+  final double borderRadius;
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'offsetDx': offsetDx,
+      'offsetDy': offsetDy,
+      'scale': scale,
+      'zIndex': zIndex,
+      'widthFactor': widthFactor,
+      'heightFactor': heightFactor,
+      'borderRadius': borderRadius,
+    };
+  }
+
+  factory StoryMediaTransform.fromJson(Map<String, dynamic> json) {
+    return StoryMediaTransform(
+      offsetDx: ApiPayloadReader.readDouble(json['offsetDx']),
+      offsetDy: ApiPayloadReader.readDouble(json['offsetDy']),
+      scale: ApiPayloadReader.readDouble(json['scale']) == 0
+          ? 1
+          : ApiPayloadReader.readDouble(json['scale']),
+      zIndex: ApiPayloadReader.readInt(json['zIndex']),
+      widthFactor: ApiPayloadReader.readDouble(json['widthFactor']) == 0
+          ? 0.68
+          : ApiPayloadReader.readDouble(json['widthFactor']),
+      heightFactor: ApiPayloadReader.readDouble(json['heightFactor']) == 0
+          ? 0.44
+          : ApiPayloadReader.readDouble(json['heightFactor']),
+      borderRadius: ApiPayloadReader.readDouble(json['borderRadius']) == 0
+          ? 24
+          : ApiPayloadReader.readDouble(json['borderRadius']),
+    );
+  }
+
+  StoryMediaTransform copyWith({
+    double? offsetDx,
+    double? offsetDy,
+    double? scale,
+    int? zIndex,
+    double? widthFactor,
+    double? heightFactor,
+    double? borderRadius,
+  }) {
+    return StoryMediaTransform(
+      offsetDx: offsetDx ?? this.offsetDx,
+      offsetDy: offsetDy ?? this.offsetDy,
+      scale: scale ?? this.scale,
+      zIndex: zIndex ?? this.zIndex,
+      widthFactor: widthFactor ?? this.widthFactor,
+      heightFactor: heightFactor ?? this.heightFactor,
+      borderRadius: borderRadius ?? this.borderRadius,
+    );
+  }
+}
+
 class StoryModel {
   const StoryModel({
     required this.id,
@@ -22,6 +94,10 @@ class StoryModel {
     this.linkUrl,
     this.privacy = 'Everyone',
     this.collageLayout = 'grid',
+    this.textOffsetDx = 0,
+    this.textOffsetDy = 0,
+    this.textScale = 1,
+    this.mediaTransforms = const <StoryMediaTransform>[],
   });
 
   final String id;
@@ -43,6 +119,10 @@ class StoryModel {
   final String? linkUrl;
   final String privacy;
   final String collageLayout;
+  final double textOffsetDx;
+  final double textOffsetDy;
+  final double textScale;
+  final List<StoryMediaTransform> mediaTransforms;
 
   bool get hasMedia => media.trim().isNotEmpty || mediaItems.isNotEmpty;
   bool get hasText => (text ?? '').trim().isNotEmpty;
@@ -68,6 +148,12 @@ class StoryModel {
       'linkUrl': linkUrl,
       'privacy': privacy,
       'collageLayout': collageLayout,
+      'textOffsetDx': textOffsetDx,
+      'textOffsetDy': textOffsetDy,
+      'textScale': textScale,
+      'mediaTransforms': mediaTransforms
+          .map((StoryMediaTransform item) => item.toJson())
+          .toList(growable: false),
     };
   }
 
@@ -105,6 +191,12 @@ class StoryModel {
         json['collageLayout'],
         fallback: 'grid',
       ),
+      textOffsetDx: ApiPayloadReader.readDouble(json['textOffsetDx']),
+      textOffsetDy: ApiPayloadReader.readDouble(json['textOffsetDy']),
+      textScale: ApiPayloadReader.readDouble(json['textScale']) == 0
+          ? 1
+          : ApiPayloadReader.readDouble(json['textScale']),
+      mediaTransforms: _readMediaTransformList(json['mediaTransforms']),
     );
   }
 
@@ -128,6 +220,10 @@ class StoryModel {
     String? linkUrl,
     String? privacy,
     String? collageLayout,
+    double? textOffsetDx,
+    double? textOffsetDy,
+    double? textScale,
+    List<StoryMediaTransform>? mediaTransforms,
   }) {
     return StoryModel(
       id: id ?? this.id,
@@ -149,6 +245,10 @@ class StoryModel {
       linkUrl: linkUrl ?? this.linkUrl,
       privacy: privacy ?? this.privacy,
       collageLayout: collageLayout ?? this.collageLayout,
+      textOffsetDx: textOffsetDx ?? this.textOffsetDx,
+      textOffsetDy: textOffsetDy ?? this.textOffsetDy,
+      textScale: textScale ?? this.textScale,
+      mediaTransforms: mediaTransforms ?? this.mediaTransforms,
     );
   }
 
@@ -173,5 +273,16 @@ class StoryModel {
       }
     }
     return const <int>[0xFF1E40AF, 0xFF2BB0A1];
+  }
+
+  static List<StoryMediaTransform> _readMediaTransformList(Object? value) {
+    if (value is List) {
+      return value
+          .map((Object? item) => ApiPayloadReader.readMap(item))
+          .whereType<Map<String, dynamic>>()
+          .map(StoryMediaTransform.fromJson)
+          .toList(growable: false);
+    }
+    return const <StoryMediaTransform>[];
   }
 }

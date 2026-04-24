@@ -27,6 +27,7 @@ class CreatePostController extends ChangeNotifier {
   final ApiClientService _apiClient;
   final AppSharedPreferences _storage;
   final TextEditingController captionController = TextEditingController();
+  bool _isDisposed = false;
   UserModel currentUser = const UserModel(
     id: '',
     name: 'Guest',
@@ -57,6 +58,9 @@ class CreatePostController extends ChangeNotifier {
     final Map<String, dynamic>? session = await _storage.readJson(
       StorageKeys.authSession,
     );
+    if (_isDisposed) {
+      return;
+    }
     final Map<String, dynamic>? sessionUser = _readMap(session?['user']);
     if (sessionUser != null && sessionUser.isNotEmpty) {
       final UserModel resolved = UserModel.fromApiJson(sessionUser);
@@ -67,6 +71,9 @@ class CreatePostController extends ChangeNotifier {
 
     try {
       final response = await _apiClient.get(ApiEndPoints.users);
+      if (_isDisposed) {
+        return;
+      }
       if (response.isSuccess && response.data['success'] != false) {
         availableUsers = ApiPayloadReader.readMapList(
           response.data,
@@ -74,7 +81,7 @@ class CreatePostController extends ChangeNotifier {
         ).map(UserModel.fromApiJson).where((UserModel item) => item.id.isNotEmpty).toList(growable: false);
       }
     } catch (_) {}
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> showMediaPickerSheet(BuildContext context) async {
@@ -103,7 +110,7 @@ class CreatePostController extends ChangeNotifier {
     mediaPaths = paths;
     isVideo = paths.length == 1 && CreatePostSheetHelper.isVideoPath(paths.first);
     altText = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> capturePhoto() async {
@@ -114,7 +121,7 @@ class CreatePostController extends ChangeNotifier {
     mediaPaths = <String>[path];
     isVideo = false;
     altText = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> pickVideo() async {
@@ -125,14 +132,14 @@ class CreatePostController extends ChangeNotifier {
     mediaPaths = <String>[path];
     isVideo = true;
     altText = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void clearMedia() {
     mediaPaths = <String>[];
     isVideo = false;
     altText = null;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> pickFeeling(BuildContext context) async {
@@ -145,7 +152,7 @@ class CreatePostController extends ChangeNotifier {
       return;
     }
     feeling = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> pickLocation(BuildContext context) async {
@@ -159,7 +166,7 @@ class CreatePostController extends ChangeNotifier {
       return;
     }
     location = result.isEmpty ? null : result;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> pickTaggedPeople(BuildContext context) async {
@@ -179,7 +186,7 @@ class CreatePostController extends ChangeNotifier {
       return;
     }
     taggedPeople = <String>[...taggedPeople, result];
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> pickCoAuthors(BuildContext context) async {
@@ -200,7 +207,7 @@ class CreatePostController extends ChangeNotifier {
       return;
     }
     coAuthors = <String>[...coAuthors, result];
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> editAltText(BuildContext context) async {
@@ -215,7 +222,7 @@ class CreatePostController extends ChangeNotifier {
       return;
     }
     altText = result.isEmpty ? null : result;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> pickPrivacy(BuildContext context) async {
@@ -228,7 +235,7 @@ class CreatePostController extends ChangeNotifier {
       return;
     }
     audience = result;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   CreatePostResult buildResult() {
@@ -279,10 +286,18 @@ class CreatePostController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     captionController
       ..removeListener(notifyListeners)
       ..dispose();
     super.dispose();
+  }
+
+  void _safeNotifyListeners() {
+    if (_isDisposed) {
+      return;
+    }
+    notifyListeners();
   }
 
   Map<String, dynamic>? _readMap(Object? value) {

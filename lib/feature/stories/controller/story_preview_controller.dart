@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../model/story_preview_model.dart';
 import '../../../core/constants/app_colors.dart';
+import '../model/story_preview_model.dart';
 
 class StoryPreviewController extends ChangeNotifier {
   StoryPreviewController(this.preview)
@@ -16,13 +16,16 @@ class StoryPreviewController extends ChangeNotifier {
     'Neon Memory',
     'Soft Horizon',
   ];
+
   static const List<String> stickerOptions = <String>[
+    'Location: Dhaka',
+    'Feeling: Inspired',
+    'GIF: Sparkle',
+    'Poll: Yes / No',
     'Mood',
-    'Location',
-    'Flash',
     'Vibes',
-    'New',
   ];
+
   static const List<String> effectOptions = <String>[
     'Clean',
     'Glow',
@@ -30,11 +33,13 @@ class StoryPreviewController extends ChangeNotifier {
     'Dream',
     'Neon',
   ];
+
   static const List<String> privacyOptions = <String>[
     'Everyone',
     'Followers',
     'Close Friends',
   ];
+
   static const List<String> collageLayoutOptions = <String>[
     'grid',
     'mosaic',
@@ -43,10 +48,13 @@ class StoryPreviewController extends ChangeNotifier {
 
   static const List<Color> textColors = <Color>[
     AppColors.white,
+    AppColors.black,
+    AppColors.primary900,
+    AppColors.hexFF344054,
     AppColors.hexFFFFF176,
     AppColors.hexFF80DEEA,
     AppColors.hexFFFFAB91,
-    AppColors.hexFFC5E1A5,
+    AppColors.hexFF16A34A,
   ];
 
   final StoryPreviewModel preview;
@@ -57,7 +65,7 @@ class StoryPreviewController extends ChangeNotifier {
   String _selectedCollageLayout;
   bool _isEditingText = false;
   Color _selectedTextColor = textColors.first;
-  String _selectedSticker = stickerOptions.first;
+  String _selectedSticker = '';
   String _selectedEffect = effectOptions.first;
   String _selectedPrivacy = privacyOptions.first;
   String _mentionUsername = '';
@@ -68,23 +76,31 @@ class StoryPreviewController extends ChangeNotifier {
   String get selectedCollageLayout => _selectedCollageLayout;
   bool get isEditingText => _isEditingText;
   Color get selectedTextColor => _selectedTextColor;
+
   bool get hasText => textController.text.trim().isNotEmpty;
-  String get currentText => textController.text.trim();
+
+  // Do not trim here, otherwise spaces/new lines can disappear while editing.
+  String get currentText => textController.text;
+
   String get selectedSticker => _selectedSticker;
   String get selectedEffect => _selectedEffect;
   String get selectedPrivacy => _selectedPrivacy;
   String get mentionUsername => _mentionUsername;
   String get linkLabel => _linkLabel;
   String get linkUrl => _linkUrl;
+
   bool get hasMention => _mentionUsername.trim().isNotEmpty;
   bool get hasLink => _linkUrl.trim().isNotEmpty;
+  bool get hasSticker => _selectedSticker.trim().isNotEmpty;
 
   void startTextEditing() {
+    if (_isEditingText) return;
     _isEditingText = true;
     notifyListeners();
   }
 
   void stopTextEditing() {
+    if (!_isEditingText) return;
     _isEditingText = false;
     textFocusNode.unfocus();
     notifyListeners();
@@ -107,6 +123,7 @@ class StoryPreviewController extends ChangeNotifier {
   void cycleTextColor() {
     final int currentIndex = textColors.indexOf(_selectedTextColor);
     final int safeIndex = currentIndex < 0 ? 0 : currentIndex;
+
     _selectedTextColor = textColors[(safeIndex + 1) % textColors.length];
     notifyListeners();
   }
@@ -117,7 +134,7 @@ class StoryPreviewController extends ChangeNotifier {
   }
 
   void setSticker(String sticker) {
-    _selectedSticker = sticker;
+    _selectedSticker = sticker.trim();
     notifyListeners();
   }
 
@@ -149,4 +166,3 @@ class StoryPreviewController extends ChangeNotifier {
     super.dispose();
   }
 }
-
