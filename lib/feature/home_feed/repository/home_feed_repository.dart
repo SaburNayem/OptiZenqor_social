@@ -109,9 +109,9 @@ class HomeFeedRepository {
       authorId: currentUser.id,
     );
     final Map<String, dynamic> payload = <String, dynamic>{
+      'authorId': currentUser.id,
       'caption': caption.trim(),
       'media': remoteMedia,
-      'audience': audience,
       if (location != null && location.trim().isNotEmpty)
         'location': location.trim(),
       if (taggedUserIds.isNotEmpty) 'taggedUserIds': taggedUserIds,
