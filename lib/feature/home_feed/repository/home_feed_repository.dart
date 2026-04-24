@@ -76,7 +76,25 @@ class HomeFeedRepository {
   }
 
   Future<List<StoryModel>> fetchStories() async {
-    final localStories = await readLocalStories();
+    final List<StoryModel> localStories = await readLocalStories();
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint('stories');
+      final List<Map<String, dynamic>> items = _readMapList(
+        response.data,
+        preferredKeys: const <String>['stories', 'data', 'items', 'results'],
+      );
+      if (response.isSuccess && items.isNotEmpty) {
+        final List<StoryModel> remoteStories = await _hydrateStoryAuthors(
+          items
+              .map(StoryModel.fromJson)
+              .where((StoryModel story) => story.id.isNotEmpty)
+              .toList(growable: false),
+        );
+        return <StoryModel>[...localStories, ...remoteStories];
+      }
+    } catch (_) {}
+
     return localStories;
   }
 
@@ -125,17 +143,24 @@ class HomeFeedRepository {
     }
   }
 
-  List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    final Object? raw =
-        payload['data'] ?? payload['items'] ?? payload['results'] ?? payload['value'];
-    if (raw is List) {
+  List<Map<String, dynamic>> _readMapList(
+    Map<String, dynamic> payload, {
+    List<String> preferredKeys = const <String>[],
+  }) {
+    for (final Object? raw in <Object?>[
+      ...preferredKeys.map((String key) => payload[key]),
+      payload['data'],
+      payload['items'],
+      payload['results'],
+      payload['value'],
+    ]) {
+      if (raw is! List) {
+        continue;
+      }
       return raw
           .whereType<Object>()
-          .map(
-            (Object item) => item is Map<String, dynamic>
-                ? item
-                : Map<String, dynamic>.from(item as Map),
-          )
+          .map((Object item) => _readMap(item) ?? const <String, dynamic>{})
+          .where((Map<String, dynamic> item) => item.isNotEmpty)
           .toList(growable: false);
     }
     return const <Map<String, dynamic>>[];
@@ -213,6 +238,51 @@ class HomeFeedRepository {
           (PostModel post) => post.author != null || !authors.containsKey(post.authorId)
               ? post
               : post.copyWith(author: authors[post.authorId]),
+        )
+        .toList(growable: false);
+  }
+
+  Future<List<StoryModel>> _hydrateStoryAuthors(List<StoryModel> stories) async {
+    final Set<String> missingAuthorIds = stories
+        .where(
+          (StoryModel story) =>
+              story.author == null && story.userId.trim().isNotEmpty,
+        )
+        .map((StoryModel story) => story.userId)
+        .toSet();
+    if (missingAuthorIds.isEmpty) {
+      return stories;
+    }
+
+    final Map<String, UserModel> authors = <String, UserModel>{};
+    await Future.wait<void>(
+      missingAuthorIds.map((String authorId) async {
+        try {
+          final ServiceResponseModel<Map<String, dynamic>> response =
+              await _service.apiClient.get(ApiEndPoints.userById(authorId));
+          if (!response.isSuccess || response.data['success'] == false) {
+            return;
+          }
+          final Map<String, dynamic>? payload = _extractUserPayload(
+            response.data,
+          );
+          if (payload == null) {
+            return;
+          }
+          final UserModel author = UserModel.fromApiJson(payload);
+          if (author.id.isNotEmpty) {
+            authors[authorId] = author;
+          }
+        } catch (_) {}
+      }),
+    );
+
+    return stories
+        .map(
+          (StoryModel story) => story.author != null ||
+                  !authors.containsKey(story.userId)
+              ? story
+              : story.copyWith(author: authors[story.userId]),
         )
         .toList(growable: false);
   }

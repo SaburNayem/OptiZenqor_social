@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../core/data/mock/mock_data.dart';
+import '../core/data/models/story_model.dart';
+import '../core/data/models/user_model.dart';
 import '../feature/auth/auth_feature_screens.dart';
 import '../feature/feature_screens.dart';
 import '../feature/media_viewer/model/media_viewer_item_model.dart';
@@ -210,12 +211,22 @@ class AppRouter {
       case RouteNames.chat:
         return ChatScreen();
       case RouteNames.storiesCreate:
-        return const AddStoryScreen();
+        return AddStoryScreen(userId: _storyUserIdFromArguments(arguments));
       case RouteNames.storiesView:
+        final List<StoryModel> stories = _storiesFromArguments(arguments);
+        if (stories.isEmpty) {
+          return const Scaffold(
+            body: Center(child: Text('Stories are unavailable right now')),
+          );
+        }
+        final String initialStoryId =
+            params['id'] ??
+            _storyInitialIdFromArguments(arguments) ??
+            stories.first.id;
         return StoryViewScreen(
-          stories: MockData.stories,
-          users: MockData.users,
-          initialStoryId: params['id'] ?? MockData.stories.first.id,
+          stories: stories,
+          users: _storyUsersFromArguments(arguments),
+          initialStoryId: initialStoryId,
         );
       default:
         return const Scaffold(body: Center(child: Text('Route not found')));
@@ -272,5 +283,45 @@ class AppRouter {
       }
     }
     return null;
+  }
+
+  static List<StoryModel> _storiesFromArguments(Object? arguments) {
+    if (arguments is Map) {
+      final Object? stories = arguments['stories'];
+      if (stories is List<StoryModel>) {
+        return stories;
+      }
+    }
+    return const <StoryModel>[];
+  }
+
+  static List<UserModel> _storyUsersFromArguments(Object? arguments) {
+    if (arguments is Map) {
+      final Object? users = arguments['users'];
+      if (users is List<UserModel>) {
+        return users;
+      }
+    }
+    return const <UserModel>[];
+  }
+
+  static String? _storyInitialIdFromArguments(Object? arguments) {
+    if (arguments is Map) {
+      final Object? initialStoryId = arguments['initialStoryId'];
+      if (initialStoryId is String && initialStoryId.trim().isNotEmpty) {
+        return initialStoryId.trim();
+      }
+    }
+    return null;
+  }
+
+  static String _storyUserIdFromArguments(Object? arguments) {
+    if (arguments is Map) {
+      final Object? userId = arguments['userId'];
+      if (userId is String && userId.trim().isNotEmpty) {
+        return userId.trim();
+      }
+    }
+    return '';
   }
 }

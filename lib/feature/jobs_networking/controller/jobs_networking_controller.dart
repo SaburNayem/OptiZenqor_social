@@ -29,14 +29,14 @@ class JobsNetworkingController extends ChangeNotifier {
 
   Future<void> load() async {
     jobs = await _repository.listJobs();
-    myPostedJobs = _repository.myJobs();
-    applications = _repository.myApplications();
-    alerts = _repository.alerts();
-    companies = _repository.companies();
-    applicants = _repository.applicants();
+    myPostedJobs = await _repository.myJobs();
+    applications = await _repository.myApplications();
+    alerts = await _repository.alerts();
+    companies = await _repository.companies();
+    applicants = await _repository.applicants();
     careerProfile = await _repository.profile();
-    employerStats = _repository.employerStats();
-    employerProfile = _repository.employerProfile();
+    employerStats = await _repository.employerStats();
+    employerProfile = await _repository.employerProfile();
     notifyListeners();
   }
 

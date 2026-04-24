@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/common_widget/empty_state_view.dart';
@@ -39,11 +38,7 @@ class HiddenPostsScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       children: hiddenPosts
                           .map((post) {
-                            final user =
-                                post.author ??
-                                MockData.users
-                                .where((item) => item.id == post.authorId)
-                                .firstOrNull;
+                            final user = post.author;
                             if (user == null) {
                               return const SizedBox.shrink();
                             }

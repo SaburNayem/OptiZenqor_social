@@ -178,8 +178,13 @@ class AuthService {
     }
 
     final Map<String, dynamic>? session = _extractSessionPayload(response.data);
+    final Map<String, dynamic>? tokens = _readMap(session?['tokens']);
     final String accessToken =
-        (session?['token'] ?? session?['accessToken'] ?? '').toString();
+        (session?['token'] ??
+                session?['accessToken'] ??
+                tokens?['accessToken'] ??
+                '')
+            .toString();
     if (accessToken.isEmpty) {
       return;
     }
@@ -203,7 +208,7 @@ class AuthService {
         'role': _role.name,
         'email': resolvedEmail,
         'accessToken': accessToken,
-        'refreshToken': session?['refreshToken'],
+        'refreshToken': session?['refreshToken'] ?? tokens?['refreshToken'],
         'sessionId': session?['sessionId'],
         'tokenType': session?['tokenType'] ?? 'Bearer',
         'user': user ?? session?['user'],
@@ -227,15 +232,16 @@ class AuthService {
   }
 
   Map<String, dynamic>? _extractSessionPayload(Map<String, dynamic> payload) {
-    final dynamic nestedData = payload['data'];
-    if (nestedData is Map<String, dynamic>) {
-      return nestedData;
-    }
-    if (nestedData is Map) {
-      return Map<String, dynamic>.from(nestedData);
-    }
-    if (_looksLikeSessionPayload(payload)) {
-      return payload;
+    for (final Object? candidate in <Object?>[
+      payload['data'],
+      payload['result'],
+      payload['session'],
+      payload,
+    ]) {
+      final Map<String, dynamic>? map = _readMap(candidate);
+      if (map != null && _looksLikeSessionPayload(map)) {
+        return map;
+      }
     }
     return null;
   }
@@ -243,17 +249,32 @@ class AuthService {
   bool _looksLikeSessionPayload(Map<String, dynamic> payload) {
     return payload.containsKey('token') ||
         payload.containsKey('accessToken') ||
+        payload.containsKey('tokens') ||
         payload.containsKey('refreshToken') ||
         payload.containsKey('user');
   }
 
   Map<String, dynamic>? _extractUserPayload(Map<String, dynamic>? session) {
-    final dynamic user = session?['user'];
-    if (user is Map<String, dynamic>) {
-      return user;
+    for (final Object? candidate in <Object?>[
+      session?['user'],
+      session?['profile'],
+      session?['account'],
+      session?['active'],
+    ]) {
+      final Map<String, dynamic>? user = _readMap(candidate);
+      if (user != null) {
+        return user;
+      }
     }
-    if (user is Map) {
-      return Map<String, dynamic>.from(user);
+    return null;
+  }
+
+  Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
     }
     return null;
   }

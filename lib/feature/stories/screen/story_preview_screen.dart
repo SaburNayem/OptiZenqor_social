@@ -3,15 +3,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/story_model.dart';
 import '../controller/story_preview_controller.dart';
 import '../model/story_preview_model.dart';
 
 class StoryPreviewScreen extends StatefulWidget {
-  const StoryPreviewScreen({required this.preview, super.key});
+  const StoryPreviewScreen({
+    required this.preview,
+    this.userId = '',
+    super.key,
+  });
 
   final StoryPreviewModel preview;
+  final String userId;
 
   @override
   State<StoryPreviewScreen> createState() => _StoryPreviewScreenState();
@@ -499,7 +503,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     setState(() => _isSharing = false);
     final StoryModel story = StoryModel(
       id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
-      userId: MockData.users.first.id,
+      userId: widget.userId,
       media: widget.preview.mediaPath,
       isLocalFile: widget.preview.isLocalFile,
       text: _controller.hasText ? _controller.currentText : null,

@@ -37,7 +37,7 @@ class StoryRingList extends StatelessWidget {
                 final List<StoryModel>? createdStories =
                     await Navigator.of(context).push<List<StoryModel>>(
                   MaterialPageRoute<List<StoryModel>>(
-                    builder: (_) => const AddStoryScreen(),
+                    builder: (_) => AddStoryScreen(userId: currentUser?.id ?? ''),
                   ),
                 );
                 if (createdStories != null && createdStories.isNotEmpty) {
@@ -83,7 +83,9 @@ class StoryRingList extends StatelessWidget {
           }
 
           final story = stories[index - 1];
-          final user = users.where((e) => e.id == story.userId).firstOrNull;
+          final user =
+              story.author ??
+              users.where((e) => e.id == story.userId).firstOrNull;
           if (user == null) {
             return const SizedBox.shrink();
           }

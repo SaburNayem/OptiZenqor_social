@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../app_route/route_names.dart';
@@ -16,8 +14,8 @@ class MainShellController extends Cubit<int> {
     Object? arguments,
   }) : _authRepository = authRepository ?? AuthRepository(),
        super(0) {
-    currentUser = MockData.users.first;
     syncArguments(arguments);
+    _hydrateCurrentUser();
   }
 
   int index = 0;
@@ -60,7 +58,18 @@ class MainShellController extends Cubit<int> {
         ),
       ];
 
-  late final UserModel currentUser;
+  UserModel currentUser = _guestUser;
+
+  static const UserModel _guestUser = UserModel(
+    id: '',
+    name: 'Guest',
+    username: 'guest',
+    avatar: 'https://placehold.co/120x120',
+    bio: '',
+    role: UserRole.guest,
+    followers: 0,
+    following: 0,
+  );
 
 
   String get currentTitle => destinations[index].title;
@@ -78,6 +87,20 @@ class MainShellController extends Cubit<int> {
         index = tabIndex;
         emit(index);
       }
+    }
+  }
+
+  Future<void> _hydrateCurrentUser() async {
+    try {
+      final UserModel? sessionUser = await _authRepository.currentUser();
+      if (sessionUser == null) {
+        return;
+      }
+      currentUser = sessionUser;
+      emit(index);
+    } catch (error, stackTrace) {
+      debugPrint('[MainShellController] Failed to load current user: $error');
+      debugPrint('$stackTrace');
     }
   }
 

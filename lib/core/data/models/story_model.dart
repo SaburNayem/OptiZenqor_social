@@ -1,3 +1,6 @@
+import '../../data/api/api_payload_reader.dart';
+import 'user_model.dart';
+
 class StoryModel {
   const StoryModel({
     required this.id,
@@ -9,6 +12,8 @@ class StoryModel {
     this.music,
     this.backgroundColors = const <int>[0xFF1E40AF, 0xFF2BB0A1],
     this.textColorValue = 0xFFFFFFFF,
+    this.createdAt,
+    this.author,
   });
 
   final String id;
@@ -20,6 +25,8 @@ class StoryModel {
   final String? music;
   final List<int> backgroundColors;
   final int textColorValue;
+  final DateTime? createdAt;
+  final UserModel? author;
 
   bool get hasMedia => media.trim().isNotEmpty;
   bool get hasText => (text ?? '').trim().isNotEmpty;
@@ -35,23 +42,72 @@ class StoryModel {
       'music': music,
       'backgroundColors': backgroundColors,
       'textColorValue': textColorValue,
+      'createdAt': createdAt?.toIso8601String(),
+      if (author != null) 'author': author!.toJson(),
     };
   }
 
   factory StoryModel.fromJson(Map<String, dynamic> json) {
-    return StoryModel(
-      id: json['id'] as String? ?? '',
-      userId: json['userId'] as String? ?? '',
-      media: json['media'] as String? ?? '',
-      seen: json['seen'] as bool? ?? false,
-      isLocalFile: json['isLocalFile'] as bool? ?? false,
-      text: json['text'] as String?,
-      music: json['music'] as String?,
-      backgroundColors: List<int>.from(
-        json['backgroundColors'] as List<dynamic>? ??
-            const <dynamic>[0xFF1E40AF, 0xFF2BB0A1],
-      ),
-      textColorValue: json['textColorValue'] as int? ?? 0xFFFFFFFF,
+    final Map<String, dynamic>? author = ApiPayloadReader.readMap(
+      json['author'],
     );
+    return StoryModel(
+      id: ApiPayloadReader.readString(json['id']),
+      userId: ApiPayloadReader.readString(
+        json['userId'] ?? author?['id'],
+      ),
+      media: ApiPayloadReader.readString(json['media']),
+      seen: ApiPayloadReader.readBool(json['seen']) ?? false,
+      isLocalFile: ApiPayloadReader.readBool(json['isLocalFile']) ?? false,
+      text: ApiPayloadReader.readString(json['text']),
+      music: ApiPayloadReader.readString(json['music']),
+      backgroundColors: _readColorList(json['backgroundColors']),
+      textColorValue: ApiPayloadReader.readInt(
+        json['textColorValue'],
+      ),
+      createdAt: ApiPayloadReader.readDateTime(json['createdAt']),
+      author: author == null ? null : UserModel.fromApiJson(author),
+    );
+  }
+
+  StoryModel copyWith({
+    String? id,
+    String? userId,
+    String? media,
+    bool? seen,
+    bool? isLocalFile,
+    String? text,
+    String? music,
+    List<int>? backgroundColors,
+    int? textColorValue,
+    DateTime? createdAt,
+    UserModel? author,
+  }) {
+    return StoryModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      media: media ?? this.media,
+      seen: seen ?? this.seen,
+      isLocalFile: isLocalFile ?? this.isLocalFile,
+      text: text ?? this.text,
+      music: music ?? this.music,
+      backgroundColors: backgroundColors ?? this.backgroundColors,
+      textColorValue: textColorValue ?? this.textColorValue,
+      createdAt: createdAt ?? this.createdAt,
+      author: author ?? this.author,
+    );
+  }
+
+  static List<int> _readColorList(Object? value) {
+    if (value is List) {
+      final List<int> colors = value
+          .map((Object? item) => ApiPayloadReader.readInt(item))
+          .where((int item) => item != 0)
+          .toList(growable: false);
+      if (colors.isNotEmpty) {
+        return colors;
+      }
+    }
+    return const <int>[0xFF1E40AF, 0xFF2BB0A1];
   }
 }

@@ -115,7 +115,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                                     _controller.stories[_controller
                                         .currentIndex],
                                 )?.avatar ??
-                                  '',
+                                  'https://placehold.co/80x80',
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -224,7 +224,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   }
 
   UserModel? _getUser(StoryModel story) {
-    return widget.users.where((u) => u.id == story.userId).firstOrNull;
+    return story.author ??
+        widget.users.where((u) => u.id == story.userId).firstOrNull;
   }
 
   Widget _buildStoryContent(StoryModel story) {

@@ -193,10 +193,9 @@ class LoginScreen extends StatelessWidget {
                             onPressed: () {
                               AppGet.snackbar(
                                 'Google Login',
-                                'Static Google login success',
+                                'Google login is not connected yet.',
                                 snackPosition: SnackPosition.bottom,
                               );
-                              AppGet.offNamed(RouteNames.shell);
                             },
                           ),
                           const SizedBox(height: 48),

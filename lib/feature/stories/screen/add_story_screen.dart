@@ -17,7 +17,9 @@ import 'story_text_composer_screen.dart';
 enum StoryComposerMode { gallery }
 
 class AddStoryScreen extends StatefulWidget {
-  const AddStoryScreen({super.key});
+  const AddStoryScreen({super.key, this.userId = ''});
+
+  final String userId;
 
   @override
   State<AddStoryScreen> createState() => _AddStoryScreenState();
@@ -692,7 +694,8 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   Future<void> _openStoryPreview(StoryPreviewModel preview) async {
     final StoryModel? story = await Navigator.of(context).push<StoryModel>(
       MaterialPageRoute<StoryModel>(
-        builder: (_) => StoryPreviewScreen(preview: preview),
+        builder: (_) =>
+            StoryPreviewScreen(preview: preview, userId: widget.userId),
       ),
     );
     if (!mounted || story == null) {
@@ -724,7 +727,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       stories.add(
         StoryModel(
           id: 'local_story_${DateTime.now().microsecondsSinceEpoch}_$assetId',
-          userId: 'u1',
+          userId: widget.userId,
           media: file.path,
           isLocalFile: true,
         ),
@@ -740,7 +743,10 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     final StoryModel? story = await Navigator.of(context).push<StoryModel>(
       MaterialPageRoute<StoryModel>(
         builder: (_) =>
-            const StoryTextComposerScreen(config: StoryTextComposerModel()),
+            StoryTextComposerScreen(
+              config: const StoryTextComposerModel(),
+              userId: widget.userId,
+            ),
       ),
     );
     if (!mounted || story == null) {
@@ -752,8 +758,9 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   Future<void> _openMusicComposer() async {
     final StoryModel? story = await Navigator.of(context).push<StoryModel>(
       MaterialPageRoute<StoryModel>(
-        builder: (_) => const StoryTextComposerScreen(
-          config: StoryTextComposerModel(startWithMusic: true),
+        builder: (_) => StoryTextComposerScreen(
+          config: const StoryTextComposerModel(startWithMusic: true),
+          userId: widget.userId,
         ),
       ),
     );

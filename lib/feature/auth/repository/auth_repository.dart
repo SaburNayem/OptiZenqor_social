@@ -1,4 +1,5 @@
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/auth_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
@@ -44,6 +45,10 @@ class AuthRepository {
       );
     }
     debugPrint('[AuthRepository] AuthService.login success');
+    await _hydrateSessionUserIfNeeded(
+      fallbackEmail: email,
+      fallbackRole: role,
+    );
     debugPrint(
       '[AuthRepository] Session persisted key=${StorageKeys.authSession}',
     );
@@ -174,19 +179,43 @@ class AuthRepository {
 
   Future<bool> hasSession() async {
     final session = await _storage.readJson(StorageKeys.authSession);
-    return (session?['isLoggedIn'] as bool?) ?? false;
+    if (!_isUsableSession(session)) {
+      if (session != null && session.isNotEmpty) {
+        await _storage.remove(StorageKeys.authSession);
+      }
+      return false;
+    }
+    return true;
+  }
+
+  Future<UserModel?> currentUser() async {
+    final Map<String, dynamic>? session = await _storage.readJson(
+      StorageKeys.authSession,
+    );
+    if (!_isUsableSession(session)) {
+      return null;
+    }
+
+    final Map<String, dynamic>? user = _extractUserPayload(session!);
+    if (user == null || user.isEmpty) {
+      return null;
+    }
+
+    final UserModel resolved = UserModel.fromApiJson(user);
+    return resolved.id.isEmpty && resolved.name.trim().isEmpty ? null : resolved;
   }
 
   Map<String, dynamic>? _extractSessionPayload(Map<String, dynamic> payload) {
-    final dynamic nestedData = payload['data'];
-    if (nestedData is Map<String, dynamic>) {
-      return nestedData;
-    }
-    if (nestedData is Map) {
-      return Map<String, dynamic>.from(nestedData);
-    }
-    if (_looksLikeSessionPayload(payload)) {
-      return payload;
+    for (final Object? candidate in <Object?>[
+      payload['data'],
+      payload['result'],
+      payload['session'],
+      payload,
+    ]) {
+      final Map<String, dynamic>? map = _readMap(candidate);
+      if (map != null && _looksLikeSessionPayload(map)) {
+        return map;
+      }
     }
     return null;
   }
@@ -194,8 +223,135 @@ class AuthRepository {
   bool _looksLikeSessionPayload(Map<String, dynamic> payload) {
     return payload.containsKey('token') ||
         payload.containsKey('accessToken') ||
+        payload.containsKey('tokens') ||
         payload.containsKey('refreshToken') ||
         payload.containsKey('user');
+  }
+
+  Map<String, dynamic>? _extractUserPayload(Map<String, dynamic>? session) {
+    for (final Object? candidate in <Object?>[
+      session?['user'],
+      session?['profile'],
+      session?['account'],
+      session?['active'],
+    ]) {
+      final Map<String, dynamic>? user = _readMap(candidate);
+      if (user != null && user.isNotEmpty) {
+        return user;
+      }
+    }
+    return null;
+  }
+
+  bool _isUsableSession(Map<String, dynamic>? session) {
+    if (session == null || session.isEmpty) {
+      return false;
+    }
+    if ((session['isLoggedIn'] as bool?) != true) {
+      return false;
+    }
+
+    final Map<String, dynamic>? payload = _extractSessionPayload(session);
+    final Map<String, dynamic>? tokens = _readMap(payload?['tokens']);
+    final String accessToken = ((payload?['accessToken'] ??
+                payload?['token'] ??
+                tokens?['accessToken']) as Object? ??
+            '')
+        .toString()
+        .trim();
+    return accessToken.isNotEmpty;
+  }
+
+  Future<void> _hydrateSessionUserIfNeeded({
+    required String fallbackEmail,
+    required UserRole fallbackRole,
+  }) async {
+    final Map<String, dynamic>? session = await _storage.readJson(
+      StorageKeys.authSession,
+    );
+    if (!_isUsableSession(session)) {
+      return;
+    }
+
+    final Map<String, dynamic>? existingUser = _extractUserPayload(session!);
+    if (_isUsableUser(existingUser)) {
+      return;
+    }
+
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _authService.me();
+      if (!response.isSuccess || response.data['success'] == false) {
+        return;
+      }
+      final Map<String, dynamic>? mePayload = _extractUserFromPayload(
+        response.data,
+      );
+      if (!_isUsableUser(mePayload)) {
+        return;
+      }
+
+      final String resolvedRole =
+          (mePayload!['role'] as String?)?.toLowerCase() ?? fallbackRole.name;
+      await _storage.writeJson(StorageKeys.authSession, <String, dynamic>{
+        ...session,
+        'role': resolvedRole,
+        'email': _resolveEmail(mePayload, fallbackEmail: fallbackEmail),
+        'user': mePayload,
+      });
+    } catch (_) {}
+  }
+
+  Map<String, dynamic>? _extractUserFromPayload(Map<String, dynamic> payload) {
+    for (final Object? candidate in <Object?>[
+      payload['user'],
+      payload['profile'],
+      payload['data'],
+      payload['result'],
+      payload,
+    ]) {
+      final Map<String, dynamic>? map = _readMap(candidate);
+      if (_isUsableUser(map)) {
+        return map;
+      }
+      final Map<String, dynamic>? nestedUser = _readMap(map?['user']);
+      if (_isUsableUser(nestedUser)) {
+        return nestedUser;
+      }
+      final Map<String, dynamic>? nestedProfile = _readMap(map?['profile']);
+      if (_isUsableUser(nestedProfile)) {
+        return nestedProfile;
+      }
+    }
+    return null;
+  }
+
+  bool _isUsableUser(Map<String, dynamic>? user) {
+    if (user == null || user.isEmpty) {
+      return false;
+    }
+    final String id = (user['id'] as Object? ?? '').toString().trim();
+    final String name = (user['name'] as String? ?? '').trim();
+    final String username = (user['username'] as String? ?? '').trim();
+    return id.isNotEmpty || name.isNotEmpty || username.isNotEmpty;
+  }
+
+  String _resolveEmail(
+    Map<String, dynamic> user, {
+    required String fallbackEmail,
+  }) {
+    final String email = (user['email'] as String? ?? '').trim();
+    return email.isEmpty ? fallbackEmail : email;
+  }
+
+  Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
   }
 
   bool _isSuccessfulResponse(

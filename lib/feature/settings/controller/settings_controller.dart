@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/enums/user_role.dart';
 import '../../../app_route/route_names.dart';
@@ -8,9 +7,21 @@ import '../model/settings_item_model.dart';
 import '../model/settings_section_model.dart';
 
 class SettingsController {
-  SettingsController() : currentUser = MockData.users.first;
+  SettingsController({UserModel? currentUser})
+    : currentUser = currentUser ?? _guestUser;
 
   final UserModel currentUser;
+
+  static const UserModel _guestUser = UserModel(
+    id: '',
+    name: 'Guest',
+    username: 'guest',
+    avatar: 'https://placehold.co/120x120',
+    bio: '',
+    role: UserRole.guest,
+    followers: 0,
+    following: 0,
+  );
 
   String get roleLabel => switch (currentUser.role) {
         UserRole.creator => 'Creator tools enabled',

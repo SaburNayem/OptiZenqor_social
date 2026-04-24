@@ -10,6 +10,5 @@ class CommunitiesService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'communities': ApiEndPoints.communities,
-    'community': ApiEndPoints.communityById(':id'),
   };
 }

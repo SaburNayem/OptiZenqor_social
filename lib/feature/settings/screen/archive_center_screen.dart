@@ -1,26 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/data/mock/mock_data.dart';
-import '../../../core/data/models/story_model.dart';
 import '../../home_feed/screen/hidden_posts_screen.dart';
-import '../../post_detail/screen/post_detail_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
 import '../../saved_collections/screen/saved_collections_screen.dart';
-import '../../stories/screen/story_view_screen.dart';
 
 class ArchiveCenterScreen extends StatelessWidget {
   const ArchiveCenterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final currentUserId = MockData.users.first.id;
-    final archivedPosts = MockData.posts
-        .where((item) => item.authorId == currentUserId)
-        .take(2)
-        .toList();
-    final archivedStories = MockData.stories
-        .where((item) => item.userId == currentUserId)
-        .toList();
     return Scaffold(
       appBar: AppBar(title: const Text('My Archive')),
       body: ListView(
@@ -66,20 +54,6 @@ class ArchiveCenterScreen extends StatelessWidget {
                   onTap: () => _openHiddenPosts(context),
                 ),
                 const Divider(height: 1),
-                ...archivedPosts.map(
-                  (post) => ListTile(
-                    leading: const Icon(Icons.hide_source_outlined),
-                    title: Text(
-                      post.caption,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: const Text('Hidden from your profile'),
-                    trailing: const Icon(Icons.open_in_new_rounded),
-                    onTap: () => _openPostDetail(context, post.id),
-                  ),
-                ),
-                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.play_circle_outline),
                   title: const Text('Archived reels'),
@@ -91,15 +65,11 @@ class ArchiveCenterScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.auto_stories_outlined),
                   title: const Text('Story archive'),
-                  subtitle: Text(
-                    archivedStories.isEmpty
-                        ? 'No archived stories available yet'
-                        : 'Stories, memories, and restored highlights',
+                  subtitle: const Text(
+                    'Story archive needs the backend archive endpoint.',
                   ),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: archivedStories.isEmpty
-                      ? null
-                      : () => _openStoryArchive(context, archivedStories),
+                  onTap: null,
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -123,27 +93,9 @@ class ArchiveCenterScreen extends StatelessWidget {
     );
   }
 
-  void _openPostDetail(BuildContext context, String postId) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => PostDetailScreen(postId: postId)),
-    );
-  }
-
   void _openReelsArchive(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => ReelsScreen()),
-    );
-  }
-
-  void _openStoryArchive(BuildContext context, List<StoryModel> stories) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => StoryViewScreen(
-          stories: stories,
-          users: MockData.users,
-          initialStoryId: stories.first.id,
-        ),
-      ),
     );
   }
 

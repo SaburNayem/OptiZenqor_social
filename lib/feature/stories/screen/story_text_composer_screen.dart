@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/data/mock/mock_data.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../controller/story_text_composer_controller.dart';
 import '../model/story_text_composer_model.dart';
 
 class StoryTextComposerScreen extends StatefulWidget {
-  const StoryTextComposerScreen({required this.config, super.key});
+  const StoryTextComposerScreen({
+    required this.config,
+    this.userId = '',
+    super.key,
+  });
 
   final StoryTextComposerModel config;
+  final String userId;
 
   @override
   State<StoryTextComposerScreen> createState() =>
@@ -532,7 +536,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
         StoryTextComposerController.gradients[_controller.gradientIndex];
     final StoryModel story = StoryModel(
       id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
-      userId: MockData.users.first.id,
+      userId: widget.userId,
       text: _controller.currentText,
       music: _controller.showMusic ? _controller.selectedMusic : null,
       backgroundColors: gradient,
