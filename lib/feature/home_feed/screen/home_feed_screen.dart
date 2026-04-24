@@ -63,16 +63,19 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
       builder: (context, _) {
         final HomeFeedController controller = context
             .read<HomeFeedController>();
+        final List<PostModel> visiblePosts = controller.visiblePosts;
+        final bool hasVisibleContent =
+            controller.stories.isNotEmpty || visiblePosts.isNotEmpty;
         if (controller.isLoading) {
           return const AppLoader(label: 'Preparing your personalized feed');
         }
-        if (controller.hasError) {
+        if (controller.hasError && !hasVisibleContent) {
           return ErrorStateView(
             onRetry: controller.loadInitial,
             message: controller.loadState.errorMessage ?? 'Unable to load feed',
           );
         }
-        if (controller.loadState.isEmpty) {
+        if (controller.loadState.isEmpty && controller.stories.isEmpty) {
           return const EmptyStateView(
             title: 'Feed is quiet',
             message: 'Follow more people and communities to personalize this.',
@@ -84,7 +87,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
             final BookmarksController bookmarksController =
                 context.read<BookmarksController>();
             final List<UserModel> storyUsers = <UserModel>[
-              ...controller.visiblePosts
+              ...visiblePosts
                   .map((PostModel post) => post.author)
                   .whereType<UserModel>(),
               ...controller.stories
@@ -111,35 +114,45 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       },
                     ),
                   const Divider(height: 32, thickness: 0.5),
-                  ...controller.visiblePosts.map((post) {
-                    final UserModel? user = post.author;
-                    if (user == null) {
-                      return const SizedBox.shrink();
-                    }
-                    return PostCard(
-                      post: post,
-                      author: user,
-                      likeCount: controller.displayLikeCount(post),
-                      isLiked: controller.isLiked(post.id),
-                      isBookmarked: bookmarksController.isSaved(post.id),
-                      onTap: () => _openPostDetail(context, post.id),
-                      onAuthorTap: () => _openOtherProfile(context, user.id),
-                      onMoreTap: () => _showPostActions(context, post.id),
-                      onLikeTap: () => controller.likePost(post.id),
-                      onCommentTap: () => _openPostDetail(context, post.id),
-                      onShareTap: () => showSharePostActionSheet(
-                        context: context,
+                  if (visiblePosts.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      child: EmptyStateView(
+                        title: 'Feed is quiet',
+                        message:
+                            'No posts yet, but stories are still available above.',
+                      ),
+                    )
+                  else
+                    ...visiblePosts.map((post) {
+                      final UserModel? user = post.author;
+                      if (user == null) {
+                        return const SizedBox.shrink();
+                      }
+                      return PostCard(
                         post: post,
                         author: user,
-                      ),
-                      onBookmarkTap: () => _handleBookmarkTap(
-                        context: context,
-                        bookmarksController: bookmarksController,
-                        post: post,
-                        user: user,
-                      ),
-                    );
-                  }),
+                        likeCount: controller.displayLikeCount(post),
+                        isLiked: controller.isLiked(post.id),
+                        isBookmarked: bookmarksController.isSaved(post.id),
+                        onTap: () => _openPostDetail(context, post.id),
+                        onAuthorTap: () => _openOtherProfile(context, user.id),
+                        onMoreTap: () => _showPostActions(context, post.id),
+                        onLikeTap: () => controller.likePost(post.id),
+                        onCommentTap: () => _openPostDetail(context, post.id),
+                        onShareTap: () => showSharePostActionSheet(
+                          context: context,
+                          post: post,
+                          author: user,
+                        ),
+                        onBookmarkTap: () => _handleBookmarkTap(
+                          context: context,
+                          bookmarksController: bookmarksController,
+                          post: post,
+                          user: user,
+                        ),
+                      );
+                    }),
                   if (controller.isLoadingMore) ...[
                     const SizedBox(height: 8),
                     const Center(child: CircularProgressIndicator()),

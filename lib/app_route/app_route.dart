@@ -92,7 +92,7 @@ class AppRoute {
   static const String userProfileFollowers = RouteNames.userProfileFollowers;
   static const String userProfileFollowing = RouteNames.userProfileFollowing;
   static const String chat = RouteNames.chat;
-  static const String storyBuddies = RouteNames.storyBuddies;
+  static const String buddy = RouteNames.buddy;
 
   static const String initialRoute = AppRouter.initialRoute;
 }

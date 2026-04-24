@@ -53,7 +53,13 @@ class HomeFeedController extends Cubit<int> {
   bool isLiked(String postId) => _likedPostIds.contains(postId);
 
   Future<void> loadInitial() async {
-    loadState = loadState.copyWith(isLoading: true, errorMessage: null);
+    loadState = loadState.copyWith(
+      isLoading: true,
+      hasError: false,
+      isSuccess: false,
+      isEmpty: false,
+      errorMessage: null,
+    );
     _notify();
     try {
       final prefs = await _repository.readRecommendationPreferences();
@@ -72,8 +78,10 @@ class HomeFeedController extends Cubit<int> {
       pagination = pagination.copyWith(page: 1, hasMore: true);
       loadState = loadState.copyWith(
         isLoading: false,
+        hasError: false,
         isEmpty: posts.isEmpty,
         isSuccess: posts.isNotEmpty,
+        errorMessage: null,
       );
       _notify();
     } catch (_) {
@@ -276,8 +284,10 @@ class HomeFeedController extends Cubit<int> {
     ];
     await _repository.saveLocalCreatedPosts(localPosts);
     loadState = loadState.copyWith(
+      hasError: false,
       isEmpty: posts.isEmpty,
       isSuccess: posts.isNotEmpty,
+      errorMessage: null,
     );
     await _analytics.logEvent(
       'post_created_local',
@@ -330,8 +340,10 @@ class HomeFeedController extends Cubit<int> {
       }
       loadState = loadState.copyWith(
         isLoading: false,
+        hasError: false,
         isEmpty: posts.isEmpty,
         isSuccess: posts.isNotEmpty,
+        errorMessage: null,
       );
       await _analytics.logEvent(
         'post_created',

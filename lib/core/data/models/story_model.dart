@@ -6,6 +6,7 @@ class StoryModel {
     required this.id,
     required this.userId,
     this.media = '',
+    this.mediaItems = const <String>[],
     this.seen = false,
     this.isLocalFile = false,
     this.text,
@@ -20,11 +21,13 @@ class StoryModel {
     this.linkLabel,
     this.linkUrl,
     this.privacy = 'Everyone',
+    this.collageLayout = 'grid',
   });
 
   final String id;
   final String userId;
   final String media;
+  final List<String> mediaItems;
   final bool seen;
   final bool isLocalFile;
   final String? text;
@@ -39,8 +42,9 @@ class StoryModel {
   final String? linkLabel;
   final String? linkUrl;
   final String privacy;
+  final String collageLayout;
 
-  bool get hasMedia => media.trim().isNotEmpty;
+  bool get hasMedia => media.trim().isNotEmpty || mediaItems.isNotEmpty;
   bool get hasText => (text ?? '').trim().isNotEmpty;
 
   Map<String, dynamic> toJson() {
@@ -48,6 +52,7 @@ class StoryModel {
       'id': id,
       'userId': userId,
       'media': media,
+      'mediaItems': mediaItems,
       'seen': seen,
       'isLocalFile': isLocalFile,
       'text': text,
@@ -62,6 +67,7 @@ class StoryModel {
       'linkLabel': linkLabel,
       'linkUrl': linkUrl,
       'privacy': privacy,
+      'collageLayout': collageLayout,
     };
   }
 
@@ -75,6 +81,7 @@ class StoryModel {
         json['userId'] ?? author?['id'],
       ),
       media: ApiPayloadReader.readString(json['media']),
+      mediaItems: _readStringList(json['mediaItems']),
       seen: ApiPayloadReader.readBool(json['seen']) ?? false,
       isLocalFile: ApiPayloadReader.readBool(json['isLocalFile']) ?? false,
       text: ApiPayloadReader.readString(json['text']),
@@ -94,6 +101,10 @@ class StoryModel {
         json['privacy'],
         fallback: 'Everyone',
       ),
+      collageLayout: ApiPayloadReader.readString(
+        json['collageLayout'],
+        fallback: 'grid',
+      ),
     );
   }
 
@@ -101,6 +112,7 @@ class StoryModel {
     String? id,
     String? userId,
     String? media,
+    List<String>? mediaItems,
     bool? seen,
     bool? isLocalFile,
     String? text,
@@ -115,11 +127,13 @@ class StoryModel {
     String? linkLabel,
     String? linkUrl,
     String? privacy,
+    String? collageLayout,
   }) {
     return StoryModel(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       media: media ?? this.media,
+      mediaItems: mediaItems ?? this.mediaItems,
       seen: seen ?? this.seen,
       isLocalFile: isLocalFile ?? this.isLocalFile,
       text: text ?? this.text,
@@ -134,7 +148,18 @@ class StoryModel {
       linkLabel: linkLabel ?? this.linkLabel,
       linkUrl: linkUrl ?? this.linkUrl,
       privacy: privacy ?? this.privacy,
+      collageLayout: collageLayout ?? this.collageLayout,
     );
+  }
+
+  static List<String> _readStringList(Object? value) {
+    if (value is List) {
+      return value
+          .map((Object? item) => ApiPayloadReader.readString(item))
+          .where((String item) => item.trim().isNotEmpty)
+          .toList(growable: false);
+    }
+    return const <String>[];
   }
 
   static List<int> _readColorList(Object? value) {

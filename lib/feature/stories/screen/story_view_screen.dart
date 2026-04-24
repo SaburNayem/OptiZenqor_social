@@ -7,6 +7,7 @@ import '../../../app_route/route_names.dart';
 import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/widgets/app_avatar.dart';
 import '../../../core/data/service/api_client_service.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../../../core/navigation/app_get.dart';
@@ -147,15 +148,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                             ),
                             onPressed: () => Navigator.of(context).maybePop(),
                           ),
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundImage: NetworkImage(
-                              _getUser(
-                                    _controller.stories[_controller
-                                        .currentIndex],
+                          AppAvatar(
+                            imageUrl:
+                                _getUser(
+                                  _controller.stories[_controller.currentIndex],
                                 )?.avatar ??
-                                  'https://placehold.co/80x80',
-                            ),
+                                '',
+                            radius: 18,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -355,12 +354,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
           itemBuilder: (BuildContext context, int index) {
             final UserModel viewer = _viewers[index];
             return ListTile(
-              leading: CircleAvatar(
-                backgroundImage: NetworkImage(
-                  viewer.avatar.isNotEmpty
-                      ? viewer.avatar
-                      : 'https://placehold.co/80x80',
-                ),
+              leading: AppAvatar(
+                imageUrl: viewer.avatar,
+                radius: 18,
               ),
               title: Text(viewer.name),
               subtitle: Text('@${viewer.username}'),
@@ -406,6 +402,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     final List<Color> backgroundColors = story.backgroundColors.length >= 2
         ? story.backgroundColors.map(Color.new).toList(growable: false)
         : const <Color>[AppColors.hexFF1E40AF, AppColors.hexFF2BB0A1];
+    final List<String> mediaItems = story.mediaItems.isNotEmpty
+        ? story.mediaItems
+        : (story.media.trim().isNotEmpty ? <String>[story.media] : <String>[]);
 
     return Container(
       width: double.infinity,
@@ -420,7 +419,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (story.hasMedia) _buildStoryMedia(story),
+          if (mediaItems.isNotEmpty) _buildStoryMedia(story, mediaItems),
           if (story.hasText || (story.music ?? '').trim().isNotEmpty)
             SafeArea(
               child: Padding(
@@ -523,27 +522,169 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     );
   }
 
-  Widget _buildStoryMedia(StoryModel story) {
-    final Widget child;
+  Widget _buildStoryMedia(StoryModel story, List<String> mediaItems) {
+    return DecoratedBox(
+      decoration: BoxDecoration(color: AppColors.black.withValues(alpha: 0.2)),
+      child: mediaItems.length == 1
+          ? _buildStoryMediaItem(story, mediaItems.first)
+          : _buildStoryCollage(story, mediaItems),
+    );
+  }
+
+  Widget _buildStoryCollage(StoryModel story, List<String> mediaItems) {
+    switch (story.collageLayout) {
+      case 'mosaic':
+        return _buildMosaicStoryCollage(story, mediaItems);
+      case 'stack':
+        return _buildStackStoryCollage(story, mediaItems);
+      case 'grid':
+      default:
+        return _buildGridStoryCollage(story, mediaItems);
+    }
+  }
+
+  Widget _buildGridStoryCollage(StoryModel story, List<String> mediaItems) {
+    final int count = mediaItems.length.clamp(1, 7);
+    final int crossAxisCount = count <= 2
+        ? 1
+        : count <= 4
+            ? 2
+            : 3;
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        itemCount: count,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: 6,
+          mainAxisSpacing: 6,
+          childAspectRatio: count == 1 ? 0.7 : 0.9,
+        ),
+        itemBuilder: (BuildContext context, int index) {
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: _buildStoryMediaItem(story, mediaItems[index]),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMosaicStoryCollage(StoryModel story, List<String> mediaItems) {
+    final List<String> items = mediaItems.take(7).toList(growable: false);
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: <Widget>[
+          Expanded(
+            flex: 5,
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: _buildStoryMediaItem(story, items.first),
+                  ),
+                ),
+                if (items.length > 1) const SizedBox(width: 6),
+                if (items.length > 1)
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: <Widget>[
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: _buildStoryMediaItem(story, items[1]),
+                          ),
+                        ),
+                        if (items.length > 2) const SizedBox(height: 6),
+                        if (items.length > 2)
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: _buildStoryMediaItem(story, items[2]),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (items.length > 3) const SizedBox(height: 6),
+          if (items.length > 3)
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: List<Widget>.generate(items.length - 3, (int index) {
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(left: index == 0 ? 0 : 6),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: _buildStoryMediaItem(story, items[index + 3]),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStackStoryCollage(StoryModel story, List<String> mediaItems) {
+    final List<String> items = mediaItems.take(7).toList(growable: false);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Stack(
+        children: List<Widget>.generate(items.length, (int index) {
+          final double inset = index * 16;
+          return Positioned(
+            left: inset,
+            right: inset,
+            top: inset + 24,
+            bottom: inset + 40,
+            child: Transform.rotate(
+              angle: (index.isEven ? -1 : 1) * 0.035,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.white.withValues(alpha: 0.7),
+                      width: 2,
+                    ),
+                  ),
+                  child: _buildStoryMediaItem(story, items[index]),
+                ),
+              ),
+            ),
+          );
+        }).reversed.toList(growable: false),
+      ),
+    );
+  }
+
+  Widget _buildStoryMediaItem(StoryModel story, String path) {
     if (story.isLocalFile) {
-      child = Image.file(
-        File(story.media),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.broken_image_outlined, color: AppColors.white),
-      );
-    } else {
-      child = Image.network(
-        story.media,
+      return Image.file(
+        File(path),
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) =>
             const Icon(Icons.broken_image_outlined, color: AppColors.white),
       );
     }
-
-    return DecoratedBox(
-      decoration: BoxDecoration(color: AppColors.black.withValues(alpha: 0.2)),
-      child: child,
+    return Image.network(
+      path,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) =>
+          const Icon(Icons.broken_image_outlined, color: AppColors.white),
     );
   }
 

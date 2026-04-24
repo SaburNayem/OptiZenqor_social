@@ -15,12 +15,20 @@ class AppAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ImageProvider<Object>? imageProvider = _imageProviderFor(imageUrl);
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
         CircleAvatar(
           radius: radius,
-          backgroundImage: NetworkImage(imageUrl),
+          foregroundImage: imageProvider,
+          onForegroundImageError: (_, _) {},
+          child: Icon(
+            Icons.person_rounded,
+            size: radius,
+            color: AppColors.grey600,
+          ),
         ),
         if (verified)
           Positioned(
@@ -38,6 +46,14 @@ class AppAvatar extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  ImageProvider<Object>? _imageProviderFor(String value) {
+    final String trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    return NetworkImage(trimmed);
   }
 }
 

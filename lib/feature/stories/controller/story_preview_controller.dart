@@ -7,7 +7,8 @@ class StoryPreviewController extends ChangeNotifier {
   StoryPreviewController(this.preview)
     : textController = TextEditingController(text: preview.initialText),
       textFocusNode = FocusNode(),
-      _selectedMusic = preview.initialMusic;
+      _selectedMusic = preview.initialMusic,
+      _selectedCollageLayout = preview.initialCollageLayout;
 
   static const List<String> musicOptions = <String>[
     'Late Night Drive',
@@ -34,6 +35,11 @@ class StoryPreviewController extends ChangeNotifier {
     'Followers',
     'Close Friends',
   ];
+  static const List<String> collageLayoutOptions = <String>[
+    'grid',
+    'mosaic',
+    'stack',
+  ];
 
   static const List<Color> textColors = <Color>[
     AppColors.white,
@@ -48,6 +54,7 @@ class StoryPreviewController extends ChangeNotifier {
   final FocusNode textFocusNode;
 
   String _selectedMusic;
+  String _selectedCollageLayout;
   bool _isEditingText = false;
   Color _selectedTextColor = textColors.first;
   String _selectedSticker = stickerOptions.first;
@@ -58,6 +65,7 @@ class StoryPreviewController extends ChangeNotifier {
   String _linkUrl = '';
 
   String get selectedMusic => _selectedMusic;
+  String get selectedCollageLayout => _selectedCollageLayout;
   bool get isEditingText => _isEditingText;
   Color get selectedTextColor => _selectedTextColor;
   bool get hasText => textController.text.trim().isNotEmpty;
@@ -88,6 +96,11 @@ class StoryPreviewController extends ChangeNotifier {
 
   void setMusic(String music) {
     _selectedMusic = music;
+    notifyListeners();
+  }
+
+  void setCollageLayout(String layout) {
+    _selectedCollageLayout = layout.trim().isEmpty ? 'grid' : layout.trim();
     notifyListeners();
   }
 

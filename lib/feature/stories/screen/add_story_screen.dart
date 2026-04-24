@@ -28,6 +28,7 @@ class AddStoryScreen extends StatefulWidget {
 
 class _AddStoryScreenState extends State<AddStoryScreen> {
   final MediaPickerService _mediaPickerService = MediaPickerService();
+  static const int _maxMultiSelection = 7;
 
   bool _isLoadingGallery = false;
   bool _hasGalleryPermission = false;
@@ -379,9 +380,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            _isMultiSelectEnabled
-                                ? '${_selectedOrderFor(_galleryItems[index].id)}'
-                                : '',
+                            '${_selectedAssetIds.indexOf(_galleryItems[index].id) + 1}',
                             style: const TextStyle(
                               color: AppColors.white,
                               fontWeight: FontWeight.w700,
@@ -443,10 +442,10 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
         onPressed: _selectedAssetIds.isEmpty ? null : _previewMultipleSelections,
         backgroundColor: AppColors.splashBackground,
         foregroundColor: AppColors.white,
-        icon: const Icon(Icons.visibility_rounded),
-        label: const Text(
-          'Preview',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        icon: const Icon(Icons.grid_view_rounded),
+        label: Text(
+          'Preview (${_selectedAssetIds.length}/$_maxMultiSelection)',
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       );
     }
@@ -460,6 +459,63 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     );
   }
 
+  String get _selectedAlbumLabel {
+    if (_albums.isEmpty || _selectedAlbumIndex >= _albums.length) {
+      return 'Gallery';
+    }
+    return _selectedAlbumIndex == 0 ? 'All' : _albums[_selectedAlbumIndex].name;
+  }
+
+  Future<void> _selectGalleryItem(int index) async {
+    final AssetEntity asset = _galleryItems[index];
+    if (_isMultiSelectEnabled) {
+      if (!_selectedAssetIds.contains(asset.id) &&
+          _selectedAssetIds.length >= _maxMultiSelection) {
+        AppFeedback.showSnackbar(
+          title: 'Story',
+          message: 'You can add up to 7 photos in one collage story.',
+        );
+        return;
+      }
+      setState(() {
+        _selectedMediaPath = null;
+        if (_selectedAssetIds.contains(asset.id)) {
+          _selectedAssetIds.remove(asset.id);
+        } else if (_selectedAssetIds.length < _maxMultiSelection) {
+          _selectedAssetIds.add(asset.id);
+        }
+      });
+      return;
+    }
+
+    setState(() {
+      _selectedMediaPath = null;
+      _selectedAssetIds
+        ..clear()
+        ..add(asset.id);
+    });
+
+    final File? file = await asset.file;
+    if (!mounted || file == null) {
+      AppFeedback.showSnackbar(
+        title: 'Story',
+        message: 'This photo could not be opened.',
+      );
+      return;
+    }
+    final StoryModel? story = await _openStoryPreview(
+      StoryPreviewModel(
+        mediaPath: file.path,
+        isLocalFile: true,
+        isVideo: asset.type == AssetType.video,
+      ),
+    );
+    if (!mounted || story == null) {
+      return;
+    }
+    Navigator.of(context).pop(<StoryModel>[story]);
+  }
+
   void _toggleMultiSelect() {
     setState(() {
       _isMultiSelectEnabled = !_isMultiSelectEnabled;
@@ -470,57 +526,6 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
           ..add(first);
       }
     });
-  }
-
-  int _selectedOrderFor(String assetId) {
-    return _selectedAssetIds.indexOf(assetId) + 1;
-  }
-
-  String get _selectedAlbumLabel {
-    if (_albums.isEmpty || _selectedAlbumIndex >= _albums.length) {
-      return 'Gallery';
-    }
-    return _selectedAlbumIndex == 0 ? 'All' : _albums[_selectedAlbumIndex].name;
-  }
-
-  Future<void> _selectGalleryItem(int index) async {
-    final AssetEntity asset = _galleryItems[index];
-    setState(() {
-      _selectedMediaPath = null;
-      if (_isMultiSelectEnabled) {
-        if (_selectedAssetIds.contains(asset.id)) {
-          _selectedAssetIds.remove(asset.id);
-        } else {
-          _selectedAssetIds.add(asset.id);
-        }
-      } else {
-        _selectedAssetIds
-          ..clear()
-          ..add(asset.id);
-      }
-    });
-
-    if (!_isMultiSelectEnabled) {
-      final File? file = await asset.file;
-      if (!mounted || file == null) {
-        AppFeedback.showSnackbar(
-          title: 'Story',
-          message: 'This photo could not be opened.',
-        );
-        return;
-      }
-      final StoryModel? story = await _openStoryPreview(
-        StoryPreviewModel(
-          mediaPath: file.path,
-          isLocalFile: true,
-          isVideo: asset.type == AssetType.video,
-        ),
-      );
-      if (!mounted || story == null) {
-        return;
-      }
-      Navigator.of(context).pop(<StoryModel>[story]);
-    }
   }
 
   Future<void> _ensureGalleryAccess() async {
@@ -712,38 +717,6 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     );
   }
 
-  Future<void> _previewMultipleSelections() async {
-    if (_selectedAssetIds.isEmpty) {
-      return;
-    }
-
-    final Map<String, AssetEntity> assetsById = <String, AssetEntity>{
-      for (final AssetEntity asset in _galleryItems) asset.id: asset,
-    };
-    final List<StoryModel> stories = <StoryModel>[];
-    for (final String assetId in _selectedAssetIds) {
-      final AssetEntity? asset = assetsById[assetId];
-      final File? file = await asset?.file;
-      if (file == null) {
-        continue;
-      }
-      final StoryModel? story = await _openStoryPreview(
-        StoryPreviewModel(
-          mediaPath: file.path,
-          isLocalFile: true,
-          isVideo: asset?.type == AssetType.video,
-        ),
-      );
-      if (story != null) {
-        stories.add(story);
-      }
-    }
-    if (!mounted || stories.isEmpty) {
-      return;
-    }
-    Navigator.of(context).pop(stories);
-  }
-
   Future<void> _openTextComposer() async {
     final StoryModel? story = await Navigator.of(context).push<StoryModel>(
       MaterialPageRoute<StoryModel>(
@@ -779,6 +752,43 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     final int minutes = duration.inMinutes;
     final int seconds = duration.inSeconds.remainder(60);
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _previewMultipleSelections() async {
+    if (_selectedAssetIds.isEmpty) {
+      return;
+    }
+
+    final Map<String, AssetEntity> assetsById = <String, AssetEntity>{
+      for (final AssetEntity asset in _galleryItems) asset.id: asset,
+    };
+    final List<String> filePaths = <String>[];
+    bool containsVideo = false;
+    for (final String assetId in _selectedAssetIds.take(_maxMultiSelection)) {
+      final AssetEntity? asset = assetsById[assetId];
+      final File? file = await asset?.file;
+      if (file == null) {
+        continue;
+      }
+      containsVideo = containsVideo || asset?.type == AssetType.video;
+      filePaths.add(file.path);
+    }
+    if (!mounted || filePaths.isEmpty) {
+      return;
+    }
+
+    final StoryModel? story = await _openStoryPreview(
+      StoryPreviewModel(
+        mediaPaths: filePaths,
+        mediaPath: filePaths.first,
+        isLocalFile: true,
+        isVideo: containsVideo,
+      ),
+    );
+    if (!mounted || story == null) {
+      return;
+    }
+    Navigator.of(context).pop(<StoryModel>[story]);
   }
 }
 

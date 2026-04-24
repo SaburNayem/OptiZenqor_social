@@ -38,11 +38,9 @@ class UserModel {
       id: (json['id'] as Object? ?? '').toString(),
       name: (json['name'] as String? ?? 'Unknown user').trim(),
       username: username,
-      avatar:
-          (json['avatar'] as String? ??
-                  json['avatarUrl'] as String? ??
-                  'https://placehold.co/120x120')
-              .trim(),
+      avatar: _sanitizeImageUrl(
+        (json['avatar'] as String? ?? json['avatarUrl'] as String? ?? '').trim(),
+      ),
       bio: (json['bio'] as String? ?? '').trim(),
       role: _parseRole(json['role']),
       followers: _readInt(json['followers']),
@@ -180,6 +178,28 @@ class UserModel {
       return value.toInt();
     }
     return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static String _sanitizeImageUrl(String value) {
+    final String trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return '';
+    }
+    final Uri? uri = Uri.tryParse(trimmed);
+    if (uri == null) {
+      return trimmed;
+    }
+    if (uri.host.toLowerCase() != 'placehold.co') {
+      return trimmed;
+    }
+    final String path = uri.path.toLowerCase();
+    if (path.endsWith('.png') ||
+        path.endsWith('.jpg') ||
+        path.endsWith('.jpeg') ||
+        path.endsWith('.webp')) {
+      return trimmed;
+    }
+    return '$trimmed/png';
   }
 
   static UserRole _parseRole(Object? value) {

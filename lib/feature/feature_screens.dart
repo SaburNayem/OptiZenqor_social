@@ -49,7 +49,7 @@ export 'search_discovery/screen/search_discovery_screen.dart';
 export 'share_repost_system/screen/share_repost_system_screen.dart';
 export 'splash/screen/splash_screen.dart';
 export 'stories/screen/add_story_screen.dart';
-export 'stories/screen/story_buddies_screen.dart';
+export 'stories/screen/buddy_screen.dart';
 export 'stories/screen/story_view_screen.dart';
 export 'subscriptions/screen/subscriptions_screen.dart';
 export 'support_help/screen/support_help_screen.dart';

@@ -44,8 +44,10 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
       backgroundColor: AppColors.black,
+      resizeToAvoidBottomInset: true,
       body: AnimatedBuilder(
         animation: _controller,
         builder: (BuildContext context, _) {
@@ -65,7 +67,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
               ),
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                  padding: EdgeInsets.fromLTRB(16, 14, 16, keyboardInset > 0 ? 12 : 24),
                   child: Column(
                     children: [
                       Row(
@@ -160,34 +162,40 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                       if (_controller.showMusic) const SizedBox(height: 18),
                       Expanded(
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Expanded(
                               child: Column(
                                 children: [
                                   const Spacer(),
-                                  GestureDetector(
-                                    onTap: _focusTextInput,
-                                    child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        minHeight: 120,
-                                      ),
-                                      child: Center(
-                                        child: _controller.hasText
-                                            ? Text(
-                                                _controller.currentText,
-                                                textAlign: TextAlign.center,
-                                                style: composerTextStyle,
-                                              )
-                                            : const Text(
-                                                'Share your story',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: AppColors.white70,
-                                                  fontSize: 34,
-                                                  fontWeight: FontWeight.w600,
-                                                  height: 1.15,
-                                                ),
-                                              ),
+                                  Flexible(
+                                    child: SingleChildScrollView(
+                                      reverse: true,
+                                      child: GestureDetector(
+                                        onTap: _focusTextInput,
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                            minHeight: 120,
+                                          ),
+                                          child: Center(
+                                            child: _controller.hasText
+                                                ? Text(
+                                                    _controller.currentText,
+                                                    textAlign: TextAlign.center,
+                                                    style: composerTextStyle,
+                                                  )
+                                                : const Text(
+                                                    'Share your story',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                      color: AppColors.white70,
+                                                      fontSize: 34,
+                                                      fontWeight: FontWeight.w600,
+                                                      height: 1.15,
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -218,34 +226,37 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                             const SizedBox(width: 12),
                             Align(
                               alignment: Alignment.centerRight,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _buildSideTool(
-                                    icon: Icons.palette_outlined,
-                                    onTap: _controller.cycleBackground,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildSideTool(
-                                    icon: Icons.text_fields_rounded,
-                                    onTap: _handleTextStyleTap,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildSideTool(
-                                    icon: Icons.music_note_outlined,
-                                    onTap: _showMusicPicker,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildSideTool(
-                                    icon: Icons.alternate_email_rounded,
-                                    onTap: _showMentionDialog,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildSideTool(
-                                    icon: Icons.privacy_tip_outlined,
-                                    onTap: _showPrivacyPicker,
-                                  ),
-                                ],
+                              child: SingleChildScrollView(
+                                reverse: true,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildSideTool(
+                                      icon: Icons.palette_outlined,
+                                      onTap: _controller.cycleBackground,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildSideTool(
+                                      icon: Icons.text_fields_rounded,
+                                      onTap: _handleTextStyleTap,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildSideTool(
+                                      icon: Icons.music_note_outlined,
+                                      onTap: _showMusicPicker,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildSideTool(
+                                      icon: Icons.alternate_email_rounded,
+                                      onTap: _showMentionDialog,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildSideTool(
+                                      icon: Icons.privacy_tip_outlined,
+                                      onTap: _showPrivacyPicker,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],

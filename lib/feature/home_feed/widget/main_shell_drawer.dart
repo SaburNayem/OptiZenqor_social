@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app_route/route_names.dart';
+import '../../../core/common_widget/app_avatar.dart';
 import '../../../core/navigation/app_get.dart';
 import '../controller/main_shell_controller.dart';
 import 'main_shell_drawer_section.dart';
@@ -22,8 +23,9 @@ class MainShellDrawer extends StatelessWidget {
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              currentAccountPicture: CircleAvatar(
-                backgroundImage: NetworkImage(currentUser.avatar),
+              currentAccountPicture: AppAvatar(
+                imageUrl: currentUser.avatar,
+                radius: 28,
               ),
               accountName: Text(currentUser.name),
               accountEmail: Text('@${currentUser.username}'),
@@ -46,8 +48,8 @@ class MainShellDrawer extends StatelessWidget {
                   const Divider(),
                   _MainShellDrawerItem(
                     icon: Icons.people_outline_rounded,
-                    label: 'Story Buddies',
-                    routeName: RouteNames.storyBuddies,
+                    label: 'Buddy',
+                    routeName: RouteNames.buddy,
                   ),
                   _MainShellDrawerItem(
                     icon: Icons.settings_outlined,
