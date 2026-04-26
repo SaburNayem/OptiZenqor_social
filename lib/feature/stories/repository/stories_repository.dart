@@ -174,7 +174,6 @@ class StoriesRepository {
       throw Exception(response.message ?? 'Unable to delete story right now.');
     }
   }
-
   Future<List<String>> _uploadStoryMedia({
     required List<String> mediaPaths,
     required String authorId,

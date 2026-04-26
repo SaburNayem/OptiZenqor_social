@@ -691,7 +691,6 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       message: 'Report sent for $label.',
     );
   }
-
   Widget _buildStoryContent(StoryModel story) {
     final List<String> mediaItems = story.mediaItems.isNotEmpty
         ? story.mediaItems
@@ -706,7 +705,15 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
             Positioned.fill(
               child: _buildStoryCanvasBackground(story, mediaItems),
             ),
-            if (mediaItems.isNotEmpty)
+            if (mediaItems.length == 1 && !_looksLikeVideo(mediaItems.first))
+              Positioned.fill(
+                child: _buildSinglePhotoStoryMedia(
+                  story: story,
+                  path: mediaItems.first,
+                  bodySize: canvasSize,
+                ),
+              )
+            else if (mediaItems.isNotEmpty)
               ...List<Widget>.generate(mediaItems.length, (int index) {
                 final StoryMediaTransform transform =
                     index < story.mediaTransforms.length
@@ -732,6 +739,38 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildSinglePhotoStoryMedia({
+    required StoryModel story,
+    required String path,
+    required Size bodySize,
+  }) {
+    final StoryMediaTransform transform = story.mediaTransforms.isNotEmpty
+        ? story.mediaTransforms.first
+        : const StoryMediaTransform(
+            widthFactor: 1,
+            heightFactor: 1,
+            borderRadius: 0,
+          );
+
+    return Center(
+      child: Transform.translate(
+        offset: Offset(transform.offsetDx, transform.offsetDy),
+        child: Transform.scale(
+          scale: transform.scale,
+          child: SizedBox(
+            width: bodySize.width,
+            height: bodySize.height,
+            child: _buildStoryMediaItem(
+              story,
+              path,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -880,6 +919,10 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     required StoryMediaTransform transform,
     required Size bodySize,
   }) {
+    final List<String> mediaItems = story.mediaItems.isNotEmpty
+        ? story.mediaItems
+        : (story.media.trim().isNotEmpty ? <String>[story.media] : <String>[]);
+    final bool singlePhoto = mediaItems.length == 1 && !_looksLikeVideo(path);
     return Center(
       child: Transform.translate(
         offset: Offset(transform.offsetDx, transform.offsetDy),
@@ -888,7 +931,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
           child: SizedBox(
             width: bodySize.width * transform.widthFactor,
             height: bodySize.height * transform.heightFactor,
-            child: ClipRect(child: _buildStoryMediaItem(story, path)),
+            child: ClipRect(
+              child: _buildStoryMediaItem(
+                story,
+                path,
+                fit: singlePhoto ? BoxFit.cover : BoxFit.contain,
+              ),
+            ),
           ),
         ),
       ),

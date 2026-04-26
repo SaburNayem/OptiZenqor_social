@@ -370,6 +370,13 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       return _buildSingleVideoCanvas();
     }
 
+    if (_mediaPaths.length == 1) {
+      return _buildSinglePhotoCanvas(
+        path: _mediaPaths.first,
+        canvasSize: canvasSize,
+      );
+    }
+
     final List<int> sortedIndices = _sortedMediaIndices;
 
     return Stack(
@@ -382,6 +389,44 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
           ),
         );
       }).toList(growable: false),
+    );
+  }
+
+  Widget _buildSinglePhotoCanvas({
+    required String path,
+    required Size canvasSize,
+  }) {
+    final StoryMediaTransform transform = _mediaTransforms.first;
+
+    return Center(
+      child: Transform.translate(
+        offset: Offset(transform.offsetDx, transform.offsetDy),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onScaleStart: (ScaleStartDetails details) {
+            _mediaTransformsAtStart[0] = _mediaTransforms[0];
+            _mediaFocalPointsAtStart[0] = details.focalPoint;
+          },
+          onScaleUpdate: (ScaleUpdateDetails details) {
+            _updateMediaTransform(0, details, canvasSize);
+          },
+          child: Transform.scale(
+            scale: transform.scale,
+            child: SizedBox(
+              width: canvasSize.width,
+              height: canvasSize.height,
+              child: RepaintBoundary(
+                child: _buildMediaItem(
+                  path,
+                  targetWidth: canvasSize.width,
+                  targetHeight: canvasSize.height,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -443,7 +488,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                     path,
                     targetWidth: itemWidth,
                     targetHeight: itemHeight,
-                    fit: BoxFit.contain,
+                    fit: singlePhoto ? BoxFit.cover : BoxFit.contain,
                   ),
                 ),
               ),
@@ -634,17 +679,12 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       );
     }
 
-    final int? cacheWidth = _resolveCacheDimension(targetWidth);
-    final int? cacheHeight = _resolveCacheDimension(targetHeight);
-
     if (widget.preview.isLocalFile) {
       return Image.file(
         File(path),
         fit: fit,
-        cacheWidth: cacheWidth,
-        cacheHeight: cacheHeight,
-        filterQuality: FilterQuality.low,
-        errorBuilder: (_, __, ___) => const ColoredBox(
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (_, _, _) => const ColoredBox(
           color: AppColors.black,
           child: Center(
             child: Icon(Icons.broken_image_outlined, color: AppColors.white),
@@ -656,26 +696,14 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     return Image.network(
       path,
       fit: fit,
-      cacheWidth: cacheWidth,
-      cacheHeight: cacheHeight,
-      filterQuality: FilterQuality.low,
-      errorBuilder: (_, __, ___) => const ColoredBox(
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (_, _, _) => const ColoredBox(
         color: AppColors.black,
         child: Center(
           child: Icon(Icons.broken_image_outlined, color: AppColors.white),
         ),
       ),
     );
-  }
-
-  int? _resolveCacheDimension(double? logicalSize) {
-    if (logicalSize == null || logicalSize <= 0) {
-      return null;
-    }
-
-    final double devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final double scaledSize = logicalSize * devicePixelRatio;
-    return scaledSize.clamp(256, 1600).round();
   }
 
   Widget _buildInteractiveTextLayer(Size canvasSize) {

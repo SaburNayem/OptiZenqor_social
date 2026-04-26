@@ -12,6 +12,7 @@ import '../../../core/data/service/media_picker_service.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../model/story_preview_model.dart';
 import '../model/story_text_composer_model.dart';
+import '../service/story_media_optimizer.dart';
 import 'story_preview_screen.dart';
 import 'story_text_composer_screen.dart';
 
@@ -28,6 +29,7 @@ class AddStoryScreen extends StatefulWidget {
 
 class _AddStoryScreenState extends State<AddStoryScreen> {
   final MediaPickerService _mediaPickerService = MediaPickerService();
+  final StoryMediaOptimizer _storyMediaOptimizer = const StoryMediaOptimizer();
   static const int _galleryPageSize = 300;
   static const int _maxStoryFileBytes = 25 * 1024 * 1024;
 
@@ -500,10 +502,9 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       return;
     }
     final StoryModel? story = await _openStoryPreview(
-      StoryPreviewModel(
-        mediaPath: file.path,
-        isLocalFile: true,
-        isVideo: asset.type == AssetType.video,
+      await _buildStoryPreviewModel(
+        sourcePaths: <String>[file.path],
+        containsVideo: asset.type == AssetType.video,
       ),
     );
     if (!mounted || story == null) {
@@ -690,7 +691,10 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       _selectedAssetIds.clear();
     });
     final StoryModel? story = await _openStoryPreview(
-      StoryPreviewModel(mediaPath: path, isLocalFile: true),
+      await _buildStoryPreviewModel(
+        sourcePaths: <String>[path],
+        containsVideo: false,
+      ),
     );
     if (!mounted || story == null) {
       return;
@@ -778,11 +782,9 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     }
 
     final StoryModel? story = await _openStoryPreview(
-      StoryPreviewModel(
-        mediaPaths: filePaths,
-        mediaPath: filePaths.first,
-        isLocalFile: true,
-        isVideo: containsVideo,
+      await _buildStoryPreviewModel(
+        sourcePaths: filePaths,
+        containsVideo: containsVideo,
       ),
     );
     if (!mounted || story == null) {
@@ -819,6 +821,25 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     });
 
     return allAssets;
+  }
+
+  Future<StoryPreviewModel> _buildStoryPreviewModel({
+    required List<String> sourcePaths,
+    required bool containsVideo,
+  }) async {
+    final List<String> optimizedPaths = await _storyMediaOptimizer.optimizePaths(
+      sourcePaths,
+    );
+    final List<String> resolvedPaths = optimizedPaths.isEmpty
+        ? sourcePaths
+        : optimizedPaths;
+
+    return StoryPreviewModel(
+      mediaPaths: resolvedPaths,
+      mediaPath: resolvedPaths.first,
+      isLocalFile: true,
+      isVideo: containsVideo,
+    );
   }
 
   Future<File?> _resolveAssetFile(AssetEntity asset) async {
