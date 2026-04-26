@@ -65,4 +65,14 @@ class MediaPickerService {
     final file = await _picker.pickVideo(source: ImageSource.gallery);
     return file?.path;
   }
+
+  Future<String?> captureVideo({
+    Duration? maxDuration,
+  }) async {
+    final XFile? file = await _picker.pickVideo(
+      source: ImageSource.camera,
+      maxDuration: maxDuration,
+    );
+    return file?.path;
+  }
 }

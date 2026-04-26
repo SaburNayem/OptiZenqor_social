@@ -126,6 +126,12 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
             selected: false,
             onTap: _openMusicComposer,
           ),
+          _buildOptionCard(
+            icon: Icons.video_library_outlined,
+            label: 'Video',
+            selected: false,
+            onTap: _pickGalleryVideo,
+          ),
         ],
       ),
     );
@@ -298,7 +304,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'No images found in this album yet. Try another album from the bar above.',
+                'No photos or videos found in this album yet. Try another album from the bar above.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.grey600),
               ),
@@ -324,6 +330,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
             final bool isSelected = _selectedAssetIds.contains(
               _galleryItems[index].id,
             );
+            final bool showSelectionBadge = _isMultiSelectEnabled && isSelected;
             return GestureDetector(
               onTap: () => _selectGalleryItem(index),
               child: Stack(
@@ -363,14 +370,14 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
                         ),
                       ),
                     ),
-                  if (isSelected)
+                  if (showSelectionBadge)
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primary, width: 4),
                         color: AppColors.black.withValues(alpha: 0.12),
                       ),
                     ),
-                  if (isSelected)
+                  if (showSelectionBadge)
                     Positioned(
                       top: 8,
                       right: 8,
@@ -454,7 +461,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     }
 
     return FloatingActionButton(
-      onPressed: _handleCameraCapture,
+      onPressed: _openCameraOptions,
       backgroundColor: AppColors.white,
       elevation: 8,
       shape: const CircleBorder(),
@@ -498,15 +505,14 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       );
       return;
     }
-    if (!await _isAllowedStoryFile(file)) {
+    final StoryPreviewModel? preview = await _buildStoryPreviewModel(
+      sourcePaths: <String>[file.path],
+      containsVideo: asset.type == AssetType.video,
+    );
+    if (!mounted || preview == null) {
       return;
     }
-    final StoryModel? story = await _openStoryPreview(
-      await _buildStoryPreviewModel(
-        sourcePaths: <String>[file.path],
-        containsVideo: asset.type == AssetType.video,
-      ),
-    );
+    final StoryModel? story = await _openStoryPreview(preview);
     if (!mounted || story == null) {
       return;
     }
@@ -681,8 +687,28 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     if (!mounted || path == null) {
       return;
     }
-    final File file = File(path);
-    if (!await _isAllowedStoryFile(file)) {
+
+    setState(() {
+      _selectedMediaPath = path;
+      _selectedAssetIds.clear();
+    });
+    final StoryPreviewModel? preview = await _buildStoryPreviewModel(
+      sourcePaths: <String>[path],
+      containsVideo: false,
+    );
+    if (!mounted || preview == null) {
+      return;
+    }
+    final StoryModel? story = await _openStoryPreview(preview);
+    if (!mounted || story == null) {
+      return;
+    }
+    Navigator.of(context).pop(<StoryModel>[story]);
+  }
+
+  Future<void> _handleCameraVideoCapture() async {
+    final String? path = await _mediaPickerService.captureVideo();
+    if (!mounted || path == null) {
       return;
     }
 
@@ -690,16 +716,84 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       _selectedMediaPath = path;
       _selectedAssetIds.clear();
     });
-    final StoryModel? story = await _openStoryPreview(
-      await _buildStoryPreviewModel(
-        sourcePaths: <String>[path],
-        containsVideo: false,
-      ),
+    final StoryPreviewModel? preview = await _buildStoryPreviewModel(
+      sourcePaths: <String>[path],
+      containsVideo: true,
     );
+    if (!mounted || preview == null) {
+      return;
+    }
+    final StoryModel? story = await _openStoryPreview(preview);
     if (!mounted || story == null) {
       return;
     }
     Navigator.of(context).pop(<StoryModel>[story]);
+  }
+
+  Future<void> _pickGalleryVideo() async {
+    final String? path = await _mediaPickerService.pickVideo();
+    if (!mounted || path == null) {
+      return;
+    }
+
+    setState(() {
+      _selectedMediaPath = path;
+      _selectedAssetIds.clear();
+    });
+    final StoryPreviewModel? preview = await _buildStoryPreviewModel(
+      sourcePaths: <String>[path],
+      containsVideo: true,
+    );
+    if (!mounted || preview == null) {
+      return;
+    }
+    final StoryModel? story = await _openStoryPreview(preview);
+    if (!mounted || story == null) {
+      return;
+    }
+    Navigator.of(context).pop(<StoryModel>[story]);
+  }
+
+  Future<void> _openCameraOptions() async {
+    final String? action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: <Widget>[
+              const ListTile(
+                title: Text(
+                  'Create from camera',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text('Take photo'),
+                onTap: () => Navigator.of(context).pop('photo'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.videocam_outlined),
+                title: const Text('Record video'),
+                onTap: () => Navigator.of(context).pop('video'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted || action == null) {
+      return;
+    }
+
+    if (action == 'video') {
+      await _handleCameraVideoCapture();
+      return;
+    }
+    await _handleCameraCapture();
   }
 
   void _showSettingsMessage() {
@@ -768,12 +862,6 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       if (file == null) {
         continue;
       }
-      if (!await _isAllowedStoryFile(file, showMessage: false)) {
-        if (mounted) {
-          _showStoryFileTooLargeMessage(file);
-        }
-        return;
-      }
       containsVideo = containsVideo || asset?.type == AssetType.video;
       filePaths.add(file.path);
     }
@@ -781,12 +869,14 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       return;
     }
 
-    final StoryModel? story = await _openStoryPreview(
-      await _buildStoryPreviewModel(
-        sourcePaths: filePaths,
-        containsVideo: containsVideo,
-      ),
+    final StoryPreviewModel? preview = await _buildStoryPreviewModel(
+      sourcePaths: filePaths,
+      containsVideo: containsVideo,
     );
+    if (!mounted || preview == null) {
+      return;
+    }
+    final StoryModel? story = await _openStoryPreview(preview);
     if (!mounted || story == null) {
       return;
     }
@@ -823,7 +913,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     return allAssets;
   }
 
-  Future<StoryPreviewModel> _buildStoryPreviewModel({
+  Future<StoryPreviewModel?> _buildStoryPreviewModel({
     required List<String> sourcePaths,
     required bool containsVideo,
   }) async {
@@ -833,6 +923,17 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     final List<String> resolvedPaths = optimizedPaths.isEmpty
         ? sourcePaths
         : optimizedPaths;
+    for (int index = 0; index < resolvedPaths.length; index++) {
+      final String resolvedPath = resolvedPaths[index];
+      final bool isVideo = _looksLikeVideoPath(sourcePaths[index]);
+      if (!await _isAllowedStoryPath(
+        resolvedPath,
+        showMessage: true,
+        treatAsVideo: isVideo,
+      )) {
+        return null;
+      }
+    }
 
     return StoryPreviewModel(
       mediaPaths: resolvedPaths,
@@ -866,6 +967,25 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       _showStoryFileTooLargeMessage(file, bytes: bytes);
     }
     return allowed;
+  }
+
+  Future<bool> _isAllowedStoryPath(
+    String filePath, {
+    required bool treatAsVideo,
+    bool showMessage = true,
+  }) async {
+    if (!treatAsVideo) {
+      return true;
+    }
+    return _isAllowedStoryFile(File(filePath), showMessage: showMessage);
+  }
+
+  bool _looksLikeVideoPath(String path) {
+    final String normalized = path.trim().toLowerCase();
+    return normalized.endsWith('.mp4') ||
+        normalized.endsWith('.mov') ||
+        normalized.endsWith('.m4v') ||
+        normalized.endsWith('.webm');
   }
 
   void _showStoryFileTooLargeMessage(File file, {int? bytes}) {

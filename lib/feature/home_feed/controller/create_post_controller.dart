@@ -11,21 +11,25 @@ import '../../../core/enums/user_role.dart';
 import '../../live_stream/model/live_stream_model.dart';
 import '../helper/create_post_sheet_helper.dart';
 import '../model/create_post_result_model.dart';
+import '../service/post_media_optimizer.dart';
 
 class CreatePostController extends ChangeNotifier {
   CreatePostController({
     MediaPickerService? mediaPickerService,
     ApiClientService? apiClient,
     AppSharedPreferences? storage,
+    PostMediaOptimizer? postMediaOptimizer,
   }) : _mediaPickerService = mediaPickerService ?? MediaPickerService(),
        _apiClient = apiClient ?? ApiClientService(),
-       _storage = storage ?? AppSharedPreferences() {
+       _storage = storage ?? AppSharedPreferences(),
+       _postMediaOptimizer = postMediaOptimizer ?? const PostMediaOptimizer() {
     captionController.addListener(notifyListeners);
   }
 
   final MediaPickerService _mediaPickerService;
   final ApiClientService _apiClient;
   final AppSharedPreferences _storage;
+  final PostMediaOptimizer _postMediaOptimizer;
   final TextEditingController captionController = TextEditingController();
   bool _isDisposed = false;
   UserModel currentUser = const UserModel(
@@ -107,10 +111,7 @@ class CreatePostController extends ChangeNotifier {
     if (paths.isEmpty) {
       return;
     }
-    mediaPaths = paths;
-    isVideo = paths.length == 1 && CreatePostSheetHelper.isVideoPath(paths.first);
-    altText = null;
-    _safeNotifyListeners();
+    await _setOptimizedMedia(paths);
   }
 
   Future<void> capturePhoto() async {
@@ -118,10 +119,7 @@ class CreatePostController extends ChangeNotifier {
     if (path == null) {
       return;
     }
-    mediaPaths = <String>[path];
-    isVideo = false;
-    altText = null;
-    _safeNotifyListeners();
+    await _setOptimizedMedia(<String>[path]);
   }
 
   Future<void> pickVideo() async {
@@ -129,10 +127,7 @@ class CreatePostController extends ChangeNotifier {
     if (path == null) {
       return;
     }
-    mediaPaths = <String>[path];
-    isVideo = true;
-    altText = null;
-    _safeNotifyListeners();
+    await _setOptimizedMedia(<String>[path]);
   }
 
   void clearMedia() {
@@ -298,6 +293,18 @@ class CreatePostController extends ChangeNotifier {
       return;
     }
     notifyListeners();
+  }
+
+  Future<void> _setOptimizedMedia(List<String> paths) async {
+    final List<String> optimizedPaths = await _postMediaOptimizer.optimizePaths(
+      paths,
+    );
+    mediaPaths = optimizedPaths;
+    isVideo =
+        optimizedPaths.length == 1 &&
+        CreatePostSheetHelper.isVideoPath(optimizedPaths.first);
+    altText = null;
+    _safeNotifyListeners();
   }
 
   Map<String, dynamic>? _readMap(Object? value) {
