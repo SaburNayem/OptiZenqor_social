@@ -22,6 +22,7 @@ class StoryViewScreen extends StatefulWidget {
     required this.users,
     required this.initialStoryId,
     this.onStoriesSeen,
+    this.onStoryDeleted,
     super.key,
   });
 
@@ -29,23 +30,29 @@ class StoryViewScreen extends StatefulWidget {
   final List<UserModel> users;
   final String initialStoryId;
   final ValueChanged<List<String>>? onStoriesSeen;
+  final Future<void> Function(String storyId)? onStoryDeleted;
 
   @override
   State<StoryViewScreen> createState() => _StoryViewScreenState();
 }
 
 class _StoryViewScreenState extends State<StoryViewScreen> {
+  static const Duration _defaultStoryDuration = Duration(seconds: 5);
+  static const Duration _storyTick = Duration(milliseconds: 50);
+
   late StoriesController _controller;
   final StoriesRepository _storiesRepository = StoriesRepository();
   List<UserModel> _viewers = <UserModel>[];
   final Set<String> _seenStoryIds = <String>{};
   UserModel? _currentUser;
   final Set<String> _likedStoryIds = <String>{};
+  Timer? _storyTimer;
+  double _storyProgress = 0;
 
   @override
   void initState() {
     super.initState();
-    final startIndex = widget.stories.indexWhere(
+    final int startIndex = widget.stories.indexWhere(
       (s) => s.id == widget.initialStoryId,
     );
     _controller = StoriesController(
@@ -55,10 +62,12 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     _loadCurrentUser();
     _markCurrentStorySeen();
     _loadViewersForCurrentStory();
+    _restartStoryPlayback();
   }
 
   @override
   void dispose() {
+    _storyTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -83,6 +92,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                   _controller.onPageChanged(index);
                   _markCurrentStorySeen();
                   _loadViewersForCurrentStory();
+                  _restartStoryPlayback();
                 },
                 itemBuilder: (context, index) {
                   final story = _controller.stories[index];
@@ -131,10 +141,18 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                               margin: const EdgeInsets.symmetric(horizontal: 2),
                               height: 2,
                               decoration: BoxDecoration(
-                                color: index <= _controller.currentIndex
-                                    ? AppColors.white
-                                    : AppColors.white.withValues(alpha: 0.3),
+                                color: AppColors.white.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(1),
+                              ),
+                              child: FractionallySizedBox(
+                                alignment: Alignment.centerLeft,
+                                widthFactor: _progressForIndex(index),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    borderRadius: BorderRadius.circular(1),
+                                  ),
+                                ),
                               ),
                             ),
                           );
@@ -156,57 +174,81 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                             ),
                             onPressed: () => Navigator.of(context).maybePop(),
                           ),
-                          AppAvatar(
-                            imageUrl:
-                                _getUser(
-                                  _controller.stories[_controller.currentIndex],
-                                )?.avatar ??
-                                '',
-                            radius: 18,
-                          ),
+                          _buildStoryHeaderAvatar(currentStory),
                           const SizedBox(width: 8),
-                          Text(
-                            _displayNameForStory(currentStory),
-                            style: const TextStyle(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _timeLabelFor(
-                              _controller.stories[_controller.currentIndex],
-                            ),
-                            style: TextStyle(
-                              color: AppColors.white.withValues(alpha: 0.6),
-                              fontSize: 12,
-                            ),
-                          ),
-                          const Spacer(),
-                          if (isMyStory)
-                            TextButton.icon(
-                              onPressed: _showViewersSheet,
-                              icon: const Icon(
-                                Icons.remove_red_eye_outlined,
-                                color: AppColors.white,
-                                size: 18,
-                              ),
-                              label: Text(
-                                _viewers.isEmpty ? 'Views' : '${_viewers.length}',
-                                style: const TextStyle(
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: Row(
+                              children: <Widget>[
+                                Flexible(
+                                  child: Text(
+                                    _displayNameForStory(currentStory),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppColors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            )
-                          else
-                            IconButton(
+                                const SizedBox(width: 8),
+                                Text(
+                                  _timeLabelFor(
+                                    _controller.stories[_controller.currentIndex],
+                                  ),
+                                  style: TextStyle(
+                                    color: AppColors.white.withValues(alpha: 0.6),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (isMyStory)
+                            PopupMenuButton<String>(
                               icon: const Icon(
                                 Icons.more_vert,
                                 color: AppColors.white,
                               ),
-                              onPressed: _showViewersSheet,
+                              onSelected: (String value) async {
+                                if (value != 'delete') {
+                                  return;
+                                }
+                                final bool confirmed = await _confirmDeleteStory();
+                                if (!mounted || !confirmed) {
+                                  return;
+                                }
+                                await _deleteStory(currentStory);
+                              },
+                              itemBuilder: (BuildContext context) {
+                                return const <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text('Delete story'),
+                                  ),
+                                ];
+                              },
+                            )
+                          else
+                            PopupMenuButton<String>(
+                              icon: const Icon(
+                                Icons.more_vert,
+                                color: AppColors.white,
+                              ),
+                              onSelected: (String value) {
+                                if (value == 'report') {
+                                  _reportStory(currentStory);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) {
+                                return const <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'report',
+                                    child: Text('Report story'),
+                                  ),
+                                ];
+                              },
                             ),
                         ],
                       ),
@@ -401,7 +443,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   void _markCurrentStorySeen() {
     final StoryModel story = _controller.stories[_controller.currentIndex];
-    if (story.id.isEmpty || !_seenStoryIds.add(story.id)) {
+    if (!_canLoadStoryInsights(story) || !_seenStoryIds.add(story.id)) {
       return;
     }
     widget.onStoriesSeen?.call(<String>[story.id]);
@@ -412,6 +454,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     if (_controller.currentIndex <= 0) {
       return;
     }
+    _storyTimer?.cancel();
     await _controller.pageController.previousPage(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
@@ -420,11 +463,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   Future<void> _goNext() async {
     if (_controller.currentIndex >= _controller.stories.length - 1) {
+      _storyTimer?.cancel();
       if (mounted) {
         Navigator.of(context).maybePop();
       }
       return;
     }
+    _storyTimer?.cancel();
     await _controller.pageController.nextPage(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOut,
@@ -433,6 +478,14 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   Future<void> _loadViewersForCurrentStory() async {
     final StoryModel story = _controller.stories[_controller.currentIndex];
+    if (!_canLoadStoryInsights(story)) {
+      if (mounted) {
+        setState(() {
+          _viewers = <UserModel>[];
+        });
+      }
+      return;
+    }
     try {
       final List<UserModel> viewers = await _storiesRepository.fetchStoryViewers(
         story.id,
@@ -451,6 +504,11 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     }
   }
 
+  bool _canLoadStoryInsights(StoryModel story) {
+    final String storyId = story.id.trim();
+    return storyId.isNotEmpty && !storyId.startsWith('local_story_');
+  }
+
   Future<void> _showViewersSheet() async {
     await _loadViewersForCurrentStory();
     if (!mounted) {
@@ -459,27 +517,178 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (BuildContext context) {
-        if (_viewers.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('No viewers yet.'),
-          );
-        }
-        return ListView.separated(
-          shrinkWrap: true,
-          itemCount: _viewers.length,
-          separatorBuilder: (_, _) => const Divider(height: 1),
-          itemBuilder: (BuildContext context, int index) {
-            final UserModel viewer = _viewers[index];
-            return ListTile(
-              leading: AppAvatar(imageUrl: viewer.avatar, radius: 18),
-              title: Text(viewer.name),
-              subtitle: Text('@${viewer.username}'),
-            );
-          },
+        return SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    _viewers.isEmpty ? 'Views' : 'Views ${_viewers.length}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 320),
+                    child: _viewers.isEmpty
+                        ? Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 18,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.grey100,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Text(
+                              'No viewers yet.',
+                              style: TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                          )
+                        : ListView.separated(
+                            shrinkWrap: true,
+                            itemCount: _viewers.length,
+                            separatorBuilder: (_, _) => const SizedBox(height: 8),
+                            itemBuilder: (BuildContext context, int index) {
+                              final UserModel viewer = _viewers[index];
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey100,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  children: <Widget>[
+                                    AppAvatar(imageUrl: viewer.avatar, radius: 18),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: <Widget>[
+                                          Text(
+                                            viewer.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          Text(
+                                            '@${viewer.username}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: AppColors.grey600,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildStoryHeaderAvatar(StoryModel story) {
+    final List<String> mediaItems = story.mediaItems.isNotEmpty
+        ? story.mediaItems
+        : (story.media.trim().isNotEmpty ? <String>[story.media] : <String>[]);
+
+    if (mediaItems.isNotEmpty && !_looksLikeVideo(mediaItems.first)) {
+      final String path = mediaItems.first;
+      final Widget image = story.isLocalFile
+          ? Image.file(File(path), fit: BoxFit.cover)
+          : Image.network(path, fit: BoxFit.cover);
+
+      return ClipOval(
+        child: SizedBox(
+          width: 36,
+          height: 36,
+          child: image,
+        ),
+      );
+    }
+
+    return AppAvatar(
+      imageUrl: _getUser(story)?.avatar ?? '',
+      radius: 18,
+    );
+  }
+
+  Future<bool> _confirmDeleteStory() async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete story'),
+          content: const Text('This story will be removed.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    return confirmed ?? false;
+  }
+
+  Future<void> _deleteStory(StoryModel story) async {
+    try {
+      await widget.onStoryDeleted?.call(story.id);
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).maybePop();
+      AppFeedback.showSnackbar(
+        title: 'Story',
+        message: 'Story deleted',
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      AppFeedback.showSnackbar(
+        title: 'Story',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
+  void _reportStory(StoryModel story) {
+    final String label = _displayNameForStory(story);
+    AppFeedback.showSnackbar(
+      title: 'Story',
+      message: 'Report sent for $label.',
     );
   }
 
@@ -1013,6 +1222,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     if (createdAt == null) {
       return 'Now';
     }
+
     final Duration diff = DateTime.now().difference(createdAt);
     if (diff.inMinutes < 1) {
       return 'Just now';
@@ -1024,5 +1234,61 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       return '${diff.inHours} h';
     }
     return '${diff.inDays} d';
+  }
+
+  void _restartStoryPlayback() {
+    _storyTimer?.cancel();
+    if (!mounted || _controller.stories.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _storyProgress = 0;
+    });
+
+    final int durationMs =
+        _storyDurationFor(_controller.stories[_controller.currentIndex])
+            .inMilliseconds;
+    final int tickMs = _storyTick.inMilliseconds;
+    int elapsedMs = 0;
+
+    _storyTimer = Timer.periodic(_storyTick, (Timer timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      elapsedMs += tickMs;
+      final double nextProgress = (elapsedMs / durationMs).clamp(0, 1);
+
+      setState(() {
+        _storyProgress = nextProgress;
+      });
+
+      if (nextProgress >= 1) {
+        timer.cancel();
+        unawaited(_goNext());
+      }
+    });
+  }
+
+  Duration _storyDurationFor(StoryModel story) {
+    final List<String> mediaItems = story.mediaItems.isNotEmpty
+        ? story.mediaItems
+        : (story.media.trim().isNotEmpty ? <String>[story.media] : <String>[]);
+    if (mediaItems.length == 1 && _looksLikeVideo(mediaItems.first)) {
+      return const Duration(seconds: 8);
+    }
+    return _defaultStoryDuration;
+  }
+
+  double _progressForIndex(int index) {
+    if (index < _controller.currentIndex) {
+      return 1;
+    }
+    if (index > _controller.currentIndex) {
+      return 0;
+    }
+    return _storyProgress.clamp(0, 1);
   }
 }

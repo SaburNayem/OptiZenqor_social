@@ -648,6 +648,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     final StoryModel story = StoryModel(
       id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
       userId: widget.userId,
+      createdAt: DateTime.now(),
       text: _controller.currentText,
       music: _controller.showMusic ? _controller.selectedMusic : null,
       backgroundColors: gradient,

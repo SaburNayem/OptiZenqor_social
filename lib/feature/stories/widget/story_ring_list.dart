@@ -14,6 +14,7 @@ class StoryRingList extends StatelessWidget {
     required this.currentUser,
     required this.onStoryAdded,
     required this.onStoriesSeen,
+    required this.onStoryDeleted,
     super.key,
   });
 
@@ -22,6 +23,7 @@ class StoryRingList extends StatelessWidget {
   final UserModel? currentUser;
   final ValueChanged<List<StoryModel>> onStoryAdded;
   final ValueChanged<List<String>> onStoriesSeen;
+  final Future<void> Function(String storyId) onStoryDeleted;
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +108,7 @@ class StoryRingList extends StatelessWidget {
                     users: users,
                     initialStoryId: currentUserStories.first.id,
                     onStoriesSeen: onStoriesSeen,
+                    onStoryDeleted: onStoryDeleted,
                   ),
                 ),
               ),
@@ -173,6 +176,7 @@ class StoryRingList extends StatelessWidget {
                     users: users,
                     initialStoryId: story.id,
                     onStoriesSeen: onStoriesSeen,
+                    onStoryDeleted: onStoryDeleted,
                   ),
                 ),
               );

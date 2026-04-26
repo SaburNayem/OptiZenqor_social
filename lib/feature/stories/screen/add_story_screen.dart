@@ -29,6 +29,7 @@ class AddStoryScreen extends StatefulWidget {
 class _AddStoryScreenState extends State<AddStoryScreen> {
   final MediaPickerService _mediaPickerService = MediaPickerService();
   static const int _galleryPageSize = 300;
+  static const int _maxStoryFileBytes = 25 * 1024 * 1024;
 
   bool _isLoadingGallery = false;
   bool _hasGalleryPermission = false;
@@ -495,6 +496,9 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       );
       return;
     }
+    if (!await _isAllowedStoryFile(file)) {
+      return;
+    }
     final StoryModel? story = await _openStoryPreview(
       StoryPreviewModel(
         mediaPath: file.path,
@@ -676,6 +680,10 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     if (!mounted || path == null) {
       return;
     }
+    final File file = File(path);
+    if (!await _isAllowedStoryFile(file)) {
+      return;
+    }
 
     setState(() {
       _selectedMediaPath = path;
@@ -756,6 +764,12 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
       if (file == null) {
         continue;
       }
+      if (!await _isAllowedStoryFile(file, showMessage: false)) {
+        if (mounted) {
+          _showStoryFileTooLargeMessage(file);
+        }
+        return;
+      }
       containsVideo = containsVideo || asset?.type == AssetType.video;
       filePaths.add(file.path);
     }
@@ -819,6 +833,33 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     }
 
     return null;
+  }
+
+  Future<bool> _isAllowedStoryFile(
+    File file, {
+    bool showMessage = true,
+  }) async {
+    final int bytes = await file.length();
+    final bool allowed = bytes <= _maxStoryFileBytes;
+    if (!allowed && showMessage && mounted) {
+      _showStoryFileTooLargeMessage(file, bytes: bytes);
+    }
+    return allowed;
+  }
+
+  void _showStoryFileTooLargeMessage(File file, {int? bytes}) {
+    final int resolvedBytes = bytes ?? 0;
+    final String name = file.path.split(Platform.pathSeparator).last;
+    final String sizeLabel = _formatFileSizeLabel(resolvedBytes);
+    AppFeedback.showSnackbar(
+      title: 'Story media too large',
+      message: '$name is $sizeLabel. Please choose a file up to 25 MB.',
+    );
+  }
+
+  String _formatFileSizeLabel(int bytes) {
+    final double sizeInMb = bytes / (1024 * 1024);
+    return '${sizeInMb.toStringAsFixed(sizeInMb >= 10 ? 0 : 1)} MB';
   }
 }
 

@@ -162,6 +162,19 @@ class StoriesRepository {
     }
   }
 
+  Future<void> deleteStory(String storyId) async {
+    if (storyId.trim().isEmpty) {
+      return;
+    }
+
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .delete(ApiEndPoints.storyById(storyId));
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to delete story right now.');
+    }
+  }
+
   Future<List<String>> _uploadStoryMedia({
     required List<String> mediaPaths,
     required String authorId,

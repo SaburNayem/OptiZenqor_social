@@ -1383,6 +1383,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     final StoryModel story = StoryModel(
       id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
       userId: widget.userId,
+      createdAt: DateTime.now(),
       media: mediaItems.isEmpty ? '' : mediaItems.first,
       mediaItems: mediaItems,
       isLocalFile: widget.preview.isLocalFile,

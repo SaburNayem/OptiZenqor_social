@@ -114,6 +114,9 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     onStoriesSeen: (List<String> storyIds) {
                       controller.markStoriesSeen(storyIds);
                     },
+                    onStoryDeleted: (String storyId) async {
+                      await controller.deleteStory(storyId);
+                    },
                   ),
                   const Divider(height: 32, thickness: 0.5),
                   if (visiblePosts.isEmpty)

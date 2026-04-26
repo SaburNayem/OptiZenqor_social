@@ -460,6 +460,25 @@ class HomeFeedController extends Cubit<int> {
     }
   }
 
+  Future<void> deleteStory(String storyId) async {
+    final String normalizedId = storyId.trim();
+    if (normalizedId.isEmpty) {
+      return;
+    }
+
+    if (!normalizedId.startsWith('local_story_')) {
+      await _storiesRepository.deleteStory(normalizedId);
+    }
+
+    stories = stories
+        .where((StoryModel story) => story.id != normalizedId)
+        .toList(growable: false);
+    await _repository.saveLocalStories(
+      stories.where((StoryModel story) => story.id.startsWith('local_story_')).toList(),
+    );
+    _notify();
+  }
+
   FeedSegment _segmentForTab(FeedTab tab) {
     switch (tab) {
       case FeedTab.forYou:

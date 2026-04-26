@@ -74,6 +74,8 @@ class StoryMediaTransform {
 }
 
 class StoryModel {
+  static const Duration visibleDuration = Duration(hours: 24);
+
   const StoryModel({
     required this.id,
     required this.userId,
@@ -126,6 +128,10 @@ class StoryModel {
 
   bool get hasMedia => media.trim().isNotEmpty || mediaItems.isNotEmpty;
   bool get hasText => (text ?? '').trim().isNotEmpty;
+  bool get isActive {
+    final DateTime createdTime = createdAt ?? DateTime.now();
+    return DateTime.now().difference(createdTime) < visibleDuration;
+  }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
