@@ -22,6 +22,7 @@ class HomeFeedRepository {
   final AppSharedPreferences _storage;
   final HomeFeedService _service;
   final UploadService _uploadService;
+  static final Map<String, UserModel> _authorCache = <String, UserModel>{};
 
   Future<List<PostModel>> fetchFeed({
     required FeedSegment segment,
@@ -145,6 +146,8 @@ class HomeFeedRepository {
     return created;
   }
 
+  Future<String> currentUserId() => _currentUserId();
+
   Future<void> setPostLiked({
     required String postId,
     required bool liked,
@@ -156,6 +159,35 @@ class HomeFeedRepository {
     );
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to update post like');
+    }
+  }
+
+  Future<PostModel> updatePost({
+    required String postId,
+    required String caption,
+  }) async {
+    final String trimmedCaption = caption.trim();
+    final ServiceResponseModel<Map<String, dynamic>> response =
+        await _service.apiClient.patch(
+          ApiEndPoints.postById(postId),
+          <String, dynamic>{'caption': trimmedCaption},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to update post right now.');
+    }
+    final Map<String, dynamic>? postPayload = _extractPostPayload(response.data);
+    if (postPayload == null) {
+      throw Exception('Updated post response did not include a post object.');
+    }
+    final PostModel updated = PostModel.fromApiJson(postPayload);
+    return updated.id.isEmpty ? updated.copyWith(caption: trimmedCaption) : updated;
+  }
+
+  Future<void> deletePost(String postId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response =
+        await _service.apiClient.delete(ApiEndPoints.postById(postId));
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to delete post right now.');
     }
   }
 
@@ -174,6 +206,11 @@ class HomeFeedRepository {
           items
               .map(StoryModel.fromJson)
               .where((StoryModel story) => story.id.isNotEmpty)
+              .toList(growable: false),
+        );
+        await saveLocalStories(
+          localStories
+              .where((StoryModel story) => story.id.startsWith('local_story_'))
               .toList(growable: false),
         );
         return _applySeenState(
@@ -322,6 +359,17 @@ class HomeFeedRepository {
     final Map<String, UserModel> authors = <String, UserModel>{};
     await Future.wait<void>(
       missingAuthorIds.map((String authorId) async {
+        final UserModel? cachedAuthor = _authorCache[authorId];
+        if (cachedAuthor != null) {
+          authors[authorId] = cachedAuthor;
+          return;
+        }
+        final UserModel? currentUser = await currentUserProfile();
+        if (currentUser != null && currentUser.id == authorId) {
+          _authorCache[authorId] = currentUser;
+          authors[authorId] = currentUser;
+          return;
+        }
         try {
           final ServiceResponseModel<Map<String, dynamic>> response =
               await _service.apiClient.get(ApiEndPoints.userById(authorId));
@@ -335,6 +383,7 @@ class HomeFeedRepository {
           }
           final UserModel author = UserModel.fromApiJson(payload);
           if (author.id.isNotEmpty) {
+            _authorCache[authorId] = author;
             authors[authorId] = author;
           }
         } catch (_) {}
@@ -365,6 +414,11 @@ class HomeFeedRepository {
     final Map<String, UserModel> authors = <String, UserModel>{};
     await Future.wait<void>(
       missingAuthorIds.map((String authorId) async {
+        final UserModel? cachedAuthor = _authorCache[authorId];
+        if (cachedAuthor != null) {
+          authors[authorId] = cachedAuthor;
+          return;
+        }
         try {
           final ServiceResponseModel<Map<String, dynamic>> response =
               await _service.apiClient.get(ApiEndPoints.userById(authorId));
@@ -379,6 +433,7 @@ class HomeFeedRepository {
           }
           final UserModel author = UserModel.fromApiJson(payload);
           if (author.id.isNotEmpty) {
+            _authorCache[authorId] = author;
             authors[authorId] = author;
           }
         } catch (_) {}

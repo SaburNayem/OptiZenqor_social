@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app_route/route_names.dart';
 
 class AppNavigator {
   AppNavigator._();
@@ -45,7 +46,13 @@ class AppNavigator {
   static void back<T extends Object?>({T? result}) {
     if (_navigator?.canPop() ?? false) {
       _navigator!.pop<T>(result);
+      return;
     }
+    _navigator?.pushNamedAndRemoveUntil(
+      RouteNames.shell,
+      (Route<dynamic> route) => false,
+      arguments: <String, dynamic>{'tabIndex': 0},
+    );
   }
 
   static Future<T?> showBottomSheet<T>({

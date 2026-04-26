@@ -4,11 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
-import '../../../core/common_widget/app_loader.dart';
 import '../../../core/common_widget/empty_state_view.dart';
 import '../../../core/common_widget/error_state_view.dart';
 import '../../../core/common_widget/post_card.dart';
 import '../../../core/navigation/app_get.dart';
+import '../../../core/widgets/app_shimmer.dart';
 import '../../bookmarks/controller/bookmarks_controller.dart';
 import '../../bookmarks/widget/save_post_collection_sheet.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
@@ -68,7 +68,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
         final bool hasVisibleContent =
             controller.stories.isNotEmpty || visiblePosts.isNotEmpty;
         if (controller.isLoading) {
-          return const AppLoader(label: 'Preparing your personalized feed');
+          return const _FeedShimmer();
         }
         if (controller.hasError && !hasVisibleContent) {
           return ErrorStateView(
@@ -202,43 +202,50 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
   }
 
   Future<void> _showPostActions(BuildContext context, String postId) {
+    final HomeFeedController controller = context.read<HomeFeedController>();
+    PostModel? selectedPost;
+    for (final PostModel post in controller.posts) {
+      if (post.id == postId) {
+        selectedPost = post;
+        break;
+      }
+    }
+    final bool isOwnPost =
+        selectedPost != null && controller.isOwnPost(selectedPost);
     return showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       builder: (_) {
-        final controller = context.read<HomeFeedController>();
         return ListView(
           shrinkWrap: true,
           children: [
-            ListTile(
-              leading: const Icon(Icons.visibility_outlined),
-              title: const Text('View Post Details'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _openPostDetail(context, postId);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.hide_source_outlined),
-              title: const Text('Hide post'),
-              onTap: () {
-                controller.notInterested(postId);
-                Navigator.of(context).pop();
-                _showFeedback(context, 'Post hidden from feed');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.tune_rounded),
-              title: const Text('Show less like this'),
-              onTap: () async {
-                await controller.showLessLikeThis(postId);
-                if (!context.mounted) {
-                  return;
-                }
-                Navigator.of(context).pop();
-                _showFeedback(context, 'We will show fewer similar posts');
-              },
-            ),
+            if (isOwnPost && selectedPost != null) ...[
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Edit post'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await _editPostCaption(context, controller, selectedPost!);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline_rounded),
+                title: const Text('Delete post'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await _deletePost(context, controller, selectedPost!);
+                },
+              ),
+            ] else
+              ListTile(
+                leading: const Icon(Icons.hide_source_outlined),
+                title: const Text('Hide post'),
+                onTap: () {
+                  controller.notInterested(postId);
+                  Navigator.of(context).pop();
+                  _showFeedback(context, 'Post hidden from feed');
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.flag_outlined),
               title: const Text('Report'),
@@ -268,6 +275,190 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
   void _openPostDetail(BuildContext context, String postId) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => PostDetailScreen(postId: postId)),
+    );
+  }
+
+  Future<void> _editPostCaption(
+    BuildContext context,
+    HomeFeedController controller,
+    PostModel post,
+  ) async {
+    final TextEditingController textController = TextEditingController(
+      text: post.caption,
+    );
+    final String? nextCaption = await showDialog<String>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Edit post'),
+          content: TextField(
+            controller: textController,
+            maxLines: 5,
+            minLines: 3,
+            decoration: const InputDecoration(hintText: 'Write something...'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(
+                textController.text.trim(),
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    textController.dispose();
+    if (nextCaption == null || nextCaption.trim().isEmpty || !context.mounted) {
+      return;
+    }
+    try {
+      await controller.editPostCaption(postId: post.id, caption: nextCaption);
+      if (!context.mounted) {
+        return;
+      }
+      _showFeedback(context, 'Post updated');
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      _showFeedback(context, error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> _deletePost(
+    BuildContext context,
+    HomeFeedController controller,
+    PostModel post,
+  ) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete post?'),
+          content: const Text('This post will be removed from your feed.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+    try {
+      await controller.deleteOwnedPost(post.id);
+      if (!context.mounted) {
+        return;
+      }
+      _showFeedback(context, 'Post deleted');
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      _showFeedback(context, error.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+}
+
+class _FeedShimmer extends StatelessWidget {
+  const _FeedShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        children: const [
+          SizedBox(height: 8),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                ShimmerBox(height: 64, width: 64, radius: 32),
+                SizedBox(width: 12),
+                ShimmerBox(height: 64, width: 64, radius: 32),
+                SizedBox(width: 12),
+                ShimmerBox(height: 64, width: 64, radius: 32),
+                SizedBox(width: 12),
+                ShimmerBox(height: 64, width: 64, radius: 32),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                ShimmerBox(height: 36, width: 36, radius: 18),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerBox(height: 14, width: 120),
+                      SizedBox(height: 8),
+                      ShimmerBox(height: 12, width: 80),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 12),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: ShimmerBox(height: 320, radius: 20),
+          ),
+          SizedBox(height: 12),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: ShimmerBox(height: 14, width: 90),
+          ),
+          SizedBox(height: 8),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: ShimmerBox(height: 12),
+          ),
+          SizedBox(height: 24),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                ShimmerBox(height: 36, width: 36, radius: 18),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerBox(height: 14, width: 140),
+                      SizedBox(height: 8),
+                      ShimmerBox(height: 12, width: 90),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 12),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: ShimmerBox(height: 320, radius: 20),
+          ),
+        ],
+      ),
     );
   }
 }

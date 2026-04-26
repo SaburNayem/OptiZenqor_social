@@ -10,6 +10,7 @@ class PostModel {
     required this.likes,
     required this.comments,
     required this.createdAt,
+    this.liked = false,
     this.viewCount = 0,
     this.shareCount = 0,
     this.taggedUserIds = const <String>[],
@@ -36,6 +37,11 @@ class PostModel {
       likes: _readCount(json['likes']),
       comments: _readCount(json['comments']),
       createdAt: _readDateTime(json['createdAt']),
+      liked:
+          json['liked'] as bool? ??
+          json['isLiked'] as bool? ??
+          json['isLikedByMe'] as bool? ??
+          false,
       viewCount: _readCount(json['views'] ?? json['viewCount']),
       shareCount: _readCount(json['shares'] ?? json['shareCount']),
       taggedUserIds: _readStringList(json['taggedUserIds']),
@@ -59,6 +65,7 @@ class PostModel {
   final int likes;
   final int comments;
   final DateTime createdAt;
+  final bool liked;
   final int viewCount;
   final int shareCount;
   final List<String> taggedUserIds;
@@ -73,21 +80,26 @@ class PostModel {
   final UserModel? author;
 
   PostModel copyWith({
+    bool? liked,
+    String? caption,
+    List<String>? media,
     int? likes,
     int? comments,
     int? viewCount,
     int? shareCount,
+    List<String>? editHistory,
     UserModel? author,
   }) {
     return PostModel(
       id: id,
       authorId: authorId,
-      caption: caption,
+      caption: caption ?? this.caption,
       tags: tags,
-      media: media,
+      media: media ?? this.media,
       likes: likes ?? this.likes,
       comments: comments ?? this.comments,
       createdAt: createdAt,
+      liked: liked ?? this.liked,
       viewCount: viewCount ?? this.viewCount,
       shareCount: shareCount ?? this.shareCount,
       taggedUserIds: taggedUserIds,
@@ -95,7 +107,7 @@ class PostModel {
       location: location,
       audience: audience,
       altText: altText,
-      editHistory: editHistory,
+      editHistory: editHistory ?? this.editHistory,
       isSponsored: isSponsored,
       brandCollaborationLabel: brandCollaborationLabel,
       repostHistory: repostHistory,
@@ -113,6 +125,7 @@ class PostModel {
       'likes': likes,
       'comments': comments,
       'createdAt': createdAt.toIso8601String(),
+      'liked': liked,
       'viewCount': viewCount,
       'shareCount': shareCount,
       'taggedUserIds': taggedUserIds,

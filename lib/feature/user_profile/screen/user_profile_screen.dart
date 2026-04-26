@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../app_route/route_names.dart';
@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/widgets/app_shimmer.dart';
 import '../../media_viewer/model/media_viewer_item_model.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
@@ -56,9 +57,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         final UserModel? user = _controller.user;
 
         if (_controller.state.isLoading && user == null) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
+          return const _ProfileShimmer();
         }
 
         if (_controller.state.hasError) {
@@ -107,256 +106,260 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           );
         }
 
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_controller.state.isLoading)
-                const LinearProgressIndicator(minHeight: 2),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  _buildCover(user),
-                  Positioned(
-                    bottom: -50,
-                    left: 16,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(54),
-                      onTap: () => AppGet.toNamed(
-                        RouteNames.mediaViewer,
-                        arguments: MediaViewerRouteArguments(
-                          items: <MediaViewerItemModel>[
-                            MediaViewerItemModel.fromSource(user.avatar),
-                          ],
-                          title: '${user.name} profile photo',
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: AppColors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundImage: NetworkImage(user.avatar),
-                            ),
+        return RefreshIndicator(
+          onRefresh: () => _controller.load(userId: widget.userId),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_controller.state.isLoading)
+                  const LinearProgressIndicator(minHeight: 2),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    _buildCover(user),
+                    Positioned(
+                      bottom: -50,
+                      left: 16,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(54),
+                        onTap: () => AppGet.toNamed(
+                          RouteNames.mediaViewer,
+                          arguments: MediaViewerRouteArguments(
+                            items: <MediaViewerItemModel>[
+                              MediaViewerItemModel.fromSource(user.avatar),
+                            ],
+                            title: '${user.name} profile photo',
                           ),
-                          Positioned(
-                            right: 4,
-                            bottom: 4,
-                            child: Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: AppColors.hexFF26C6DA,
+                        ),
+                        child: Stack(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: AppColors.white,
                                 shape: BoxShape.circle,
-                                border: Border.all(
+                              ),
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundImage: NetworkImage(user.avatar),
+                              ),
+                            ),
+                            Positioned(
+                              right: 4,
+                              bottom: 4,
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: AppColors.hexFF26C6DA,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.white,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.open_in_full_rounded,
+                                  size: 11,
                                   color: AppColors.white,
-                                  width: 3,
                                 ),
                               ),
-                              child: const Icon(
-                                Icons.open_in_full_rounded,
-                                size: 11,
-                                color: AppColors.white,
-                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(right: 16, left: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (!_controller.isOwnProfile)
+                        Expanded(child: _buildFollowActionButton()),
+                      if (_controller.isOwnProfile) ...[
+                        _buildEditProfileButton(),
+                        const SizedBox(width: 8),
+                      ] else
+                        const SizedBox(width: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.grey200),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          onPressed: () => _showShareProfileSheet(user),
+                          icon: const Icon(
+                            Icons.share_outlined,
+                            color: AppColors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          _buildProfileTypeChip(user),
                         ],
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(right: 16, left: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (!_controller.isOwnProfile)
-                      Expanded(child: _buildFollowActionButton()),
-                    if (_controller.isOwnProfile) ...[
-                      _buildEditProfileButton(),
-                      const SizedBox(width: 8),
-                    ] else
-                      const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.grey200),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: IconButton(
-                        onPressed: () => _showShareProfileSheet(user),
-                        icon: const Icon(
-                          Icons.share_outlined,
-                          color: AppColors.grey,
+                      Text(
+                        '@${user.username}',
+                        style: TextStyle(
+                          color: AppColors.grey500,
+                          fontSize: 14,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(height: 12),
+                      Text(
+                        user.bio.isNotEmpty
+                            ? user.bio
+                            : 'Profile bio is not available yet.',
+                        style: TextStyle(
+                          color: AppColors.grey700,
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                      if (user.website.trim().isNotEmpty ||
+                          user.location.trim().isNotEmpty)
+                        const SizedBox(height: 12),
+                      if (user.website.trim().isNotEmpty)
+                        _buildMetaRow(Icons.link_rounded, user.website.trim()),
+                      if (user.location.trim().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: _buildMetaRow(
+                            Icons.location_on_outlined,
+                            user.location.trim(),
                           ),
                         ),
-                        _buildProfileTypeChip(user),
-                      ],
-                    ),
-                    Text(
-                      '@${user.username}',
-                      style: TextStyle(
-                        color: AppColors.grey500,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      user.bio.isNotEmpty
-                          ? user.bio
-                          : 'Profile bio is not available yet.',
-                      style: TextStyle(
-                        color: AppColors.grey700,
-                        fontSize: 14,
-                        height: 1.4,
-                      ),
-                    ),
-                    if (user.website.trim().isNotEmpty ||
-                        user.location.trim().isNotEmpty)
-                      const SizedBox(height: 12),
-                    if (user.website.trim().isNotEmpty)
-                      _buildMetaRow(Icons.link_rounded, user.website.trim()),
-                    if (user.location.trim().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: _buildMetaRow(
-                          Icons.location_on_outlined,
-                          user.location.trim(),
-                        ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatColumn(
-                    '${_controller.postCount}',
-                    'Posts',
-                    onTap: () => _controller.selectTab(0),
-                  ),
-                  _buildStatDivider(),
-                  _buildStatColumn(
-                    '${_controller.followerCount}',
-                    'Followers',
-                    onTap: () => AppGet.toNamed(
-                      RouteNames.userProfileFollowers,
-                      parameters: <String, String>{'id': user.id},
-                    ),
-                  ),
-                  _buildStatDivider(),
-                  _buildStatColumn(
-                    '${_controller.followingCount}',
-                    'Following',
-                    onTap: () => AppGet.toNamed(
-                      RouteNames.userProfileFollowing,
-                      parameters: <String, String>{'id': user.id},
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildUtilityIcon(
-                      Icons.bookmark_border,
-                      'Saved',
-                      AppColors.hexFFE0F2F1,
-                      AppColors.hexFF00897B,
-                      onTap: () => AppGet.toNamed(RouteNames.bookmarks),
+                    _buildStatColumn(
+                      '${_controller.postCount}',
+                      'Posts',
+                      onTap: () => _controller.selectTab(0),
                     ),
-                    _buildUtilityIcon(
-                      Icons.account_balance_wallet_outlined,
-                      'Wallet',
-                      AppColors.hexFFE3F2FD,
-                      AppColors.hexFF1E88E5,
-                      onTap: () => AppGet.toNamed(RouteNames.walletPayments),
+                    _buildStatDivider(),
+                    _buildStatColumn(
+                      '${_controller.followerCount}',
+                      'Followers',
+                      onTap: () => AppGet.toNamed(
+                        RouteNames.userProfileFollowers,
+                        parameters: <String, String>{'id': user.id},
+                      ),
                     ),
-                    _buildUtilityIcon(
-                      Icons.calendar_today_outlined,
-                      'Events',
-                      AppColors.hexFFF3E5F5,
-                      AppColors.hexFF8E24AA,
-                      onTap: () => AppGet.toNamed(RouteNames.eventsCreate),
-                    ),
-                    _buildUtilityIcon(
-                      Icons.bar_chart_outlined,
-                      'Polls',
-                      AppColors.hexFFE1F5FE,
-                      AppColors.hexFF039BE5,
-                      onTap: () => AppGet.toNamed(RouteNames.pollsSurveys),
-                    ),
-                    _buildUtilityIcon(
-                      Icons.workspace_premium_outlined,
-                      'Plans',
-                      AppColors.hexFFFFF3E0,
-                      AppColors.hexFFFB8C00,
-                      onTap: () => AppGet.toNamed(RouteNames.premium),
-                    ),
-                    _buildUtilityIcon(
-                      Icons.card_giftcard,
-                      'Invite',
-                      AppColors.hexFFE8F5E9,
-                      AppColors.hexFF43A047,
-                      onTap: () => AppGet.toNamed(RouteNames.inviteReferral),
+                    _buildStatDivider(),
+                    _buildStatColumn(
+                      '${_controller.followingCount}',
+                      'Following',
+                      onTap: () => AppGet.toNamed(
+                        RouteNames.userProfileFollowing,
+                        parameters: <String, String>{'id': user.id},
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  _buildTabItem(
-                    Icons.grid_view_rounded,
-                    _controller.selectedTabIndex == 0,
-                    () => _controller.selectTab(0),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildUtilityIcon(
+                        Icons.bookmark_border,
+                        'Saved',
+                        AppColors.hexFFE0F2F1,
+                        AppColors.hexFF00897B,
+                        onTap: () => AppGet.toNamed(RouteNames.bookmarks),
+                      ),
+                      _buildUtilityIcon(
+                        Icons.account_balance_wallet_outlined,
+                        'Wallet',
+                        AppColors.hexFFE3F2FD,
+                        AppColors.hexFF1E88E5,
+                        onTap: () => AppGet.toNamed(RouteNames.walletPayments),
+                      ),
+                      _buildUtilityIcon(
+                        Icons.calendar_today_outlined,
+                        'Events',
+                        AppColors.hexFFF3E5F5,
+                        AppColors.hexFF8E24AA,
+                        onTap: () => AppGet.toNamed(RouteNames.eventsCreate),
+                      ),
+                      _buildUtilityIcon(
+                        Icons.bar_chart_outlined,
+                        'Polls',
+                        AppColors.hexFFE1F5FE,
+                        AppColors.hexFF039BE5,
+                        onTap: () => AppGet.toNamed(RouteNames.pollsSurveys),
+                      ),
+                      _buildUtilityIcon(
+                        Icons.workspace_premium_outlined,
+                        'Plans',
+                        AppColors.hexFFFFF3E0,
+                        AppColors.hexFFFB8C00,
+                        onTap: () => AppGet.toNamed(RouteNames.premium),
+                      ),
+                      _buildUtilityIcon(
+                        Icons.card_giftcard,
+                        'Invite',
+                        AppColors.hexFFE8F5E9,
+                        AppColors.hexFF43A047,
+                        onTap: () => AppGet.toNamed(RouteNames.inviteReferral),
+                      ),
+                    ],
                   ),
-                  _buildTabItem(
-                    Icons.play_circle_outline,
-                    _controller.selectedTabIndex == 1,
-                    () => _controller.selectTab(1),
-                  ),
-                  _buildTabItem(
-                    Icons.person_pin_outlined,
-                    _controller.selectedTabIndex == 2,
-                    () => _controller.selectTab(2),
-                  ),
-                ],
-              ),
-              _buildSelectedTabContent(),
-            ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    _buildTabItem(
+                      Icons.grid_view_rounded,
+                      _controller.selectedTabIndex == 0,
+                      () => _controller.selectTab(0),
+                    ),
+                    _buildTabItem(
+                      Icons.play_circle_outline,
+                      _controller.selectedTabIndex == 1,
+                      () => _controller.selectTab(1),
+                    ),
+                    _buildTabItem(
+                      Icons.person_pin_outlined,
+                      _controller.selectedTabIndex == 2,
+                      () => _controller.selectTab(2),
+                    ),
+                  ],
+                ),
+                _buildSelectedTabContent(),
+              ],
+            ),
           ),
         );
       },
@@ -815,6 +818,66 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               width: double.infinity,
               color: AppColors.hexFF26C6DA,
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileShimmer extends StatelessWidget {
+  const _ProfileShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          ShimmerBox(height: 140, radius: 0),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                ShimmerBox(height: 96, width: 96, radius: 48),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerBox(height: 18, width: 150),
+                      SizedBox(height: 10),
+                      ShimmerBox(height: 12, width: 100),
+                      SizedBox(height: 16),
+                      ShimmerBox(height: 42, radius: 12),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: ShimmerBox(height: 14),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: ShimmerBox(height: 14, width: 220),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ShimmerBox(height: 40, width: 60),
+                ShimmerBox(height: 40, width: 60),
+                ShimmerBox(height: 40, width: 60),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: ShimmerBox(height: 220, radius: 16),
+          ),
         ],
       ),
     );

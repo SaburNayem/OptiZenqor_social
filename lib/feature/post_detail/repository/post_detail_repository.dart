@@ -191,6 +191,34 @@ class PostDetailRepository {
     }
   }
 
+  Future<PostDetailModel> updatePostCaption({
+    required String postId,
+    required String caption,
+  }) async {
+    final String trimmedCaption = caption.trim();
+    final ServiceResponseModel<Map<String, dynamic>> response =
+        await _apiClient.patch(
+          ApiEndPoints.postById(postId),
+          <String, dynamic>{'caption': trimmedCaption},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to update post right now.');
+    }
+    final Map<String, dynamic>? payload = _extractPostPayload(response.data);
+    if (payload == null) {
+      throw Exception('Updated post response did not include post data.');
+    }
+    return PostDetailModel.fromApiJson(payload);
+  }
+
+  Future<void> deletePost(String postId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response =
+        await _apiClient.delete(ApiEndPoints.postById(postId));
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to delete post right now.');
+    }
+  }
+
   Future<List<PostModel>> _relatedPosts(String postId) async {
     final List<PostModel> feed = await _homeFeedRepository.fetchFeed(
       segment: FeedSegment.forYou,

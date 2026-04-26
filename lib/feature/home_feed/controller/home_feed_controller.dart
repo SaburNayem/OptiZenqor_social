@@ -36,6 +36,7 @@ class HomeFeedController extends Cubit<int> {
   final Set<String> _lessLikeThisPostIds = <String>{};
   final Set<String> _hiddenCreatorIds = <String>{};
   final Set<String> _hiddenTopics = <String>{};
+  String _currentUserId = '';
   final List<String> suggestedUsers = <String>['Maya', 'Rohan', 'Liam'];
   final List<String> suggestedGroups = <String>[
     'Flutter Builders',
@@ -54,7 +55,17 @@ class HomeFeedController extends Cubit<int> {
       .toList();
   bool isPostActionFailed(String postId) =>
       _failedActionPostIds.contains(postId);
-  bool isLiked(String postId) => _likedPostIds.contains(postId);
+  bool isLiked(String postId) {
+    for (final PostModel post in posts) {
+      if (post.id == postId) {
+        return post.liked;
+      }
+    }
+    return _likedPostIds.contains(postId);
+  }
+  String get currentUserId => _currentUserId;
+  bool isOwnPost(PostModel post) =>
+      _currentUserId.isNotEmpty && post.authorId == _currentUserId;
 
   Future<void> loadInitial() async {
     loadState = loadState.copyWith(
@@ -66,6 +77,7 @@ class HomeFeedController extends Cubit<int> {
     );
     _notify();
     try {
+      _currentUserId = await _repository.currentUserId();
       final prefs = await _repository.readRecommendationPreferences();
       _lessLikeThisPostIds
         ..clear()
@@ -79,6 +91,11 @@ class HomeFeedController extends Cubit<int> {
       stories = await _repository.fetchStories();
       final FeedSegment segment = _segmentForTab(activeTab);
       posts = await _repository.fetchFeed(segment: segment, page: 1);
+      _likedPostIds
+        ..clear()
+        ..addAll(
+          posts.where((PostModel post) => post.liked).map((PostModel post) => post.id),
+        );
       pagination = pagination.copyWith(page: 1, hasMore: true);
       loadState = loadState.copyWith(
         isLoading: false,
@@ -126,6 +143,9 @@ class HomeFeedController extends Cubit<int> {
         pagination = pagination.copyWith(hasMore: false);
       } else {
         posts = <PostModel>[...posts, ...next];
+        _likedPostIds.addAll(
+          next.where((PostModel post) => post.liked).map((PostModel post) => post.id),
+        );
         pagination = pagination.copyWith(
           page: pagination.page + 1,
           hasMore: true,
@@ -156,12 +176,21 @@ class HomeFeedController extends Cubit<int> {
   }
 
   Future<void> likePost(String postId) async {
-    final bool wasLiked = _likedPostIds.contains(postId);
+    final int index = posts.indexWhere((PostModel post) => post.id == postId);
+    if (index == -1) {
+      return;
+    }
+    final PostModel previous = posts[index];
+    final bool wasLiked = previous.liked;
     if (wasLiked) {
       _likedPostIds.remove(postId);
     } else {
       _likedPostIds.add(postId);
     }
+    posts[index] = previous.copyWith(
+      liked: !wasLiked,
+      likes: wasLiked ? (previous.likes - 1).clamp(0, 999999) : previous.likes + 1,
+    );
     _notify();
     try {
       await _repository.setPostLiked(postId: postId, liked: !wasLiked);
@@ -172,6 +201,7 @@ class HomeFeedController extends Cubit<int> {
       );
       _notify();
     } catch (_) {
+      posts[index] = previous;
       if (wasLiked) {
         _likedPostIds.add(postId);
       } else {
@@ -182,8 +212,7 @@ class HomeFeedController extends Cubit<int> {
     }
   }
 
-  int displayLikeCount(PostModel post) =>
-      _likedPostIds.contains(post.id) ? post.likes + 1 : post.likes;
+  int displayLikeCount(PostModel post) => post.likes;
 
   bool canRetryPostAction(String postId) {
     return _failedActionPostIds.contains(postId);
@@ -409,7 +438,13 @@ class HomeFeedController extends Cubit<int> {
       final List<StoryModel> created = await _storiesRepository.createStories(
         draftStories,
       );
-      stories = _sortStories(<StoryModel>[...created, ...stories]);
+      List<StoryModel> remoteStories = const <StoryModel>[];
+      try {
+        remoteStories = await _repository.fetchStories();
+      } catch (_) {}
+      stories = remoteStories.isEmpty
+          ? _sortStories(<StoryModel>[...created, ...stories])
+          : remoteStories;
       loadState = loadState.copyWith(
         hasError: false,
         errorMessage: null,
@@ -427,6 +462,64 @@ class HomeFeedController extends Cubit<int> {
       _notify();
     } catch (_) {
       await addLocalStories(draftStories);
+    }
+  }
+
+  Future<void> editPostCaption({
+    required String postId,
+    required String caption,
+  }) async {
+    final int index = posts.indexWhere((PostModel post) => post.id == postId);
+    if (index == -1) {
+      throw Exception('Post not found.');
+    }
+    final PostModel previous = posts[index];
+    final String trimmedCaption = caption.trim();
+    if (trimmedCaption.isEmpty) {
+      throw Exception('Caption cannot be empty.');
+    }
+    posts[index] = previous.copyWith(
+      caption: trimmedCaption,
+      editHistory: <String>[
+        ...previous.editHistory,
+        'Edited ${DateTime.now().toIso8601String()}',
+      ],
+    );
+    _notify();
+    try {
+      final PostModel updated = await _repository.updatePost(
+        postId: postId,
+        caption: trimmedCaption,
+      );
+      posts[index] = updated.author == null && previous.author != null
+          ? updated.copyWith(author: previous.author)
+          : updated;
+      _notify();
+    } catch (_) {
+      posts[index] = previous;
+      _notify();
+      rethrow;
+    }
+  }
+
+  Future<void> deleteOwnedPost(String postId) async {
+    final int index = posts.indexWhere((PostModel post) => post.id == postId);
+    if (index == -1) {
+      return;
+    }
+    final PostModel removed = posts[index];
+    posts.removeAt(index);
+    _notify();
+    try {
+      await _repository.deletePost(postId);
+      final List<PostModel> localPosts = await _repository.readLocalCreatedPosts();
+      await _repository.saveLocalCreatedPosts(
+        localPosts.where((PostModel post) => post.id != postId).toList(),
+      );
+    } catch (_) {
+      posts.insert(index, removed);
+      _notify();
+      rethrow;
     }
   }
 

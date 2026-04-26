@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
@@ -7,6 +9,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/helpers/format_helper.dart';
+import '../../../core/platform/device_settings_service.dart';
+import '../../../core/widgets/app_shimmer.dart';
 import '../../bookmarks/controller/bookmarks_controller.dart';
 import '../../bookmarks/widget/save_post_collection_sheet.dart';
 import '../../media_viewer/controller/media_viewer_controller.dart';
@@ -34,23 +38,54 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   late final PostDetailController _controller;
   late final TextEditingController _commentController;
   late final FocusNode _commentFocusNode;
+  Timer? _loadingRetryTimer;
+  bool _showLoadingRetry = false;
   String? _replyToCommentId;
   String? _replyingToAuthor;
 
   @override
   void initState() {
     super.initState();
-    _controller = PostDetailController()..load(postId: widget.postId);
+    _controller = PostDetailController();
     _commentController = TextEditingController();
     _commentFocusNode = FocusNode();
+    _loadPost();
   }
 
   @override
   void dispose() {
+    _loadingRetryTimer?.cancel();
     _controller.close();
     _commentController.dispose();
     _commentFocusNode.dispose();
     super.dispose();
+  }
+
+  void _loadPost() {
+    _loadingRetryTimer?.cancel();
+    if (_showLoadingRetry) {
+      setState(() {
+        _showLoadingRetry = false;
+      });
+    } else {
+      _showLoadingRetry = false;
+    }
+    _loadingRetryTimer = Timer(const Duration(seconds: 30), () {
+      if (!mounted || !_controller.isLoading || _controller.hasLoaded) {
+        return;
+      }
+      setState(() {
+        _showLoadingRetry = true;
+      });
+    });
+    unawaited(_controller.load(postId: widget.postId));
+  }
+
+  Future<void> _openNetworkSettings() async {
+    final bool opened = await DeviceSettingsService.openNetworkSettings();
+    if (!opened && mounted) {
+      AppGet.snackbar('Network settings', 'Unable to open device settings.');
+    }
   }
 
   void _focusCommentField() {
@@ -138,6 +173,98 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       post: _detailAsPostModel(),
       author: author,
     );
+  }
+
+  Future<void> _editPost() async {
+    final TextEditingController textController = TextEditingController(
+      text: _controller.detail.caption,
+    );
+    final String? nextCaption = await showDialog<String>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Edit post'),
+          content: TextField(
+            controller: textController,
+            maxLines: 5,
+            minLines: 3,
+            decoration: const InputDecoration(hintText: 'Write something...'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(
+                textController.text.trim(),
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    textController.dispose();
+    if (nextCaption == null || nextCaption.trim().isEmpty || !mounted) {
+      return;
+    }
+    try {
+      await _controller.editPostCaption(nextCaption);
+      if (!mounted) {
+        return;
+      }
+      AppGet.snackbar('Post', 'Post updated');
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      AppGet.snackbar(
+        'Post',
+        error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
+  Future<void> _deletePost() async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete post?'),
+          content: const Text('This post will be removed permanently.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    try {
+      await _controller.deletePost();
+      if (!mounted) {
+        return;
+      }
+      AppGet.back();
+      AppGet.snackbar('Post', 'Post deleted');
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      AppGet.snackbar(
+        'Post',
+        error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
   }
 
   Future<void> _showLikesSheet() {
@@ -283,6 +410,24 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   await _sharePost();
                 },
               ),
+              if (_controller.isOwnPost)
+                ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('Edit post'),
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    await _editPost();
+                  },
+                ),
+              if (_controller.isOwnPost)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline_rounded),
+                  title: const Text('Delete post'),
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    await _deletePost();
+                  },
+                ),
               ListTile(
                 leading: const Icon(Icons.flag_outlined),
                 title: const Text('Report post'),
@@ -309,36 +454,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           if (!controller.isLoading &&
               !controller.hasLoaded &&
               controller.errorMessage != null) {
-            return Scaffold(
-              backgroundColor: AppColors.white,
-              appBar: AppBar(
-                backgroundColor: AppColors.white,
-                elevation: 0,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppColors.black87),
-                  onPressed: AppGet.back,
-                ),
-              ),
-              body: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.error_outline_rounded,
-                        size: 44,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        controller.errorMessage!,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            _loadingRetryTimer?.cancel();
+            return _buildNetworkStateScaffold(
+              message: controller.errorMessage!,
+              icon: Icons.error_outline_rounded,
             );
           }
           if (controller.isLoading && !controller.hasLoaded) {
@@ -353,11 +472,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 ),
                 title: const Text(''),
               ),
-              body: const Center(child: CircularProgressIndicator()),
+              body: _showLoadingRetry
+                  ? _PostDetailRetryView(
+                      message: 'Post details are taking too long to load.',
+                      onRetry: _loadPost,
+                      onOpenSettings: _openNetworkSettings,
+                    )
+                  : const _PostDetailShimmer(),
             );
           }
+          _loadingRetryTimer?.cancel();
           final BookmarksController? bookmarksController =
-              BlocProvider.maybeOf<BookmarksController>(context);
+              _bookmarksControllerOf(context);
           if (bookmarksController != null) {
             return BlocBuilder<BookmarksController, BookmarksState>(
               builder: (context, _) => _buildLoadedScaffold(
@@ -432,6 +558,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             onBookmarkTap: () => _handleBookmarkTap(
               bookmarksController: bookmarksController,
             ),
+            onRefresh: controller.refresh,
           ),
           PostDetailCommentComposer(
             avatarUrl:
@@ -444,6 +571,146 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             onCancelReply: _cancelReply,
             onSubmit: _submitComment,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNetworkStateScaffold({
+    required String message,
+    required IconData icon,
+  }) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
+          onPressed: AppGet.back,
+        ),
+      ),
+      body: _PostDetailRetryView(
+        message: message,
+        icon: icon,
+        onRetry: _loadPost,
+        onOpenSettings: _openNetworkSettings,
+      ),
+    );
+  }
+
+  BookmarksController? _bookmarksControllerOf(BuildContext context) {
+    try {
+      return BlocProvider.of<BookmarksController>(context);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class _PostDetailRetryView extends StatelessWidget {
+  const _PostDetailRetryView({
+    required this.message,
+    required this.onRetry,
+    required this.onOpenSettings,
+    this.icon = Icons.wifi_off_rounded,
+  });
+
+  final String message;
+  final IconData icon;
+  final VoidCallback onRetry;
+  final VoidCallback onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48, color: AppColors.primary),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Check Wi-Fi or mobile data, then try again.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.grey600,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                FilledButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Retry'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onOpenSettings,
+                  icon: const Icon(Icons.settings_outlined, size: 18),
+                  label: const Text('Network settings'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PostDetailShimmer extends StatelessWidget {
+  const _PostDetailShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppShimmer(
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: const [
+          Row(
+            children: [
+              ShimmerBox(height: 40, width: 40, radius: 20),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerBox(height: 14, width: 140),
+                    SizedBox(height: 8),
+                    ShimmerBox(height: 12, width: 80),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          ShimmerBox(height: 320, radius: 20),
+          SizedBox(height: 16),
+          ShimmerBox(height: 18, width: 90),
+          SizedBox(height: 10),
+          ShimmerBox(height: 12),
+          SizedBox(height: 8),
+          ShimmerBox(height: 12, width: 240),
+          SizedBox(height: 24),
+          ShimmerBox(height: 16, width: 120),
+          SizedBox(height: 12),
+          ShimmerBox(height: 72, radius: 16),
+          SizedBox(height: 12),
+          ShimmerBox(height: 72, radius: 16),
         ],
       ),
     );

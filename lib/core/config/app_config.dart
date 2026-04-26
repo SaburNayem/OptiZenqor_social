@@ -102,6 +102,6 @@ class AppConfig {
   static String get apiOpenApiJsonUrl => '$currentApiBaseUrl/docs-json';
   static String get apiOpenApiYamlUrl => '$currentApiBaseUrl/docs-yaml';
   static const connectTimeoutMs = 15000;
-  static const receiveTimeoutMs = 15000;
+  static const receiveTimeoutMs = 30000;
   static const uploadTimeoutMs = 90000;
 }

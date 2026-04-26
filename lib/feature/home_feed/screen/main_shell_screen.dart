@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/data/service/connectivity_service.dart';
 import '../../../core/constants/app_colors.dart';
@@ -38,50 +39,66 @@ class MainShellScreen extends StatelessWidget {
           const UserProfileScreen(),
         ];
 
-        return Scaffold(
-          backgroundColor: AppColors.white,
-          appBar: controller.index == 0 ? const MainShellHomeAppBar() : null,
-          drawer: MainShellDrawer(controller: controller),
-          body: Column(
-            children: <Widget>[
-              AnimatedBuilder(
-                animation: _connectivity,
-                builder: (_, _) {
-                  if (_connectivity.isOnline) {
-                    return const SizedBox.shrink();
-                  }
-                  return MaterialBanner(
-                    content: const Text('You are offline.'),
-                    leading: const Icon(Icons.wifi_off_rounded),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () => _connectivity.setOnline(true),
-                        child: const Text('Go online'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              Expanded(
-                child: KeyedSubtree(
-                  key: ValueKey<int>(controller.index),
-                  child: tabs[controller.index],
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (bool didPop, Object? result) async {
+            if (didPop) {
+              return;
+            }
+            if (controller.index != 0) {
+              controller.onTabChanged(0);
+              return;
+            }
+            final bool shouldExit = await _showExitDialog(context);
+            if (shouldExit) {
+              await SystemNavigator.pop();
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.white,
+            appBar: controller.index == 0 ? const MainShellHomeAppBar() : null,
+            drawer: MainShellDrawer(controller: controller),
+            body: Column(
+              children: <Widget>[
+                AnimatedBuilder(
+                  animation: _connectivity,
+                  builder: (_, _) {
+                    if (_connectivity.isOnline) {
+                      return const SizedBox.shrink();
+                    }
+                    return MaterialBanner(
+                      content: const Text('You are offline.'),
+                      leading: const Icon(Icons.wifi_off_rounded),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () => _connectivity.setOnline(true),
+                          child: const Text('Go online'),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-              ),
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => _openCreateScreen(context),
-            backgroundColor: AppColors.hexFF26C6DA,
-            shape: const CircleBorder(),
-            elevation: 4,
-            child: const Icon(Icons.add, color: AppColors.white, size: 32),
-          ),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: MainShellBottomNavBar(
-            selectedIndex: controller.index,
-            onChanged: controller.onTabChanged,
+                Expanded(
+                  child: KeyedSubtree(
+                    key: ValueKey<int>(controller.index),
+                    child: tabs[controller.index],
+                  ),
+                ),
+              ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => _openCreateScreen(context),
+              backgroundColor: AppColors.hexFF26C6DA,
+              shape: const CircleBorder(),
+              elevation: 4,
+              child: const Icon(Icons.add, color: AppColors.white, size: 32),
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            bottomNavigationBar: MainShellBottomNavBar(
+              selectedIndex: controller.index,
+              onChanged: controller.onTabChanged,
+            ),
           ),
         );
       },
@@ -130,6 +147,29 @@ class MainShellScreen extends StatelessWidget {
           );
       }
     }
+  }
+
+  Future<bool> _showExitDialog(BuildContext context) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Exit app?'),
+          content: const Text('Do you want to close OptiZenqor Socity?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Exit'),
+            ),
+          ],
+        );
+      },
+    );
+    return confirmed ?? false;
   }
 }
 

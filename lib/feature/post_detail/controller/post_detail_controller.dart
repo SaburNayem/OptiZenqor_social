@@ -32,6 +32,10 @@ class PostDetailController extends Cubit<int> {
   UserModel? currentUser;
   final Map<ReactionType, int> postReactions = <ReactionType, int>{};
   ReactionType? selectedReaction;
+  bool get isOwnPost =>
+      currentUser != null &&
+      currentUser!.id.trim().isNotEmpty &&
+      currentUser!.id == detail.authorId;
 
   Future<void> load({String? postId}) async {
     final String selectedPostId = postId?.trim() ?? '';
@@ -240,6 +244,37 @@ class PostDetailController extends Cubit<int> {
 
   List<PostCommentModel> childCommentsOf(String? parentId) {
     return comments.where((item) => item.replyTo == parentId).toList();
+  }
+
+  Future<void> refresh() => load(postId: detail.id);
+
+  Future<void> editPostCaption(String caption) async {
+    final String trimmedCaption = caption.trim();
+    if (detail.id.isEmpty || trimmedCaption.isEmpty) {
+      return;
+    }
+    final PostDetailModel previous = detail;
+    detail = detail.copyWith(caption: trimmedCaption);
+    _notify();
+    try {
+      final PostDetailModel updated = await _repository.updatePostCaption(
+        postId: detail.id,
+        caption: trimmedCaption,
+      );
+      detail = updated.copyWith(author: previous.author ?? updated.author);
+      _notify();
+    } catch (_) {
+      detail = previous;
+      _notify();
+      rethrow;
+    }
+  }
+
+  Future<void> deletePost() async {
+    if (detail.id.isEmpty) {
+      return;
+    }
+    await _repository.deletePost(detail.id);
   }
 
   void _notify() => emit(state + 1);

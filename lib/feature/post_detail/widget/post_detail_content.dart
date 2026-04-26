@@ -19,6 +19,7 @@ class PostDetailContent extends StatelessWidget {
     required this.onCommentTap,
     required this.onShareTap,
     required this.onBookmarkTap,
+    required this.onRefresh,
   });
 
   final PostDetailController controller;
@@ -31,146 +32,154 @@ class PostDetailContent extends StatelessWidget {
   final VoidCallback onCommentTap;
   final VoidCallback onShareTap;
   final VoidCallback onBookmarkTap;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: ListView(
-        children: [
-          if (author != null)
+      child: RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            if (author != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(author!.avatar),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            author!.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            FormatHelper.timeAgo(controller.detail.createdAt),
+                            style: TextStyle(
+                              color: AppColors.grey500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (controller.detail.media.isNotEmpty)
+              PostDetailMediaSection(
+                media: controller.detail.media,
+                onMediaTap: onMediaTap,
+              ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundImage: NetworkImage(author!.avatar),
+                  IconButton(
+                    icon: Icon(
+                      controller.isLiked
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color:
+                          controller.isLiked ? AppColors.red : AppColors.black87,
+                    ),
+                    onPressed: onLikeTap,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  IconButton(
+                    icon: const Icon(
+                      Icons.chat_bubble_outline,
+                      color: AppColors.black87,
+                    ),
+                    onPressed: onCommentTap,
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.share_outlined,
+                      color: AppColors.black87,
+                    ),
+                    onPressed: onShareTap,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(
+                      isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                      color: AppColors.black87,
+                    ),
+                    onPressed: onBookmarkTap,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: onLikeCountTap,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        '${FormatHelper.formatCompactNumber(controller.detail.likes)} likes',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _engagementSummary(),
+                    style: TextStyle(
+                      color: AppColors.grey600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        color: AppColors.black87,
+                        height: 1.4,
+                      ),
                       children: [
-                        Text(
-                          author!.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
+                        TextSpan(
+                          text: '@${author?.username ?? 'user'}  ',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          FormatHelper.timeAgo(controller.detail.createdAt),
-                          style: TextStyle(
-                            color: AppColors.grey500,
-                            fontSize: 12,
-                          ),
-                        ),
+                        TextSpan(text: controller.detail.caption),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-          if (controller.detail.media.isNotEmpty)
-            PostDetailMediaSection(
-              media: controller.detail.media,
-              onMediaTap: onMediaTap,
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    controller.isLiked
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    color:
-                        controller.isLiked ? AppColors.red : AppColors.black87,
-                  ),
-                  onPressed: onLikeTap,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+              child: Text(
+                'Comments (${controller.detail.comments})',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.chat_bubble_outline,
-                    color: AppColors.black87,
-                  ),
-                  onPressed: onCommentTap,
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.share_outlined,
-                    color: AppColors.black87,
-                  ),
-                  onPressed: onShareTap,
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(
-                    isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                    color: AppColors.black87,
-                  ),
-                  onPressed: onBookmarkTap,
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: onLikeCountTap,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(
-                      '${FormatHelper.formatCompactNumber(controller.detail.likes)} likes',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _engagementSummary(),
-                  style: TextStyle(
-                    color: AppColors.grey600,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      color: AppColors.black87,
-                      height: 1.4,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '@${author?.username ?? 'user'}  ',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      TextSpan(text: controller.detail.caption),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-            child: Text(
-              'Comments (${controller.detail.comments})',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
               ),
             ),
-          ),
-          ...commentTiles,
-          const SizedBox(height: 24),
-        ],
+            ...commentTiles,
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

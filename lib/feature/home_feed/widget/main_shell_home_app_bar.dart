@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../../core/constants/app_colors.dart';
 import '../../../core/navigation/app_get.dart';
 import '../../../app_route/route_names.dart';

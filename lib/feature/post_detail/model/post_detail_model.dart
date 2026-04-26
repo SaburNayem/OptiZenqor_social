@@ -78,6 +78,7 @@ class PostDetailModel {
   final UserModel? author;
 
   PostDetailModel copyWith({
+    String? caption,
     int? likes,
     int? comments,
     int? shareCount,
@@ -88,7 +89,7 @@ class PostDetailModel {
     return PostDetailModel(
       id: id,
       authorId: authorId,
-      caption: caption,
+      caption: caption ?? this.caption,
       media: media,
       likes: likes ?? this.likes,
       comments: comments ?? this.comments,
