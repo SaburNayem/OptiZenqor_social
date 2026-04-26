@@ -62,12 +62,17 @@ class PostDetailRepository {
       throw Exception(postResponse.message ?? 'Unable to load post');
     }
 
-    final Map<String, dynamic> postJson = postResponse.data;
+    final Map<String, dynamic>? postJson = _extractPostPayload(postResponse.data);
+    if (postJson == null) {
+      throw Exception('Unable to read post details from the response.');
+    }
     final List<Map<String, dynamic>> commentItems = _readMapList(
       commentsResponse.data,
+      preferredKeys: const <String>['comments', 'data', 'items', 'results'],
     );
     final List<Map<String, dynamic>> reactionItems = _readMapList(
       reactionsResponse.data,
+      preferredKeys: const <String>['reactions', 'data', 'items', 'results'],
     );
     final Map<String, UserModel> commentAuthors = await _loadCommentAuthors(
       commentItems,
@@ -149,7 +154,7 @@ class PostDetailRepository {
       throw Exception(response.message ?? 'Unable to create comment');
     }
     return _toCommentModel(
-      response.data,
+      _extractCommentPayload(response.data) ?? response.data,
       author: currentUser,
     );
   }
@@ -158,12 +163,17 @@ class PostDetailRepository {
     required String postId,
     required String commentId,
     required String reaction,
+    required bool active,
   }) async {
     final String userId = await _currentUserId();
     final ServiceResponseModel<Map<String, dynamic>> response =
         await _apiClient.patch(
           ApiEndPoints.postCommentReact(postId, commentId),
-          <String, dynamic>{'userId': userId, 'reaction': reaction},
+          <String, dynamic>{
+            'userId': userId,
+            'reaction': reaction,
+            'active': active,
+          },
         );
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to react to comment');
@@ -233,8 +243,16 @@ class PostDetailRepository {
       authorIds.map((String authorId) async {
         final ServiceResponseModel<Map<String, dynamic>> response =
             await _apiClient.get(ApiEndPoints.userById(authorId));
-        if (response.isSuccess && response.data.isNotEmpty) {
-          authors[authorId] = UserModel.fromApiJson(response.data);
+        if (!response.isSuccess || response.data.isEmpty) {
+          return;
+        }
+        final Map<String, dynamic>? payload = _extractUserPayload(response.data);
+        if (payload == null) {
+          return;
+        }
+        final UserModel author = UserModel.fromApiJson(payload);
+        if (author.id.isNotEmpty) {
+          authors[authorId] = author;
         }
       }),
     );
@@ -349,18 +367,32 @@ class PostDetailRepository {
     }
   }
 
-  List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    final Object? raw =
-        payload['data'] ?? payload['items'] ?? payload['results'] ?? payload['value'];
-    if (raw is List) {
-      return raw
-          .whereType<Object>()
-          .map(
-            (Object item) => item is Map<String, dynamic>
-                ? item
-                : Map<String, dynamic>.from(item as Map),
-          )
-          .toList(growable: false);
+  List<Map<String, dynamic>> _readMapList(
+    Map<String, dynamic> payload, {
+    List<String> preferredKeys = const <String>['data', 'items', 'results', 'value'],
+  }) {
+    for (final Object? raw in <Object?>[
+      ...preferredKeys.map((String key) => payload[key]),
+      payload['data'],
+      payload['items'],
+      payload['results'],
+      payload['value'],
+    ]) {
+      if (raw is List) {
+        return raw
+            .whereType<Object>()
+            .map((Object item) => _readMap(item) ?? const <String, dynamic>{})
+            .where((Map<String, dynamic> item) => item.isNotEmpty)
+            .toList(growable: false);
+      }
+      final Map<String, dynamic>? rawMap = _readMap(raw);
+      if (rawMap == null || rawMap.isEmpty) {
+        continue;
+      }
+      final List<Map<String, dynamic>> nested = _readMapList(rawMap);
+      if (nested.isNotEmpty) {
+        return nested;
+      }
     }
     return const <Map<String, dynamic>>[];
   }
@@ -453,6 +485,70 @@ class PostDetailRepository {
       }
     }
     return null;
+  }
+
+  Map<String, dynamic>? _extractPostPayload(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
+      _looksLikePost(payload) ? payload : null,
+      _readMap(payload['post']),
+      _readMap(payload['detail']),
+      _readMap(payload['data']),
+      _readMap(payload['result']),
+    ];
+    for (final Map<String, dynamic>? candidate in candidates) {
+      if (candidate == null || candidate.isEmpty) {
+        continue;
+      }
+      if (_looksLikePost(candidate)) {
+        return candidate;
+      }
+      final Map<String, dynamic>? nestedPost = _readMap(candidate['post']);
+      if (nestedPost != null && _looksLikePost(nestedPost)) {
+        return nestedPost;
+      }
+      final Map<String, dynamic>? nestedDetail = _readMap(candidate['detail']);
+      if (nestedDetail != null && _looksLikePost(nestedDetail)) {
+        return nestedDetail;
+      }
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _extractCommentPayload(Map<String, dynamic> payload) {
+    final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
+      _looksLikeComment(payload) ? payload : null,
+      _readMap(payload['comment']),
+      _readMap(payload['data']),
+      _readMap(payload['result']),
+    ];
+    for (final Map<String, dynamic>? candidate in candidates) {
+      if (candidate == null || candidate.isEmpty) {
+        continue;
+      }
+      if (_looksLikeComment(candidate)) {
+        return candidate;
+      }
+      final Map<String, dynamic>? nestedComment = _readMap(candidate['comment']);
+      if (nestedComment != null && _looksLikeComment(nestedComment)) {
+        return nestedComment;
+      }
+    }
+    return null;
+  }
+
+  bool _looksLikePost(Map<String, dynamic> payload) {
+    return payload.containsKey('id') &&
+        (payload.containsKey('caption') ||
+            payload.containsKey('media') ||
+            payload.containsKey('authorId') ||
+            payload.containsKey('author'));
+  }
+
+  bool _looksLikeComment(Map<String, dynamic> payload) {
+    return payload.containsKey('id') &&
+        (payload.containsKey('message') ||
+            payload.containsKey('authorId') ||
+            payload.containsKey('postId'));
   }
 
   Map<String, dynamic>? _readMap(Object? value) {

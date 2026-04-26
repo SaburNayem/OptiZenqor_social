@@ -125,7 +125,9 @@ class AppRouter {
       case RouteNames.mediaViewer:
         return MediaViewerScreen(arguments: _mediaViewerArguments(arguments));
       case RouteNames.postDetail:
-        return PostDetailScreen();
+        return PostDetailScreen(
+          postId: _postIdFromArguments(arguments) ?? params['id'],
+        );
       case RouteNames.accountSwitching:
         return AccountSwitchingScreen();
       case RouteNames.pushNotificationPreferences:
@@ -325,5 +327,22 @@ class AppRouter {
       }
     }
     return '';
+  }
+
+  static String? _postIdFromArguments(Object? arguments) {
+    if (arguments is String && arguments.trim().isNotEmpty) {
+      return arguments.trim();
+    }
+    if (arguments is Map) {
+      final Object? postId = arguments['postId'];
+      if (postId is String && postId.trim().isNotEmpty) {
+        return postId.trim();
+      }
+      final Object? id = arguments['id'];
+      if (id is String && id.trim().isNotEmpty) {
+        return id.trim();
+      }
+    }
+    return null;
   }
 }

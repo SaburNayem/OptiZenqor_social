@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 class AppConfig {
   AppConfig._();
 
-  static const defaultApiBaseUrl = 'http://localhost:3000';
+  static const defaultApiBaseUrl = 'https://optizenqorsocity.vercel.app';
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: defaultApiBaseUrl,
@@ -17,12 +17,13 @@ class AppConfig {
     defaultValue: '',
   );
 
-  // The backend repo listens on localhost:3000 by default. On the Android
-  // emulator we need to hit the host machine through 10.0.2.2 instead. On a
-  // physical Android device, either run `adb reverse tcp:3000 tcp:3000` to
-  // keep using localhost or pass a LAN URL with API_BASE_URL or
+  
   // ANDROID_DEVICE_API_BASE_URL.
   static String get currentApiBaseUrl {
+    if (kIsWeb && apiBaseUrl == defaultApiBaseUrl) {
+      return Uri.base.origin;
+    }
+
     if (apiBaseUrl != defaultApiBaseUrl || kIsWeb) {
       return apiBaseUrl;
     }

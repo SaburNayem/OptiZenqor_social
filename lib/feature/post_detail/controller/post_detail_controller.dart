@@ -114,10 +114,10 @@ class PostDetailController extends Cubit<int> {
     _notify();
   }
 
-  Future<void> addComment(String text, {String? replyTo}) async {
+  Future<bool> addComment(String text, {String? replyTo}) async {
     final value = text.trim();
     if (value.isEmpty) {
-      return;
+      return false;
     }
     try {
       final PostCommentModel created = await _repository.createComment(
@@ -128,7 +128,10 @@ class PostDetailController extends Cubit<int> {
       comments.add(created);
       detail = detail.copyWith(comments: detail.comments + 1);
       _notify();
-    } catch (_) {}
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> toggleCommentLike(String commentId) async {
@@ -147,14 +150,12 @@ class PostDetailController extends Cubit<int> {
       }..removeWhere((String _, int value) => value <= 0),
     );
     _notify();
-    if (!isLiking) {
-      return;
-    }
     try {
       await _repository.reactToComment(
         postId: detail.id,
         commentId: commentId,
         reaction: 'like',
+        active: isLiking,
       );
     } catch (_) {
       comments[index] = comment;
@@ -177,6 +178,7 @@ class PostDetailController extends Cubit<int> {
         postId: detail.id,
         commentId: commentId,
         reaction: reaction,
+        active: true,
       );
     } catch (_) {
       comments[index] = comment;

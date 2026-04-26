@@ -82,10 +82,13 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     if (_commentController.text.trim().isEmpty) {
       return;
     }
-    await _controller.addComment(
+    final bool created = await _controller.addComment(
       _commentController.text,
       replyTo: _replyToCommentId,
     );
+    if (!created) {
+      return;
+    }
     _commentController.clear();
     setState(() {
       _replyToCommentId = null;
@@ -179,40 +182,65 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   Future<void> _handleBookmarkTap({
-    required BookmarksController bookmarksController,
+    required BookmarksController? bookmarksController,
   }) async {
+    if (bookmarksController == null) {
+      AppGet.snackbar('Saved posts', 'Save is unavailable right now.');
+      return;
+    }
+
     final String postId = _controller.detail.id;
+    if (postId.trim().isEmpty) {
+      AppGet.snackbar('Saved posts', 'Post details are still loading.');
+      return;
+    }
+
     if (bookmarksController.isSaved(postId)) {
-      await bookmarksController.unsave(postId);
-      if (!mounted) {
-        return;
+      try {
+        await bookmarksController.unsave(postId);
+        if (!mounted) {
+          return;
+        }
+        AppGet.snackbar('Saved posts', 'Post removed from saved');
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+        AppGet.snackbar('Saved posts', 'Unable to update saved posts.');
       }
-      AppGet.snackbar('Saved posts', 'Post removed from saved');
       return;
     }
 
     final UserModel? author = _authorForDetail();
     if (author == null) {
+      AppGet.snackbar('Saved posts', 'Author details are still loading.');
       return;
     }
 
-    final String? destination = await showSavePostCollectionSheet(
-      context: context,
-      controller: bookmarksController,
-      onSave: (collectionId) => bookmarksController.savePost(
-        post: _detailAsPostModel(),
-        author: author,
-        collectionId: collectionId,
-      ),
-    );
-    if (destination == null || !mounted) {
-      return;
+    try {
+      final String? destination = await showSavePostCollectionSheet(
+        context: context,
+        controller: bookmarksController,
+        onSave: (collectionId) => bookmarksController.savePost(
+          post: _detailAsPostModel(),
+          author: author,
+          collectionId: collectionId,
+        ),
+      );
+      if (destination == null || !mounted) {
+        return;
+      }
+      AppGet.snackbar('Saved posts', 'Saved to $destination');
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      AppGet.snackbar('Saved posts', 'Unable to save this post right now.');
     }
-    AppGet.snackbar('Saved posts', 'Saved to $destination');
   }
 
   Future<void> _showMoreActions({
-    required BookmarksController bookmarksController,
+    required BookmarksController? bookmarksController,
     required bool isBookmarked,
   }) {
     return showModalBottomSheet<void>(
@@ -328,79 +356,95 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               body: const Center(child: CircularProgressIndicator()),
             );
           }
-          return BlocBuilder<BookmarksController, BookmarksState>(
-            builder: (context, _) {
-              final BookmarksController bookmarksController =
-                  context.read<BookmarksController>();
-              final bool isBookmarked = bookmarksController.isSaved(
-                controller.detail.id,
-              );
-
-              return Scaffold(
-                backgroundColor: AppColors.white,
-                appBar: AppBar(
-                  backgroundColor: AppColors.white,
-                  elevation: 0,
-                  leading: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.black87),
-                    onPressed: AppGet.back,
-                  ),
-                  title: const Text(''),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.more_horiz,
-                        color: AppColors.black87,
-                      ),
-                      onPressed: () => _showMoreActions(
-                        bookmarksController: bookmarksController,
-                        isBookmarked: isBookmarked,
-                      ),
-                    ),
-                  ],
-                ),
-                body: Column(
-                  children: [
-                    PostDetailContent(
-                      controller: controller,
-                      author: author,
-                      isBookmarked: isBookmarked,
-                      commentTiles: <Widget>[
-                        PostCommentThread(
-                          comments: controller.comments,
-                          onLikeTap: controller.toggleCommentLike,
-                          onReplyTap: _startReply,
-                        ),
-                      ],
-                      onMediaTap: (index) => _openMediaViewer(
-                        title: author?.name ?? 'Post media',
-                        initialIndex: index,
-                      ),
-                      onLikeTap: () => controller.toggleLike(),
-                      onLikeCountTap: _showLikesSheet,
-                      onCommentTap: _focusCommentField,
-                      onShareTap: _sharePost,
-                      onBookmarkTap: () => _handleBookmarkTap(
-                        bookmarksController: bookmarksController,
-                      ),
-                    ),
-                    PostDetailCommentComposer(
-                      avatarUrl:
-                          controller.currentUser?.avatar.isNotEmpty == true
-                          ? controller.currentUser!.avatar
-                          : 'https://placehold.co/80x80',
-                      commentController: _commentController,
-                      focusNode: _commentFocusNode,
-                      replyingToAuthor: _replyingToAuthor,
-                      onCancelReply: _cancelReply,
-                      onSubmit: _submitComment,
-                    ),
-                  ],
-                ),
-              );
-            },
+          final BookmarksController? bookmarksController =
+              BlocProvider.maybeOf<BookmarksController>(context);
+          if (bookmarksController != null) {
+            return BlocBuilder<BookmarksController, BookmarksState>(
+              builder: (context, _) => _buildLoadedScaffold(
+                controller: controller,
+                author: author,
+                bookmarksController: bookmarksController,
+                isBookmarked: bookmarksController.isSaved(controller.detail.id),
+              ),
+            );
+          }
+          return _buildLoadedScaffold(
+            controller: controller,
+            author: author,
+            bookmarksController: null,
+            isBookmarked: false,
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLoadedScaffold({
+    required PostDetailController controller,
+    required UserModel? author,
+    required BookmarksController? bookmarksController,
+    required bool isBookmarked,
+  }) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.black87),
+          onPressed: AppGet.back,
+        ),
+        title: const Text(''),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.more_horiz,
+              color: AppColors.black87,
+            ),
+            onPressed: () => _showMoreActions(
+              bookmarksController: bookmarksController,
+              isBookmarked: isBookmarked,
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          PostDetailContent(
+            controller: controller,
+            author: author,
+            isBookmarked: isBookmarked,
+            commentTiles: <Widget>[
+              PostCommentThread(
+                comments: controller.comments,
+                onLikeTap: controller.toggleCommentLike,
+                onReplyTap: _startReply,
+              ),
+            ],
+            onMediaTap: (index) => _openMediaViewer(
+              title: author?.name ?? 'Post media',
+              initialIndex: index,
+            ),
+            onLikeTap: () => controller.toggleLike(),
+            onLikeCountTap: _showLikesSheet,
+            onCommentTap: _focusCommentField,
+            onShareTap: _sharePost,
+            onBookmarkTap: () => _handleBookmarkTap(
+              bookmarksController: bookmarksController,
+            ),
+          ),
+          PostDetailCommentComposer(
+            avatarUrl:
+                controller.currentUser?.avatar.isNotEmpty == true
+                ? controller.currentUser!.avatar
+                : 'https://placehold.co/80x80',
+            commentController: _commentController,
+            focusNode: _commentFocusNode,
+            replyingToAuthor: _replyingToAuthor,
+            onCancelReply: _cancelReply,
+            onSubmit: _submitComment,
+          ),
+        ],
       ),
     );
   }
