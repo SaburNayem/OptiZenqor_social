@@ -29,20 +29,21 @@ class StoryPreviewScreen extends StatefulWidget {
 }
 
 class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
-  late final StoryPreviewController _controller;
-  bool _isSharing = false;
-
   static const double _minCanvasMediaScale = 0.35;
   static const double _maxCanvasMediaScale = 5.0;
   static const double _minTextScale = 0.7;
   static const double _maxTextScale = 3.2;
 
+  late final StoryPreviewController _controller;
+  late final List<StoryMediaTransform> _mediaTransforms;
+
+  bool _isSharing = false;
   Offset _textOffset = Offset.zero;
   double _textScale = 1;
   Offset _textOffsetAtStart = Offset.zero;
   double _textScaleAtStart = 1;
   Offset _textFocalPointAtStart = Offset.zero;
-  late final List<StoryMediaTransform> _mediaTransforms;
+
   final Map<int, StoryMediaTransform> _mediaTransformsAtStart =
       <int, StoryMediaTransform>{};
   final Map<int, Offset> _mediaFocalPointsAtStart = <int, Offset>{};
@@ -67,7 +68,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     return PopScope(
       canPop: !_isSharing,
       onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (didPop || _isSharing) return;
+        if (didPop || _isSharing) {
+          return;
+        }
         _handleBack();
       },
       child: Scaffold(
@@ -102,37 +105,45 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
           ],
         ),
       ),
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final bool compact = constraints.maxWidth < 380;
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final bool compact = constraints.maxWidth < 380;
 
-            return Stack(
-              children: <Widget>[
-                Positioned.fill(child: _buildFullScreenPreviewCanvas()),
-                Positioned(
-                  left: 18,
-                  top: 14,
-                  right: compact ? 116 : 138,
+          return Stack(
+            children: <Widget>[
+              Positioned.fill(child: _buildFullScreenPreviewCanvas()),
+              Positioned(
+                left: 18,
+                top: 14,
+                right: compact ? 116 : 138,
+                child: SafeArea(
+                  bottom: false,
                   child: _buildTopBar(),
                 ),
-                Positioned(
-                  right: 18,
-                  top: 110,
-                  bottom: 96,
-                  width: compact ? 96 : 118,
+              ),
+              Positioned(
+                right: 18,
+                top: 110,
+                bottom: 96,
+                width: compact ? 96 : 118,
+                child: SafeArea(
+                  left: false,
+                  bottom: false,
                   child: _buildRightTools(),
                 ),
-                Positioned(
-                  left: 18,
-                  right: 18,
-                  bottom: 18,
+              ),
+              Positioned(
+                left: 18,
+                right: 18,
+                bottom: 18,
+                child: SafeArea(
+                  top: false,
                   child: _buildBottomBar(),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -215,10 +226,6 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         ),
       ],
     );
-  }
-
-  Widget _buildTiltedPreviewCard() {
-    return _buildFullScreenPreviewCanvas();
   }
 
   Widget _buildFullScreenPreviewCanvas() {
@@ -403,8 +410,13 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     required Size canvasSize,
   }) {
     final StoryMediaTransform transform = _mediaTransforms[index];
-    final double itemWidth = canvasSize.width * transform.widthFactor;
-    final double itemHeight = canvasSize.height * transform.heightFactor;
+    final bool singlePhoto = _mediaPaths.length == 1 && !_looksLikeVideo(path);
+    final double itemWidth = singlePhoto
+        ? canvasSize.width
+        : canvasSize.width * transform.widthFactor;
+    final double itemHeight = singlePhoto
+        ? canvasSize.height
+        : canvasSize.height * transform.heightFactor;
 
     return Center(
       child: Transform.translate(
@@ -431,6 +443,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                     path,
                     targetWidth: itemWidth,
                     targetHeight: itemHeight,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
@@ -460,8 +473,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       return <StoryMediaTransform>[];
     }
 
-    if ((_mediaPaths.length == 1 && _looksLikeVideo(_mediaPaths.first)) ||
-        _mediaPaths.length == 1) {
+    if (_mediaPaths.length == 1) {
       return <StoryMediaTransform>[
         const StoryMediaTransform(
           offsetDx: 0,
@@ -557,10 +569,17 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     StoryMediaTransform transform,
     Size canvasSize,
   ) {
-    if (_mediaPaths.length <= 1) {
-      final double scaledWidth = canvasSize.width * transform.widthFactor * transform.scale;
-      final double scaledHeight =
-          canvasSize.height * transform.heightFactor * transform.scale;
+    final bool singleMedia = _mediaPaths.length <= 1;
+    final double baseWidth = singleMedia
+        ? canvasSize.width
+        : canvasSize.width * transform.widthFactor;
+    final double baseHeight = singleMedia
+        ? canvasSize.height
+        : canvasSize.height * transform.heightFactor;
+    final double scaledWidth = baseWidth * transform.scale;
+    final double scaledHeight = baseHeight * transform.scale;
+
+    if (singleMedia) {
       final double overflowX = math.max(0, (scaledWidth - canvasSize.width) / 2);
       final double overflowY = math.max(0, (scaledHeight - canvasSize.height) / 2);
       final double maxX = math.max(overflowX, canvasSize.width * 0.22);
@@ -572,9 +591,6 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       );
     }
 
-    final double scaledWidth = canvasSize.width * transform.widthFactor * transform.scale;
-    final double scaledHeight =
-        canvasSize.height * transform.heightFactor * transform.scale;
     final double maxX = canvasSize.width / 2 + scaledWidth * 0.32;
     final double maxY = canvasSize.height / 2 + scaledHeight * 0.32;
 
@@ -775,7 +791,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     final double keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_controller.isEditingText) return;
+      if (!mounted || !_controller.isEditingText) {
+        return;
+      }
 
       if (!_controller.textFocusNode.hasFocus) {
         _controller.textFocusNode.requestFocus();
@@ -964,7 +982,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: List<Widget>.generate(tools.length * 2 - 1, (int index) {
-          if (index.isOdd) return const SizedBox(height: 18);
+          if (index.isOdd) {
+            return const SizedBox(height: 18);
+          }
 
           final _StoryToolConfig tool = tools[index ~/ 2];
           return _buildToolButton(tool);
@@ -1134,7 +1154,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     _controller.startTextEditing();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       _controller.textFocusNode.requestFocus();
 
@@ -1274,8 +1296,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(mentionController.text),
+              onPressed: () => Navigator.of(context).pop(mentionController.text),
               child: const Text('Save'),
             ),
           ],
@@ -1292,7 +1313,6 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     final TextEditingController labelController = TextEditingController(
       text: _controller.linkLabel,
     );
-
     final TextEditingController urlController = TextEditingController(
       text: _controller.linkUrl.isNotEmpty
           ? _controller.linkUrl
@@ -1340,7 +1360,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       },
     );
 
-    if (result == null || result.length < 2) return;
+    if (result == null || result.length < 2) {
+      return;
+    }
 
     _controller.setLink(label: result[0], url: result[1]);
   }
@@ -1350,7 +1372,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
     await Future<void>.delayed(const Duration(milliseconds: 700));
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() => _isSharing = false);
 
