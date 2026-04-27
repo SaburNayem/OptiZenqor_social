@@ -58,8 +58,8 @@ class BookmarksController extends Cubit<BookmarksState> {
   Future<void> load() async {
     emit(state.copyWith(isLoading: true));
     final List<BookmarkItemModel> items = await _repository.read();
-    final List<SavedCollectionModel> collections =
-        await _collectionsRepository.read();
+    final List<SavedCollectionModel> collections = await _collectionsRepository
+        .read();
     emit(
       state.copyWith(
         items: _sortedItems(items),
@@ -67,6 +67,10 @@ class BookmarksController extends Cubit<BookmarksState> {
         isLoading: false,
       ),
     );
+  }
+
+  void clearLocalState() {
+    emit(const BookmarksState());
   }
 
   Future<SavedCollectionModel?> createCollection(String name) async {
@@ -105,7 +109,9 @@ class BookmarksController extends Cubit<BookmarksState> {
     );
     final List<BookmarkItemModel> items = <BookmarkItemModel>[
       item,
-      ...state.items.where((BookmarkItemModel current) => current.id != item.id),
+      ...state.items.where(
+        (BookmarkItemModel current) => current.id != item.id,
+      ),
     ];
     final List<SavedCollectionModel> collections = collectionId == null
         ? state.collections
@@ -119,12 +125,7 @@ class BookmarksController extends Cubit<BookmarksState> {
     if (collectionId != null) {
       await _collectionsRepository.write(collections);
     }
-    emit(
-      state.copyWith(
-        items: _sortedItems(items),
-        collections: collections,
-      ),
-    );
+    emit(state.copyWith(items: _sortedItems(items), collections: collections));
   }
 
   Future<void> unsave(String postId) async {
@@ -182,15 +183,17 @@ class BookmarksController extends Cubit<BookmarksState> {
     required String collectionId,
     required String itemId,
   }) {
-    return collections.map((SavedCollectionModel collection) {
-      if (collection.id != collectionId ||
-          collection.itemIds.contains(itemId)) {
-        return collection;
-      }
-      return collection.copyWith(
-        itemIds: <String>[itemId, ...collection.itemIds],
-      );
-    }).toList(growable: false);
+    return collections
+        .map((SavedCollectionModel collection) {
+          if (collection.id != collectionId ||
+              collection.itemIds.contains(itemId)) {
+            return collection;
+          }
+          return collection.copyWith(
+            itemIds: <String>[itemId, ...collection.itemIds],
+          );
+        })
+        .toList(growable: false);
   }
 
   List<BookmarkItemModel> _sortedItems(List<BookmarkItemModel> items) {

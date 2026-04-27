@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app_route/route_names.dart';
 import '../../../core/common_widget/app_avatar.dart';
 import '../../../core/navigation/app_get.dart';
+import '../../bookmarks/controller/bookmarks_controller.dart';
 import '../controller/main_shell_controller.dart';
+import '../controller/home_feed_controller.dart';
 import 'main_shell_drawer_section.dart';
 
 class MainShellDrawer extends StatelessWidget {
-  const MainShellDrawer({
-    super.key,
-    required this.controller,
-  });
+  const MainShellDrawer({super.key, required this.controller});
 
   final MainShellController controller;
 
@@ -62,11 +62,12 @@ class MainShellDrawer extends StatelessWidget {
                     routeName: RouteNames.supportHelp,
                   ),
                   const Divider(),
-                  const _MainShellDrawerItem(
+                  _MainShellDrawerItem(
                     icon: Icons.logout,
                     label: 'Log Out',
                     routeName: RouteNames.login,
                     isDestructive: true,
+                    onTap: () => _logout(context),
                   ),
                 ],
               ),
@@ -81,6 +82,18 @@ class MainShellDrawer extends StatelessWidget {
     AppGet.back();
     AppGet.toNamed(routeName);
   }
+
+  Future<void> _logout(BuildContext context) async {
+    final HomeFeedController homeFeedController = context
+        .read<HomeFeedController>();
+    final BookmarksController bookmarksController = context
+        .read<BookmarksController>();
+    AppGet.back();
+    await controller.logout();
+    homeFeedController.clearLocalState();
+    bookmarksController.clearLocalState();
+    AppGet.offAllNamed(RouteNames.login);
+  }
 }
 
 class _MainShellDrawerItem extends StatelessWidget {
@@ -89,12 +102,14 @@ class _MainShellDrawerItem extends StatelessWidget {
     required this.label,
     required this.routeName,
     this.isDestructive = false,
+    this.onTap,
   });
 
   final IconData icon;
   final String label;
   final String routeName;
   final bool isDestructive;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -110,10 +125,12 @@ class _MainShellDrawerItem extends StatelessWidget {
           fontSize: 15,
         ),
       ),
-      onTap: () {
-        AppGet.back();
-        AppGet.toNamed(routeName);
-      },
+      onTap:
+          onTap ??
+          () {
+            AppGet.back();
+            AppGet.toNamed(routeName);
+          },
     );
   }
 }

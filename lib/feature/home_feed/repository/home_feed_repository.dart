@@ -63,9 +63,7 @@ class HomeFeedRepository {
     if (cached.isEmpty) {
       return <PostModel>[];
     }
-    return cached
-        .map(PostModel.fromApiJson)
-        .toList(growable: false);
+    return cached.map(PostModel.fromApiJson).toList(growable: false);
   }
 
   Future<List<PostModel>> readLocalCreatedPosts() async {
@@ -117,11 +115,13 @@ class HomeFeedRepository {
         'location': location.trim(),
       if (taggedUserIds.isNotEmpty) 'taggedUserIds': taggedUserIds,
       if (mentionUsernames.isNotEmpty) 'mentionUsernames': mentionUsernames,
-      if (altText != null && altText.trim().isNotEmpty) 'altText': altText.trim(),
+      if (altText != null && altText.trim().isNotEmpty)
+        'altText': altText.trim(),
       if (editHistory.isNotEmpty) 'editHistory': editHistory,
     };
 
-    ServiceResponseModel<Map<String, dynamic>> response = await _service.apiClient
+    ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
         .post(ApiEndPoints.postsCreate, payload);
     if (!response.isSuccess || response.data['success'] == false) {
       response = await _service.apiClient.post(ApiEndPoints.posts, payload);
@@ -130,7 +130,9 @@ class HomeFeedRepository {
       throw Exception(response.message ?? 'Unable to create post right now.');
     }
 
-    final Map<String, dynamic>? postPayload = _extractPostPayload(response.data);
+    final Map<String, dynamic>? postPayload = _extractPostPayload(
+      response.data,
+    );
     if (postPayload == null) {
       throw Exception('Post created but the API did not return a post object.');
     }
@@ -153,13 +155,36 @@ class HomeFeedRepository {
     required bool liked,
   }) async {
     final String userId = await _currentUserId();
-    final response = await _service.apiClient.patch(
-      liked ? ApiEndPoints.postLike(postId) : ApiEndPoints.postUnlike(postId),
-      <String, dynamic>{'userId': userId},
-    );
-    if (!response.isSuccess || response.data['success'] == false) {
-      throw Exception(response.message ?? 'Unable to update post like');
+    final Map<String, dynamic> payload = <String, dynamic>{
+      if (userId.isNotEmpty) 'userId': userId,
+    };
+    final String endpoint = liked
+        ? ApiEndPoints.postLike(postId)
+        : ApiEndPoints.postUnlike(postId);
+
+    ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(endpoint, payload);
+    if (_isSuccessfulMutation(response)) {
+      return;
     }
+
+    response = await _service.apiClient.post(endpoint, payload);
+    if (_isSuccessfulMutation(response)) {
+      return;
+    }
+
+    if (!liked) {
+      response = await _service.apiClient.delete(
+        ApiEndPoints.postLike(postId),
+        payload: payload,
+      );
+      if (_isSuccessfulMutation(response)) {
+        return;
+      }
+    }
+
+    throw Exception(response.message ?? 'Unable to update post like');
   }
 
   Future<PostModel> updatePost({
@@ -167,60 +192,57 @@ class HomeFeedRepository {
     required String caption,
   }) async {
     final String trimmedCaption = caption.trim();
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.apiClient.patch(
-          ApiEndPoints.postById(postId),
-          <String, dynamic>{'caption': trimmedCaption},
-        );
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(ApiEndPoints.postById(postId), <String, dynamic>{
+          'caption': trimmedCaption,
+        });
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to update post right now.');
     }
-    final Map<String, dynamic>? postPayload = _extractPostPayload(response.data);
+    final Map<String, dynamic>? postPayload = _extractPostPayload(
+      response.data,
+    );
     if (postPayload == null) {
       throw Exception('Updated post response did not include a post object.');
     }
     final PostModel updated = PostModel.fromApiJson(postPayload);
-    return updated.id.isEmpty ? updated.copyWith(caption: trimmedCaption) : updated;
+    return updated.id.isEmpty
+        ? updated.copyWith(caption: trimmedCaption)
+        : updated;
   }
 
   Future<void> deletePost(String postId) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.apiClient.delete(ApiEndPoints.postById(postId));
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .delete(ApiEndPoints.postById(postId));
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to delete post right now.');
     }
   }
 
   Future<List<StoryModel>> fetchStories() async {
-    final List<StoryModel> localStories = await readLocalStories();
     final Set<String> seenStoryIds = await readSeenStoryIds();
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint('stories');
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint('stories');
+      if (!response.isSuccess || response.data['success'] == false) {
+        return const <StoryModel>[];
+      }
       final List<Map<String, dynamic>> items = _readMapList(
         response.data,
         preferredKeys: const <String>['stories', 'data', 'items', 'results'],
       );
-      if (response.isSuccess && items.isNotEmpty) {
-        final List<StoryModel> remoteStories = await _hydrateStoryAuthors(
-          items
-              .map(StoryModel.fromJson)
-              .where((StoryModel story) => story.id.isNotEmpty)
-              .toList(growable: false),
-        );
-        await saveLocalStories(
-          localStories
-              .where((StoryModel story) => story.id.startsWith('local_story_'))
-              .toList(growable: false),
-        );
-        return _applySeenState(
-          _sortStories(<StoryModel>[...localStories, ...remoteStories]),
-          seenStoryIds,
-        );
-      }
+      final List<StoryModel> remoteStories = await _hydrateStoryAuthors(
+        items
+            .map(StoryModel.fromJson)
+            .where((StoryModel story) => story.id.isNotEmpty)
+            .toList(growable: false),
+      );
+      return _applySeenState(_sortStories(remoteStories), seenStoryIds);
     } catch (_) {}
 
-    return _applySeenState(_sortStories(localStories), seenStoryIds);
+    return const <StoryModel>[];
   }
 
   Future<List<StoryModel>> readLocalStories() async {
@@ -268,14 +290,29 @@ class HomeFeedRepository {
       };
     }
     return <String, List<String>>{
-      'lessLikeThis': List<String>.from(raw['lessLikeThis'] as List<dynamic>? ?? const <dynamic>[]),
-      'hiddenCreators': List<String>.from(raw['hiddenCreators'] as List<dynamic>? ?? const <dynamic>[]),
-      'hiddenTopics': List<String>.from(raw['hiddenTopics'] as List<dynamic>? ?? const <dynamic>[]),
+      'lessLikeThis': List<String>.from(
+        raw['lessLikeThis'] as List<dynamic>? ?? const <dynamic>[],
+      ),
+      'hiddenCreators': List<String>.from(
+        raw['hiddenCreators'] as List<dynamic>? ?? const <dynamic>[],
+      ),
+      'hiddenTopics': List<String>.from(
+        raw['hiddenTopics'] as List<dynamic>? ?? const <dynamic>[],
+      ),
     };
   }
 
   Future<void> writeRecommendationPreferences(Map<String, List<String>> prefs) {
     return _storage.writeJson(StorageKeys.recommendationPreferences, prefs);
+  }
+
+  bool _isSuccessfulMutation(
+    ServiceResponseModel<Map<String, dynamic>> response,
+  ) {
+    if (!response.isSuccess) {
+      return false;
+    }
+    return response.data['success'] != false;
   }
 
   String _feedEndpointFor(FeedSegment segment) {
@@ -312,8 +349,9 @@ class HomeFeedRepository {
   }
 
   Future<String> _currentUserId() async {
-    final Map<String, dynamic>? session =
-        await _storage.readJson(StorageKeys.authSession);
+    final Map<String, dynamic>? session = await _storage.readJson(
+      StorageKeys.authSession,
+    );
     final Object? user = session?['user'];
     if (user is Map<String, dynamic>) {
       final String id = (user['id'] as Object? ?? '').toString();
@@ -331,8 +369,9 @@ class HomeFeedRepository {
   }
 
   Future<UserModel?> currentUserProfile() async {
-    final Map<String, dynamic>? session =
-        await _storage.readJson(StorageKeys.authSession);
+    final Map<String, dynamic>? session = await _storage.readJson(
+      StorageKeys.authSession,
+    );
     final Object? user = session?['user'];
     if (user is Map<String, dynamic>) {
       final UserModel resolved = UserModel.fromApiJson(user);
@@ -349,7 +388,9 @@ class HomeFeedRepository {
 
   Future<List<PostModel>> _hydratePostAuthors(List<PostModel> posts) async {
     final Set<String> missingAuthorIds = posts
-        .where((PostModel post) => post.author == null && post.authorId.isNotEmpty)
+        .where(
+          (PostModel post) => post.author == null && post.authorId.isNotEmpty,
+        )
         .map((PostModel post) => post.authorId)
         .toSet();
     if (missingAuthorIds.isEmpty) {
@@ -376,8 +417,9 @@ class HomeFeedRepository {
           if (!response.isSuccess || response.data['success'] == false) {
             return;
           }
-          final Map<String, dynamic>? payload =
-              _extractUserPayload(response.data);
+          final Map<String, dynamic>? payload = _extractUserPayload(
+            response.data,
+          );
           if (payload == null) {
             return;
           }
@@ -392,14 +434,17 @@ class HomeFeedRepository {
 
     return posts
         .map(
-          (PostModel post) => post.author != null || !authors.containsKey(post.authorId)
+          (PostModel post) =>
+              post.author != null || !authors.containsKey(post.authorId)
               ? post
               : post.copyWith(author: authors[post.authorId]),
         )
         .toList(growable: false);
   }
 
-  Future<List<StoryModel>> _hydrateStoryAuthors(List<StoryModel> stories) async {
+  Future<List<StoryModel>> _hydrateStoryAuthors(
+    List<StoryModel> stories,
+  ) async {
     final Set<String> missingAuthorIds = stories
         .where(
           (StoryModel story) =>
@@ -442,8 +487,8 @@ class HomeFeedRepository {
 
     return stories
         .map(
-          (StoryModel story) => story.author != null ||
-                  !authors.containsKey(story.userId)
+          (StoryModel story) =>
+              story.author != null || !authors.containsKey(story.userId)
               ? story
               : story.copyWith(author: authors[story.userId]),
         )
@@ -536,7 +581,10 @@ class HomeFeedRepository {
     return ordered;
   }
 
-  List<PostModel> _mergePosts(List<PostModel> localPosts, List<PostModel> remotePosts) {
+  List<PostModel> _mergePosts(
+    List<PostModel> localPosts,
+    List<PostModel> remotePosts,
+  ) {
     final Map<String, PostModel> merged = <String, PostModel>{};
     for (final PostModel post in remotePosts) {
       merged[post.id] = post;
@@ -545,7 +593,9 @@ class HomeFeedRepository {
       merged[post.id] = post;
     }
     final List<PostModel> ordered = merged.values.toList(growable: false);
-    ordered.sort((PostModel a, PostModel b) => b.createdAt.compareTo(a.createdAt));
+    ordered.sort(
+      (PostModel a, PostModel b) => b.createdAt.compareTo(a.createdAt),
+    );
     return ordered;
   }
 

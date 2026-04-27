@@ -4,35 +4,14 @@
     {
       "name": "Flutter",
       "request": "launch",
-      "type": "dart",
-      "preLaunchTask": "adb reverse 3000",
-      "toolArgs": [
-        "--dart-define=API_BASE_URL=http://127.0.0.1:3000"
-      ]
+      "type": "dart"
     },
     {
-      "name": "Flutter (Phone - USB API)",
-      "request": "launch",
-      "type": "dart",
-      "preLaunchTask": "adb reverse 3000",
-      "toolArgs": [
-        "--dart-define=API_BASE_URL=http://127.0.0.1:3000"
-      ]
-    },
-    {
-      "name": "Flutter (Phone - LAN API)",
+      "name": "Flutter (Vercel API)",
       "request": "launch",
       "type": "dart",
       "toolArgs": [
-        "--dart-define=API_BASE_URL=http://192.168.0.105:3000"
-      ]
-    },
-    {
-      "name": "Flutter (Android Emulator)",
-      "request": "launch",
-      "type": "dart",
-      "toolArgs": [
-        "--dart-define=API_BASE_URL=http://10.0.2.2:3000"
+        "--dart-define=API_BASE_URL=https://opti-zenqor-social-backend.vercel.app"
       ]
     },
     {

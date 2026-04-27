@@ -392,10 +392,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return SizedBox(
       height: 140,
       width: double.infinity,
-      child: Image.network(
-        user.coverImageUrl.trim(),
-        fit: BoxFit.cover,
-      ),
+      child: Image.network(user.coverImageUrl.trim(), fit: BoxFit.cover),
     );
   }
 
@@ -497,7 +494,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         return InkWell(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => PostDetailScreen(postId: post.id),
+              builder: (_) =>
+                  PostDetailScreen(postId: post.id, initialPost: post),
             ),
           ),
           child: _MediaTile(
@@ -602,10 +600,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     : '${item.mediaCount} media',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.grey,
-                  fontSize: 11,
-                ),
+                style: const TextStyle(color: AppColors.grey, fontSize: 11),
               ),
             ],
           ),
@@ -627,10 +622,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
@@ -855,10 +847,7 @@ class _ProfileShimmer extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: ShimmerBox(height: 14),
-          ),
+          Padding(padding: EdgeInsets.all(16), child: ShimmerBox(height: 14)),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: ShimmerBox(height: 14, width: 220),

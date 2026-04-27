@@ -1,4 +1,5 @@
 import '../../data/api/api_payload_reader.dart';
+import '../../helpers/media_url_resolver.dart';
 import 'user_model.dart';
 
 class StoryMediaTransform {
@@ -168,20 +169,22 @@ class StoryModel {
       json['author'],
     );
     return StoryModel(
-      id: ApiPayloadReader.readString(json['id']),
+      id: ApiPayloadReader.readString(json['id'] ?? json['_id']),
       userId: ApiPayloadReader.readString(
-        json['userId'] ?? author?['id'],
+        json['userId'] ?? json['authorId'] ?? author?['id'] ?? author?['_id'],
       ),
-      media: ApiPayloadReader.readString(json['media']),
-      mediaItems: _readStringList(json['mediaItems']),
+      media: MediaUrlResolver.resolve(
+        ApiPayloadReader.readString(json['media']),
+      ),
+      mediaItems: _readStringList(
+        json['mediaItems'],
+      ).map(MediaUrlResolver.resolve).toList(growable: false),
       seen: ApiPayloadReader.readBool(json['seen']) ?? false,
       isLocalFile: ApiPayloadReader.readBool(json['isLocalFile']) ?? false,
       text: ApiPayloadReader.readString(json['text']),
       music: ApiPayloadReader.readString(json['music']),
       backgroundColors: _readColorList(json['backgroundColors']),
-      textColorValue: ApiPayloadReader.readInt(
-        json['textColorValue'],
-      ),
+      textColorValue: ApiPayloadReader.readInt(json['textColorValue']),
       createdAt: ApiPayloadReader.readDateTime(json['createdAt']),
       author: author == null ? null : UserModel.fromApiJson(author),
       sticker: ApiPayloadReader.readString(json['sticker']),

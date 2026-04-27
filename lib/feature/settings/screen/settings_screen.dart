@@ -5,6 +5,8 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/data/service/theme_service.dart';
 import '../../../app_route/route_names.dart';
+import '../../bookmarks/controller/bookmarks_controller.dart';
+import '../../home_feed/controller/home_feed_controller.dart';
 import '../../home_feed/controller/main_shell_controller.dart';
 import '../controller/settings_controller.dart';
 import '../model/settings_item_model.dart';
@@ -112,7 +114,10 @@ class SettingsScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            CircleAvatar(radius: 22, backgroundImage: NetworkImage(user.avatar)),
+            CircleAvatar(
+              radius: 22,
+              backgroundImage: NetworkImage(user.avatar),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -229,7 +234,7 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _logoutButton(BuildContext context) {
     return OutlinedButton.icon(
-      onPressed: () => _showSnack(context, 'Logout flow coming soon'),
+      onPressed: () => _logout(context),
       icon: const Icon(Icons.logout_rounded),
       label: const Text('Log Out'),
       style: OutlinedButton.styleFrom(
@@ -242,7 +247,19 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  List<_SettingsDisplaySection> _displaySections(SettingsController controller) {
+  Future<void> _logout(BuildContext context) async {
+    await context.read<MainShellController>().logout();
+    if (!context.mounted) {
+      return;
+    }
+    context.read<HomeFeedController>().clearLocalState();
+    context.read<BookmarksController>().clearLocalState();
+    AppGet.offAllNamed(RouteNames.login);
+  }
+
+  List<_SettingsDisplaySection> _displaySections(
+    SettingsController controller,
+  ) {
     final sectionMap = {
       for (final section in controller.sections) section.title: section,
     };
@@ -306,7 +323,10 @@ class SettingsScreen extends StatelessWidget {
       if (contentItems.isNotEmpty)
         _SettingsDisplaySection(title: 'Content', items: contentItems),
       if (professionalItems.isNotEmpty)
-        _SettingsDisplaySection(title: 'Professional', items: professionalItems),
+        _SettingsDisplaySection(
+          title: 'Professional',
+          items: professionalItems,
+        ),
       if (appItems.isNotEmpty)
         _SettingsDisplaySection(title: 'App', items: appItems),
     ];
@@ -442,4 +462,3 @@ class _TopAction {
   final IconData icon;
   final VoidCallback onTap;
 }
-

@@ -449,7 +449,9 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
   Widget _buildFloatingAction() {
     if (_isMultiSelectEnabled) {
       return FloatingActionButton.extended(
-        onPressed: _selectedAssetIds.isEmpty ? null : _previewMultipleSelections,
+        onPressed: _selectedAssetIds.isEmpty
+            ? null
+            : _previewMultipleSelections,
         backgroundColor: AppColors.splashBackground,
         foregroundColor: AppColors.white,
         icon: const Icon(Icons.grid_view_rounded),
@@ -512,11 +514,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     if (!mounted || preview == null) {
       return;
     }
-    final StoryModel? story = await _openStoryPreview(preview);
-    if (!mounted || story == null) {
+    final List<StoryModel> stories = await _openStoryPreview(preview);
+    if (!mounted || stories.isEmpty) {
       return;
     }
-    Navigator.of(context).pop(<StoryModel>[story]);
+    Navigator.of(context).pop(stories);
   }
 
   void _toggleMultiSelect() {
@@ -699,11 +701,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     if (!mounted || preview == null) {
       return;
     }
-    final StoryModel? story = await _openStoryPreview(preview);
-    if (!mounted || story == null) {
+    final List<StoryModel> stories = await _openStoryPreview(preview);
+    if (!mounted || stories.isEmpty) {
       return;
     }
-    Navigator.of(context).pop(<StoryModel>[story]);
+    Navigator.of(context).pop(stories);
   }
 
   Future<void> _handleCameraVideoCapture() async {
@@ -723,11 +725,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     if (!mounted || preview == null) {
       return;
     }
-    final StoryModel? story = await _openStoryPreview(preview);
-    if (!mounted || story == null) {
+    final List<StoryModel> stories = await _openStoryPreview(preview);
+    if (!mounted || stories.isEmpty) {
       return;
     }
-    Navigator.of(context).pop(<StoryModel>[story]);
+    Navigator.of(context).pop(stories);
   }
 
   Future<void> _pickGalleryVideo() async {
@@ -747,11 +749,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     if (!mounted || preview == null) {
       return;
     }
-    final StoryModel? story = await _openStoryPreview(preview);
-    if (!mounted || story == null) {
+    final List<StoryModel> stories = await _openStoryPreview(preview);
+    if (!mounted || stories.isEmpty) {
       return;
     }
-    Navigator.of(context).pop(<StoryModel>[story]);
+    Navigator.of(context).pop(stories);
   }
 
   Future<void> _openCameraOptions() async {
@@ -800,23 +802,32 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     AppGet.toNamed(RouteNames.privacySettings);
   }
 
-  Future<StoryModel?> _openStoryPreview(StoryPreviewModel preview) {
-    return Navigator.of(context).push<StoryModel>(
-      MaterialPageRoute<StoryModel>(
+  Future<List<StoryModel>> _openStoryPreview(StoryPreviewModel preview) async {
+    final Object? result = await Navigator.of(context).push<Object?>(
+      MaterialPageRoute<Object?>(
         builder: (_) =>
             StoryPreviewScreen(preview: preview, userId: widget.userId),
       ),
     );
+    if (result is StoryModel) {
+      return <StoryModel>[result];
+    }
+    if (result is List<StoryModel>) {
+      return result;
+    }
+    if (result is List) {
+      return result.whereType<StoryModel>().toList(growable: false);
+    }
+    return const <StoryModel>[];
   }
 
   Future<void> _openTextComposer() async {
     final StoryModel? story = await Navigator.of(context).push<StoryModel>(
       MaterialPageRoute<StoryModel>(
-        builder: (_) =>
-            StoryTextComposerScreen(
-              config: const StoryTextComposerModel(),
-              userId: widget.userId,
-            ),
+        builder: (_) => StoryTextComposerScreen(
+          config: const StoryTextComposerModel(),
+          userId: widget.userId,
+        ),
       ),
     );
     if (!mounted || story == null) {
@@ -876,11 +887,11 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     if (!mounted || preview == null) {
       return;
     }
-    final StoryModel? story = await _openStoryPreview(preview);
-    if (!mounted || story == null) {
+    final List<StoryModel> stories = await _openStoryPreview(preview);
+    if (!mounted || stories.isEmpty) {
       return;
     }
-    Navigator.of(context).pop(<StoryModel>[story]);
+    Navigator.of(context).pop(stories);
   }
 
   Future<List<AssetEntity>> _loadAlbumAssets(AssetPathEntity album) async {
@@ -917,9 +928,8 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     required List<String> sourcePaths,
     required bool containsVideo,
   }) async {
-    final List<String> optimizedPaths = await _storyMediaOptimizer.optimizePaths(
-      sourcePaths,
-    );
+    final List<String> optimizedPaths = await _storyMediaOptimizer
+        .optimizePaths(sourcePaths);
     final List<String> resolvedPaths = optimizedPaths.isEmpty
         ? sourcePaths
         : optimizedPaths;
@@ -957,10 +967,7 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     return null;
   }
 
-  Future<bool> _isAllowedStoryFile(
-    File file, {
-    bool showMessage = true,
-  }) async {
+  Future<bool> _isAllowedStoryFile(File file, {bool showMessage = true}) async {
     final int bytes = await file.length();
     final bool allowed = bytes <= _maxStoryFileBytes;
     if (!allowed && showMessage && mounted) {
@@ -1003,5 +1010,3 @@ class _AddStoryScreenState extends State<AddStoryScreen> {
     return '${sizeInMb.toStringAsFixed(sizeInMb >= 10 ? 0 : 1)} MB';
   }
 }
-
-

@@ -25,8 +25,8 @@ class HiddenPostsScreen extends StatelessWidget {
 
         return BlocBuilder<BookmarksController, BookmarksState>(
           builder: (context, _) {
-            final BookmarksController bookmarksController =
-                context.read<BookmarksController>();
+            final BookmarksController bookmarksController = context
+                .read<BookmarksController>();
             return Scaffold(
               appBar: AppBar(title: const Text('Hidden posts')),
               body: hiddenPosts.isEmpty
@@ -52,14 +52,12 @@ class HiddenPostsScreen extends StatelessWidget {
                                   isBookmarked: bookmarksController.isSaved(
                                     post.id,
                                   ),
-                                  onTap: () =>
-                                      _openPostDetail(context, post.id),
+                                  onTap: () => _openPostDetail(context, post),
                                   onAuthorTap: () =>
                                       _openOtherProfile(context, user.id),
-                                  onLikeTap: () =>
-                                      controller.likePost(post.id),
+                                  onLikeTap: () => controller.likePost(post.id),
                                   onCommentTap: () =>
-                                      _openPostDetail(context, post.id),
+                                      _openPostDetail(context, post),
                                   onShareTap: () => showSharePostActionSheet(
                                     context: context,
                                     post: post,
@@ -87,7 +85,9 @@ class HiddenPostsScreen extends StatelessWidget {
                                           'Post restored to feed',
                                         );
                                       },
-                                      icon: const Icon(Icons.visibility_rounded),
+                                      icon: const Icon(
+                                        Icons.visibility_rounded,
+                                      ),
                                       label: const Text('Unhide post'),
                                     ),
                                   ),
@@ -146,9 +146,11 @@ class HiddenPostsScreen extends StatelessWidget {
     );
   }
 
-  void _openPostDetail(BuildContext context, String postId) {
+  void _openPostDetail(BuildContext context, PostModel post) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => PostDetailScreen(postId: postId)),
+      MaterialPageRoute<void>(
+        builder: (_) => PostDetailScreen(postId: post.id, initialPost: post),
+      ),
     );
   }
 }

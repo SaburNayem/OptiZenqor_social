@@ -71,15 +71,13 @@ class PostCard extends StatelessWidget {
                           children: [
                             Text(
                               author.name,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             Text(
                               FormatHelper.timeAgo(post.createdAt),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppColors.grey,
-                                  ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: AppColors.grey),
                             ),
                           ],
                         ),
@@ -99,28 +97,32 @@ class PostCard extends StatelessWidget {
                   builder: (context) {
                     final media = post.media.first;
                     final lower = media.toLowerCase();
-                    final isVideo = lower.endsWith('.mp4') ||
+                    final isVideo =
+                        lower.endsWith('.mp4') ||
                         lower.endsWith('.mov') ||
                         lower.endsWith('.webm') ||
                         lower.endsWith('.m4v');
                     final isNetworkMedia =
-                        media.startsWith('http://') || media.startsWith('https://');
+                        media.startsWith('http://') ||
+                        media.startsWith('https://');
+                    final Widget mediaPreview = isVideo
+                        ? AspectRatio(
+                            aspectRatio: 1,
+                            child: InlineVideoPlayer(
+                              networkUrl: isNetworkMedia ? media : null,
+                              filePath: isNetworkMedia ? null : media,
+                              autoPlay: true,
+                            ),
+                          )
+                        : _PostPhotoPreview(
+                            source: media,
+                            isNetworkSource: isNetworkMedia,
+                          );
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(24),
                       child: Stack(
                         children: [
-                          AspectRatio(
-                            aspectRatio: 1,
-                            child: isVideo
-                                ? InlineVideoPlayer(
-                                    networkUrl: isNetworkMedia ? media : null,
-                                    filePath: isNetworkMedia ? null : media,
-                                    autoPlay: true,
-                                  )
-                                : isNetworkMedia
-                                    ? Image.network(media, fit: BoxFit.cover)
-                                    : Image.file(File(media), fit: BoxFit.cover),
-                          ),
+                          mediaPreview,
                           if (post.media.length > 1)
                             Positioned(
                               top: 12,
@@ -131,7 +133,9 @@ class PostCard extends StatelessWidget {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.black.withValues(alpha: 0.55),
+                                  color: AppColors.black.withValues(
+                                    alpha: 0.55,
+                                  ),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Text(
@@ -211,7 +215,10 @@ class PostCard extends StatelessWidget {
                         onTap: onCommentTap,
                         child: Text(
                           'View all ${post.comments} comments',
-                          style: TextStyle(color: AppColors.grey600, fontSize: 13),
+                          style: TextStyle(
+                            color: AppColors.grey600,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     if (post.shareCount > 0 || post.viewCount > 0) ...[
@@ -240,4 +247,125 @@ class PostCard extends StatelessWidget {
   }
 }
 
+class _PostPhotoPreview extends StatefulWidget {
+  const _PostPhotoPreview({
+    required this.source,
+    required this.isNetworkSource,
+  });
 
+  final String source;
+  final bool isNetworkSource;
+
+  @override
+  State<_PostPhotoPreview> createState() => _PostPhotoPreviewState();
+}
+
+class _PostPhotoPreviewState extends State<_PostPhotoPreview> {
+  ImageStream? _imageStream;
+  ImageStreamListener? _imageStreamListener;
+  double? _aspectRatio;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveAspectRatio();
+  }
+
+  @override
+  void didUpdateWidget(covariant _PostPhotoPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.source != widget.source ||
+        oldWidget.isNetworkSource != widget.isNetworkSource) {
+      _aspectRatio = null;
+      _resolveAspectRatio();
+    }
+  }
+
+  @override
+  void dispose() {
+    _removeImageStreamListener();
+    super.dispose();
+  }
+
+  void _resolveAspectRatio() {
+    _removeImageStreamListener();
+    final ImageProvider provider = widget.isNetworkSource
+        ? NetworkImage(widget.source)
+        : FileImage(File(widget.source));
+    final ImageStream stream = provider.resolve(const ImageConfiguration());
+    late final ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (ImageInfo imageInfo, bool synchronousCall) {
+        final int width = imageInfo.image.width;
+        final int height = imageInfo.image.height;
+        if (width > 0 && height > 0 && mounted) {
+          setState(() {
+            _aspectRatio = width / height;
+          });
+        }
+        stream.removeListener(listener);
+        if (_imageStream == stream) {
+          _imageStream = null;
+          _imageStreamListener = null;
+        }
+      },
+      onError: (_, _) {
+        stream.removeListener(listener);
+        if (_imageStream == stream) {
+          _imageStream = null;
+          _imageStreamListener = null;
+        }
+      },
+    );
+    _imageStream = stream;
+    _imageStreamListener = listener;
+    stream.addListener(listener);
+  }
+
+  void _removeImageStreamListener() {
+    final ImageStream? stream = _imageStream;
+    final ImageStreamListener? listener = _imageStreamListener;
+    if (stream != null && listener != null) {
+      stream.removeListener(listener);
+    }
+    _imageStream = null;
+    _imageStreamListener = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.sizeOf(context);
+    final double devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final double aspectRatio = _aspectRatio ?? 1;
+    final double maxMediaHeight = screenSize.height * 0.62;
+    final double mediaHeight = (screenSize.width / aspectRatio).clamp(
+      1,
+      maxMediaHeight,
+    );
+    final int cacheWidth = (screenSize.width * devicePixelRatio).round();
+    final int cacheHeight = (mediaHeight * devicePixelRatio).round();
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      height: mediaHeight,
+      width: double.infinity,
+      color: const Color(0xFFF2F5F7),
+      child: widget.isNetworkSource
+          ? Image.network(
+              widget.source,
+              width: double.infinity,
+              fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
+              cacheHeight: cacheHeight,
+            )
+          : Image.file(
+              File(widget.source),
+              width: double.infinity,
+              fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
+              cacheHeight: cacheHeight,
+            ),
+    );
+  }
+}

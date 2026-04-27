@@ -29,6 +29,7 @@ class PostDetailController extends Cubit<int> {
   bool hasLoaded = false;
   String? errorMessage;
   bool isLiked = false;
+  bool _hasLocalLikeOverride = false;
   UserModel? currentUser;
   final Map<ReactionType, int> postReactions = <ReactionType, int>{};
   ReactionType? selectedReaction;
@@ -36,6 +37,29 @@ class PostDetailController extends Cubit<int> {
       currentUser != null &&
       currentUser!.id.trim().isNotEmpty &&
       currentUser!.id == detail.authorId;
+
+  void primeFromPost(PostModel post) {
+    if (post.id.trim().isEmpty) {
+      return;
+    }
+    detail = PostDetailModel(
+      id: post.id,
+      authorId: post.authorId,
+      caption: post.caption,
+      media: post.media,
+      likes: post.likes,
+      comments: post.comments,
+      createdAt: post.createdAt,
+      shareCount: post.shareCount,
+      viewCount: post.viewCount,
+      author: post.author,
+    );
+    isLiked = post.liked;
+    _hasLocalLikeOverride = false;
+    hasLoaded = true;
+    errorMessage = null;
+    _notify();
+  }
 
   Future<void> load({String? postId}) async {
     final String selectedPostId = postId?.trim() ?? '';
@@ -49,6 +73,7 @@ class PostDetailController extends Cubit<int> {
     isLoading = true;
     errorMessage = null;
     _notify();
+    final bool hadVisiblePost = hasLoaded && detail.id.trim().isNotEmpty;
     try {
       final PostDetailLoadResult result = await _repository.fetchPostDetail(
         selectedPostId,
@@ -58,7 +83,9 @@ class PostDetailController extends Cubit<int> {
         ..clear()
         ..addAll(result.comments);
       relatedPosts = result.relatedPosts;
-      isLiked = result.isLiked;
+      if (!_hasLocalLikeOverride) {
+        isLiked = result.isLiked;
+      }
       currentUser = result.currentUser;
       postReactions
         ..clear()
@@ -69,9 +96,9 @@ class PostDetailController extends Cubit<int> {
       errorMessage = null;
       _notify();
     } catch (_) {
-      hasLoaded = false;
+      hasLoaded = hadVisiblePost;
       isLoading = false;
-      errorMessage = 'Unable to load post details.';
+      errorMessage = hadVisiblePost ? null : 'Unable to load post details.';
       _notify();
     }
   }
@@ -82,6 +109,7 @@ class PostDetailController extends Cubit<int> {
     }
     final bool previousLiked = isLiked;
     final int previousLikes = detail.likes;
+    _hasLocalLikeOverride = true;
     isLiked = !isLiked;
     detail = detail.copyWith(
       likes: isLiked ? detail.likes + 1 : (detail.likes - 1).clamp(0, 999999),
@@ -92,6 +120,7 @@ class PostDetailController extends Cubit<int> {
     } catch (_) {
       isLiked = previousLiked;
       detail = detail.copyWith(likes: previousLikes);
+      _hasLocalLikeOverride = false;
       _notify();
     }
   }
@@ -147,10 +176,15 @@ class PostDetailController extends Cubit<int> {
     final isLiking = !comment.isLikedByMe;
     comments[index] = comment.copyWith(
       isLikedByMe: isLiking,
-      likeCount: isLiking ? comment.likeCount + 1 : (comment.likeCount - 1).clamp(0, 999999),
+      likeCount: isLiking
+          ? comment.likeCount + 1
+          : (comment.likeCount - 1).clamp(0, 999999),
       reactions: <String, int>{
         ...comment.reactions,
-        'like': ((comment.reactions['like'] ?? 0) + (isLiking ? 1 : -1)).clamp(0, 999999),
+        'like': ((comment.reactions['like'] ?? 0) + (isLiking ? 1 : -1)).clamp(
+          0,
+          999999,
+        ),
       }..removeWhere((String _, int value) => value <= 0),
     );
     _notify();
@@ -209,14 +243,20 @@ class PostDetailController extends Cubit<int> {
     while (foundNewChild) {
       foundNewChild = false;
       for (final comment in comments) {
-        if (comment.replyTo != null && deletingIds.contains(comment.replyTo) && !deletingIds.contains(comment.id)) {
+        if (comment.replyTo != null &&
+            deletingIds.contains(comment.replyTo) &&
+            !deletingIds.contains(comment.id)) {
           deletingIds.add(comment.id);
           foundNewChild = true;
         }
       }
     }
-    final removedCount = comments.where((item) => deletingIds.contains(item.id)).length;
-    final List<PostCommentModel> snapshot = List<PostCommentModel>.from(comments);
+    final removedCount = comments
+        .where((item) => deletingIds.contains(item.id))
+        .length;
+    final List<PostCommentModel> snapshot = List<PostCommentModel>.from(
+      comments,
+    );
     comments.removeWhere((item) => deletingIds.contains(item.id));
     detail = detail.copyWith(
       comments: (detail.comments - removedCount).clamp(0, 999999),

@@ -4,14 +4,21 @@ import '../../data/shared_preference/app_shared_preferences.dart';
 import '../api/api_end_points.dart';
 import '../service_model/service_response_model.dart';
 import 'api_client_service.dart';
+import 'user_data_cleanup_service.dart';
 
 class AuthService {
-  AuthService({ApiClientService? apiClient, AppSharedPreferences? storage})
-    : _apiClient = apiClient ?? ApiClientService(),
-      _storage = storage ?? AppSharedPreferences();
+  AuthService({
+    ApiClientService? apiClient,
+    AppSharedPreferences? storage,
+    UserDataCleanupService? cleanupService,
+  }) : _apiClient = apiClient ?? ApiClientService(),
+       _storage = storage ?? AppSharedPreferences(),
+       _cleanupService =
+           cleanupService ?? UserDataCleanupService(storage: storage);
 
   final ApiClientService _apiClient;
   final AppSharedPreferences _storage;
+  final UserDataCleanupService _cleanupService;
 
   bool _loggedIn = false;
   UserRole _role = UserRole.guest;
@@ -154,7 +161,7 @@ class AuthService {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     _loggedIn = false;
     _role = UserRole.guest;
-    await _storage.remove(StorageKeys.authSession);
+    await _cleanupService.clearUserData();
   }
 
   Future<void> _persistSession({

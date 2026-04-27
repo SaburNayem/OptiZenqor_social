@@ -218,6 +218,7 @@ class ApiEndPoints {
   // DiscoveryController
   static const hashtags = '/hashtags';
   static const trending = '/trending';
+  static const globalSearch = '/global-search';
   static const search = '/search';
   static const searchDiscovery = '/search-discovery';
   static const savedCollections = '/saved-collections';

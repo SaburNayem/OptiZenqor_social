@@ -79,8 +79,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
 
         return BlocBuilder<BookmarksController, BookmarksState>(
           builder: (context, _) {
-            final BookmarksController bookmarksController =
-                context.read<BookmarksController>();
+            final BookmarksController bookmarksController = context
+                .read<BookmarksController>();
             final UserModel? currentUser =
                 context.read<MainShellController>().currentUser.id.isNotEmpty
                 ? context.read<MainShellController>().currentUser
@@ -108,8 +108,21 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     stories: controller.stories,
                     currentUser: currentUser,
                     users: storyUsersById.values.toList(growable: false),
-                    onStoryAdded: (List<StoryModel> createdStories) {
-                      controller.createStories(createdStories);
+                    onStoryAdded: (List<StoryModel> createdStories) async {
+                      await controller.createStories(createdStories);
+                      if (!context.mounted || !controller.hasError) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              controller.loadState.errorMessage ??
+                                  'Unable to create story right now.',
+                            ),
+                          ),
+                        );
                     },
                     onStoriesSeen: (List<String> storyIds) {
                       controller.markStoriesSeen(storyIds);
@@ -140,11 +153,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                         likeCount: controller.displayLikeCount(post),
                         isLiked: controller.isLiked(post.id),
                         isBookmarked: bookmarksController.isSaved(post.id),
-                        onTap: () => _openPostDetail(context, post.id),
+                        onTap: () => _openPostDetail(context, post),
                         onAuthorTap: () => _openOtherProfile(context, user.id),
                         onMoreTap: () => _showPostActions(context, post.id),
                         onLikeTap: () => controller.likePost(post.id),
-                        onCommentTap: () => _openPostDetail(context, post.id),
+                        onCommentTap: () => _openPostDetail(context, post),
                         onShareTap: () => showSharePostActionSheet(
                           context: context,
                           post: post,
@@ -272,9 +285,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
     );
   }
 
-  void _openPostDetail(BuildContext context, String postId) {
+  void _openPostDetail(BuildContext context, PostModel post) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => PostDetailScreen(postId: postId)),
+      MaterialPageRoute<void>(
+        builder: (_) => PostDetailScreen(postId: post.id, initialPost: post),
+      ),
     );
   }
 
@@ -303,9 +318,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(
-                textController.text.trim(),
-              ),
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(textController.text.trim()),
               child: const Text('Save'),
             ),
           ],
@@ -462,4 +476,3 @@ class _FeedShimmer extends StatelessWidget {
     );
   }
 }
-

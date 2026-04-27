@@ -62,7 +62,9 @@ class PostDetailRepository {
       throw Exception(postResponse.message ?? 'Unable to load post');
     }
 
-    final Map<String, dynamic>? postJson = _extractPostPayload(postResponse.data);
+    final Map<String, dynamic>? postJson = _extractPostPayload(
+      postResponse.data,
+    );
     if (postJson == null) {
       throw Exception('Unable to read post details from the response.');
     }
@@ -94,17 +96,16 @@ class PostDetailRepository {
       postJson,
       liveCommentCount: comments.length,
     );
-    final UserModel? author = baseDetail.author ?? await _loadAuthor(baseDetail.authorId);
+    final UserModel? author =
+        baseDetail.author ?? await _loadAuthor(baseDetail.authorId);
 
     return PostDetailLoadResult(
       detail: baseDetail.copyWith(author: author),
       comments: comments,
       relatedPosts: await _relatedPosts(postId),
-      isLiked: currentUserId.isNotEmpty &&
-          reactionItems.any(
-            (Map<String, dynamic> item) =>
-                (item['userId'] as Object? ?? '').toString() == currentUserId,
-          ),
+      isLiked:
+          baseDetail.liked ||
+          _hasCurrentUserReaction(reactionItems, currentUserId),
       postReactions: postReactions,
       selectedReaction: selectedReaction,
       currentUser: currentUser,
@@ -116,14 +117,35 @@ class PostDetailRepository {
     required bool liked,
   }) async {
     final String userId = await _currentUserId();
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _apiClient.patch(
-          liked ? ApiEndPoints.postLike(postId) : ApiEndPoints.postUnlike(postId),
-          <String, dynamic>{'userId': userId},
-        );
-    if (!response.isSuccess || response.data['success'] == false) {
-      throw Exception(response.message ?? 'Unable to update post like');
+    final Map<String, dynamic> payload = <String, dynamic>{
+      if (userId.isNotEmpty) 'userId': userId,
+    };
+    final String endpoint = liked
+        ? ApiEndPoints.postLike(postId)
+        : ApiEndPoints.postUnlike(postId);
+
+    ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .patch(endpoint, payload);
+    if (_isSuccessfulMutation(response)) {
+      return;
     }
+
+    response = await _apiClient.post(endpoint, payload);
+    if (_isSuccessfulMutation(response)) {
+      return;
+    }
+
+    if (!liked) {
+      response = await _apiClient.delete(
+        ApiEndPoints.postLike(postId),
+        payload: payload,
+      );
+      if (_isSuccessfulMutation(response)) {
+        return;
+      }
+    }
+
+    throw Exception(response.message ?? 'Unable to update post like');
   }
 
   Future<PostCommentModel> createComment({
@@ -138,8 +160,8 @@ class PostDetailRepository {
     final String endpoint = replyTo == null || replyTo.trim().isEmpty
         ? ApiEndPoints.postComments(postId)
         : ApiEndPoints.postCommentReplies(postId, replyTo);
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _apiClient.post(endpoint, <String, dynamic>{
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .post(endpoint, <String, dynamic>{
           'authorId': currentUser.id,
           'author': currentUser.name,
           'message': message.trim(),
@@ -166,8 +188,8 @@ class PostDetailRepository {
     required bool active,
   }) async {
     final String userId = await _currentUserId();
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _apiClient.patch(
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .patch(
           ApiEndPoints.postCommentReact(postId, commentId),
           <String, dynamic>{
             'userId': userId,
@@ -184,8 +206,8 @@ class PostDetailRepository {
     required String postId,
     required String commentId,
   }) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _apiClient.delete(ApiEndPoints.postCommentById(postId, commentId));
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .delete(ApiEndPoints.postCommentById(postId, commentId));
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to delete comment');
     }
@@ -196,11 +218,10 @@ class PostDetailRepository {
     required String caption,
   }) async {
     final String trimmedCaption = caption.trim();
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _apiClient.patch(
-          ApiEndPoints.postById(postId),
-          <String, dynamic>{'caption': trimmedCaption},
-        );
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .patch(ApiEndPoints.postById(postId), <String, dynamic>{
+          'caption': trimmedCaption,
+        });
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to update post right now.');
     }
@@ -212,22 +233,26 @@ class PostDetailRepository {
   }
 
   Future<void> deletePost(String postId) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _apiClient.delete(ApiEndPoints.postById(postId));
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .delete(ApiEndPoints.postById(postId));
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to delete post right now.');
     }
   }
 
   Future<List<PostModel>> _relatedPosts(String postId) async {
-    final List<PostModel> feed = await _homeFeedRepository.fetchFeed(
-      segment: FeedSegment.forYou,
-      page: 1,
-    );
-    return feed
-        .where((PostModel item) => item.id != postId)
-        .take(3)
-        .toList(growable: false);
+    try {
+      final List<PostModel> feed = await _homeFeedRepository.fetchFeed(
+        segment: FeedSegment.forYou,
+        page: 1,
+      );
+      return feed
+          .where((PostModel item) => item.id != postId)
+          .take(3)
+          .toList(growable: false);
+    } catch (_) {
+      return const <PostModel>[];
+    }
   }
 
   Future<UserModel?> _loadAuthor(String authorId) async {
@@ -274,7 +299,9 @@ class PostDetailRepository {
         if (!response.isSuccess || response.data.isEmpty) {
           return;
         }
-        final Map<String, dynamic>? payload = _extractUserPayload(response.data);
+        final Map<String, dynamic>? payload = _extractUserPayload(
+          response.data,
+        );
         if (payload == null) {
           return;
         }
@@ -295,16 +322,11 @@ class PostDetailRepository {
 
     void visit(Map<String, dynamic> item) {
       final String authorId = (item['authorId'] as Object? ?? '').toString();
-      comments.add(
-        _toCommentModel(
-          item,
-          author: authors[authorId],
-        ),
-      );
+      comments.add(_toCommentModel(item, author: authors[authorId]));
 
-      final List<Map<String, dynamic>> replies = _readMapList(
-        <String, dynamic>{'data': item['replies']},
-      );
+      final List<Map<String, dynamic>> replies = _readMapList(<String, dynamic>{
+        'data': item['replies'],
+      });
       for (final Map<String, dynamic> reply in replies) {
         visit(reply);
       }
@@ -325,7 +347,8 @@ class PostDetailRepository {
       id: (item['id'] as Object? ?? '').toString(),
       postId: (item['postId'] as Object? ?? '').toString(),
       authorId: authorId,
-      author: (item['author'] as String? ?? author?.name ?? 'Unknown user').trim(),
+      author: (item['author'] as String? ?? author?.name ?? 'Unknown user')
+          .trim(),
       authorUsername: author?.username,
       authorAvatar: author?.avatar,
       message: (item['message'] as String? ?? '').trim(),
@@ -346,6 +369,9 @@ class PostDetailRepository {
   ) {
     final Map<ReactionType, int> counts = <ReactionType, int>{};
     for (final Map<String, dynamic> item in items) {
+      if (!_isActiveReaction(item)) {
+        continue;
+      }
       final ReactionType? type = _reactionTypeFromValue(item['reaction']);
       if (type == null) {
         continue;
@@ -365,7 +391,7 @@ class PostDetailRepository {
     final Map<String, dynamic>? currentReaction = items
         .where(
           (Map<String, dynamic> item) =>
-              (item['userId'] as Object? ?? '').toString() == currentUserId,
+              _reactionBelongsToUser(item, currentUserId),
         )
         .cast<Map<String, dynamic>?>()
         .firstOrNull;
@@ -373,6 +399,59 @@ class PostDetailRepository {
       return null;
     }
     return _reactionTypeFromValue(currentReaction['reaction']);
+  }
+
+  bool _hasCurrentUserReaction(
+    List<Map<String, dynamic>> items,
+    String currentUserId,
+  ) {
+    if (currentUserId.isEmpty) {
+      return false;
+    }
+    return items.any(
+      (Map<String, dynamic> item) =>
+          _reactionBelongsToUser(item, currentUserId),
+    );
+  }
+
+  bool _reactionBelongsToUser(Map<String, dynamic> item, String currentUserId) {
+    if (currentUserId.isEmpty) {
+      return false;
+    }
+    final Set<String> ids = <String>{
+      _readString(item['userId']),
+      _readString(item['authorId']),
+      _readString(item['createdBy']),
+      _readString(item['ownerId']),
+      _readString(item['user']),
+      _readString(item['author']),
+      _readString(_readMap(item['user'])?['id']),
+      _readString(_readMap(item['user'])?['_id']),
+      _readString(_readMap(item['author'])?['id']),
+      _readString(_readMap(item['author'])?['_id']),
+    }..removeWhere((String value) => value.isEmpty);
+    return _isActiveReaction(item) && ids.contains(currentUserId);
+  }
+
+  bool _isActiveReaction(Map<String, dynamic> item) {
+    final Object? active = item['active'] ?? item['isActive'];
+    if (active is bool) {
+      return active;
+    }
+    final Object? deleted = item['deleted'] ?? item['isDeleted'];
+    if (deleted is bool && deleted) {
+      return false;
+    }
+    return true;
+  }
+
+  bool _isSuccessfulMutation(
+    ServiceResponseModel<Map<String, dynamic>> response,
+  ) {
+    if (!response.isSuccess) {
+      return false;
+    }
+    return response.data['success'] != false;
   }
 
   ReactionType? _reactionTypeFromValue(Object? value) {
@@ -397,7 +476,12 @@ class PostDetailRepository {
 
   List<Map<String, dynamic>> _readMapList(
     Map<String, dynamic> payload, {
-    List<String> preferredKeys = const <String>['data', 'items', 'results', 'value'],
+    List<String> preferredKeys = const <String>[
+      'data',
+      'items',
+      'results',
+      'value',
+    ],
   }) {
     for (final Object? raw in <Object?>[
       ...preferredKeys.map((String key) => payload[key]),
@@ -433,8 +517,7 @@ class PostDetailRepository {
     }
     if (value is Map) {
       return value.map<String, int>(
-        (dynamic key, dynamic item) =>
-            MapEntry(key.toString(), _readInt(item)),
+        (dynamic key, dynamic item) => MapEntry(key.toString(), _readInt(item)),
       );
     }
     return const <String, int>{};
@@ -448,6 +531,13 @@ class PostDetailRepository {
           .toList(growable: false);
     }
     return const <String>[];
+  }
+
+  String _readString(Object? value) {
+    if (value is Map) {
+      return '';
+    }
+    return (value ?? '').toString().trim();
   }
 
   int _readInt(Object? value) {
@@ -478,8 +568,9 @@ class PostDetailRepository {
   }
 
   Future<UserModel?> currentUserProfile() async {
-    final Map<String, dynamic>? session =
-        await _storage.readJson(StorageKeys.authSession);
+    final Map<String, dynamic>? session = await _storage.readJson(
+      StorageKeys.authSession,
+    );
     final Object? user = session?['user'];
     if (user is Map<String, dynamic>) {
       final UserModel resolved = UserModel.fromApiJson(user);
@@ -556,7 +647,9 @@ class PostDetailRepository {
       if (_looksLikeComment(candidate)) {
         return candidate;
       }
-      final Map<String, dynamic>? nestedComment = _readMap(candidate['comment']);
+      final Map<String, dynamic>? nestedComment = _readMap(
+        candidate['comment'],
+      );
       if (nestedComment != null && _looksLikeComment(nestedComment)) {
         return nestedComment;
       }

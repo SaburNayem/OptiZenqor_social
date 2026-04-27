@@ -10,10 +10,7 @@ import '../model/media_viewer_item_model.dart';
 import '../model/media_viewer_route_arguments.dart';
 
 class MediaViewerScreen extends StatefulWidget {
-  const MediaViewerScreen({
-    super.key,
-    this.arguments,
-  });
+  const MediaViewerScreen({super.key, this.arguments});
 
   final MediaViewerRouteArguments? arguments;
 
@@ -75,10 +72,7 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
               right: 12,
               child: Row(
                 children: [
-                  _ViewerIconButton(
-                    icon: Icons.arrow_back,
-                    onTap: AppGet.back,
-                  ),
+                  _ViewerIconButton(icon: Icons.arrow_back, onTap: AppGet.back),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -162,23 +156,126 @@ class _MediaViewerPage extends StatelessWidget {
       );
     }
 
-    final Widget image = item.isNetworkSource
-        ? Image.network(item.source, fit: BoxFit.contain)
-        : Image.file(File(item.source), fit: BoxFit.contain);
-
     return InteractiveViewer(
       minScale: 1,
       maxScale: 4,
-      child: Center(child: image),
+      child: Center(child: _ViewerPhoto(item: item)),
+    );
+  }
+}
+
+class _ViewerPhoto extends StatefulWidget {
+  const _ViewerPhoto({required this.item});
+
+  final MediaViewerItemModel item;
+
+  @override
+  State<_ViewerPhoto> createState() => _ViewerPhotoState();
+}
+
+class _ViewerPhotoState extends State<_ViewerPhoto> {
+  ImageStream? _imageStream;
+  ImageStreamListener? _imageStreamListener;
+  double? _aspectRatio;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveAspectRatio();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ViewerPhoto oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.source != widget.item.source) {
+      _aspectRatio = null;
+      _resolveAspectRatio();
+    }
+  }
+
+  @override
+  void dispose() {
+    _removeImageStreamListener();
+    super.dispose();
+  }
+
+  void _resolveAspectRatio() {
+    _removeImageStreamListener();
+    final ImageProvider provider = widget.item.isNetworkSource
+        ? NetworkImage(widget.item.source)
+        : FileImage(File(widget.item.source));
+    final ImageStream stream = provider.resolve(const ImageConfiguration());
+    late final ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (ImageInfo imageInfo, bool synchronousCall) {
+        final int width = imageInfo.image.width;
+        final int height = imageInfo.image.height;
+        if (width > 0 && height > 0 && mounted) {
+          setState(() {
+            _aspectRatio = width / height;
+          });
+        }
+        stream.removeListener(listener);
+        if (_imageStream == stream) {
+          _imageStream = null;
+          _imageStreamListener = null;
+        }
+      },
+      onError: (_, _) {
+        stream.removeListener(listener);
+        if (_imageStream == stream) {
+          _imageStream = null;
+          _imageStreamListener = null;
+        }
+      },
+    );
+    _imageStream = stream;
+    _imageStreamListener = listener;
+    stream.addListener(listener);
+  }
+
+  void _removeImageStreamListener() {
+    final ImageStream? stream = _imageStream;
+    final ImageStreamListener? listener = _imageStreamListener;
+    if (stream != null && listener != null) {
+      stream.removeListener(listener);
+    }
+    _imageStream = null;
+    _imageStreamListener = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.sizeOf(context);
+    final double devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final double aspectRatio = _aspectRatio ?? 1;
+    final double maxImageHeight = screenSize.height * 0.82;
+    final double imageHeight = (screenSize.width / aspectRatio).clamp(
+      1,
+      maxImageHeight,
+    );
+    final int cacheWidth = (screenSize.width * devicePixelRatio).round();
+
+    return SizedBox(
+      width: screenSize.width,
+      height: imageHeight,
+      child: widget.item.isNetworkSource
+          ? Image.network(
+              widget.item.source,
+              fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
+            )
+          : Image.file(
+              File(widget.item.source),
+              fit: BoxFit.contain,
+              cacheWidth: cacheWidth,
+            ),
     );
   }
 }
 
 class _ViewerIconButton extends StatelessWidget {
-  const _ViewerIconButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _ViewerIconButton({required this.icon, required this.onTap});
 
   final IconData icon;
   final VoidCallback onTap;
@@ -197,4 +294,3 @@ class _ViewerIconButton extends StatelessWidget {
     );
   }
 }
-

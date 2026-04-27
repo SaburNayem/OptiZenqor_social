@@ -63,6 +63,7 @@ class HomeFeedController extends Cubit<int> {
     }
     return _likedPostIds.contains(postId);
   }
+
   String get currentUserId => _currentUserId;
   bool isOwnPost(PostModel post) =>
       _currentUserId.isNotEmpty && post.authorId == _currentUserId;
@@ -94,7 +95,9 @@ class HomeFeedController extends Cubit<int> {
       _likedPostIds
         ..clear()
         ..addAll(
-          posts.where((PostModel post) => post.liked).map((PostModel post) => post.id),
+          posts
+              .where((PostModel post) => post.liked)
+              .map((PostModel post) => post.id),
         );
       pagination = pagination.copyWith(page: 1, hasMore: true);
       loadState = loadState.copyWith(
@@ -144,7 +147,9 @@ class HomeFeedController extends Cubit<int> {
       } else {
         posts = <PostModel>[...posts, ...next];
         _likedPostIds.addAll(
-          next.where((PostModel post) => post.liked).map((PostModel post) => post.id),
+          next
+              .where((PostModel post) => post.liked)
+              .map((PostModel post) => post.id),
         );
         pagination = pagination.copyWith(
           page: pagination.page + 1,
@@ -189,7 +194,9 @@ class HomeFeedController extends Cubit<int> {
     }
     posts[index] = previous.copyWith(
       liked: !wasLiked,
-      likes: wasLiked ? (previous.likes - 1).clamp(0, 999999) : previous.likes + 1,
+      likes: wasLiked
+          ? (previous.likes - 1).clamp(0, 999999)
+          : previous.likes + 1,
     );
     _notify();
     try {
@@ -210,6 +217,31 @@ class HomeFeedController extends Cubit<int> {
       _failedActionPostIds.add(postId);
       _notify();
     }
+  }
+
+  void syncPostLike({
+    required String postId,
+    required bool liked,
+    required int likes,
+  }) {
+    final int index = posts.indexWhere((PostModel post) => post.id == postId);
+    if (index == -1) {
+      if (liked) {
+        _likedPostIds.add(postId);
+      } else {
+        _likedPostIds.remove(postId);
+      }
+      _notify();
+      return;
+    }
+    final PostModel current = posts[index];
+    posts[index] = current.copyWith(liked: liked, likes: likes);
+    if (liked) {
+      _likedPostIds.add(postId);
+    } else {
+      _likedPostIds.remove(postId);
+    }
+    _notify();
   }
 
   int displayLikeCount(PostModel post) => post.likes;
@@ -365,7 +397,8 @@ class HomeFeedController extends Cubit<int> {
         post,
         ...posts.where((PostModel item) => item.id != post.id),
       ];
-      final List<PostModel> localPosts = await _repository.readLocalCreatedPosts();
+      final List<PostModel> localPosts = await _repository
+          .readLocalCreatedPosts();
       if (localPosts.any((PostModel item) => item.id == post.id)) {
         await _repository.saveLocalCreatedPosts(
           localPosts.where((PostModel item) => item.id != post.id).toList(),
@@ -421,7 +454,7 @@ class HomeFeedController extends Cubit<int> {
     await _analytics.logEvent(
       'story_created_local',
       params: <String, dynamic>{
-      'count': newStories.length,
+        'count': newStories.length,
         'hasMedia': resolvedStories.any((story) => story.hasMedia),
         'hasText': resolvedStories.any((story) => story.hasText),
       },
@@ -461,7 +494,11 @@ class HomeFeedController extends Cubit<int> {
       );
       _notify();
     } catch (_) {
-      await addLocalStories(draftStories);
+      loadState = loadState.copyWith(
+        hasError: true,
+        errorMessage: 'Unable to create story right now.',
+      );
+      _notify();
     }
   }
 
@@ -512,7 +549,8 @@ class HomeFeedController extends Cubit<int> {
     _notify();
     try {
       await _repository.deletePost(postId);
-      final List<PostModel> localPosts = await _repository.readLocalCreatedPosts();
+      final List<PostModel> localPosts = await _repository
+          .readLocalCreatedPosts();
       await _repository.saveLocalCreatedPosts(
         localPosts.where((PostModel post) => post.id != postId).toList(),
       );
@@ -533,20 +571,24 @@ class HomeFeedController extends Cubit<int> {
     }
 
     bool changed = false;
-    stories = stories.map((StoryModel story) {
-      if (!ids.contains(story.id) || story.seen) {
-        return story;
-      }
-      changed = true;
-      return story.copyWith(seen: true);
-    }).toList(growable: false);
+    stories = stories
+        .map((StoryModel story) {
+          if (!ids.contains(story.id) || story.seen) {
+            return story;
+          }
+          changed = true;
+          return story.copyWith(seen: true);
+        })
+        .toList(growable: false);
 
     final Set<String> seenStoryIds = await _repository.readSeenStoryIds();
     final int previousLength = seenStoryIds.length;
     seenStoryIds.addAll(ids);
     await _repository.saveSeenStoryIds(seenStoryIds);
     await _repository.saveLocalStories(
-      stories.where((StoryModel story) => story.id.startsWith('local_story_')).toList(),
+      stories
+          .where((StoryModel story) => story.id.startsWith('local_story_'))
+          .toList(),
     );
     if (changed || seenStoryIds.length != previousLength) {
       _notify();
@@ -567,7 +609,9 @@ class HomeFeedController extends Cubit<int> {
         .where((StoryModel story) => story.id != normalizedId)
         .toList(growable: false);
     await _repository.saveLocalStories(
-      stories.where((StoryModel story) => story.id.startsWith('local_story_')).toList(),
+      stories
+          .where((StoryModel story) => story.id.startsWith('local_story_'))
+          .toList(),
     );
     _notify();
   }
@@ -587,6 +631,22 @@ class HomeFeedController extends Cubit<int> {
     if (posts.isEmpty && !loadState.isLoading) {
       await loadInitial();
     }
+  }
+
+  void clearLocalState() {
+    loadState = const LoadStateModel();
+    pagination = const PaginationStateModel();
+    posts = <PostModel>[];
+    stories = <StoryModel>[];
+    activeTab = FeedTab.forYou;
+    _hiddenPostIds.clear();
+    _failedActionPostIds.clear();
+    _likedPostIds.clear();
+    _lessLikeThisPostIds.clear();
+    _hiddenCreatorIds.clear();
+    _hiddenTopics.clear();
+    _currentUserId = '';
+    _notify();
   }
 
   Future<void> _persistRecommendationPreferences() {

@@ -18,50 +18,61 @@ class ArchivePostsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Archived posts')),
       body: FutureBuilder<List<PostModel>>(
         future: repository.archivedPosts(),
-        builder: (BuildContext context, AsyncSnapshot<List<PostModel>> snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final List<PostModel> posts = snapshot.data ?? const <PostModel>[];
-          if (posts.isEmpty) {
-            return const EmptyStateView(
-              title: 'No archived posts',
-              message: 'Archived posts from backend will appear here.',
-            );
-          }
-          return ListView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            children: posts.map((PostModel post) {
-              final UserModel? author = post.author;
-              if (author == null) {
-                return const SizedBox.shrink();
+        builder:
+            (BuildContext context, AsyncSnapshot<List<PostModel>> snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Center(child: CircularProgressIndicator());
               }
-              return PostCard(
-                post: post,
-                author: author,
-                likeCount: post.likes,
-                isLiked: false,
-                isBookmarked: false,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => PostDetailScreen(postId: post.id),
-                  ),
-                ),
-                onAuthorTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => UserProfileScreen(userId: author.id),
-                  ),
-                ),
-                onLikeTap: () {},
-                onCommentTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => PostDetailScreen(postId: post.id),
-                  ),
-                ),
+              final List<PostModel> posts =
+                  snapshot.data ?? const <PostModel>[];
+              if (posts.isEmpty) {
+                return const EmptyStateView(
+                  title: 'No archived posts',
+                  message: 'Archived posts from backend will appear here.',
+                );
+              }
+              return ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: posts
+                    .map((PostModel post) {
+                      final UserModel? author = post.author;
+                      if (author == null) {
+                        return const SizedBox.shrink();
+                      }
+                      return PostCard(
+                        post: post,
+                        author: author,
+                        likeCount: post.likes,
+                        isLiked: false,
+                        isBookmarked: false,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => PostDetailScreen(
+                              postId: post.id,
+                              initialPost: post,
+                            ),
+                          ),
+                        ),
+                        onAuthorTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                UserProfileScreen(userId: author.id),
+                          ),
+                        ),
+                        onLikeTap: () {},
+                        onCommentTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => PostDetailScreen(
+                              postId: post.id,
+                              initialPost: post,
+                            ),
+                          ),
+                        ),
+                      );
+                    })
+                    .toList(growable: false),
               );
-            }).toList(growable: false),
-          );
-        },
+            },
       ),
     );
   }

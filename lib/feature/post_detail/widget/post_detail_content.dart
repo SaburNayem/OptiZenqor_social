@@ -84,6 +84,14 @@ class PostDetailContent extends StatelessWidget {
                 media: controller.detail.media,
                 onMediaTap: onMediaTap,
               ),
+            if (controller.detail.caption.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
+                child: Text(
+                  controller.detail.caption.trim(),
+                  style: const TextStyle(color: AppColors.black87, height: 1.4),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Row(
@@ -93,8 +101,9 @@ class PostDetailContent extends StatelessWidget {
                       controller.isLiked
                           ? Icons.favorite
                           : Icons.favorite_border,
-                      color:
-                          controller.isLiked ? AppColors.red : AppColors.black87,
+                      color: controller.isLiked
+                          ? AppColors.red
+                          : AppColors.black87,
                     ),
                     onPressed: onLikeTap,
                   ),
@@ -142,26 +151,7 @@ class PostDetailContent extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     _engagementSummary(),
-                    style: TextStyle(
-                      color: AppColors.grey600,
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        color: AppColors.black87,
-                        height: 1.4,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: '@${author?.username ?? 'user'}  ',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        TextSpan(text: controller.detail.caption),
-                      ],
-                    ),
+                    style: TextStyle(color: AppColors.grey600, fontSize: 12),
                   ),
                 ],
               ),

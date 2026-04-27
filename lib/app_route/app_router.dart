@@ -30,6 +30,14 @@ class AppRouter {
     Map<String, String> params,
     Object? arguments,
   ) {
+    final String? postDetailPathId = _postDetailPathId(routeName);
+    if (postDetailPathId != null) {
+      return PostDetailScreen(
+        postId:
+            _postIdFromArguments(arguments) ?? params['id'] ?? postDetailPathId,
+      );
+    }
+
     switch (routeName) {
       case RouteNames.splash:
         return SplashScreen();
@@ -341,6 +349,19 @@ class AppRouter {
       final Object? id = arguments['id'];
       if (id is String && id.trim().isNotEmpty) {
         return id.trim();
+      }
+    }
+    return null;
+  }
+
+  static String? _postDetailPathId(String routeName) {
+    for (final String prefix in <String>['/post-detail/', '/post/']) {
+      if (!routeName.startsWith(prefix)) {
+        continue;
+      }
+      final String postId = routeName.substring(prefix.length).trim();
+      if (postId.isNotEmpty) {
+        return Uri.decodeComponent(postId);
       }
     }
     return null;

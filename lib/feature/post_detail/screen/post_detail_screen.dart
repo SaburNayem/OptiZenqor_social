@@ -13,6 +13,7 @@ import '../../../core/platform/device_settings_service.dart';
 import '../../../core/widgets/app_shimmer.dart';
 import '../../bookmarks/controller/bookmarks_controller.dart';
 import '../../bookmarks/widget/save_post_collection_sheet.dart';
+import '../../home_feed/controller/home_feed_controller.dart';
 import '../../media_viewer/controller/media_viewer_controller.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
 import '../../share_repost_system/widget/share_post_action_sheet.dart';
@@ -23,12 +24,10 @@ import '../widget/post_detail_comment_composer.dart';
 import '../widget/post_detail_content.dart';
 
 class PostDetailScreen extends StatefulWidget {
-  const PostDetailScreen({
-    super.key,
-    this.postId,
-  });
+  const PostDetailScreen({super.key, this.postId, this.initialPost});
 
   final String? postId;
+  final PostModel? initialPost;
 
   @override
   State<PostDetailScreen> createState() => _PostDetailScreenState();
@@ -49,6 +48,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     _controller = PostDetailController();
     _commentController = TextEditingController();
     _commentFocusNode = FocusNode();
+    final PostModel? initialPost = widget.initialPost;
+    if (initialPost != null) {
+      _controller.primeFromPost(initialPost);
+    }
     _loadPost();
   }
 
@@ -131,6 +134,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     });
   }
 
+  Future<void> _togglePostLike() async {
+    final HomeFeedController? homeFeedController = _homeFeedControllerOf(
+      context,
+    );
+    await _controller.toggleLike();
+    homeFeedController?.syncPostLike(
+      postId: _controller.detail.id,
+      liked: _controller.isLiked,
+      likes: _controller.detail.likes,
+    );
+  }
+
   void _openMediaViewer({required String title, required int initialIndex}) {
     AppGet.toNamed(
       RouteNames.mediaViewer,
@@ -196,9 +211,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(
-                textController.text.trim(),
-              ),
+              onPressed: () =>
+                  Navigator.of(dialogContext).pop(textController.text.trim()),
               child: const Text('Save'),
             ),
           ],
@@ -219,10 +233,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (!mounted) {
         return;
       }
-      AppGet.snackbar(
-        'Post',
-        error.toString().replaceFirst('Exception: ', ''),
-      );
+      AppGet.snackbar('Post', error.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -260,10 +271,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       if (!mounted) {
         return;
       }
-      AppGet.snackbar(
-        'Post',
-        error.toString().replaceFirst('Exception: ', ''),
-      );
+      AppGet.snackbar('Post', error.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -281,10 +289,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               children: [
                 const Text(
                   'Likes',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -297,7 +302,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 const SizedBox(
                   height: 80,
                   child: Center(
-                    child: Text('Detailed reaction users are not available yet'),
+                    child: Text(
+                      'Detailed reaction users are not available yet',
+                    ),
                   ),
                 ),
               ],
@@ -384,9 +391,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       ? Icons.bookmark_remove_outlined
                       : Icons.bookmark_add_outlined,
                 ),
-                title: Text(
-                  isBookmarked ? 'Remove from saved' : 'Save post',
-                ),
+                title: Text(isBookmarked ? 'Remove from saved' : 'Save post'),
                 onTap: () async {
                   Navigator.of(sheetContext).pop();
                   if (!isBookmarked) {
@@ -523,10 +528,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         title: const Text(''),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.more_horiz,
-              color: AppColors.black87,
-            ),
+            icon: const Icon(Icons.more_horiz, color: AppColors.black87),
             onPressed: () => _showMoreActions(
               bookmarksController: bookmarksController,
               isBookmarked: isBookmarked,
@@ -551,18 +553,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               title: author?.name ?? 'Post media',
               initialIndex: index,
             ),
-            onLikeTap: () => controller.toggleLike(),
+            onLikeTap: _togglePostLike,
             onLikeCountTap: _showLikesSheet,
             onCommentTap: _focusCommentField,
             onShareTap: _sharePost,
-            onBookmarkTap: () => _handleBookmarkTap(
-              bookmarksController: bookmarksController,
-            ),
+            onBookmarkTap: () =>
+                _handleBookmarkTap(bookmarksController: bookmarksController),
             onRefresh: controller.refresh,
           ),
           PostDetailCommentComposer(
-            avatarUrl:
-                controller.currentUser?.avatar.isNotEmpty == true
+            avatarUrl: controller.currentUser?.avatar.isNotEmpty == true
                 ? controller.currentUser!.avatar
                 : 'https://placehold.co/80x80',
             commentController: _commentController,
@@ -606,6 +606,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       return null;
     }
   }
+
+  HomeFeedController? _homeFeedControllerOf(BuildContext context) {
+    try {
+      return BlocProvider.of<HomeFeedController>(context);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 class _PostDetailRetryView extends StatelessWidget {
@@ -634,17 +642,17 @@ class _PostDetailRetryView extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
               'Check Wi-Fi or mobile data, then try again.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.grey600),
             ),
             const SizedBox(height: 18),
             Wrap(

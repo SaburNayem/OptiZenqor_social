@@ -9,11 +9,9 @@ import '../model/main_shell_destination_model.dart';
 import '../model/main_shell_drawer_section_model.dart';
 
 class MainShellController extends Cubit<int> {
-  MainShellController({
-    AuthRepository? authRepository,
-    Object? arguments,
-  }) : _authRepository = authRepository ?? AuthRepository(),
-       super(0) {
+  MainShellController({AuthRepository? authRepository, Object? arguments})
+    : _authRepository = authRepository ?? AuthRepository(),
+      super(0) {
     syncArguments(arguments);
     _hydrateCurrentUser();
   }
@@ -71,7 +69,6 @@ class MainShellController extends Cubit<int> {
     following: 0,
   );
 
-
   String get currentTitle => destinations[index].title;
 
   bool get showCreateAction => index == 0;
@@ -83,7 +80,9 @@ class MainShellController extends Cubit<int> {
     _lastArguments = arguments;
     if (arguments is Map && arguments['tabIndex'] is int) {
       final int tabIndex = arguments['tabIndex'] as int;
-      if (tabIndex >= 0 && tabIndex < destinations.length && tabIndex != index) {
+      if (tabIndex >= 0 &&
+          tabIndex < destinations.length &&
+          tabIndex != index) {
         index = tabIndex;
         emit(index);
       }
@@ -224,6 +223,8 @@ class MainShellController extends Cubit<int> {
     emit(index);
     try {
       await _authRepository.logout();
+      currentUser = _guestUser;
+      index = 0;
       // Navigation is handled by the shell screen listener.
       emit(index);
     } catch (error, stackTrace) {
@@ -236,4 +237,3 @@ class MainShellController extends Cubit<int> {
     }
   }
 }
-

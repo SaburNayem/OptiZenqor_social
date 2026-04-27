@@ -85,7 +85,9 @@ class StoriesRepository {
       response.data,
     );
     if (storyPayload == null) {
-      throw Exception('Story created but the API did not return a story object.');
+      throw Exception(
+        'Story created but the API did not return a story object.',
+      );
     }
 
     StoryModel created = StoryModel.fromJson(storyPayload);
@@ -113,7 +115,8 @@ class StoriesRepository {
 
     final UserModel? currentUser = await _authRepository.currentUser();
     final Map<String, dynamic> payload = <String, dynamic>{
-      if (currentUser?.id.trim().isNotEmpty == true) 'viewerId': currentUser!.id,
+      if (currentUser?.id.trim().isNotEmpty == true)
+        'viewerId': currentUser!.id,
     };
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
@@ -155,7 +158,8 @@ class StoriesRepository {
         .post(ApiEndPoints.storyReactions(storyId), <String, dynamic>{
           'reaction': 'love',
           'active': liked,
-          if (currentUser?.id.trim().isNotEmpty == true) 'userId': currentUser!.id,
+          if (currentUser?.id.trim().isNotEmpty == true)
+            'userId': currentUser!.id,
         });
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to update story reaction.');
@@ -174,6 +178,7 @@ class StoriesRepository {
       throw Exception(response.message ?? 'Unable to delete story right now.');
     }
   }
+
   Future<List<String>> _uploadStoryMedia({
     required List<String> mediaPaths,
     required String authorId,
@@ -254,7 +259,7 @@ class StoriesRepository {
   }
 
   bool _looksLikeStory(Map<String, dynamic> payload) {
-    return payload.containsKey('id') &&
+    return (payload.containsKey('id') || payload.containsKey('_id')) &&
         (payload.containsKey('media') ||
             payload.containsKey('mediaItems') ||
             payload.containsKey('text') ||

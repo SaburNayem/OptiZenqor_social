@@ -1,4 +1,5 @@
 import 'user_model.dart';
+import '../../helpers/media_url_resolver.dart';
 
 class PostModel {
   const PostModel({
@@ -29,11 +30,13 @@ class PostModel {
     final Map<String, dynamic>? authorJson = _readMap(json['author']);
     return PostModel(
       id: (json['id'] as Object? ?? '').toString(),
-      authorId:
-          (json['authorId'] as Object? ?? authorJson?['id'] ?? '').toString(),
+      authorId: (json['authorId'] as Object? ?? authorJson?['id'] ?? '')
+          .toString(),
       caption: (json['caption'] as String? ?? '').trim(),
       tags: _readStringList(json['tags']),
-      media: _readStringList(json['media']),
+      media: _readStringList(
+        json['media'],
+      ).map(MediaUrlResolver.resolve).toList(growable: false),
       likes: _readCount(json['likes']),
       comments: _readCount(json['comments']),
       createdAt: _readDateTime(json['createdAt']),

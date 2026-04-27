@@ -1,4 +1,5 @@
 import '../../../core/data/models/user_model.dart';
+import '../../../core/helpers/media_url_resolver.dart';
 
 class PostDetailModel {
   const PostDetailModel({
@@ -14,6 +15,7 @@ class PostDetailModel {
     this.bookmarkCount = 0,
     this.audience = 'Everyone',
     this.author,
+    this.liked = false,
   });
 
   factory PostDetailModel.fromApiJson(
@@ -28,6 +30,8 @@ class PostDetailModel {
       id:
           (detailJson['id'] as Object? ??
                   json['id'] as Object? ??
+                  detailJson['_id'] as Object? ??
+                  json['_id'] as Object? ??
                   '')
               .toString(),
       authorId:
@@ -36,11 +40,11 @@ class PostDetailModel {
                   '')
               .toString(),
       caption:
-          (detailJson['caption'] as String? ??
-                  json['caption'] as String? ??
-                  '')
+          (detailJson['caption'] as String? ?? json['caption'] as String? ?? '')
               .trim(),
-      media: _readStringList(detailJson['media'] ?? json['media']),
+      media: _readStringList(
+        detailJson['media'] ?? json['media'],
+      ).map(MediaUrlResolver.resolve).toList(growable: false),
       likes: _readInt(
         engagementSummary['likes'] ?? detailJson['likes'] ?? json['likes'],
       ),
@@ -61,6 +65,14 @@ class PostDetailModel {
       author: _readMap(json['author']) == null
           ? null
           : UserModel.fromApiJson(_readMap(json['author'])!),
+      liked:
+          detailJson['liked'] as bool? ??
+          detailJson['isLiked'] as bool? ??
+          detailJson['isLikedByMe'] as bool? ??
+          json['liked'] as bool? ??
+          json['isLiked'] as bool? ??
+          json['isLikedByMe'] as bool? ??
+          false,
     );
   }
 
@@ -76,6 +88,7 @@ class PostDetailModel {
   final int bookmarkCount;
   final String audience;
   final UserModel? author;
+  final bool liked;
 
   PostDetailModel copyWith({
     String? caption,
@@ -85,6 +98,7 @@ class PostDetailModel {
     int? viewCount,
     int? bookmarkCount,
     UserModel? author,
+    bool? liked,
   }) {
     return PostDetailModel(
       id: id,
@@ -99,6 +113,7 @@ class PostDetailModel {
       bookmarkCount: bookmarkCount ?? this.bookmarkCount,
       audience: audience,
       author: author ?? this.author,
+      liked: liked ?? this.liked,
     );
   }
 

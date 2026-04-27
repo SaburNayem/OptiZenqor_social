@@ -919,10 +919,6 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     required StoryMediaTransform transform,
     required Size bodySize,
   }) {
-    final List<String> mediaItems = story.mediaItems.isNotEmpty
-        ? story.mediaItems
-        : (story.media.trim().isNotEmpty ? <String>[story.media] : <String>[]);
-    final bool singlePhoto = mediaItems.length == 1 && !_looksLikeVideo(path);
     return Center(
       child: Transform.translate(
         offset: Offset(transform.offsetDx, transform.offsetDy),
@@ -935,7 +931,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
               child: _buildStoryMediaItem(
                 story,
                 path,
-                fit: singlePhoto ? BoxFit.cover : BoxFit.contain,
+                fit: BoxFit.contain,
               ),
             ),
           ),

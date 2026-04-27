@@ -9,6 +9,7 @@ class SearchDiscoveryService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'global_search': ApiEndPoints.globalSearch,
     'search': ApiEndPoints.search,
     'hashtags': ApiEndPoints.hashtags,
     'trending': ApiEndPoints.trending,

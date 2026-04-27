@@ -35,11 +35,12 @@ class UserModel {
             .replaceAll(' ', '_');
 
     return UserModel(
-      id: (json['id'] as Object? ?? '').toString(),
+      id: (json['id'] as Object? ?? json['_id'] as Object? ?? '').toString(),
       name: (json['name'] as String? ?? 'Unknown user').trim(),
       username: username,
       avatar: _sanitizeImageUrl(
-        (json['avatar'] as String? ?? json['avatarUrl'] as String? ?? '').trim(),
+        (json['avatar'] as String? ?? json['avatarUrl'] as String? ?? '')
+            .trim(),
       ),
       bio: (json['bio'] as String? ?? '').trim(),
       role: _parseRole(json['role']),
@@ -55,8 +56,7 @@ class UserModel {
               .trim(),
       isPrivate: json['isPrivate'] as bool? ?? false,
       verified:
-          json['verified'] as bool? ??
-          verificationStatus.contains('verified'),
+          json['verified'] as bool? ?? verificationStatus.contains('verified'),
       verificationStatus: verificationStatus,
       verificationReason: json['verificationReason'] as String?,
       badgeStyle: (json['badgeStyle'] as String? ?? 'standard').trim(),
