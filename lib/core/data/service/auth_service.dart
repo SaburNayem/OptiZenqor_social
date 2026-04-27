@@ -267,13 +267,39 @@ class AuthService {
       session?['profile'],
       session?['account'],
       session?['active'],
+      session?['data'],
+      session?['result'],
+      session,
     ]) {
       final Map<String, dynamic>? user = _readMap(candidate);
-      if (user != null) {
+      if (_looksLikeUserPayload(user)) {
         return user;
+      }
+      final Map<String, dynamic>? nestedUser = _readMap(user?['user']);
+      if (_looksLikeUserPayload(nestedUser)) {
+        return nestedUser;
+      }
+      final Map<String, dynamic>? nestedProfile = _readMap(user?['profile']);
+      if (_looksLikeUserPayload(nestedProfile)) {
+        return nestedProfile;
+      }
+      final Map<String, dynamic>? nestedAccount = _readMap(user?['account']);
+      if (_looksLikeUserPayload(nestedAccount)) {
+        return nestedAccount;
       }
     }
     return null;
+  }
+
+  bool _looksLikeUserPayload(Map<String, dynamic>? payload) {
+    if (payload == null || payload.isEmpty) {
+      return false;
+    }
+    return payload.containsKey('id') ||
+        payload.containsKey('_id') ||
+        payload.containsKey('name') ||
+        payload.containsKey('username') ||
+        payload.containsKey('email');
   }
 
   Map<String, dynamic>? _readMap(Object? value) {

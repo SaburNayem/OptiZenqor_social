@@ -74,7 +74,10 @@ class LoginController extends Cubit<FormStateModel> {
       emit(
         state.copyWith(isSubmitting: false, successMessage: 'Login successful'),
       );
-      AppGet.offNamed(RouteNames.shell);
+      AppGet.offAllNamed(
+        RouteNames.shell,
+        arguments: <String, dynamic>{'refreshUser': true},
+      );
     } on AuthException catch (e, st) {
       debugPrint('[Login] Auth failed: ${e.message}');
       debugPrint('$st');

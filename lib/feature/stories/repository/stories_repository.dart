@@ -48,7 +48,6 @@ class StoriesRepository {
       'media': remoteMedia.isEmpty ? '' : remoteMedia.first,
       'mediaItems': remoteMedia,
       'isLocalFile': false,
-      'seen': false,
       if ((draft.text ?? '').trim().isNotEmpty) 'text': draft.text!.trim(),
       if ((draft.music ?? '').trim().isNotEmpty) 'music': draft.music!.trim(),
       if (draft.backgroundColors.isNotEmpty)

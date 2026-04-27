@@ -87,12 +87,24 @@ class MainShellController extends Cubit<int> {
         emit(index);
       }
     }
+    if (arguments is Map && arguments['refreshUser'] == true) {
+      refreshCurrentUser();
+    }
   }
 
-  Future<void> _hydrateCurrentUser() async {
+  Future<void> refreshCurrentUser() => _hydrateCurrentUser(force: true);
+
+  Future<void> _hydrateCurrentUser({bool force = false}) async {
     try {
       final UserModel? sessionUser = await _authRepository.currentUser();
       if (sessionUser == null) {
+        if (force) {
+          currentUser = _guestUser;
+          emit(index);
+        }
+        return;
+      }
+      if (!force && currentUser.id == sessionUser.id) {
         return;
       }
       currentUser = sessionUser;

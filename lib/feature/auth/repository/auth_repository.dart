@@ -45,10 +45,7 @@ class AuthRepository {
       );
     }
     debugPrint('[AuthRepository] AuthService.login success');
-    await _hydrateSessionUserIfNeeded(
-      fallbackEmail: email,
-      fallbackRole: role,
-    );
+    await _hydrateSessionUserIfNeeded(fallbackEmail: email, fallbackRole: role);
     debugPrint(
       '[AuthRepository] Session persisted key=${StorageKeys.authSession}',
     );
@@ -202,7 +199,9 @@ class AuthRepository {
     }
 
     final UserModel resolved = UserModel.fromApiJson(user);
-    return resolved.id.isEmpty && resolved.name.trim().isEmpty ? null : resolved;
+    return resolved.id.isEmpty && resolved.name.trim().isEmpty
+        ? null
+        : resolved;
   }
 
   Map<String, dynamic>? _extractSessionPayload(Map<String, dynamic> payload) {
@@ -253,12 +252,14 @@ class AuthRepository {
 
     final Map<String, dynamic>? payload = _extractSessionPayload(session);
     final Map<String, dynamic>? tokens = _readMap(payload?['tokens']);
-    final String accessToken = ((payload?['accessToken'] ??
-                payload?['token'] ??
-                tokens?['accessToken']) as Object? ??
-            '')
-        .toString()
-        .trim();
+    final String accessToken =
+        ((payload?['accessToken'] ??
+                        payload?['token'] ??
+                        tokens?['accessToken'])
+                    as Object? ??
+                '')
+            .toString()
+            .trim();
     return accessToken.isNotEmpty;
   }
 
@@ -330,7 +331,9 @@ class AuthRepository {
     if (user == null || user.isEmpty) {
       return false;
     }
-    final String id = (user['id'] as Object? ?? '').toString().trim();
+    final String id = (user['id'] as Object? ?? user['_id'] as Object? ?? '')
+        .toString()
+        .trim();
     final String name = (user['name'] as String? ?? '').trim();
     final String username = (user['username'] as String? ?? '').trim();
     return id.isNotEmpty || name.isNotEmpty || username.isNotEmpty;
