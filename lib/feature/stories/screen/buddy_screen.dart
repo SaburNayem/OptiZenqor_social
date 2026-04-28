@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/common_widget/empty_state_view.dart';
+import '../../../core/common_widget/error_state_view.dart';
+import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/user_model.dart';
-import '../../../core/enums/user_role.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../../../core/widgets/app_avatar.dart';
+import '../../chat/repository/chat_repository.dart';
+import '../../chat/screen/chat_detail_screen.dart';
+import '../model/buddy_relationship_model.dart';
+import '../repository/buddy_repository.dart';
 
 enum _BuddyCardType { sent, received, buddy }
 
@@ -18,88 +23,19 @@ class BuddyScreen extends StatefulWidget {
 class _BuddyScreenState extends State<BuddyScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  late List<_BuddyCardModel> _sentRequests;
-  late List<_BuddyCardModel> _receivedRequests;
-  late List<_BuddyCardModel> _buddies;
+  final BuddyRepository _repository = BuddyRepository();
+  final ChatRepository _chatRepository = ChatRepository();
+  List<_BuddyCardModel> _sentRequests = <_BuddyCardModel>[];
+  List<_BuddyCardModel> _receivedRequests = <_BuddyCardModel>[];
+  List<_BuddyCardModel> _buddies = <_BuddyCardModel>[];
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _sentRequests = <_BuddyCardModel>[
-      _BuddyCardModel(
-        user: _mockUser(
-          id: 'sent_1',
-          name: 'Maya Quinn',
-          username: 'mayaquinn',
-          avatar: 'https://placehold.co/120x120/png',
-          verified: true,
-        ),
-        type: _BuddyCardType.sent,
-        mutualBuddyText: '8 mutual buddies',
-        responseText: 'Request sent 2 days ago',
-      ),
-      _BuddyCardModel(
-        user: _mockUser(
-          id: 'sent_2',
-          name: 'Rafi Ahmed',
-          username: 'rafiahmed',
-          avatar: 'https://placehold.co/120x120/png',
-        ),
-        type: _BuddyCardType.sent,
-        mutualBuddyText: '3 mutual buddies',
-        responseText: 'Waiting for response',
-      ),
-    ];
-    _receivedRequests = <_BuddyCardModel>[
-      _BuddyCardModel(
-        user: _mockUser(
-          id: 'receive_1',
-          name: 'Luna Crafts',
-          username: 'luna.crafts',
-          avatar: 'https://placehold.co/120x120/png',
-        ),
-        type: _BuddyCardType.received,
-        mutualBuddyText: '6 mutual buddies',
-        responseText: 'Requested you today',
-      ),
-      _BuddyCardModel(
-        user: _mockUser(
-          id: 'receive_2',
-          name: 'Tariq Notes',
-          username: 'tariqnotes',
-          avatar: 'https://placehold.co/120x120/png',
-        ),
-        type: _BuddyCardType.received,
-        mutualBuddyText: '2 mutual buddies',
-        responseText: 'Wants to join your buddies',
-      ),
-    ];
-    _buddies = <_BuddyCardModel>[
-      _BuddyCardModel(
-        user: _mockUser(
-          id: 'buddy_1',
-          name: 'Nayem Hasan',
-          username: 'nayem',
-          avatar: 'https://placehold.co/120x120/png',
-          verified: true,
-        ),
-        type: _BuddyCardType.buddy,
-        mutualBuddyText: '12 mutual buddies',
-        responseText: 'Buddy since last month',
-      ),
-      _BuddyCardModel(
-        user: _mockUser(
-          id: 'buddy_2',
-          name: 'Sadia Noor',
-          username: 'sadia.noor',
-          avatar: 'https://placehold.co/120x120/png',
-        ),
-        type: _BuddyCardType.buddy,
-        mutualBuddyText: '5 mutual buddies',
-        responseText: 'Usually replies to your stories',
-      ),
-    ];
+    _loadBuddies();
   }
 
   @override
@@ -122,27 +58,74 @@ class _BuddyScreenState extends State<BuddyScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: <Widget>[
-          _buildBuddyList(
-            items: _sentRequests,
-            emptyTitle: 'No sent requests',
-            emptyMessage: 'Buddy requests you send will show here.',
-          ),
-          _buildBuddyList(
-            items: _receivedRequests,
-            emptyTitle: 'No received requests',
-            emptyMessage: 'Incoming buddy requests will show here.',
-          ),
-          _buildBuddyList(
-            items: _buddies,
-            emptyTitle: 'No buddies yet',
-            emptyMessage: 'Accepted buddies will show here.',
-          ),
-        ],
-      ),
+      body: _buildBody(),
     );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_errorMessage != null) {
+      return ErrorStateView(message: _errorMessage!, onRetry: _loadBuddies);
+    }
+    return TabBarView(
+      controller: _tabController,
+      children: <Widget>[
+        _buildBuddyList(
+          items: _sentRequests,
+          emptyTitle: 'No sent requests',
+          emptyMessage: 'Buddy requests you send will show here.',
+        ),
+        _buildBuddyList(
+          items: _receivedRequests,
+          emptyTitle: 'No received requests',
+          emptyMessage: 'Incoming buddy requests will show here.',
+        ),
+        _buildBuddyList(
+          items: _buddies,
+          emptyTitle: 'No buddies yet',
+          emptyMessage: 'Accepted buddies will show here.',
+        ),
+      ],
+    );
+  }
+
+  Future<void> _loadBuddies() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final List<dynamic> results = await Future.wait<dynamic>(<Future<dynamic>>[
+        _repository.fetchSentRequests(),
+        _repository.fetchReceivedRequests(),
+        _repository.fetchBuddies(),
+      ]);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _sentRequests = (results[0] as List<BuddyRelationshipModel>)
+            .map((BuddyRelationshipModel item) => _mapItem(item, _BuddyCardType.sent))
+            .toList(growable: false);
+        _receivedRequests = (results[1] as List<BuddyRelationshipModel>)
+            .map((BuddyRelationshipModel item) => _mapItem(item, _BuddyCardType.received))
+            .toList(growable: false);
+        _buddies = (results[2] as List<BuddyRelationshipModel>)
+            .map((BuddyRelationshipModel item) => _mapItem(item, _BuddyCardType.buddy))
+            .toList(growable: false);
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLoading = false;
+        _errorMessage = error.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   Widget _buildBuddyList({
@@ -171,70 +154,115 @@ class _BuddyScreenState extends State<BuddyScreen>
     );
   }
 
-  void _acceptRequest(_BuddyCardModel item) {
-    setState(() {
-      _receivedRequests.removeWhere((entry) => entry.user.id == item.user.id);
-      _buddies = <_BuddyCardModel>[
-        _BuddyCardModel(
-          user: item.user,
-          type: _BuddyCardType.buddy,
-          mutualBuddyText: item.mutualBuddyText,
-          responseText: 'You are now buddies',
+  Future<void> _acceptRequest(_BuddyCardModel item) async {
+    try {
+      final BuddyRelationshipModel accepted = await _repository.acceptRequest(
+        item.id,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _receivedRequests.removeWhere((entry) => entry.id == item.id);
+        _buddies = <_BuddyCardModel>[
+          _mapItem(accepted, _BuddyCardType.buddy),
+          ..._buddies,
+        ];
+      });
+      AppFeedback.showSnackbar(title: 'Buddy', message: 'Request accepted');
+    } catch (error) {
+      AppFeedback.showSnackbar(
+        title: 'Buddy',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
+  Future<void> _cancelRequest(_BuddyCardModel item) async {
+    try {
+      await _repository.cancelRequest(item.id);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _sentRequests.removeWhere((entry) => entry.id == item.id);
+        _receivedRequests.removeWhere((entry) => entry.id == item.id);
+      });
+      AppFeedback.showSnackbar(title: 'Buddy', message: 'Request cancelled');
+    } catch (error) {
+      AppFeedback.showSnackbar(
+        title: 'Buddy',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
+  Future<void> _removeBuddy(_BuddyCardModel item) async {
+    try {
+      await _repository.removeBuddy(item.user.id);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _buddies.removeWhere((entry) => entry.user.id == item.user.id);
+      });
+      AppFeedback.showSnackbar(
+        title: 'Buddy',
+        message: 'Removed from buddy list',
+      );
+    } catch (error) {
+      AppFeedback.showSnackbar(
+        title: 'Buddy',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
+  Future<void> _messageBuddy(_BuddyCardModel item) async {
+    try {
+      final thread = await _chatRepository.createThread(item.user.id);
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ChatDetailScreen(
+            user: thread.user.id.isNotEmpty ? thread.user : item.user,
+            initialMessage: thread.lastMessageModel ??
+                MessageModel(
+                  id: 'buddy_msg_${DateTime.now().microsecondsSinceEpoch}',
+                  chatId: thread.chatId,
+                  senderId: item.user.id,
+                  text: 'Say hi to your buddy',
+                  timestamp: DateTime.now(),
+                  read: true,
+                ),
+          ),
         ),
-        ..._buddies,
-      ];
-    });
-    AppFeedback.showSnackbar(
-      title: 'Buddy',
-      message: 'Request accepted',
-    );
+      );
+    } catch (error) {
+      AppFeedback.showSnackbar(
+        title: 'Chat',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
   }
 
-  void _cancelRequest(_BuddyCardModel item) {
-    setState(() {
-      _sentRequests.removeWhere((entry) => entry.user.id == item.user.id);
-      _receivedRequests.removeWhere((entry) => entry.user.id == item.user.id);
-    });
-    AppFeedback.showSnackbar(
-      title: 'Buddy',
-      message: 'Request cancelled',
-    );
-  }
-
-  void _removeBuddy(_BuddyCardModel item) {
-    setState(() {
-      _buddies.removeWhere((entry) => entry.user.id == item.user.id);
-    });
-    AppFeedback.showSnackbar(
-      title: 'Buddy',
-      message: 'Removed from buddy list',
-    );
-  }
-
-  void _messageBuddy(_BuddyCardModel item) {
-    AppFeedback.showSnackbar(
-      title: 'Message',
-      message: 'Open chat with ${item.user.name}',
-    );
-  }
-
-  UserModel _mockUser({
-    required String id,
-    required String name,
-    required String username,
-    required String avatar,
-    bool verified = false,
-  }) {
-    return UserModel(
-      id: id,
-      name: name,
-      username: username,
-      avatar: avatar,
-      bio: '',
-      role: UserRole.user,
-      followers: 0,
-      following: 0,
-      verified: verified,
+  _BuddyCardModel _mapItem(
+    BuddyRelationshipModel item,
+    _BuddyCardType type,
+  ) {
+    return _BuddyCardModel(
+      id: item.id,
+      user: item.user,
+      type: type,
+      mutualBuddyText:
+          '${item.mutualCount} mutual ${item.mutualCount == 1 ? 'buddy' : 'buddies'}',
+      responseText: switch (type) {
+        _BuddyCardType.sent => 'Request sent',
+        _BuddyCardType.received => 'Sent you a buddy request',
+        _BuddyCardType.buddy => 'Buddy connected',
+      },
     );
   }
 }
@@ -301,9 +329,9 @@ class _BuddyCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             item.responseText,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 4),
           Text(
@@ -313,23 +341,18 @@ class _BuddyCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Row(
-            children: _buildActions(context),
-          ),
+          Row(children: _buildActions()),
         ],
       ),
     );
   }
 
-  List<Widget> _buildActions(BuildContext context) {
+  List<Widget> _buildActions() {
     switch (item.type) {
       case _BuddyCardType.buddy:
         return <Widget>[
           Expanded(
-            child: FilledButton(
-              onPressed: onMessage,
-              child: const Text('Msg'),
-            ),
+            child: FilledButton(onPressed: onMessage, child: const Text('Msg')),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -370,12 +393,14 @@ class _BuddyCard extends StatelessWidget {
 
 class _BuddyCardModel {
   const _BuddyCardModel({
+    required this.id,
     required this.user,
     required this.type,
     required this.mutualBuddyText,
     required this.responseText,
   });
 
+  final String id;
   final UserModel user;
   final _BuddyCardType type;
   final String mutualBuddyText;

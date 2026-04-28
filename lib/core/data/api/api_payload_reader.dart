@@ -26,6 +26,7 @@ class ApiPayloadReader {
     'documents',
     'reels',
     'posts',
+    'stories',
   ];
 
   static Map<String, dynamic>? readMap(Object? value) {
@@ -83,10 +84,7 @@ class ApiPayloadReader {
       return const <Map<String, dynamic>>[];
     }
 
-    for (final String key in <String>[
-      ...preferredKeys,
-      ..._defaultListKeys,
-    ]) {
+    for (final String key in <String>[...preferredKeys, ..._defaultListKeys]) {
       final List<Map<String, dynamic>> items = readMapListFromAny(map[key]);
       if (items.isNotEmpty) {
         return items;
@@ -166,10 +164,7 @@ class ApiPayloadReader {
     return null;
   }
 
-  static String readString(
-    Object? value, {
-    String fallback = '',
-  }) {
+  static String readString(Object? value, {String fallback = ''}) {
     final String resolved = value?.toString().trim() ?? '';
     return resolved.isEmpty ? fallback : resolved;
   }

@@ -114,12 +114,11 @@ class StoriesRepository {
 
     final UserModel? currentUser = await _authRepository.currentUser();
     final Map<String, dynamic> payload = <String, dynamic>{
-      if (currentUser?.id.trim().isNotEmpty == true)
-        'viewerId': currentUser!.id,
+      if (currentUser?.id.trim().isNotEmpty == true) 'userId': currentUser!.id,
     };
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
-        .post(ApiEndPoints.storyViewers(storyId), payload);
+        .post(ApiEndPoints.storyView(storyId), payload);
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to mark story as viewed.');
     }

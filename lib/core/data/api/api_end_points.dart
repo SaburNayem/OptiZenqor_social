@@ -94,6 +94,7 @@ class ApiEndPoints {
   static String storyById(String storyId) => '/stories/$storyId';
   static String storyComments(String storyId) => '/stories/$storyId/comments';
   static String storyReactions(String storyId) => '/stories/$storyId/reactions';
+  static String storyView(String storyId) => '/stories/$storyId/view';
 
   // ReelsController
   static const reels = '/reels';

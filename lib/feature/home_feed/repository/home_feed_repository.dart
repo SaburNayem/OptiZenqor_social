@@ -221,11 +221,17 @@ class HomeFeedRepository {
     }
   }
 
-  Future<List<StoryModel>> fetchStories() async {
+  Future<List<StoryModel>> fetchStories({String? scope}) async {
     final Set<String> seenStoryIds = await readSeenStoryIds();
     try {
       final ServiceResponseModel<Map<String, dynamic>> response = await _service
-          .getEndpoint('stories');
+          .apiClient
+          .get(
+            ApiEndPoints.stories,
+            queryParameters: scope == null || scope.trim().isEmpty
+                ? null
+                : <String, dynamic>{'scope': scope.trim()},
+          );
       if (!response.isSuccess || response.data['success'] == false) {
         return const <StoryModel>[];
       }
@@ -243,21 +249,6 @@ class HomeFeedRepository {
     } catch (_) {}
 
     return const <StoryModel>[];
-  }
-
-  Future<List<StoryModel>> readLocalStories() async {
-    final cached = await _storage.readJsonList(StorageKeys.localStories);
-    if (cached.isEmpty) {
-      return <StoryModel>[];
-    }
-    return cached.map(StoryModel.fromJson).toList();
-  }
-
-  Future<void> saveLocalStories(List<StoryModel> stories) {
-    return _storage.writeJsonList(
-      StorageKeys.localStories,
-      stories.map((story) => story.toJson()).toList(),
-    );
   }
 
   Future<Set<String>> readSeenStoryIds() async {

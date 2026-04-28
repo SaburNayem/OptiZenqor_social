@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
@@ -23,7 +25,6 @@ class AppAvatar extends StatelessWidget {
         CircleAvatar(
           radius: radius,
           foregroundImage: imageProvider,
-          onForegroundImageError: (_, _) {},
           child: Icon(
             Icons.person_rounded,
             size: radius,
@@ -53,7 +54,18 @@ class AppAvatar extends StatelessWidget {
     if (trimmed.isEmpty) {
       return null;
     }
-    return NetworkImage(trimmed);
+
+    final Uri? uri = Uri.tryParse(trimmed);
+    if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+      return NetworkImage(trimmed);
+    }
+
+    final File file = File(trimmed);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+
+    return null;
   }
 }
 

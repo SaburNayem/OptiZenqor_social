@@ -103,8 +103,8 @@ class HomeFeedController extends Cubit<int> {
       loadState = loadState.copyWith(
         isLoading: false,
         hasError: false,
-        isEmpty: posts.isEmpty,
-        isSuccess: posts.isNotEmpty,
+        isEmpty: posts.isEmpty && stories.isEmpty,
+        isSuccess: posts.isNotEmpty || stories.isNotEmpty,
         errorMessage: null,
       );
       _notify();
@@ -448,9 +448,6 @@ class HomeFeedController extends Cubit<int> {
         .toList(growable: false);
 
     stories = _sortStories(<StoryModel>[...resolvedStories, ...stories]);
-    await _repository.saveLocalStories(
-      stories.where((story) => story.id.startsWith('local_story_')).toList(),
-    );
     await _analytics.logEvent(
       'story_created_local',
       params: <String, dynamic>{
@@ -585,11 +582,6 @@ class HomeFeedController extends Cubit<int> {
     final int previousLength = seenStoryIds.length;
     seenStoryIds.addAll(ids);
     await _repository.saveSeenStoryIds(seenStoryIds);
-    await _repository.saveLocalStories(
-      stories
-          .where((StoryModel story) => story.id.startsWith('local_story_'))
-          .toList(),
-    );
     if (changed || seenStoryIds.length != previousLength) {
       _notify();
     }
@@ -608,11 +600,6 @@ class HomeFeedController extends Cubit<int> {
     stories = stories
         .where((StoryModel story) => story.id != normalizedId)
         .toList(growable: false);
-    await _repository.saveLocalStories(
-      stories
-          .where((StoryModel story) => story.id.startsWith('local_story_'))
-          .toList(),
-    );
     _notify();
   }
 

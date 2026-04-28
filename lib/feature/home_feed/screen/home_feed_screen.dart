@@ -108,6 +108,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     stories: controller.stories,
                     currentUser: currentUser,
                     users: storyUsersById.values.toList(growable: false),
+                    style: StoryRingListStyle.facebookCards,
                     onStoryAdded: (List<StoryModel> createdStories) async {
                       await controller.createStories(createdStories);
                       if (!context.mounted || !controller.hasError) {

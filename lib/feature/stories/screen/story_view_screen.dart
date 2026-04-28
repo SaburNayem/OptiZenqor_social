@@ -194,10 +194,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                                 const SizedBox(width: 8),
                                 Text(
                                   _timeLabelFor(
-                                    _controller.stories[_controller.currentIndex],
+                                    _controller.stories[_controller
+                                        .currentIndex],
                                   ),
                                   style: TextStyle(
-                                    color: AppColors.white.withValues(alpha: 0.6),
+                                    color: AppColors.white.withValues(
+                                      alpha: 0.6,
+                                    ),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -215,7 +218,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                                 if (value != 'delete') {
                                   return;
                                 }
-                                final bool confirmed = await _confirmDeleteStory();
+                                final bool confirmed =
+                                    await _confirmDeleteStory();
                                 if (!mounted || !confirmed) {
                                   return;
                                 }
@@ -274,12 +278,16 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                             onTap: _showViewersSheet,
                             child: Container(
                               height: 48,
-                              padding: const EdgeInsets.symmetric(horizontal: 18),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.black.withValues(alpha: 0.34),
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: AppColors.white.withValues(alpha: 0.18),
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.18,
+                                  ),
                                 ),
                               ),
                               child: Row(
@@ -321,14 +329,18 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                                     color: AppColors.transparent,
                                     borderRadius: BorderRadius.circular(24),
                                     border: Border.all(
-                                      color: AppColors.white.withValues(alpha: 0.3),
+                                      color: AppColors.white.withValues(
+                                        alpha: 0.3,
+                                      ),
                                     ),
                                   ),
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    'Reply to story',
+                                    'Reply to ${_displayNameForStory(currentStory)}',
                                     style: TextStyle(
-                                      color: AppColors.white.withValues(alpha: 0.8),
+                                      color: AppColors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
                                       fontSize: 14,
                                     ),
                                   ),
@@ -372,7 +384,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   UserModel? _getUser(StoryModel story) {
     if (_currentUser != null &&
-        (story.userId == _currentUser!.id || story.author?.id == _currentUser!.id)) {
+        (story.userId == _currentUser!.id ||
+            story.author?.id == _currentUser!.id)) {
       return _currentUser;
     }
 
@@ -381,7 +394,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
   }
 
   String _displayNameForStory(StoryModel story) {
-    return _getUser(story)?.name ?? 'Story';
+    final UserModel? user = _getUser(story);
+    final String name = user?.name.trim() ?? '';
+    if (name.isNotEmpty && name.toLowerCase() != 'unknown user') {
+      return name;
+    }
+    final String username = user?.username.trim() ?? '';
+    return username.isEmpty ? 'Story' : username;
   }
 
   bool _isMyStory(StoryModel story) {
@@ -432,12 +451,13 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   void _replyToStory(StoryModel story) {
     final UserModel? user = _getUser(story);
+    final String displayName = _displayNameForStory(story);
     AppGet.toNamed(RouteNames.chat);
     AppFeedback.showSnackbar(
       title: 'Message',
       message: user == null
           ? 'Open chat to reply to this story.'
-          : 'Reply to ${user.name} in messages.',
+          : 'Reply to $displayName in messages.',
     );
   }
 
@@ -487,9 +507,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       return;
     }
     try {
-      final List<UserModel> viewers = await _storiesRepository.fetchStoryViewers(
-        story.id,
-      );
+      final List<UserModel> viewers = await _storiesRepository
+          .fetchStoryViewers(story.id);
       if (mounted) {
         setState(() {
           _viewers = viewers;
@@ -557,7 +576,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                         : ListView.separated(
                             shrinkWrap: true,
                             itemCount: _viewers.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 8),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 8),
                             itemBuilder: (BuildContext context, int index) {
                               final UserModel viewer = _viewers[index];
                               return Container(
@@ -571,11 +591,15 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
                                 ),
                                 child: Row(
                                   children: <Widget>[
-                                    AppAvatar(imageUrl: viewer.avatar, radius: 18),
+                                    AppAvatar(
+                                      imageUrl: viewer.avatar,
+                                      radius: 18,
+                                    ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: <Widget>[
                                           Text(
@@ -624,19 +648,10 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
           ? Image.file(File(path), fit: BoxFit.cover)
           : Image.network(path, fit: BoxFit.cover);
 
-      return ClipOval(
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: image,
-        ),
-      );
+      return ClipOval(child: SizedBox(width: 36, height: 36, child: image));
     }
 
-    return AppAvatar(
-      imageUrl: _getUser(story)?.avatar ?? '',
-      radius: 18,
-    );
+    return AppAvatar(imageUrl: _getUser(story)?.avatar ?? '', radius: 18);
   }
 
   Future<bool> _confirmDeleteStory() async {
@@ -669,10 +684,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
         return;
       }
       Navigator.of(context).maybePop();
-      AppFeedback.showSnackbar(
-        title: 'Story',
-        message: 'Story deleted',
-      );
+      AppFeedback.showSnackbar(title: 'Story', message: 'Story deleted');
     } catch (error) {
       if (!mounted) {
         return;
@@ -691,6 +703,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       message: 'Report sent for $label.',
     );
   }
+
   Widget _buildStoryContent(StoryModel story) {
     final List<String> mediaItems = story.mediaItems.isNotEmpty
         ? story.mediaItems
@@ -763,18 +776,17 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
           child: SizedBox(
             width: bodySize.width,
             height: bodySize.height,
-            child: _buildStoryMediaItem(
-              story,
-              path,
-              fit: BoxFit.contain,
-            ),
+            child: _buildStoryMediaItem(story, path, fit: BoxFit.contain),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStoryCanvasBackground(StoryModel story, List<String> mediaItems) {
+  Widget _buildStoryCanvasBackground(
+    StoryModel story,
+    List<String> mediaItems,
+  ) {
     if (mediaItems.isNotEmpty && !_looksLikeVideo(mediaItems.first)) {
       return Stack(
         fit: StackFit.expand,
@@ -804,9 +816,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
     final List<Color> backgroundColors = story.backgroundColors.isEmpty
         ? const <Color>[AppColors.black, AppColors.grey800]
-        : story.backgroundColors.map((int color) => Color(color)).toList(
-            growable: false,
-          );
+        : story.backgroundColors
+              .map((int color) => Color(color))
+              .toList(growable: false);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -928,11 +940,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
             width: bodySize.width * transform.widthFactor,
             height: bodySize.height * transform.heightFactor,
             child: ClipRect(
-              child: _buildStoryMediaItem(
-                story,
-                path,
-                fit: BoxFit.contain,
-              ),
+              child: _buildStoryMediaItem(story, path, fit: BoxFit.contain),
             ),
           ),
         ),
@@ -1258,7 +1266,8 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     await Clipboard.setData(ClipboardData(text: shareText));
     AppFeedback.showSnackbar(
       title: 'Story',
-      message: 'Story share text copied. You can repost it to other chats or shorts.',
+      message:
+          'Story share text copied. You can repost it to other chats or shorts.',
     );
   }
 
@@ -1291,9 +1300,9 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
       _storyProgress = 0;
     });
 
-    final int durationMs =
-        _storyDurationFor(_controller.stories[_controller.currentIndex])
-            .inMilliseconds;
+    final int durationMs = _storyDurationFor(
+      _controller.stories[_controller.currentIndex],
+    ).inMilliseconds;
     final int tickMs = _storyTick.inMilliseconds;
     int elapsedMs = 0;
 

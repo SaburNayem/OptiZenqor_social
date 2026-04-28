@@ -96,16 +96,27 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   void _startReply(PostCommentModel comment) {
-    final String mention = '@${comment.authorUsername ?? comment.author} ';
+    final String replyName = _displayNameForCommentAuthor(comment);
+    final String mention = '$replyName ';
     setState(() {
       _replyToCommentId = comment.id;
-      _replyingToAuthor = comment.authorUsername ?? comment.author;
+      _replyingToAuthor = replyName;
       _commentController.value = TextEditingValue(
         text: mention,
         selection: TextSelection.collapsed(offset: mention.length),
       );
     });
     _focusCommentField();
+  }
+
+  String _displayNameForCommentAuthor(PostCommentModel comment) {
+    final String name = comment.author.trim();
+    if (name.isNotEmpty && name.toLowerCase() != 'unknown user') {
+      return name;
+    }
+    return comment.authorUsername?.trim().isNotEmpty == true
+        ? comment.authorUsername!.trim()
+        : 'Unknown user';
   }
 
   void _cancelReply() {

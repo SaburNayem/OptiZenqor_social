@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/data/models/load_state_model.dart';
-import '../../../core/data/models/message_model.dart';
 import '../../../core/data/service/analytics_service.dart';
+import '../model/chat_thread_model.dart';
 import '../model/chat_inbox_filter_model.dart';
 import '../repository/chat_repository.dart';
 
@@ -15,7 +15,7 @@ class ChatController extends ChangeNotifier {
   final AnalyticsService _analytics;
 
   LoadStateModel state = const LoadStateModel();
-  List<MessageModel> messages = <MessageModel>[];
+  List<ChatThreadModel> threads = <ChatThreadModel>[];
   final Set<String> _pinnedChatIds = <String>{};
   final Set<String> _archivedChatIds = <String>{};
   final Set<String> _retryChatIds = <String>{};
@@ -34,34 +34,39 @@ class ChatController extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<MessageModel> get inboxMessages {
-    final visible = messages
-        .where((MessageModel m) => !_archivedChatIds.contains(m.chatId))
+  List<ChatThreadModel> get inboxThreads {
+    final visible = threads
+        .where((ChatThreadModel item) => !_archivedChatIds.contains(item.chatId))
         .toList();
-    visible.sort((MessageModel a, MessageModel b) {
+    visible.sort((ChatThreadModel a, ChatThreadModel b) {
       final bool aPinned = _pinnedChatIds.contains(a.chatId);
       final bool bPinned = _pinnedChatIds.contains(b.chatId);
       if (aPinned == bPinned) {
-        return b.timestamp.compareTo(a.timestamp);
+        final DateTime aTime = a.lastMessageModel?.timestamp ?? DateTime(1970);
+        final DateTime bTime = b.lastMessageModel?.timestamp ?? DateTime(1970);
+        return bTime.compareTo(aTime);
       }
       return aPinned ? -1 : 1;
     });
     return visible;
   }
 
-  int unreadCount(String chatId) {
-    return messages.where((m) => m.chatId == chatId && !m.read).length;
-  }
+  int unreadCount(String chatId) => threads
+      .where((ChatThreadModel item) => item.chatId == chatId)
+      .fold<int>(
+        0,
+        (int total, ChatThreadModel item) => total + item.unreadCount,
+      );
 
   Future<void> loadChats() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     notifyListeners();
     try {
-      messages = await _repository.fetchInbox();
+      threads = await _repository.fetchThreads();
       state = state.copyWith(
         isLoading: false,
         isSuccess: true,
-        isEmpty: messages.isEmpty,
+        isEmpty: threads.isEmpty,
       );
       notifyListeners();
     } catch (_) {
@@ -117,7 +122,7 @@ class ChatController extends ChangeNotifier {
   }
 
   void deleteConversation(String chatId) {
-    messages = messages.where((message) => message.chatId != chatId).toList();
+    threads = threads.where((message) => message.chatId != chatId).toList();
     _pinnedChatIds.remove(chatId);
     _archivedChatIds.remove(chatId);
     _retryChatIds.remove(chatId);

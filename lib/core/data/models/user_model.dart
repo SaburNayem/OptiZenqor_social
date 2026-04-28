@@ -26,7 +26,13 @@ class UserModel {
   });
 
   factory UserModel.fromApiJson(Map<String, dynamic> json) {
-    final String username = (json['username'] as String? ?? '').trim();
+    final String username =
+        (json['username'] as String? ??
+                json['handle'] as String? ??
+                json['userName'] as String? ??
+                '')
+            .trim()
+            .replaceFirst('@', '');
     final String verificationStatus =
         ((json['verificationStatus'] ?? json['verification']) as String? ??
                 'not_requested')
@@ -36,10 +42,23 @@ class UserModel {
 
     return UserModel(
       id: (json['id'] as Object? ?? json['_id'] as Object? ?? '').toString(),
-      name: (json['name'] as String? ?? 'Unknown user').trim(),
+      name:
+          (json['name'] as String? ??
+                  json['displayName'] as String? ??
+                  json['fullName'] as String? ??
+                  json['authorName'] as String? ??
+                  json['username'] as String? ??
+                  'Unknown user')
+              .trim()
+              .replaceFirst('@', ''),
       username: username,
       avatar: _sanitizeImageUrl(
-        (json['avatar'] as String? ?? json['avatarUrl'] as String? ?? '')
+        (json['avatar'] as String? ??
+                json['avatarUrl'] as String? ??
+                json['profileImage'] as String? ??
+                json['profileImageUrl'] as String? ??
+                json['photoUrl'] as String? ??
+                '')
             .trim(),
       ),
       bio: (json['bio'] as String? ?? '').trim(),

@@ -60,7 +60,7 @@ class PostCommentTile extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: '@${comment.authorUsername ?? comment.author}  ',
+                          text: '${_displayNameFor(comment)}  ',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextSpan(text: comment.message),
@@ -94,10 +94,7 @@ class PostCommentTile extends StatelessWidget {
                     if (comment.isEdited)
                       const Text(
                         'Edited',
-                        style: TextStyle(
-                          color: AppColors.grey,
-                          fontSize: 11,
-                        ),
+                        style: TextStyle(color: AppColors.grey, fontSize: 11),
                       ),
                   ],
                 ),
@@ -118,8 +115,9 @@ class PostCommentTile extends StatelessWidget {
                           ? Icons.favorite
                           : Icons.favorite_border,
                       size: 16,
-                      color:
-                          comment.isLikedByMe ? AppColors.red : AppColors.grey,
+                      color: comment.isLikedByMe
+                          ? AppColors.red
+                          : AppColors.grey,
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -144,6 +142,16 @@ class PostCommentTile extends StatelessWidget {
       return comment.authorAvatar!;
     }
     return 'https://placehold.co/80x80';
+  }
+
+  String _displayNameFor(PostCommentModel comment) {
+    final String name = comment.author.trim();
+    if (name.isNotEmpty && name.toLowerCase() != 'unknown user') {
+      return name;
+    }
+    return comment.authorUsername?.trim().isNotEmpty == true
+        ? comment.authorUsername!.trim()
+        : 'Unknown user';
   }
 
   int get _effectiveDepth => depth.clamp(0, 3);

@@ -10,6 +10,7 @@ import 'package:record/record.dart';
 
 import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../repository/chat_repository.dart';
 import '../../calls/screen/audio_call_screen.dart';
 import '../../calls/screen/video_call_screen.dart';
 import 'chat_settings_screen.dart';
@@ -74,6 +75,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   ];
 
   late final ValueNotifier<List<MessageModel>> _messages;
+  final ChatRepository _chatRepository = ChatRepository();
   late final AudioRecorder _audioRecorder;
   late final AudioPlayer _audioPlayer;
   final TextEditingController _messageController = TextEditingController();
@@ -87,6 +89,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   bool _isTyping = false;
   bool _isRecording = false;
+  bool _isLoadingMessages = true;
+  bool _isSendingText = false;
   Duration _recordDuration = Duration.zero;
   String? _recordingPath;
   String? _playingMessageId;
@@ -99,42 +103,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     super.initState();
     _audioRecorder = AudioRecorder();
     _audioPlayer = AudioPlayer();
-    _messages = ValueNotifier<List<MessageModel>>(<MessageModel>[
-      MessageModel(
-        id: 'm1',
-        chatId: widget.initialMessage.chatId,
-        senderId: widget.user.id,
-        text: 'Hey Alex! How are you doing?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-        read: true,
-      ),
-      MessageModel(
-        id: 'm2',
-        chatId: widget.initialMessage.chatId,
-        senderId: 'me',
-        text:
-            'Hey Sarah! I am doing great, just working on a new project. How about you?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 20)),
-        read: true,
-      ),
-      MessageModel(
-        id: 'm3',
-        chatId: widget.initialMessage.chatId,
-        senderId: widget.user.id,
-        text: 'Same here. Been super busy this week.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 18)),
-        read: true,
-      ),
-      MessageModel(
-        id: 'm4',
-        chatId: widget.initialMessage.chatId,
-        senderId: widget.user.id,
-        text: 'Are we still on for tomorrow?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-        read: true,
-      ),
-    ]);
+    _messages = ValueNotifier<List<MessageModel>>(<MessageModel>[]);
     _messageController.addListener(_handleMessageChanged);
+    unawaited(_loadMessages());
     _positionSubscription = _audioPlayer.positionStream.listen((
       Duration value,
     ) {
@@ -293,10 +264,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         children: [
           const Divider(height: 1, thickness: 0.5),
           Expanded(
-            child: ValueListenableBuilder<List<MessageModel>>(
-              valueListenable: _messages,
-              builder: (BuildContext context, List<MessageModel> messages, _) {
-                return ListView.builder(
+            child: _isLoadingMessages
+                ? const Center(child: CircularProgressIndicator())
+                : ValueListenableBuilder<List<MessageModel>>(
+                    valueListenable: _messages,
+                    builder:
+                        (BuildContext context, List<MessageModel> messages, _) {
+                      return ListView.builder(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 20,
@@ -386,14 +360,39 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       ),
                     );
                   },
-                );
-              },
-            ),
+                      );
+                    },
+                  ),
           ),
           _buildMessageComposer(context),
         ],
       ),
     );
+  }
+
+  Future<void> _loadMessages() async {
+    try {
+      final List<MessageModel> messages = await _chatRepository.fetchMessages(
+        widget.initialMessage.chatId,
+      );
+      if (!mounted) {
+        return;
+      }
+      _messages.value = messages;
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      _messages.value = widget.initialMessage.text.trim().isEmpty
+          ? <MessageModel>[]
+          : <MessageModel>[widget.initialMessage];
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMessages = false;
+        });
+      }
+    }
   }
 
   Widget _buildMessageComposer(BuildContext context) {
@@ -817,11 +816,54 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
 
     final String text = _messageController.text.trim();
-    if (text.isEmpty) {
+    if (text.isEmpty || _isSendingText) {
       return;
     }
-    _appendLocalMessage(text);
     _messageController.clear();
+    final MessageModel optimistic = _appendLocalMessage(text);
+    setState(() {
+      _isSendingText = true;
+    });
+    try {
+      final MessageModel sent = await _chatRepository.sendMessage(
+        chatId: widget.initialMessage.chatId,
+        senderId: 'me',
+        text: text,
+      );
+      if (!mounted) {
+        return;
+      }
+      _replaceMessage(optimistic.id, sent);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      _replaceMessage(
+        optimistic.id,
+        MessageModel(
+          id: optimistic.id,
+          chatId: optimistic.chatId,
+          senderId: optimistic.senderId,
+          text: optimistic.text,
+          timestamp: optimistic.timestamp,
+          read: optimistic.read,
+          starred: optimistic.starred,
+          replyToMessageId: optimistic.replyToMessageId,
+          deliveryState: 'failed',
+          kind: optimistic.kind,
+          mediaPath: optimistic.mediaPath,
+        ),
+      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to send message.')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSendingText = false;
+        });
+      }
+    }
   }
 
   Future<String?> _finishVoiceRecordingForSend() async {
@@ -858,24 +900,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return recordedPath;
   }
 
-  void _appendLocalMessage(
+  MessageModel _appendLocalMessage(
     String text, {
     String kind = 'text',
     String? mediaPath,
   }) {
+    final MessageModel message = MessageModel(
+      id: 'm_${DateTime.now().microsecondsSinceEpoch}',
+      chatId: widget.initialMessage.chatId,
+      senderId: 'me',
+      text: text,
+      timestamp: DateTime.now(),
+      read: true,
+      kind: kind,
+      mediaPath: mediaPath,
+      deliveryState: 'sending',
+    );
     _messages.value = <MessageModel>[
       ..._messages.value,
-      MessageModel(
-        id: 'm_${DateTime.now().microsecondsSinceEpoch}',
-        chatId: widget.initialMessage.chatId,
-        senderId: 'me',
-        text: text,
-        timestamp: DateTime.now(),
-        read: true,
-        kind: kind,
-        mediaPath: mediaPath,
-      ),
+      message,
     ];
+    return message;
   }
 
   void _appendRemoteMessage(
@@ -896,6 +941,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         mediaPath: mediaPath,
       ),
     ];
+  }
+
+  void _replaceMessage(String messageId, MessageModel next) {
+    _messages.value = _messages.value
+        .map((MessageModel item) => item.id == messageId ? next : item)
+        .toList(growable: false);
   }
 
   Future<void> _showAttachmentSheet(BuildContext context) {

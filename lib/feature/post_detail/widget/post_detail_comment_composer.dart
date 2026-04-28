@@ -38,7 +38,7 @@ class PostDetailCommentComposer extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'Replying to @$replyingToAuthor',
+                      'Replying to $replyingToAuthor',
                       style: TextStyle(
                         color: AppColors.grey700,
                         fontSize: 12,
@@ -56,7 +56,10 @@ class PostDetailCommentComposer extends StatelessWidget {
             ),
           Row(
             children: [
-              CircleAvatar(radius: 18, backgroundImage: NetworkImage(avatarUrl)),
+              CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage(avatarUrl),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Container(
@@ -79,10 +82,7 @@ class PostDetailCommentComposer extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(
-                  Icons.send,
-                  color: AppColors.hexFF26C6DA,
-                ),
+                icon: const Icon(Icons.send, color: AppColors.hexFF26C6DA),
                 onPressed: onSubmit,
               ),
             ],

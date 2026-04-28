@@ -165,27 +165,43 @@ class StoryModel {
   }
 
   factory StoryModel.fromJson(Map<String, dynamic> json) {
-    final Map<String, dynamic>? author = ApiPayloadReader.readMap(
-      json['author'],
-    );
+    final Map<String, dynamic>? author = _readStoryAuthor(json);
+    final List<String> mediaItems = _readStoryMediaItems(json);
     return StoryModel(
-      id: ApiPayloadReader.readString(json['id'] ?? json['_id']),
+      id: ApiPayloadReader.readString(
+        json['id'] ?? json['_id'] ?? json['storyId'],
+      ),
       userId: ApiPayloadReader.readString(
-        json['userId'] ?? json['authorId'] ?? author?['id'] ?? author?['_id'],
+        json['userId'] ??
+            json['authorId'] ??
+            json['creatorId'] ??
+            json['ownerId'] ??
+            author?['id'] ??
+            author?['_id'],
       ),
       media: MediaUrlResolver.resolve(
-        ApiPayloadReader.readString(json['media']),
+        ApiPayloadReader.readString(
+          json['media'] ??
+              json['mediaUrl'] ??
+              json['image'] ??
+              json['imageUrl'] ??
+              json['url'] ??
+              json['fileUrl'] ??
+              (mediaItems.isEmpty ? '' : mediaItems.first),
+        ),
       ),
-      mediaItems: _readStringList(
-        json['mediaItems'],
-      ).map(MediaUrlResolver.resolve).toList(growable: false),
-      seen: ApiPayloadReader.readBool(json['seen']) ?? false,
+      mediaItems: mediaItems
+          .map(MediaUrlResolver.resolve)
+          .toList(growable: false),
+      seen: ApiPayloadReader.readBool(json['seen'] ?? json['viewed']) ?? false,
       isLocalFile: ApiPayloadReader.readBool(json['isLocalFile']) ?? false,
       text: ApiPayloadReader.readString(json['text']),
       music: ApiPayloadReader.readString(json['music']),
       backgroundColors: _readColorList(json['backgroundColors']),
       textColorValue: ApiPayloadReader.readInt(json['textColorValue']),
-      createdAt: ApiPayloadReader.readDateTime(json['createdAt']),
+      createdAt: ApiPayloadReader.readDateTime(
+        json['createdAt'] ?? json['created_at'] ?? json['timestamp'],
+      ),
       author: author == null ? null : UserModel.fromApiJson(author),
       sticker: ApiPayloadReader.readString(json['sticker']),
       effectName: ApiPayloadReader.readString(json['effectName']),
@@ -264,11 +280,101 @@ class StoryModel {
   static List<String> _readStringList(Object? value) {
     if (value is List) {
       return value
-          .map((Object? item) => ApiPayloadReader.readString(item))
+          .map(_readMediaPath)
           .where((String item) => item.trim().isNotEmpty)
           .toList(growable: false);
     }
     return const <String>[];
+  }
+
+  static String _readMediaPath(Object? value) {
+    final Map<String, dynamic>? mediaMap = ApiPayloadReader.readMap(value);
+    if (mediaMap != null) {
+      return ApiPayloadReader.readString(
+        mediaMap['url'] ??
+            mediaMap['mediaUrl'] ??
+            mediaMap['imageUrl'] ??
+            mediaMap['fileUrl'] ??
+            mediaMap['path'] ??
+            mediaMap['src'],
+      );
+    }
+    return ApiPayloadReader.readString(value);
+  }
+
+  static Map<String, dynamic>? _readStoryAuthor(Map<String, dynamic> json) {
+    final Object? rawAuthor =
+        json['author'] ?? json['user'] ?? json['creator'] ?? json['profile'];
+    final Map<String, dynamic>? author = ApiPayloadReader.readMap(rawAuthor);
+    final String userId = ApiPayloadReader.readString(
+      json['userId'] ??
+          json['authorId'] ??
+          json['creatorId'] ??
+          json['ownerId'] ??
+          author?['id'] ??
+          author?['_id'],
+    );
+    final String name = ApiPayloadReader.readString(
+      json['authorName'] ??
+          json['name'] ??
+          json['displayName'] ??
+          json['fullName'] ??
+          (rawAuthor is String ? rawAuthor : null) ??
+          author?['name'] ??
+          author?['displayName'] ??
+          author?['fullName'],
+    );
+    final String username = ApiPayloadReader.readString(
+      json['authorUsername'] ??
+          json['username'] ??
+          json['handle'] ??
+          author?['username'] ??
+          author?['handle'],
+    );
+
+    if (author == null) {
+      if (name.isEmpty && username.isEmpty && userId.isEmpty) {
+        return null;
+      }
+      return <String, dynamic>{
+        if (userId.isNotEmpty) 'id': userId,
+        if (name.isNotEmpty) 'name': name,
+        if (username.isNotEmpty) 'username': username,
+        if (json['avatar'] != null) 'avatar': json['avatar'],
+        if (json['avatarUrl'] != null) 'avatarUrl': json['avatarUrl'],
+      };
+    }
+
+    return <String, dynamic>{
+      ...author,
+      if (!author.containsKey('id') && userId.isNotEmpty) 'id': userId,
+      if (!author.containsKey('name') && name.isNotEmpty) 'name': name,
+      if (!author.containsKey('username') && username.isNotEmpty)
+        'username': username,
+    };
+  }
+
+  static List<String> _readStoryMediaItems(Map<String, dynamic> json) {
+    final List<String> directItems = _readStringList(
+      json['mediaItems'] ??
+          json['mediaUrls'] ??
+          json['media_files'] ??
+          json['files'] ??
+          json['attachments'],
+    );
+    if (directItems.isNotEmpty) {
+      return directItems;
+    }
+
+    final String singleMedia = ApiPayloadReader.readString(
+      json['media'] ??
+          json['mediaUrl'] ??
+          json['image'] ??
+          json['imageUrl'] ??
+          json['url'] ??
+          json['fileUrl'],
+    );
+    return singleMedia.isEmpty ? const <String>[] : <String>[singleMedia];
   }
 
   static List<int> _readColorList(Object? value) {

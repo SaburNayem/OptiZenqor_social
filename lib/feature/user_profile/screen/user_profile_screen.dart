@@ -4,10 +4,12 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/app_shimmer.dart';
+import '../../chat/screen/chat_detail_screen.dart';
 import '../../media_viewer/model/media_viewer_item_model.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
@@ -179,8 +181,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if (!_controller.isOwnProfile)
+                      if (!_controller.isOwnProfile) ...[
                         Expanded(child: _buildFollowActionButton()),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildMessageButton(user)),
+                      ],
                       if (_controller.isOwnProfile) ...[
                         _buildEditProfileButton(),
                         const SizedBox(width: 8),
@@ -439,6 +444,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  Widget _buildMessageButton(UserModel user) {
+    return OutlinedButton.icon(
+      onPressed: () => _openMessage(user),
+      icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+      label: const Text('Msg'),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        side: const BorderSide(color: AppColors.hexFF26C6DA),
+        foregroundColor: AppColors.hexFF26C6DA,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   Widget _buildProfileTypeChip(UserModel user) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -676,6 +696,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (updated == true) {
       await _controller.load(userId: widget.userId);
     }
+  }
+
+  void _openMessage(UserModel user) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChatDetailScreen(
+          user: user,
+          initialMessage: MessageModel(
+            id: 'profile_msg_${DateTime.now().microsecondsSinceEpoch}',
+            chatId: 'chat_${user.id}',
+            senderId: user.id,
+            text: 'Start a conversation',
+            timestamp: DateTime.now(),
+            read: true,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildStatColumn(String value, String label, {VoidCallback? onTap}) {
