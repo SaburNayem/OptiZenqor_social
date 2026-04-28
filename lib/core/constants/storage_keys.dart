@@ -2,6 +2,9 @@ class StorageKeys {
   StorageKeys._();
 
   static const authSession = 'auth_session';
+  static const accessToken = 'access_token';
+  static const refreshToken = 'refresh_token';
+  static const currentUser = 'current_user';
   static const onboardingDone = 'onboarding_done';
   static const themeMode = 'theme_mode';
   static const localeCode = 'locale_code';

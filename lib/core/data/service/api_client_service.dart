@@ -6,18 +6,23 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 import '../../config/app_config.dart';
-import '../../constants/storage_keys.dart';
+import '../api/api_end_points.dart';
 import '../shared_preference/app_shared_preferences.dart';
 import '../service_model/service_response_model.dart';
+import 'auth_session_service.dart';
 
 class ApiClientService {
   ApiClientService({
     String? baseUrl,
     http.Client? client,
     AppSharedPreferences? storage,
+    AuthSessionService? sessionService,
   }) : baseUrl = baseUrl ?? AppConfig.currentApiBaseUrl,
        _client = client ?? http.Client(),
-       _storage = storage ?? AppSharedPreferences();
+       _storage = storage ?? AppSharedPreferences(),
+       _sessionService =
+           sessionService ??
+           AuthSessionService(storage: storage ?? AppSharedPreferences());
 
   static const Duration _transportFailureCooldown = Duration(seconds: 3);
   static final Map<String, DateTime> _recentTransportFailures =
@@ -26,23 +31,33 @@ class ApiClientService {
   final String baseUrl;
   final http.Client _client;
   final AppSharedPreferences _storage;
+  final AuthSessionService _sessionService;
+  Future<bool>? _refreshInFlight;
 
   Future<ServiceResponseModel<Map<String, dynamic>>> get(
     String endpoint, {
     Map<String, dynamic>? queryParameters,
+    Map<String, String>? headers,
   }) async {
     return _send(
       method: 'GET',
       endpoint: endpoint,
       queryParameters: queryParameters,
+      headers: headers,
     );
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> post(
     String endpoint,
-    Map<String, dynamic> payload,
+    Map<String, dynamic> payload, {
+    Map<String, String>? headers,
   ) async {
-    return _send(method: 'POST', endpoint: endpoint, payload: payload);
+    return _send(
+      method: 'POST',
+      endpoint: endpoint,
+      payload: payload,
+      headers: headers,
+    );
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> postMultipart(
@@ -51,6 +66,7 @@ class ApiClientService {
     required String filePath,
     Map<String, String>? fields,
     String? filename,
+    Map<String, String>? headers,
   }) async {
     final String resolvedEndpoint = _resolveEndpoint(endpoint);
     final ServiceResponseModel<Map<String, dynamic>>? cooldownResponse =
@@ -60,13 +76,14 @@ class ApiClientService {
     }
     final Uri uri = Uri.parse(resolvedEndpoint);
     final Stopwatch stopwatch = Stopwatch()..start();
-    final Map<String, String> headers = await _buildHeaders(
+    final Map<String, String> requestHeaders = await _buildHeaders(
       includeJsonContentType: false,
+      overrides: headers,
     );
     _logRequest(
       method: 'POST',
       endpoint: resolvedEndpoint,
-      headers: headers,
+      headers: requestHeaders,
       payload: <String, dynamic>{
         'multipart': true,
         'fileField': fileField,
@@ -77,7 +94,7 @@ class ApiClientService {
 
     try {
       final http.MultipartRequest request = http.MultipartRequest('POST', uri)
-        ..headers.addAll(headers)
+        ..headers.addAll(requestHeaders)
         ..fields.addAll(fields ?? const <String, String>{})
         ..files.add(
           await http.MultipartFile.fromPath(
@@ -147,16 +164,41 @@ class ApiClientService {
 
   Future<ServiceResponseModel<Map<String, dynamic>>> patch(
     String endpoint,
-    Map<String, dynamic> payload,
+    Map<String, dynamic> payload, {
+    Map<String, String>? headers,
   ) async {
-    return _send(method: 'PATCH', endpoint: endpoint, payload: payload);
+    return _send(
+      method: 'PATCH',
+      endpoint: endpoint,
+      payload: payload,
+      headers: headers,
+    );
+  }
+
+  Future<ServiceResponseModel<Map<String, dynamic>>> put(
+    String endpoint,
+    Map<String, dynamic> payload, {
+    Map<String, String>? headers,
+  }) async {
+    return _send(
+      method: 'PUT',
+      endpoint: endpoint,
+      payload: payload,
+      headers: headers,
+    );
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> delete(
     String endpoint, {
     Map<String, dynamic>? payload,
+    Map<String, String>? headers,
   }) async {
-    return _send(method: 'DELETE', endpoint: endpoint, payload: payload);
+    return _send(
+      method: 'DELETE',
+      endpoint: endpoint,
+      payload: payload,
+      headers: headers,
+    );
   }
 
   Future<ServiceResponseModel<Map<String, dynamic>>> _send({
@@ -164,6 +206,8 @@ class ApiClientService {
     required String endpoint,
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? payload,
+    Map<String, String>? headers,
+    bool retryOnUnauthorized = true,
   }) async {
     final String resolvedEndpoint = _resolveEndpoint(
       endpoint,
@@ -179,7 +223,10 @@ class ApiClientService {
     try {
       final http.Request request = http.Request(method, uri)
         ..headers.addAll(
-          await _buildHeaders(includeJsonContentType: method != 'GET'),
+          await _buildHeaders(
+            includeJsonContentType: method != 'GET',
+            overrides: headers,
+          ),
         );
       final Stopwatch stopwatch = Stopwatch()..start();
 
@@ -202,6 +249,18 @@ class ApiClientService {
       final Map<String, dynamic> responseBody = _decodeResponseBody(
         response.bodyBytes,
       );
+      if (response.statusCode == 401 &&
+          retryOnUnauthorized &&
+          await _refreshAccessToken()) {
+        return _send(
+          method: method,
+          endpoint: endpoint,
+          queryParameters: queryParameters,
+          payload: payload,
+          headers: headers,
+          retryOnUnauthorized: false,
+        );
+      }
       _clearRecentTransportFailure();
       stopwatch.stop();
       _logResponse(
@@ -241,24 +300,120 @@ class ApiClientService {
         },
         message: clientErrorMessage,
       );
+    } on Exception catch (error) {
+      final String fallbackMessage = _buildClientErrorMessage(error.toString());
+      _rememberRecentTransportFailure();
+      _logNetworkIssue('unexpected_error', resolvedEndpoint, fallbackMessage);
+      return ServiceResponseModel<Map<String, dynamic>>(
+        endpoint: resolvedEndpoint,
+        statusCode: 503,
+        data: <String, dynamic>{
+          'success': false,
+          'message': fallbackMessage,
+        },
+        message: fallbackMessage,
+      );
     }
   }
 
   Future<Map<String, String>> _buildHeaders({
     required bool includeJsonContentType,
+    Map<String, String>? overrides,
   }) async {
-    final Map<String, dynamic>? authSession = await _storage.readJson(
-      StorageKeys.authSession,
-    );
-    final String? accessToken = authSession?['accessToken'] as String?;
-    final String tokenType = authSession?['tokenType'] as String? ?? 'Bearer';
+    final session = await _sessionService.readSession();
+    final String accessToken = session?.accessToken ?? '';
+    final String tokenType = session?.tokenType.isNotEmpty == true
+        ? session!.tokenType
+        : 'Bearer';
 
     return <String, String>{
       'Accept': 'application/json',
       if (includeJsonContentType) 'Content-Type': 'application/json',
-      if (accessToken != null && accessToken.isNotEmpty)
+      if (accessToken.isNotEmpty)
         'Authorization': '$tokenType $accessToken',
+      ...?overrides,
     };
+  }
+
+  Future<bool> _refreshAccessToken() async {
+    final Future<bool> pendingRefresh = _refreshInFlight ?? _performRefresh();
+    _refreshInFlight = pendingRefresh;
+    try {
+      return await pendingRefresh;
+    } finally {
+      if (identical(_refreshInFlight, pendingRefresh)) {
+        _refreshInFlight = null;
+      }
+    }
+  }
+
+  Future<bool> _performRefresh() async {
+    final session = await _sessionService.readSession();
+    final String refreshToken = session?.refreshToken ?? '';
+    if (refreshToken.isEmpty) {
+      return false;
+    }
+
+    final String endpoint = _resolveEndpoint(ApiEndPoints.authRefreshToken);
+    final Uri uri = Uri.parse(endpoint);
+    try {
+      final http.Request request = http.Request('POST', uri)
+        ..headers.addAll(<String, String>{
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        })
+        ..body = jsonEncode(<String, dynamic>{'refreshToken': refreshToken});
+      final http.StreamedResponse streamedResponse = await _client
+          .send(request)
+          .timeout(Duration(milliseconds: AppConfig.receiveTimeoutMs));
+      final http.Response response = await http.Response.fromStream(
+        streamedResponse,
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return false;
+      }
+
+      final Map<String, dynamic> payload = _decodeResponseBody(
+        response.bodyBytes,
+      );
+      final Map<String, dynamic>? sessionPayload = _readMap(
+        payload['data'] ?? payload['session'] ?? payload['result'] ?? payload,
+      );
+      final Map<String, dynamic>? tokenMap = _readMap(sessionPayload?['tokens']);
+      final String newAccessToken =
+          (sessionPayload?['accessToken'] ??
+                  sessionPayload?['token'] ??
+                  tokenMap?['accessToken'] ??
+                  '')
+              .toString()
+              .trim();
+      if (newAccessToken.isEmpty) {
+        return false;
+      }
+
+      final String newRefreshToken =
+          (sessionPayload?['refreshToken'] ??
+                  tokenMap?['refreshToken'] ??
+                  refreshToken)
+              .toString()
+              .trim();
+      final String tokenType =
+          (sessionPayload?['tokenType'] as String? ??
+                  session?.tokenType ??
+                  'Bearer')
+              .trim();
+      await _sessionService.updateTokens(
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        tokenType: tokenType,
+      );
+      return true;
+    } on Object catch (error) {
+      if (kDebugMode) {
+        debugPrint('[ApiClientService] refresh failed endpoint=$endpoint $error');
+      }
+      return false;
+    }
   }
 
   Map<String, dynamic> _decodeResponseBody(List<int> bodyBytes) {
@@ -492,5 +647,15 @@ class ApiClientService {
       return endpoint;
     }
     return '$normalizedBase$endpoint';
+  }
+
+  Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
   }
 }

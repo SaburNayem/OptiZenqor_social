@@ -12,6 +12,9 @@ class UserDataCleanupService {
 
   static const List<String> userScopedStorageKeys = <String>[
     StorageKeys.authSession,
+    StorageKeys.accessToken,
+    StorageKeys.refreshToken,
+    StorageKeys.currentUser,
     StorageKeys.searchHistory,
     StorageKeys.draftPosts,
     StorageKeys.cachedFeed,

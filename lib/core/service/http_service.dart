@@ -1,4 +1,5 @@
-import '../config/app_config.dart';
+import '../data/service/api_client_service.dart';
+import '../data/service_model/service_response_model.dart';
 import 'http_service_model.dart';
 
 class HttpService {
@@ -6,25 +7,33 @@ class HttpService {
     String? baseUrl,
     Duration timeout = const Duration(seconds: 30),
     Map<String, String>? defaultHeaders,
-  }) : _baseUrl = baseUrl ?? AppConfig.currentApiBaseUrl,
-       _timeout = timeout,
-       _defaultHeaders = <String, String>{
-         'Content-Type': 'application/json',
-         'Accept': 'application/json',
-         ...?defaultHeaders,
-       };
+    ApiClientService? apiClient,
+  }) : _apiClient =
+           apiClient ??
+           ApiClientService(baseUrl: baseUrl) {
+    _defaultHeaders = <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...?defaultHeaders,
+      'X-Request-Timeout': '${timeout.inMilliseconds}',
+    };
+  }
 
-  final String _baseUrl;
-  final Duration _timeout;
-  final Map<String, String> _defaultHeaders;
+  final ApiClientService _apiClient;
+  late final Map<String, String> _defaultHeaders;
 
   Future<HttpServiceModel<T>> getRequest<T>(
     String endpoint, {
     Map<String, dynamic>? query,
     Map<String, String>? headers,
     HttpDataDecoder<T>? decoder,
-  }) {
-    return _unsupported<T>('GET', endpoint, headers: headers);
+  }) async {
+    final response = await _apiClient.get(
+      endpoint,
+      queryParameters: query,
+      headers: _mergeHeaders(headers),
+    );
+    return _mapResponse('GET', response, decoder: decoder);
   }
 
   Future<HttpServiceModel<T>> postRequest<T>(
@@ -33,8 +42,13 @@ class HttpService {
     Map<String, dynamic>? query,
     Map<String, String>? headers,
     HttpDataDecoder<T>? decoder,
-  }) {
-    return _unsupported<T>('POST', endpoint, headers: headers);
+  }) async {
+    final response = await _apiClient.post(
+      endpoint,
+      _normalizePayload(body),
+      headers: _mergeHeaders(headers),
+    );
+    return _mapResponse('POST', response, decoder: decoder);
   }
 
   Future<HttpServiceModel<T>> putRequest<T>(
@@ -43,8 +57,13 @@ class HttpService {
     Map<String, dynamic>? query,
     Map<String, String>? headers,
     HttpDataDecoder<T>? decoder,
-  }) {
-    return _unsupported<T>('PUT', endpoint, headers: headers);
+  }) async {
+    final response = await _apiClient.put(
+      endpoint,
+      _normalizePayload(body),
+      headers: _mergeHeaders(headers),
+    );
+    return _mapResponse('PUT', response, decoder: decoder);
   }
 
   Future<HttpServiceModel<T>> patchRequest<T>(
@@ -53,8 +72,13 @@ class HttpService {
     Map<String, dynamic>? query,
     Map<String, String>? headers,
     HttpDataDecoder<T>? decoder,
-  }) {
-    return _unsupported<T>('PATCH', endpoint, headers: headers);
+  }) async {
+    final response = await _apiClient.patch(
+      endpoint,
+      _normalizePayload(body),
+      headers: _mergeHeaders(headers),
+    );
+    return _mapResponse('PATCH', response, decoder: decoder);
   }
 
   Future<HttpServiceModel<T>> deleteRequest<T>(
@@ -63,22 +87,54 @@ class HttpService {
     Map<String, dynamic>? query,
     Map<String, String>? headers,
     HttpDataDecoder<T>? decoder,
-  }) {
-    return _unsupported<T>('DELETE', endpoint, headers: headers);
+  }) async {
+    final response = await _apiClient.delete(
+      endpoint,
+      payload: _normalizePayload(body),
+      headers: _mergeHeaders(headers),
+    );
+    return _mapResponse('DELETE', response, decoder: decoder);
   }
 
-  Future<HttpServiceModel<T>> _unsupported<T>(
+  Map<String, String> _mergeHeaders(Map<String, String>? headers) {
+    return <String, String>{..._defaultHeaders, ...?headers};
+  }
+
+  Map<String, dynamic> _normalizePayload(dynamic body) {
+    if (body is Map<String, dynamic>) {
+      return body;
+    }
+    if (body is Map) {
+      return Map<String, dynamic>.from(body);
+    }
+    return body == null ? const <String, dynamic>{} : <String, dynamic>{'data': body};
+  }
+
+  HttpServiceModel<T> _mapResponse<T>(
     String method,
-    String endpoint, {
-    Map<String, String>? headers,
-  }) async {
+    ServiceResponseModel<Map<String, dynamic>> response, {
+    HttpDataDecoder<T>? decoder,
+  }) {
+    final dynamic payload = response.data;
+    T? decoded;
+    if (decoder != null) {
+      try {
+        decoded = decoder(payload);
+      } on Object {
+        decoded = null;
+      }
+    } else if (payload is T) {
+      decoded = payload;
+    }
+
     return HttpServiceModel<T>(
-      endpoint: endpoint,
+      endpoint: response.endpoint,
       method: method,
-      statusCode: 501,
-      message:
-          'HTTP service is not configured yet after the GetX migration. baseUrl=$_baseUrl timeout=${_timeout.inSeconds}s',
-      headers: <String, String>{..._defaultHeaders, ...?headers},
+      statusCode: response.statusCode,
+      message: response.message ?? '',
+      data: decoded,
+      rawData: payload,
+      headers: _defaultHeaders,
     );
   }
 }

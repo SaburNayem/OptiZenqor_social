@@ -1,6 +1,7 @@
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/auth_service.dart';
+import '../../../core/data/service/auth_session_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../../../core/enums/user_role.dart';
@@ -10,12 +11,20 @@ import '../model/auth_exception.dart';
 import '../signup/model/signup_model.dart';
 
 class AuthRepository {
-  AuthRepository({AuthService? authService, AppSharedPreferences? storage})
+  AuthRepository({
+    AuthService? authService,
+    AppSharedPreferences? storage,
+    AuthSessionService? sessionService,
+  })
     : _authService = authService ?? AuthService(),
-      _storage = storage ?? AppSharedPreferences();
+      _storage = storage ?? AppSharedPreferences(),
+      _sessionService =
+          sessionService ??
+          AuthSessionService(storage: storage ?? AppSharedPreferences());
 
   final AuthService _authService;
   final AppSharedPreferences _storage;
+  final AuthSessionService _sessionService;
 
   Future<void> login({
     required UserRole role,
@@ -171,29 +180,37 @@ class AuthRepository {
 
   Future<void> logout() async {
     await _authService.logout();
-    await _storage.remove(StorageKeys.authSession);
+    await _sessionService.clear();
   }
 
   Future<bool> hasSession() async {
-    final session = await _storage.readJson(StorageKeys.authSession);
-    if (!_isUsableSession(session)) {
-      if (session != null && session.isNotEmpty) {
-        await _storage.remove(StorageKeys.authSession);
+    final session = await _sessionService.readSession();
+    if (session == null || !session.isUsable) {
+      final Map<String, dynamic>? stored = await _storage.readJson(
+        StorageKeys.authSession,
+      );
+      if (stored != null && stored.isNotEmpty) {
+        await _sessionService.clear();
       }
+      return false;
+    }
+    final Map<String, dynamic> rawSession = session.toJson();
+    if (!_isUsableSession(rawSession)) {
+      await _sessionService.clear();
       return false;
     }
     return true;
   }
 
   Future<UserModel?> currentUser() async {
-    final Map<String, dynamic>? session = await _storage.readJson(
-      StorageKeys.authSession,
-    );
-    if (!_isUsableSession(session)) {
+    final session = await _sessionService.readSession();
+    if (session == null || !session.isUsable) {
       return null;
     }
-
-    final Map<String, dynamic>? user = _extractUserPayload(session!);
+    if (session.user != null) {
+      return session.user;
+    }
+    final Map<String, dynamic>? user = _extractUserPayload(session.toJson());
     if (user == null || user.isEmpty) {
       return null;
     }
@@ -294,12 +311,18 @@ class AuthRepository {
 
       final String resolvedRole =
           (mePayload!['role'] as String?)?.toLowerCase() ?? fallbackRole.name;
-      await _storage.writeJson(StorageKeys.authSession, <String, dynamic>{
+      final Map<String, dynamic> updatedSession = <String, dynamic>{
         ...session,
         'role': resolvedRole,
         'email': _resolveEmail(mePayload, fallbackEmail: fallbackEmail),
         'user': mePayload,
-      });
+      };
+      await _storage.writeJson(StorageKeys.authSession, updatedSession);
+      await _sessionService.updateUser(
+        UserModel.fromApiJson(mePayload),
+        role: resolvedRole,
+        email: _resolveEmail(mePayload, fallbackEmail: fallbackEmail),
+      );
     } catch (_) {}
   }
 

@@ -1,9 +1,13 @@
 import '../../constants/storage_keys.dart';
 import '../../enums/user_role.dart';
+import '../../socket/socket_service.dart';
 import '../../data/shared_preference/app_shared_preferences.dart';
+import '../models/auth_session_model.dart';
+import '../models/user_model.dart';
 import '../api/api_end_points.dart';
 import '../service_model/service_response_model.dart';
 import 'api_client_service.dart';
+import 'auth_session_service.dart';
 import 'user_data_cleanup_service.dart';
 
 class AuthService {
@@ -11,13 +15,18 @@ class AuthService {
     ApiClientService? apiClient,
     AppSharedPreferences? storage,
     UserDataCleanupService? cleanupService,
+    AuthSessionService? sessionService,
   }) : _apiClient = apiClient ?? ApiClientService(),
        _storage = storage ?? AppSharedPreferences(),
+       _sessionService =
+           sessionService ??
+           AuthSessionService(storage: storage ?? AppSharedPreferences()),
        _cleanupService =
            cleanupService ?? UserDataCleanupService(storage: storage);
 
   final ApiClientService _apiClient;
   final AppSharedPreferences _storage;
+  final AuthSessionService _sessionService;
   final UserDataCleanupService _cleanupService;
 
   bool _loggedIn = false;
@@ -161,6 +170,8 @@ class AuthService {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     _loggedIn = false;
     _role = UserRole.guest;
+    await SocketService.instance.disconnect(manual: true);
+    await _sessionService.clear();
     await _cleanupService.clearUserData();
   }
 
@@ -168,10 +179,10 @@ class AuthService {
     required String endpoint,
     required Map<String, dynamic> payload,
   }) {
-    return _storage.writeJson(StorageKeys.authSession, <String, dynamic>{
-      'endpoint': endpoint,
-      ...payload,
-    });
+    return _storage.writeJson(
+      StorageKeys.authSession,
+      <String, dynamic>{'endpoint': endpoint, ...payload},
+    );
   }
 
   Future<void> _persistAuthSessionIfAvailable(
@@ -208,19 +219,26 @@ class AuthService {
 
     _loggedIn = true;
     _role = _parseRole(resolvedRole);
-    await _persistSession(
+    final AuthSessionModel authSession = AuthSessionModel(
+      isLoggedIn: true,
+      accessToken: accessToken.trim(),
+      refreshToken:
+          (session?['refreshToken'] ?? tokens?['refreshToken'] ?? '')
+              .toString()
+              .trim(),
+      tokenType: (session?['tokenType'] as String? ?? 'Bearer').trim(),
+      role: _role.name,
+      email: resolvedEmail,
+      sessionId: (session?['sessionId'] as String?)?.trim(),
+      user: _looksLikeUserPayload(user ?? session?['user'])
+          ? UserModel.fromApiJson(
+              _readMap(user ?? session?['user']) ?? const <String, dynamic>{},
+            )
+          : null,
       endpoint: endpoint,
-      payload: <String, dynamic>{
-        'isLoggedIn': true,
-        'role': _role.name,
-        'email': resolvedEmail,
-        'accessToken': accessToken,
-        'refreshToken': session?['refreshToken'] ?? tokens?['refreshToken'],
-        'sessionId': session?['sessionId'],
-        'tokenType': session?['tokenType'] ?? 'Bearer',
-        'user': user ?? session?['user'],
-      },
     );
+    await _sessionService.persistSession(authSession);
+    await _persistSession(endpoint: endpoint, payload: authSession.toJson());
   }
 
   bool _shouldPersistAuthSession(

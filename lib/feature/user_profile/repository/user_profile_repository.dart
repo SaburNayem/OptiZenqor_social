@@ -3,6 +3,7 @@ import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/data/service/auth_session_service.dart';
 import '../../../core/data/service/local_storage_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../../../core/enums/user_role.dart';
@@ -13,11 +14,14 @@ class UserProfileRepository {
   UserProfileRepository({
     LocalStorageService? storage,
     UserProfileService? service,
+    AuthSessionService? sessionService,
   }) : _storage = storage ?? LocalStorageService(),
-       _service = service ?? UserProfileService();
+       _service = service ?? UserProfileService(),
+       _sessionService = sessionService ?? AuthSessionService();
 
   final LocalStorageService _storage;
   final UserProfileService _service;
+  final AuthSessionService _sessionService;
 
   Future<UserModel?> getCurrentProfile() async {
     final UserModel? apiUser = await _fetchCurrentProfileFromApi();
@@ -624,17 +628,7 @@ class UserProfileRepository {
   }
 
   Future<void> _persistUserInSession(UserModel user) async {
-    final Map<String, dynamic>? authSession = await _storage.readJson(
-      StorageKeys.authSession,
-    );
-    if (authSession == null || authSession.isEmpty) {
-      return;
-    }
-    await _storage.writeJson(StorageKeys.authSession, <String, dynamic>{
-      ...authSession,
-      'role': user.role.name,
-      'user': user.toJson(),
-    });
+    await _sessionService.updateUser(user, role: user.role.name);
   }
 }
 

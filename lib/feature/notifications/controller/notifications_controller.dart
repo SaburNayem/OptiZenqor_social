@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
@@ -5,6 +7,9 @@ import '../../../core/data/models/load_state_model.dart';
 import '../../../core/data/models/notification_model.dart';
 import '../../../core/data/service/analytics_service.dart';
 import '../../../core/data/service/deep_link_service.dart';
+import '../../../core/socket/socket_event.dart';
+import '../../../core/socket/socket_handler.dart';
+import '../../../core/socket/socket_service.dart';
 import '../model/notification_payload_model.dart';
 import '../repository/notifications_repository.dart';
 
@@ -15,13 +20,17 @@ class NotificationsController extends ChangeNotifier {
     NotificationsRepository? repository,
     DeepLinkService? deepLinkService,
     AnalyticsService? analytics,
+    SocketService? socketService,
   }) : _repository = repository ?? NotificationsRepository(),
        _deepLinkService = deepLinkService ?? DeepLinkService(),
-       _analytics = analytics ?? AnalyticsService();
+       _analytics = analytics ?? AnalyticsService(),
+       _socketService = socketService ?? SocketService.instance;
 
   final NotificationsRepository _repository;
   final DeepLinkService _deepLinkService;
   final AnalyticsService _analytics;
+  final SocketService _socketService;
+  StreamSubscription<SocketEnvelope>? _notificationSubscription;
 
   LoadStateModel state = const LoadStateModel();
   List<NotificationModel> notifications = <NotificationModel>[];
@@ -57,6 +66,7 @@ class NotificationsController extends ChangeNotifier {
     notifyListeners();
     try {
       notifications = await _repository.fetchNotifications();
+      await _ensureSocketSubscription();
       state = state.copyWith(
         isLoading: false,
         isSuccess: true,
@@ -71,6 +81,40 @@ class NotificationsController extends ChangeNotifier {
       );
       notifyListeners();
     }
+  }
+
+  Future<void> _ensureSocketSubscription() async {
+    if (_notificationSubscription != null) {
+      return;
+    }
+    await _socketService.connect();
+    _notificationSubscription = _socketService.notificationEvents.listen(
+      _handleSocketNotification,
+    );
+  }
+
+  void _handleSocketNotification(SocketEnvelope envelope) {
+    if (envelope.event != SocketEvent.notificationCreated &&
+        envelope.event != SocketEvent.notificationUpdated) {
+      return;
+    }
+    final NotificationModel incoming = NotificationModel.fromApiJson(
+      envelope.data,
+    );
+    if (incoming.id.isEmpty) {
+      return;
+    }
+    notifications = <NotificationModel>[
+      incoming,
+      ...notifications.where((NotificationModel item) => item.id != incoming.id),
+    ];
+    state = state.copyWith(
+      isEmpty: notifications.isEmpty,
+      isSuccess: notifications.isNotEmpty,
+      hasError: false,
+      errorMessage: null,
+    );
+    notifyListeners();
   }
 
   Future<void> setFilter(NotificationFilter filter) async {
@@ -117,5 +161,12 @@ class NotificationsController extends ChangeNotifier {
       }
     }
     return resolvedRoute;
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    _notificationSubscription = null;
+    super.dispose();
   }
 }
