@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
-import '../../../core/data/mock/mock_data.dart';
+import '../../../core/data/service/auth_session_service.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/enums/user_role.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../home_feed/controller/create_post_controller.dart';
 import '../../home_feed/controller/home_feed_controller.dart';
@@ -28,6 +29,8 @@ class SharePostScreen extends StatefulWidget {
 
 class _SharePostScreenState extends State<SharePostScreen> {
   late final CreatePostController _controller;
+  final AuthSessionService _sessionService = AuthSessionService();
+  UserModel? _currentUser;
 
   @override
   void initState() {
@@ -35,6 +38,17 @@ class _SharePostScreenState extends State<SharePostScreen> {
     _controller = CreatePostController()
       ..mediaPaths = List<String>.from(widget.post.media)
       ..isVideo = widget.post.media.length == 1 && _isVideoPath(widget.post.media.firstOrNull ?? '');
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final session = await _sessionService.readSession();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _currentUser = session?.user;
+    });
   }
 
   @override
@@ -45,7 +59,18 @@ class _SharePostScreenState extends State<SharePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final UserModel currentUser = MockData.users.first;
+    final UserModel currentUser =
+        _currentUser ??
+        const UserModel(
+          id: '',
+          name: 'You',
+          username: 'you',
+          avatar: '',
+          bio: '',
+          role: UserRole.user,
+          followers: 0,
+          following: 0,
+        );
 
     return AnimatedBuilder(
       animation: _controller,

@@ -16,24 +16,7 @@ class AccountSwitchingRepository {
   final AccountSwitchingService _service;
 
   Future<List<AccountIdentityModel>> fetchAccounts() async {
-    final List<AccountIdentityModel>? remoteAccounts = await _fetchAccountsFromApi();
-    if (remoteAccounts != null) {
-      await saveAccounts(remoteAccounts);
-      return remoteAccounts;
-    }
-
-    final raw = await _storage.readJsonList(StorageKeys.linkedAccounts);
-    if (raw.isEmpty) {
-      return const <AccountIdentityModel>[];
-    }
-    return raw.map(AccountIdentityModel.fromJson).toList();
-  }
-
-  Future<void> saveAccounts(List<AccountIdentityModel> accounts) {
-    return _storage.writeJsonList(
-      StorageKeys.linkedAccounts,
-      accounts.map((account) => account.toJson()).toList(),
-    );
+    return _fetchAccountsFromApi();
   }
 
   Future<String?> readActiveAccountId() {
@@ -58,29 +41,26 @@ class AccountSwitchingRepository {
     } catch (_) {}
   }
 
-  Future<List<AccountIdentityModel>?> _fetchAccountsFromApi() async {
-    for (final String key in <String>['account_switching', 'demo_accounts', 'users']) {
-      try {
-        final ServiceResponseModel<Map<String, dynamic>> response =
-            await _service.getEndpoint(key);
-        if (!response.isSuccess || response.data['success'] == false) {
-          continue;
-        }
+  Future<List<AccountIdentityModel>> _fetchAccountsFromApi() async {
+    for (final String key in <String>['account_switching', 'users']) {
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint(key);
+      if (!response.isSuccess || response.data['success'] == false) {
+        continue;
+      }
 
-        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
-          response.data,
-          preferredKeys: const <String>['accounts', 'linkedAccounts', 'users'],
-        );
-        if (items.isNotEmpty) {
-          return items
-              .map(AccountIdentityModel.fromApiJson)
-              .where((AccountIdentityModel item) => item.id.isNotEmpty)
-              .toList(growable: false);
-        }
-      } catch (_) {}
+      final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        response.data,
+        preferredKeys: const <String>['accounts', 'linkedAccounts', 'users'],
+      );
+      if (items.isNotEmpty) {
+        return items
+            .map(AccountIdentityModel.fromApiJson)
+            .where((AccountIdentityModel item) => item.id.isNotEmpty)
+            .toList(growable: false);
+      }
     }
-
-    return null;
+    return const <AccountIdentityModel>[];
   }
 
   Future<String?> _readActiveAccountId() async {

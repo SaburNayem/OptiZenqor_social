@@ -241,14 +241,17 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     );
   }
 
-  void _handleCreateEvent() {
+  Future<void> _handleCreateEvent() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       AppGet.snackbar('Missing title', 'Enter an event title to continue.');
       return;
     }
 
-    _controller.create(title);
+    await _controller.create(
+      title,
+      location: _locationController.text.trim(),
+    );
     AppGet.snackbar('Event ready', 'Your event draft has been created.');
   }
 

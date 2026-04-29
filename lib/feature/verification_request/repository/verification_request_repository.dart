@@ -1,43 +1,16 @@
-import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/api/api_payload_reader.dart';
-import '../../../core/data/service/local_storage_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/verification_request_model.dart';
 import '../service/verification_request_service.dart';
 
 class VerificationRequestRepository {
-  VerificationRequestRepository({
-    LocalStorageService? storage,
-    VerificationRequestService? service,
-  }) : _storage = storage ?? LocalStorageService(),
-       _service = service ?? VerificationRequestService();
+  VerificationRequestRepository({VerificationRequestService? service})
+    : _service = service ?? VerificationRequestService();
 
-  final LocalStorageService _storage;
   final VerificationRequestService _service;
 
-  static const VerificationRequestModel _seed = VerificationRequestModel(
-    status: VerificationStatus.notRequested,
-    reason: 'Submit creator or business documents to start review.',
-    selectedDocuments: <String>[],
-    requiredDocuments: <String>['Government ID', 'Business proof', 'Profile photo'],
-  );
-
   Future<VerificationRequestModel> load() async {
-    final VerificationRequestModel? remote = await _loadFromApi();
-    if (remote != null) {
-      await save(remote);
-      return remote;
-    }
-
-    final raw = await _storage.readJson(StorageKeys.verificationRequest);
-    if (raw == null) {
-      return _seed;
-    }
-    return VerificationRequestModel.fromJson(raw);
-  }
-
-  Future<void> save(VerificationRequestModel model) {
-    return _storage.writeJson(StorageKeys.verificationRequest, model.toJson());
+    return _loadFromApi();
   }
 
   Future<List<String>?> loadRequiredDocuments() async {
@@ -61,42 +34,33 @@ class VerificationRequestRepository {
   Future<VerificationRequestModel> submit(
     VerificationRequestModel model,
   ) async {
-    try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.postEndpoint(
-            'submit',
-            payload: <String, dynamic>{
-              'documents': model.selectedDocuments,
-            },
-          );
-      if (response.isSuccess && response.data['success'] != false) {
-        final VerificationRequestModel resolved =
-            VerificationRequestModel.fromApiJson(response.data);
-        await save(resolved);
-        return resolved;
-      }
-    } catch (_) {}
-
-    final VerificationRequestModel pendingModel = model.copyWith(
-      status: VerificationStatus.pending,
-      reason: 'Documents uploaded. Under review.',
-      submittedAt: DateTime.now(),
+    final ServiceResponseModel<Map<String, dynamic>> response =
+        await _service.postEndpoint(
+      'submit',
+      payload: <String, dynamic>{
+        'documents': model.selectedDocuments,
+      },
     );
-    await save(pendingModel);
-    return pendingModel;
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to submit verification.');
+    }
+    return VerificationRequestModel.fromApiJson(response.data);
   }
 
-  Future<VerificationRequestModel?> _loadFromApi() async {
+  Future<VerificationRequestModel> _loadFromApi() async {
     for (final String key in <String>['status', 'verification_request']) {
-      try {
-        final ServiceResponseModel<Map<String, dynamic>> response =
-            await _service.getEndpoint(key);
-        if (!response.isSuccess || response.data['success'] == false) {
-          continue;
-        }
-        return VerificationRequestModel.fromApiJson(response.data);
-      } catch (_) {}
+      final ServiceResponseModel<Map<String, dynamic>> response =
+          await _service.getEndpoint(key);
+      if (!response.isSuccess || response.data['success'] == false) {
+        continue;
+      }
+      return VerificationRequestModel.fromApiJson(response.data);
     }
-    return null;
+    return const VerificationRequestModel(
+      status: VerificationStatus.notRequested,
+      reason: '',
+      selectedDocuments: <String>[],
+      requiredDocuments: <String>[],
+    );
   }
 }

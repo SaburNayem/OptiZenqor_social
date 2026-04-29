@@ -43,7 +43,6 @@ class VerificationRequestController extends ChangeNotifier {
       updated.add(documentName);
     }
     model = model.copyWith(selectedDocuments: updated);
-    await _repository.save(model);
     notifyListeners();
   }
 
@@ -70,7 +69,6 @@ class VerificationRequestController extends ChangeNotifier {
           : model.submittedAt ?? DateTime.now(),
       clearSubmittedAt: status == VerificationStatus.notRequested,
     );
-    await _repository.save(model);
     notifyListeners();
   }
 }

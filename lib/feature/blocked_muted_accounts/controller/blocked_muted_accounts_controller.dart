@@ -32,13 +32,11 @@ class BlockedMutedAccountsController extends ChangeNotifier {
       await _repository.unblockAccount(account.id);
     }
     blocked = blocked.where((item) => item.handle != handle).toList();
-    await _repository.saveBlocked(blocked);
     notifyListeners();
   }
 
   Future<void> unmute(String handle) async {
     muted = muted.where((item) => item.handle != handle).toList();
-    await _repository.saveMuted(muted);
     notifyListeners();
   }
 }

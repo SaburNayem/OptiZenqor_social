@@ -43,7 +43,7 @@ class SavedCollectionsController extends Cubit<SavedCollectionsState> {
     if (name.trim().isEmpty) {
       return;
     }
-    final collections = <SavedCollectionModel>[
+    final pendingCollections = <SavedCollectionModel>[
       SavedCollectionModel(
         id: 'col_${DateTime.now().millisecondsSinceEpoch}',
         name: name.trim(),
@@ -51,7 +51,7 @@ class SavedCollectionsController extends Cubit<SavedCollectionsState> {
       ),
       ...state.collections,
     ];
-    await _repository.write(collections);
+    final collections = await _repository.write(pendingCollections);
     emit(state.copyWith(collections: collections, draftName: ''));
   }
 
@@ -60,7 +60,7 @@ class SavedCollectionsController extends Cubit<SavedCollectionsState> {
     String targetId,
     String itemId,
   ) async {
-    final collections = state.collections.map((collection) {
+    final pendingCollections = state.collections.map((collection) {
       if (collection.id == sourceId) {
         return collection.copyWith(
           itemIds: collection.itemIds.where((id) => id != itemId).toList(),
@@ -73,12 +73,12 @@ class SavedCollectionsController extends Cubit<SavedCollectionsState> {
       }
       return collection;
     }).toList();
-    await _repository.write(collections);
+    final collections = await _repository.write(pendingCollections);
     emit(state.copyWith(collections: collections));
   }
 
   Future<void> remove(String collectionId, String itemId) async {
-    final collections = state.collections.map((collection) {
+    final pendingCollections = state.collections.map((collection) {
       if (collection.id != collectionId) {
         return collection;
       }
@@ -86,7 +86,7 @@ class SavedCollectionsController extends Cubit<SavedCollectionsState> {
         itemIds: collection.itemIds.where((id) => id != itemId).toList(),
       );
     }).toList();
-    await _repository.write(collections);
+    final collections = await _repository.write(pendingCollections);
     emit(state.copyWith(collections: collections));
   }
 }

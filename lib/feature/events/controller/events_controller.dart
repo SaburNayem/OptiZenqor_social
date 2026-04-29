@@ -9,25 +9,41 @@ class EventsController extends ChangeNotifier {
 
   final EventsRepository _repository;
   List<EventItemModel> events = <EventItemModel>[];
+  bool isLoading = false;
+  String? errorMessage;
 
-  void load() {
-    events = _repository.load();
+  Future<void> load() async {
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      events = await _repository.load();
+    } catch (error) {
+      events = const <EventItemModel>[];
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void create(String title) {
+  Future<void> create(
+    String title, {
+    String? location,
+    DateTime? date,
+  }) async {
     final trimmed = title.trim();
     if (trimmed.isEmpty) {
       return;
     }
-    events = <EventItemModel>[
-      EventItemModel(
-        id: 'e_${DateTime.now().millisecondsSinceEpoch}',
-        title: trimmed,
-        date: DateTime.now().add(const Duration(days: 7)),
-      ),
-      ...events,
-    ];
+    final EventItemModel? created = await _repository.create(
+      title: trimmed,
+      location: location,
+      date: date,
+    );
+    if (created != null) {
+      events = <EventItemModel>[created, ...events];
+    }
     notifyListeners();
   }
 
