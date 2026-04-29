@@ -19,7 +19,6 @@ class ApiClientService {
     AuthSessionService? sessionService,
   }) : baseUrl = baseUrl ?? AppConfig.currentApiBaseUrl,
        _client = client ?? http.Client(),
-       _storage = storage ?? AppSharedPreferences(),
        _sessionService =
            sessionService ??
            AuthSessionService(storage: storage ?? AppSharedPreferences());
@@ -30,7 +29,6 @@ class ApiClientService {
 
   final String baseUrl;
   final http.Client _client;
-  final AppSharedPreferences _storage;
   final AuthSessionService _sessionService;
   Future<bool>? _refreshInFlight;
 
@@ -51,7 +49,7 @@ class ApiClientService {
     String endpoint,
     Map<String, dynamic> payload, {
     Map<String, String>? headers,
-  ) async {
+  }) async {
     return _send(
       method: 'POST',
       endpoint: endpoint,
@@ -166,7 +164,7 @@ class ApiClientService {
     String endpoint,
     Map<String, dynamic> payload, {
     Map<String, String>? headers,
-  ) async {
+  }) async {
     return _send(
       method: 'PATCH',
       endpoint: endpoint,

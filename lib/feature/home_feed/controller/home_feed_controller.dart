@@ -1,10 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/data/models/load_state_model.dart';
 import '../../../core/data/models/pagination_state_model.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/service/analytics_service.dart';
+import '../../../core/utils/app_logger.dart';
 import '../helper/home_feed_post_factory.dart';
 import '../repository/home_feed_repository.dart';
 import '../../stories/repository/stories_repository.dart';
@@ -472,7 +474,14 @@ class HomeFeedController extends Cubit<int> {
       try {
         remoteStories = await _repository.fetchStories();
       } catch (_) {}
-      stories = remoteStories.isEmpty
+      if (remoteStories.isEmpty && created.isNotEmpty) {
+        AppLogger.info(
+          '[StorySync] Created story but GET /stories returned empty.',
+        );
+      }
+      stories = AppConfig.useRemoteOnly
+          ? remoteStories
+          : remoteStories.isEmpty
           ? _sortStories(<StoryModel>[...created, ...stories])
           : remoteStories;
       loadState = loadState.copyWith(

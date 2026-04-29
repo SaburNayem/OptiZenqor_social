@@ -1,5 +1,6 @@
 import '../../data/api/api_payload_reader.dart';
 import '../../helpers/media_url_resolver.dart';
+import '../../utils/app_id.dart';
 import 'user_model.dart';
 
 class StoryMediaTransform {
@@ -89,6 +90,7 @@ class StoryModel {
     this.backgroundColors = const <int>[0xFF1E40AF, 0xFF2BB0A1],
     this.textColorValue = 0xFFFFFFFF,
     this.createdAt,
+    this.expiresAt,
     this.author,
     this.sticker,
     this.effectName,
@@ -114,6 +116,7 @@ class StoryModel {
   final List<int> backgroundColors;
   final int textColorValue;
   final DateTime? createdAt;
+  final DateTime? expiresAt;
   final UserModel? author;
   final String? sticker;
   final String? effectName;
@@ -129,7 +132,11 @@ class StoryModel {
 
   bool get hasMedia => media.trim().isNotEmpty || mediaItems.isNotEmpty;
   bool get hasText => (text ?? '').trim().isNotEmpty;
+  String get apiPrivacy => normalizePrivacyForApi(privacy);
   bool get isActive {
+    if (expiresAt != null) {
+      return DateTime.now().isBefore(expiresAt!);
+    }
     final DateTime createdTime = createdAt ?? DateTime.now();
     return DateTime.now().difference(createdTime) < visibleDuration;
   }
@@ -147,6 +154,7 @@ class StoryModel {
       'backgroundColors': backgroundColors,
       'textColorValue': textColorValue,
       'createdAt': createdAt?.toIso8601String(),
+      'expiresAt': expiresAt?.toIso8601String(),
       if (author != null) 'author': author!.toJson(),
       'sticker': sticker,
       'effectName': effectName,
@@ -167,10 +175,12 @@ class StoryModel {
   factory StoryModel.fromJson(Map<String, dynamic> json) {
     final Map<String, dynamic>? author = _readStoryAuthor(json);
     final List<String> mediaItems = _readStoryMediaItems(json);
+    final String resolvedId = ApiPayloadReader.readString(
+      json['id'] ?? json['_id'] ?? json['storyId'],
+    );
+    AppId.warnIfNotProductionId(resolvedId, entity: 'story');
     return StoryModel(
-      id: ApiPayloadReader.readString(
-        json['id'] ?? json['_id'] ?? json['storyId'],
-      ),
+      id: resolvedId,
       userId: ApiPayloadReader.readString(
         json['userId'] ??
             json['authorId'] ??
@@ -202,6 +212,9 @@ class StoryModel {
       createdAt: ApiPayloadReader.readDateTime(
         json['createdAt'] ?? json['created_at'] ?? json['timestamp'],
       ),
+      expiresAt: ApiPayloadReader.readDateTime(
+        json['expiresAt'] ?? json['expires_at'],
+      ),
       author: author == null ? null : UserModel.fromApiJson(author),
       sticker: ApiPayloadReader.readString(json['sticker']),
       effectName: ApiPayloadReader.readString(json['effectName']),
@@ -210,7 +223,7 @@ class StoryModel {
       linkUrl: ApiPayloadReader.readString(json['linkUrl']),
       privacy: ApiPayloadReader.readString(
         json['privacy'],
-        fallback: 'Everyone',
+        fallback: 'public',
       ),
       collageLayout: ApiPayloadReader.readString(
         json['collageLayout'],
@@ -237,6 +250,7 @@ class StoryModel {
     List<int>? backgroundColors,
     int? textColorValue,
     DateTime? createdAt,
+    DateTime? expiresAt,
     UserModel? author,
     String? sticker,
     String? effectName,
@@ -262,6 +276,7 @@ class StoryModel {
       backgroundColors: backgroundColors ?? this.backgroundColors,
       textColorValue: textColorValue ?? this.textColorValue,
       createdAt: createdAt ?? this.createdAt,
+      expiresAt: expiresAt ?? this.expiresAt,
       author: author ?? this.author,
       sticker: sticker ?? this.sticker,
       effectName: effectName ?? this.effectName,
@@ -399,5 +414,21 @@ class StoryModel {
           .toList(growable: false);
     }
     return const <StoryMediaTransform>[];
+  }
+}
+
+String normalizePrivacyForApi(String value) {
+  switch (value.trim().toLowerCase()) {
+    case 'everyone':
+    case 'public':
+      return 'public';
+    case 'followers':
+      return 'followers';
+    case 'only me':
+    case 'only_me':
+    case 'private':
+      return 'private';
+    default:
+      return 'public';
   }
 }

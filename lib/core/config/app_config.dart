@@ -70,4 +70,12 @@ class AppConfig {
   static const uploadTimeoutMs = 90000;
   static const socketConnectTimeoutMs = 15000;
   static const socketReconnectDelayMs = 3000;
+  static const useRemoteOnly = bool.fromEnvironment(
+    'USE_REMOTE_ONLY',
+    defaultValue: true,
+  );
+  static const allowOfflineFallback = bool.fromEnvironment(
+    'ALLOW_OFFLINE_FALLBACK',
+    defaultValue: false,
+  );
 }

@@ -1,4 +1,5 @@
 import '../../../core/data/api/api_end_points.dart';
+import '../../../core/config/app_config.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
@@ -32,7 +33,9 @@ class HomeFeedRepository {
       return <PostModel>[];
     }
 
-    final List<PostModel> localPosts = await readLocalCreatedPosts();
+    final List<PostModel> localPosts = AppConfig.useRemoteOnly
+        ? const <PostModel>[]
+        : await readLocalCreatedPosts();
 
     try {
       final response = await _service.apiClient.get(_feedEndpointFor(segment));
@@ -42,20 +45,26 @@ class HomeFeedRepository {
             .map(PostModel.fromApiJson)
             .toList(growable: false);
         final List<PostModel> posts = await _hydratePostAuthors(parsedPosts);
-        await _storage.writeJsonList(
-          StorageKeys.cachedFeed,
-          posts.map((PostModel post) => post.toCacheJson()).toList(),
-        );
-        return _mergePosts(localPosts, posts);
+        if (AppConfig.allowOfflineFallback) {
+          await _storage.writeJsonList(
+            StorageKeys.cachedFeed,
+            posts.map((PostModel post) => post.toCacheJson()).toList(),
+          );
+        }
+        return AppConfig.useRemoteOnly ? posts : _mergePosts(localPosts, posts);
       }
     } catch (_) {}
 
-    final List<PostModel> cached = await readCachedFeed();
-    if (cached.isNotEmpty) {
-      return _mergePosts(localPosts, cached);
+    if (AppConfig.allowOfflineFallback) {
+      final List<PostModel> cached = await readCachedFeed();
+      if (cached.isNotEmpty) {
+        return AppConfig.useRemoteOnly
+            ? cached
+            : _mergePosts(localPosts, cached);
+      }
     }
 
-    return localPosts;
+    return AppConfig.useRemoteOnly ? const <PostModel>[] : localPosts;
   }
 
   Future<List<PostModel>> readCachedFeed() async {
@@ -108,7 +117,6 @@ class HomeFeedRepository {
       authorId: currentUser.id,
     );
     final Map<String, dynamic> payload = <String, dynamic>{
-      'authorId': currentUser.id,
       'caption': caption.trim(),
       'media': remoteMedia,
       if (location != null && location.trim().isNotEmpty)
@@ -154,10 +162,7 @@ class HomeFeedRepository {
     required String postId,
     required bool liked,
   }) async {
-    final String userId = await _currentUserId();
-    final Map<String, dynamic> payload = <String, dynamic>{
-      if (userId.isNotEmpty) 'userId': userId,
-    };
+    const Map<String, dynamic> payload = <String, dynamic>{};
     final String endpoint = liked
         ? ApiEndPoints.postLike(postId)
         : ApiEndPoints.postUnlike(postId);

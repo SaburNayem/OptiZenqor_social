@@ -3,6 +3,7 @@ import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/upload_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
+import '../../../core/utils/app_id.dart';
 import '../../auth/repository/auth_repository.dart';
 import '../service/stories_service.dart';
 
@@ -44,7 +45,6 @@ class StoriesRepository {
     );
 
     final Map<String, dynamic> payload = <String, dynamic>{
-      'userId': currentUser.id,
       'media': remoteMedia.isEmpty ? '' : remoteMedia.first,
       'mediaItems': remoteMedia,
       'isLocalFile': false,
@@ -63,7 +63,7 @@ class StoriesRepository {
         'linkLabel': draft.linkLabel!.trim(),
       if ((draft.linkUrl ?? '').trim().isNotEmpty)
         'linkUrl': draft.linkUrl!.trim(),
-      'privacy': draft.privacy,
+      'privacy': draft.apiPrivacy,
       'collageLayout': draft.collageLayout,
       'textOffsetDx': draft.textOffsetDx,
       'textOffsetDy': draft.textOffsetDy,
@@ -112,13 +112,9 @@ class StoriesRepository {
       return;
     }
 
-    final UserModel? currentUser = await _authRepository.currentUser();
-    final Map<String, dynamic> payload = <String, dynamic>{
-      if (currentUser?.id.trim().isNotEmpty == true) 'userId': currentUser!.id,
-    };
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
-        .post(ApiEndPoints.storyView(storyId), payload);
+        .post(ApiEndPoints.storyView(storyId), const <String, dynamic>{});
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to mark story as viewed.');
     }
@@ -150,14 +146,11 @@ class StoriesRepository {
       return;
     }
 
-    final UserModel? currentUser = await _authRepository.currentUser();
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
         .post(ApiEndPoints.storyReactions(storyId), <String, dynamic>{
           'reaction': 'love',
           'active': liked,
-          if (currentUser?.id.trim().isNotEmpty == true)
-            'userId': currentUser!.id,
         });
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to update story reaction.');
@@ -196,8 +189,10 @@ class StoriesRepository {
         continue;
       }
 
-      final String taskId =
-          'story-${DateTime.now().microsecondsSinceEpoch}-${uploaded.length}';
+      final String taskId = AppId.makeLocal(
+        'upload',
+        sequence: uploaded.length,
+      );
       UploadProgress? lastProgress;
       await for (final UploadProgress progress in _uploadService.uploadFile(
         taskId: taskId,

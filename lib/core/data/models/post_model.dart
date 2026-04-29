@@ -1,5 +1,6 @@
 import 'user_model.dart';
 import '../../helpers/media_url_resolver.dart';
+import '../../utils/app_id.dart';
 
 class PostModel {
   const PostModel({
@@ -28,25 +29,44 @@ class PostModel {
 
   factory PostModel.fromApiJson(Map<String, dynamic> json) {
     final Map<String, dynamic>? authorJson = _readMap(json['author']);
+    final String resolvedId =
+        (json['id'] as Object? ?? json['_id'] as Object? ?? '').toString();
+    AppId.warnIfNotProductionId(resolvedId, entity: 'post');
     return PostModel(
-      id: (json['id'] as Object? ?? '').toString(),
-      authorId: (json['authorId'] as Object? ?? authorJson?['id'] ?? '')
+      id: resolvedId,
+      authorId:
+          (json['authorId'] as Object? ??
+                  json['author_id'] as Object? ??
+                  authorJson?['id'] ??
+                  authorJson?['_id'] ??
+                  '')
           .toString(),
       caption: (json['caption'] as String? ?? '').trim(),
       tags: _readStringList(json['tags']),
       media: _readStringList(
-        json['media'],
+        json['media'] ?? json['mediaItems'] ?? json['media_items'],
       ).map(MediaUrlResolver.resolve).toList(growable: false),
-      likes: _readCount(json['likes']),
-      comments: _readCount(json['comments']),
-      createdAt: _readDateTime(json['createdAt']),
+      likes: _readCount(
+        json['likes'] ?? json['likesCount'] ?? json['likes_count'],
+      ),
+      comments: _readCount(
+        json['comments'] ?? json['commentsCount'] ?? json['comments_count'],
+      ),
+      createdAt: _readDateTime(json['createdAt'] ?? json['created_at']),
       liked:
           json['liked'] as bool? ??
           json['isLiked'] as bool? ??
           json['isLikedByMe'] as bool? ??
           false,
-      viewCount: _readCount(json['views'] ?? json['viewCount']),
-      shareCount: _readCount(json['shares'] ?? json['shareCount']),
+      viewCount: _readCount(
+        json['views'] ?? json['viewCount'] ?? json['viewsCount'] ?? json['views_count'],
+      ),
+      shareCount: _readCount(
+        json['shares'] ??
+            json['shareCount'] ??
+            json['sharesCount'] ??
+            json['shares_count'],
+      ),
       taggedUserIds: _readStringList(json['taggedUserIds']),
       mentionUsernames: _readStringList(json['mentionUsernames']),
       location: json['location'] as String?,
@@ -147,7 +167,29 @@ class PostModel {
   static List<String> _readStringList(Object? value) {
     if (value is List) {
       return value
-          .map((Object? item) => item?.toString() ?? '')
+          .map((Object? item) {
+            if (item is Map<String, dynamic>) {
+              return (item['url'] ??
+                          item['mediaUrl'] ??
+                          item['imageUrl'] ??
+                          item['fileUrl'] ??
+                          item['path'] ??
+                          item['src'] ??
+                          '')
+                      .toString();
+            }
+            if (item is Map) {
+              return (item['url'] ??
+                          item['mediaUrl'] ??
+                          item['imageUrl'] ??
+                          item['fileUrl'] ??
+                          item['path'] ??
+                          item['src'] ??
+                          '')
+                      .toString();
+            }
+            return item?.toString() ?? '';
+          })
           .where((String item) => item.isNotEmpty)
           .toList(growable: false);
     }
