@@ -9,26 +9,27 @@ class GroupsController extends ChangeNotifier {
 
   final GroupsRepository _repository;
   List<GroupModel> groups = <GroupModel>[];
+  bool isLoading = false;
+  String? errorMessage;
 
-  void load() {
-    groups = _repository.load();
+  Future<void> load() async {
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      groups = await _repository.load();
+    } catch (error) {
+      errorMessage = error.toString();
+      groups = const <GroupModel>[];
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   void createGroup(String name) {
-    final trimmed = name.trim();
-    if (trimmed.isEmpty) {
-      return;
-    }
-    groups = <GroupModel>[
-      GroupModel(
-        id: 'group_${DateTime.now().millisecondsSinceEpoch}',
-        name: trimmed,
-        members: 1,
-        joined: true,
-      ),
-      ...groups,
-    ];
+    errorMessage =
+        'Creating groups is not exposed by the backend groups route yet.';
     notifyListeners();
   }
 

@@ -1,7 +1,8 @@
- import 'dart:io';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import 'live_broadcast_screen.dart';
 
 class LiveSetupScreen extends StatelessWidget {
   const LiveSetupScreen({
@@ -169,13 +170,14 @@ class LiveSetupScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(
-                              content: Text('Static live broadcast screen'),
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => LiveBroadcastScreen(
+                              initialTitle: caption,
+                              initialPhotoPath: photoPath,
                             ),
-                          );
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.red,

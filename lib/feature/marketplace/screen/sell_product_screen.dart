@@ -384,7 +384,10 @@ class _SellProductScreenState extends State<SellProductScreen> {
       sellerAvatar: widget.activeUser.avatar,
       sellerType: _sellerType,
     );
-    AppGet.snackbar('Marketplace', 'Draft saved locally');
+    AppGet.snackbar(
+      'Marketplace',
+      'Draft saved on device. Backend draft persistence is not exposed for marketplace listings.',
+    );
   }
 
   void _onPreview() {
@@ -394,8 +397,8 @@ class _SellProductScreenState extends State<SellProductScreen> {
     );
   }
 
-  void _onPublish() {
-    widget.controller.publishDraft(
+  Future<void> _onPublish() async {
+    final bool published = await widget.controller.publishDraft(
       title: _titleController.text,
       description: _descriptionController.text,
       category: _category,
@@ -414,6 +417,13 @@ class _SellProductScreenState extends State<SellProductScreen> {
       sellerAvatar: widget.activeUser.avatar,
       sellerType: _sellerType,
     );
+    if (!mounted) {
+      return;
+    }
+    if (!published) {
+      AppGet.snackbar('Marketplace', 'Unable to publish listing');
+      return;
+    }
     AppGet.snackbar('Marketplace', 'Listing published');
     widget.onPublished?.call();
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -37,12 +38,14 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
   @override
   void initState() {
     super.initState();
-    _controller = LiveStreamController()
-      ..load(
+    _controller = LiveStreamController();
+    unawaited(
+      _controller.load(
         initialTitle: widget.initialTitle,
         initialPhotoPath: widget.initialPhotoPath,
         initialAudience: widget.initialAudience,
-      );
+      ),
+    );
     _enter = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 650),
@@ -840,7 +843,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           style: TextStyle(color: AppColors.white),
         ),
         content: Text(
-          'Your live replay and audience summary will stay on this device as mock data.',
+          'Your live video will end and the latest backend-backed setup state will remain available.',
           style: TextStyle(color: AppColors.white.withValues(alpha: 0.75)),
         ),
         actions: [

@@ -11,5 +11,6 @@ class MarketplaceService extends FeatureServiceBase {
   Map<String, String> get endpoints => <String, String>{
     'marketplace': ApiEndPoints.marketplace,
     'products': ApiEndPoints.marketplaceProducts,
+    'checkout': ApiEndPoints.marketplaceCheckout,
   };
 }

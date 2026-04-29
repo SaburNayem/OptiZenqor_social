@@ -131,6 +131,85 @@ class MarketplaceRepository {
     return null;
   }
 
+  Future<MarketplaceOrderModel?> createOrder({
+    required String productId,
+    required String address,
+    required String deliveryMethod,
+    required String paymentMethod,
+  }) async {
+    final ServiceResponseModel<Map<String, dynamic>> response =
+        await _service.apiClient.post(
+      _service.endpoints['checkout']!,
+      <String, dynamic>{
+        'productId': productId,
+        'address': address,
+        'deliveryMethod': deliveryMethod,
+        'paymentMethod': paymentMethod,
+      },
+    );
+    if (!response.isSuccess || response.data['success'] == false) {
+      return null;
+    }
+    final Map<String, dynamic>? payload =
+        ApiPayloadReader.readMap(response.data['data']) ??
+        ApiPayloadReader.readMap(response.data['order']) ??
+        ApiPayloadReader.readMap(response.data);
+    if (payload == null || payload.isEmpty) {
+      return null;
+    }
+    return MarketplaceOrderModel(
+      id: ApiPayloadReader.readString(payload['id']),
+      productId: ApiPayloadReader.readString(payload['productId']),
+      productTitle: ApiPayloadReader.readString(payload['productTitle']),
+      amount: ApiPayloadReader.readDouble(payload['amount'] ?? payload['price']),
+      status: _orderStatusFromValue(payload['status']),
+      address: ApiPayloadReader.readString(payload['address']),
+      deliveryMethod: ApiPayloadReader.readString(payload['deliveryMethod']),
+      paymentMethod: ApiPayloadReader.readString(payload['paymentMethod']),
+      createdAt:
+          ApiPayloadReader.readDateTime(payload['createdAt']) ?? DateTime.now(),
+    );
+  }
+
+  Future<ProductModel?> createListing({
+    required String title,
+    required String description,
+    required String category,
+    required String subcategory,
+    required ProductCondition condition,
+    required double price,
+    required String location,
+    required String sellerId,
+    required String sellerName,
+  }) async {
+    final ServiceResponseModel<Map<String, dynamic>> response =
+        await _service.apiClient.post(
+      _service.endpoints['products']!,
+      <String, dynamic>{
+        'title': title.trim(),
+        'description': description.trim(),
+        'price': price,
+        'category': category,
+        'subcategory': subcategory,
+        'sellerId': sellerId,
+        'sellerName': sellerName,
+        'location': location.trim(),
+        'condition': condition.label,
+      },
+    );
+    if (!response.isSuccess || response.data['success'] == false) {
+      return null;
+    }
+    final Map<String, dynamic>? payload =
+        ApiPayloadReader.readMap(response.data['data']) ??
+        ApiPayloadReader.readMap(response.data['product']) ??
+        ApiPayloadReader.readMap(response.data);
+    if (payload == null || payload.isEmpty) {
+      return null;
+    }
+    return ProductModel.fromApiJson(payload);
+  }
+
   Map<String, dynamic> _resolveMarketplacePayload(Map<String, dynamic> response) {
     final Map<String, dynamic>? data = ApiPayloadReader.readMap(response['data']);
     final Map<String, dynamic>? result = ApiPayloadReader.readMap(

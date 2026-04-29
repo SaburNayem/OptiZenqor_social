@@ -44,24 +44,30 @@ class MarketplaceController extends ChangeNotifier {
   List<MarketplaceChatMessage> chatMessages = <MarketplaceChatMessage>[];
   List<MarketplaceOfferEvent> offerHistory = <MarketplaceOfferEvent>[];
   List<MarketplaceOrderModel> orders = <MarketplaceOrderModel>[];
+  String? errorMessage;
 
   Future<void> load() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
-    final data = await _repository.loadMarketplace();
-    _products = data.products;
-    sellers = data.sellers;
-    categories = data.categories;
-    savedItemIds = List<String>.from(data.savedItemIds);
-    followedSellerIds = List<String>.from(data.followedSellerIds);
-    savedSearches = List<String>.from(data.savedSearches);
-    recentSearches = List<String>.from(data.recentSearches);
-    trendingSearches = List<String>.from(data.trendingSearches);
-    notifications = List<String>.from(data.notifications);
-    blockedKeywords = List<String>.from(data.blockedKeywords);
-    chatMessages = List<MarketplaceChatMessage>.from(data.chatMessages);
-    offerHistory = List<MarketplaceOfferEvent>.from(data.offerHistory);
-    orders = List<MarketplaceOrderModel>.from(data.orders);
+    try {
+      final data = await _repository.loadMarketplace();
+      _products = data.products;
+      sellers = data.sellers;
+      categories = data.categories;
+      savedItemIds = List<String>.from(data.savedItemIds);
+      followedSellerIds = List<String>.from(data.followedSellerIds);
+      savedSearches = List<String>.from(data.savedSearches);
+      recentSearches = List<String>.from(data.recentSearches);
+      trendingSearches = List<String>.from(data.trendingSearches);
+      notifications = List<String>.from(data.notifications);
+      blockedKeywords = List<String>.from(data.blockedKeywords);
+      chatMessages = List<MarketplaceChatMessage>.from(data.chatMessages);
+      offerHistory = List<MarketplaceOfferEvent>.from(data.offerHistory);
+      orders = List<MarketplaceOrderModel>.from(data.orders);
+    } catch (error) {
+      errorMessage = error.toString();
+    }
     isLoading = false;
     notifyListeners();
   }
@@ -290,7 +296,7 @@ class MarketplaceController extends ChangeNotifier {
   void repostListing(String productId) =>
       _updateListingStatus(productId, ListingStatus.active);
 
-  void publishDraft({
+  Future<bool> publishDraft({
     required String title,
     required String description,
     required String category,
@@ -308,49 +314,24 @@ class MarketplaceController extends ChangeNotifier {
     required String sellerName,
     required String sellerAvatar,
     required SellerType sellerType,
-  }) {
-    _products.insert(
-      0,
-      ProductModel(
-        id: 'item-${_products.length + 1}',
-        title: title,
-        description: description,
-        price: price,
-        category: category,
-        subcategory: subcategory,
-        condition: condition,
-        location: location,
-        distanceLabel: 'Just now',
-        timePosted: DateTime.now(),
-        images: const <String>[
-          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80',
-        ],
-        sellerId: sellerId,
-        sellerName: sellerName,
-        sellerType: sellerType,
-        isNegotiable: isNegotiable,
-        deliveryOptions: deliveryOptions,
-        attributes: optionalFields,
-        tags: tags,
-        brand: optionalFields['Brand'] ?? 'Independent',
-        quantity: quantity,
-        isFeatured: boostListing,
-        isTrending: boostListing,
-        isRecommended: true,
-        isRecentlyViewed: false,
-        hasPriceDrop: false,
-        isAuction: false,
-        rating: 0,
-        reviewCount: 0,
-        reviews: const <ProductReview>[],
-        listingStatus: ListingStatus.active,
-        views: 0,
-        watchers: 0,
-        chats: 0,
-        isHiddenByModeration: false,
-        reviewStatus: listingApprovalEnabled ? 'Awaiting approval' : 'Approved',
-      ),
+  }) async {
+    final ProductModel? created = await _repository.createListing(
+      title: title,
+      description: description,
+      category: category,
+      subcategory: subcategory,
+      condition: condition,
+      price: price,
+      location: location,
+      sellerId: sellerId,
+      sellerName: sellerName,
     );
+    if (created == null) {
+      errorMessage = 'Unable to publish marketplace listing.';
+      notifyListeners();
+      return false;
+    }
+    _products.insert(0, created);
     _upsertSeller(
       sellerId: sellerId,
       sellerName: sellerName,
@@ -359,6 +340,7 @@ class MarketplaceController extends ChangeNotifier {
     );
     notifications.insert(0, 'Published "$title" to Marketplace');
     notifyListeners();
+    return true;
   }
 
   void saveDraft({
@@ -478,23 +460,22 @@ class MarketplaceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void placeOrder(ProductModel product) {
-    orders.insert(
-      0,
-      MarketplaceOrderModel(
-        id: 'ord-${orders.length + 1}',
-        productId: product.id,
-        productTitle: product.title,
-        amount: product.price,
-        status: MarketplaceOrderStatus.confirmed,
-        address: 'House 14, Road 7, Dhanmondi, Dhaka',
-        deliveryMethod: product.deliveryOptions.first.label,
-        paymentMethod: 'Wallet',
-        createdAt: DateTime.now(),
-      ),
+  Future<bool> placeOrder(ProductModel product) async {
+    final MarketplaceOrderModel? order = await _repository.createOrder(
+      productId: product.id,
+      address: 'House 14, Road 7, Dhanmondi, Dhaka',
+      deliveryMethod: product.deliveryOptions.first.label,
+      paymentMethod: 'Wallet',
     );
+    if (order == null) {
+      errorMessage = 'Unable to create marketplace order.';
+      notifyListeners();
+      return false;
+    }
+    orders.insert(0, order);
     notifications.insert(0, 'Order confirmed for ${product.title}');
     notifyListeners();
+    return true;
   }
 
   String suspiciousScan(ProductModel product) {

@@ -31,12 +31,12 @@ class LiveStreamController extends ChangeNotifier {
   bool settingsHighlighted = false;
   List<LiveCommentModel> visibleComments = <LiveCommentModel>[];
 
-  void load({
+  Future<void> load({
     String? initialTitle,
     String? initialPhotoPath,
     LiveAudienceVisibility? initialAudience,
-  }) {
-    live = _repository.load(
+  }) async {
+    live = await _repository.load(
       initialTitle: initialTitle,
       initialPhotoPath: initialPhotoPath,
       initialAudience: initialAudience,
@@ -308,11 +308,11 @@ class LiveStreamController extends ChangeNotifier {
 
   void resetSetup() {
     final previewPhotoPath = live?.previewPhotoPath;
-    load(
+    unawaited(load(
       initialTitle: 'Studio Check-in',
       initialPhotoPath: previewPhotoPath,
       initialAudience: LiveAudienceVisibility.public,
-    );
+    ));
   }
 
   void _rebuild({

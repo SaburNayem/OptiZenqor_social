@@ -16,65 +16,80 @@ class GroupChatScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Group Chat')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, _) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _groupController,
-                    decoration: const InputDecoration(hintText: 'New group name'),
+        builder: (_, _) {
+          if (_controller.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if ((_controller.errorMessage ?? '').isNotEmpty) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(_controller.errorMessage!),
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    _controller.createGroup(_groupController.text);
-                    _groupController.clear();
-                  },
-                  icon: const Icon(Icons.add_circle_outline),
-                ),
+                const SizedBox(height: 12),
               ],
-            ),
-            const SizedBox(height: 10),
-            ..._controller.groups.map(
-              (group) => Card(
-                child: ListTile(
-                  title: Text(group.name),
-                  subtitle: Text(
-                    'Members: ${group.members.join(', ')}\n'
-                    'Media: ${group.media.join(', ')}',
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _groupController,
+                      decoration: const InputDecoration(hintText: 'New group name'),
+                    ),
                   ),
-                  trailing: PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'add') {
-                        _controller.addMember(
-                          group.id,
-                          'member${group.members.length + 1}',
-                        );
-                      } else if (group.members.isNotEmpty) {
-                        _controller.removeMember(
-                          group.id,
-                          group.members.last,
-                        );
-                      }
+                  IconButton(
+                    onPressed: () {
+                      _controller.createGroup(_groupController.text);
+                      _groupController.clear();
                     },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(
-                        value: 'add',
-                        child: Text('Add member'),
-                      ),
-                      PopupMenuItem(
-                        value: 'remove',
-                        child: Text('Remove member'),
-                      ),
-                    ],
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ..._controller.groups.map(
+                (group) => Card(
+                  child: ListTile(
+                    title: Text(group.name),
+                    subtitle: Text(
+                      'Members: ${group.members.join(', ')}\n'
+                      'Media: ${group.media.join(', ')}',
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'add') {
+                          _controller.addMember(
+                            group.id,
+                            'member${group.members.length + 1}',
+                          );
+                        } else if (group.members.isNotEmpty) {
+                          _controller.removeMember(
+                            group.id,
+                            group.members.last,
+                          );
+                        }
+                      },
+                      itemBuilder: (_) => const [
+                        PopupMenuItem(
+                          value: 'add',
+                          child: Text('Add member'),
+                        ),
+                        PopupMenuItem(
+                          value: 'remove',
+                          child: Text('Remove member'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }

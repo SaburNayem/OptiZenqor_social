@@ -374,8 +374,10 @@ class ProductDetailsScreen extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: OutlinedButton(
-                onPressed: () =>
-                    AppGet.snackbar('Call seller', 'Calling is mocked for now'),
+                onPressed: () => AppGet.snackbar(
+                  'Call seller',
+                  'Use chat or the seller profile contact details from the backend listing.',
+                ),
                 child: const Text('Call'),
               ),
             ),
@@ -569,8 +571,11 @@ class _CheckoutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           FilledButton(
-            onPressed: () {
-              controller.placeOrder(product);
+            onPressed: () async {
+              final bool placed = await controller.placeOrder(product);
+              if (!context.mounted || !placed) {
+                return;
+              }
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute<void>(
                   builder: (_) => _OrderSuccessScreen(product: product),

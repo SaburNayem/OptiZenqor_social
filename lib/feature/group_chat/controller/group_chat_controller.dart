@@ -9,28 +9,39 @@ class GroupChatController extends ChangeNotifier {
 
   final GroupChatRepository _repository;
   List<GroupChatModel> groups = <GroupChatModel>[];
+  bool isLoading = false;
+  String? errorMessage;
 
-  void load() {
-    groups = _repository.all();
+  Future<void> load() async {
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      groups = await _repository.all();
+    } catch (error) {
+      errorMessage = error.toString();
+      groups = const <GroupChatModel>[];
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   void createGroup(String name) {
-    final trimmed = name.trim();
-    if (trimmed.isEmpty) {
-      return;
-    }
-    _repository.create(trimmed, 'you');
-    load();
+    errorMessage =
+        'Creating group chats is not exposed by the backend group-chat route yet.';
+    notifyListeners();
   }
 
   void addMember(String groupId, String username) {
-    _repository.addMember(groupId, username);
-    load();
+    errorMessage =
+        'Member management is not exposed by the backend group-chat route yet.';
+    notifyListeners();
   }
 
   void removeMember(String groupId, String username) {
-    _repository.removeMember(groupId, username);
-    load();
+    errorMessage =
+        'Member management is not exposed by the backend group-chat route yet.';
+    notifyListeners();
   }
 }

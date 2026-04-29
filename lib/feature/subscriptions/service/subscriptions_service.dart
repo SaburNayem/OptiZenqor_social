@@ -12,5 +12,7 @@ class SubscriptionsService extends FeatureServiceBase {
     'subscriptions': ApiEndPoints.subscriptions,
     'monetization_subscriptions': ApiEndPoints.monetizationSubscriptions,
     'plans': ApiEndPoints.monetizationPlans,
+    'premium_plans': ApiEndPoints.premiumPlans,
+    'monetization_overview': ApiEndPoints.monetizationOverview,
   };
 }
