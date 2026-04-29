@@ -116,10 +116,7 @@ class PostDetailRepository {
     required String postId,
     required bool liked,
   }) async {
-    final String userId = await _currentUserId();
-    final Map<String, dynamic> payload = <String, dynamic>{
-      if (userId.isNotEmpty) 'userId': userId,
-    };
+    const Map<String, dynamic> payload = <String, dynamic>{};
     final String endpoint = liked
         ? ApiEndPoints.postLike(postId)
         : ApiEndPoints.postUnlike(postId);
@@ -162,8 +159,6 @@ class PostDetailRepository {
         : ApiEndPoints.postCommentReplies(postId, replyTo);
     final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
         .post(endpoint, <String, dynamic>{
-          'authorId': currentUser.id,
-          'author': currentUser.name,
           'message': message.trim(),
           if (replyTo != null && replyTo.trim().isNotEmpty) 'replyTo': replyTo,
           'mentions': RegExp(r'@([a-zA-Z0-9_.]+)')
@@ -187,12 +182,10 @@ class PostDetailRepository {
     required String reaction,
     required bool active,
   }) async {
-    final String userId = await _currentUserId();
     final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
         .patch(
           ApiEndPoints.postCommentReact(postId, commentId),
           <String, dynamic>{
-            'userId': userId,
             'reaction': reaction,
             'active': active,
           },

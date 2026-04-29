@@ -99,7 +99,7 @@ class ChatRepository {
         .apiClient
         .post(
           _service.endpoints['messages']!.replaceFirst(':id', chatId),
-          <String, dynamic>{'senderId': senderId, 'text': text},
+          <String, dynamic>{'text': text},
         );
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to send message');

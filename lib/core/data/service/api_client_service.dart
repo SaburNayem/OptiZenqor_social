@@ -247,17 +247,18 @@ class ApiClientService {
       final Map<String, dynamic> responseBody = _decodeResponseBody(
         response.bodyBytes,
       );
-      if (response.statusCode == 401 &&
-          retryOnUnauthorized &&
-          await _refreshAccessToken()) {
-        return _send(
-          method: method,
-          endpoint: endpoint,
-          queryParameters: queryParameters,
-          payload: payload,
-          headers: headers,
-          retryOnUnauthorized: false,
-        );
+      if (response.statusCode == 401) {
+        if (retryOnUnauthorized && await _refreshAccessToken()) {
+          return _send(
+            method: method,
+            endpoint: endpoint,
+            queryParameters: queryParameters,
+            payload: payload,
+            headers: headers,
+            retryOnUnauthorized: false,
+          );
+        }
+        await _clearExpiredSession();
       }
       _clearRecentTransportFailure();
       stopwatch.stop();
@@ -349,6 +350,7 @@ class ApiClientService {
     final session = await _sessionService.readSession();
     final String refreshToken = session?.refreshToken ?? '';
     if (refreshToken.isEmpty) {
+      await _clearExpiredSession();
       return false;
     }
 
@@ -368,6 +370,7 @@ class ApiClientService {
         streamedResponse,
       );
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        await _clearExpiredSession();
         return false;
       }
 
@@ -386,6 +389,7 @@ class ApiClientService {
               .toString()
               .trim();
       if (newAccessToken.isEmpty) {
+        await _clearExpiredSession();
         return false;
       }
 
@@ -410,8 +414,13 @@ class ApiClientService {
       if (kDebugMode) {
         debugPrint('[ApiClientService] refresh failed endpoint=$endpoint $error');
       }
+      await _clearExpiredSession();
       return false;
     }
+  }
+
+  Future<void> _clearExpiredSession() async {
+    await _sessionService.clear();
   }
 
   Map<String, dynamic> _decodeResponseBody(List<int> bodyBytes) {

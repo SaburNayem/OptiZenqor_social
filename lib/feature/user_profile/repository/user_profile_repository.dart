@@ -363,7 +363,7 @@ class UserProfileRepository {
       final ServiceResponseModel<Map<String, dynamic>> response =
           await _service.apiClient.post(
             ApiEndPoints.legalDataExport,
-            <String, dynamic>{'userId': user.id},
+            const <String, dynamic>{},
           );
       if (response.isSuccess && response.data['success'] != false) {
         final List<Map<String, dynamic>> requests = await _storage.readJsonList(
