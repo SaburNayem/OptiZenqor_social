@@ -181,7 +181,7 @@ class _ListingCard extends StatelessWidget {
                 child: const Text('Pause listing'),
               ),
               OutlinedButton(
-                onPressed: () => controller.deleteListing(listing.id),
+                onPressed: () async => controller.deleteListing(listing.id),
                 child: const Text('Delete'),
               ),
               OutlinedButton(

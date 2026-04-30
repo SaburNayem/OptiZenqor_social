@@ -94,7 +94,19 @@ class MarketplaceSellerProfileScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => controller.toggleFollowSeller(seller.id),
+                  onPressed: () async {
+                    final bool updated = await controller.toggleFollowSeller(
+                      seller.id,
+                    );
+                    if (!context.mounted || updated) {
+                      return;
+                    }
+                    AppGet.snackbar(
+                      'Marketplace',
+                      controller.errorMessage ??
+                          'Unable to update seller follow state.',
+                    );
+                  },
                   child: Text(isFollowed ? 'Following' : 'Follow seller'),
                 ),
               ),
@@ -235,4 +247,3 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
-

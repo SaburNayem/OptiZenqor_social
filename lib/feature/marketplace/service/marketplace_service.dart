@@ -12,5 +12,7 @@ class MarketplaceService extends FeatureServiceBase {
     'marketplace': ApiEndPoints.marketplace,
     'products': ApiEndPoints.marketplaceProducts,
     'checkout': ApiEndPoints.marketplaceCheckout,
+    'drafts': ApiEndPoints.marketplaceDrafts,
+    'sellerFollows': ApiEndPoints.marketplaceSellerFollows,
   };
 }

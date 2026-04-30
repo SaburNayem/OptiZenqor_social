@@ -23,6 +23,7 @@ class MarketplaceController extends ChangeNotifier {
   bool listingApprovalEnabled = true;
   bool autoHideSuspiciousListings = true;
   bool checkoutEnabled = true;
+  bool isSyncingMarketplaceAction = false;
   String selectedLocation = 'Dhaka, Bangladesh';
   String searchQuery = '';
   String selectedCategory = 'All';
@@ -252,11 +253,49 @@ class MarketplaceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleFollowSeller(String sellerId) {
-    if (followedSellerIds.contains(sellerId)) {
-      followedSellerIds.remove(sellerId);
-    } else {
-      followedSellerIds.add(sellerId);
+  Future<bool> toggleFollowSeller(String sellerId) async {
+    final bool shouldFollow = !followedSellerIds.contains(sellerId);
+    isSyncingMarketplaceAction = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final bool following = await _repository.setSellerFollow(
+        sellerId: sellerId,
+        shouldFollow: shouldFollow,
+      );
+      if (following) {
+        if (!followedSellerIds.contains(sellerId)) {
+          followedSellerIds.add(sellerId);
+        }
+      } else {
+        followedSellerIds.remove(sellerId);
+      }
+      return true;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isSyncingMarketplaceAction = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadProductInteractions(String productId) async {
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final results = await Future.wait(<Future<dynamic>>[
+        _repository.fetchProductChatMessages(productId),
+        _repository.fetchProductOffers(productId),
+      ]);
+      chatMessages = List<MarketplaceChatMessage>.from(
+        results[0] as List<MarketplaceChatMessage>,
+      );
+      offerHistory = List<MarketplaceOfferEvent>.from(
+        results[1] as List<MarketplaceOfferEvent>,
+      );
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
     }
     notifyListeners();
   }
@@ -281,7 +320,20 @@ class MarketplaceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void deleteListing(String productId) {
+  Future<void> deleteListing(String productId) async {
+    final ProductModel? listing = _products.cast<ProductModel?>().firstWhere(
+      (ProductModel? item) => item?.id == productId,
+      orElse: () => null,
+    );
+    if (listing?.listingStatus == ListingStatus.draft) {
+      try {
+        await _repository.deleteDraft(productId);
+      } catch (error) {
+        errorMessage = error.toString().replaceFirst('Exception: ', '');
+        notifyListeners();
+        return;
+      }
+    }
     _products = _products.where((item) => item.id != productId).toList();
     savedItemIds.remove(productId);
     notifyListeners();
@@ -343,7 +395,7 @@ class MarketplaceController extends ChangeNotifier {
     return true;
   }
 
-  void saveDraft({
+  Future<bool> saveDraft({
     required String title,
     required String description,
     required String category,
@@ -358,59 +410,45 @@ class MarketplaceController extends ChangeNotifier {
     required Map<String, String> optionalFields,
     required String sellerId,
     required String sellerName,
-    required String sellerAvatar,
     required SellerType sellerType,
-  }) {
-    _products.insert(
-      0,
-      ProductModel(
-        id: 'draft-${_products.length + 1}',
+  }) async {
+    isSyncingMarketplaceAction = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final ProductModel draft = await _repository.saveDraft(
         title: title,
         description: description,
-        price: price,
         category: category,
         subcategory: subcategory,
         condition: condition,
+        price: price,
+        isNegotiable: isNegotiable,
+        quantity: quantity,
+        tags: tags,
         location: location,
-        distanceLabel: 'Draft',
-        timePosted: DateTime.now(),
-        images: const <String>[
-          'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
-        ],
+        deliveryOptions: deliveryOptions,
+        optionalFields: optionalFields,
         sellerId: sellerId,
         sellerName: sellerName,
         sellerType: sellerType,
-        isNegotiable: isNegotiable,
-        deliveryOptions: deliveryOptions,
-        attributes: optionalFields,
-        tags: tags,
-        brand: optionalFields['Brand'] ?? 'Independent',
-        quantity: quantity,
-        isFeatured: false,
-        isTrending: false,
-        isRecommended: false,
-        isRecentlyViewed: false,
-        hasPriceDrop: false,
-        isAuction: false,
-        rating: 0,
-        reviewCount: 0,
-        reviews: const <ProductReview>[],
-        listingStatus: ListingStatus.draft,
-        views: 0,
-        watchers: 0,
-        chats: 0,
-        isHiddenByModeration: false,
-        reviewStatus: 'Draft',
-      ),
-    );
-    _upsertSeller(
-      sellerId: sellerId,
-      sellerName: sellerName,
-      sellerAvatar: sellerAvatar,
-      sellerType: sellerType,
-    );
-    notifications.insert(0, 'Saved "$title" as draft');
-    notifyListeners();
+      );
+      _products.insert(0, draft);
+      notifications.insert(0, 'Saved "$title" as draft');
+      _upsertSeller(
+        sellerId: sellerId,
+        sellerName: sellerName,
+        sellerAvatar: '',
+        sellerType: sellerType,
+      );
+      return true;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isSyncingMarketplaceAction = false;
+      notifyListeners();
+    }
   }
 
   void loadMoreBrowse() {
@@ -420,44 +458,77 @@ class MarketplaceController extends ChangeNotifier {
     }
   }
 
-  void sendMessage(String text, {String? imageUrl}) {
+  Future<bool> sendMessage(
+    String productId,
+    String text, {
+    String? imageUrl,
+  }) async {
     if (text.trim().isEmpty && imageUrl == null) {
-      return;
+      return false;
     }
-    chatMessages.add(
-      MarketplaceChatMessage(
-        id: 'chat-${chatMessages.length + 1}',
-        senderName: 'You',
-        text: text.trim().isEmpty ? 'Sent an image' : text.trim(),
-        imageUrl: imageUrl,
-        timestamp: DateTime.now(),
-      ),
-    );
+    isSyncingMarketplaceAction = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      final MarketplaceChatMessage remoteMessage = await _repository
+          .sendMessage(productId: productId, text: text, imageUrl: imageUrl);
+      final MarketplaceChatMessage message = MarketplaceChatMessage(
+        id: remoteMessage.id,
+        senderId: remoteMessage.senderId,
+        senderName: 'You',
+        text: remoteMessage.text,
+        timestamp: remoteMessage.timestamp,
+        productId: remoteMessage.productId ?? productId,
+        imageUrl: remoteMessage.imageUrl,
+        isOffer: remoteMessage.isOffer,
+        offerAmount: remoteMessage.offerAmount,
+        productTitle: remoteMessage.productTitle,
+      );
+      chatMessages = <MarketplaceChatMessage>[message, ...chatMessages];
+      return true;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isSyncingMarketplaceAction = false;
+      notifyListeners();
+    }
   }
 
-  void sendQuickReply(String reply) => sendMessage(reply);
+  Future<bool> sendQuickReply(String productId, String reply) =>
+      sendMessage(productId, reply);
 
-  void sendOffer(double amount) {
-    offerHistory.add(
-      MarketplaceOfferEvent(
-        actor: 'You',
-        action: 'Offered',
-        amount: amount,
-        timestamp: DateTime.now(),
-      ),
-    );
-    chatMessages.add(
-      MarketplaceChatMessage(
-        id: 'chat-${chatMessages.length + 1}',
-        senderName: 'You',
-        text: 'Sent an offer',
-        timestamp: DateTime.now(),
-        isOffer: true,
-        offerAmount: amount,
-      ),
-    );
+  Future<bool> sendOffer(String productId, double amount) async {
+    isSyncingMarketplaceAction = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      final MarketplaceOfferEvent offer = await _repository.sendOffer(
+        productId: productId,
+        amount: amount,
+      );
+      offerHistory = <MarketplaceOfferEvent>[offer, ...offerHistory];
+      chatMessages = <MarketplaceChatMessage>[
+        MarketplaceChatMessage(
+          id: offer.id ?? 'offer-${offerHistory.length}',
+          senderId: null,
+          senderName: 'You',
+          text: offer.note?.isNotEmpty == true ? offer.note! : 'Sent an offer',
+          timestamp: offer.timestamp,
+          productId: offer.productId ?? productId,
+          isOffer: true,
+          offerAmount: offer.amount,
+        ),
+        ...chatMessages,
+      ];
+      return true;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isSyncingMarketplaceAction = false;
+      notifyListeners();
+    }
   }
 
   Future<bool> placeOrder(ProductModel product) async {
@@ -498,7 +569,9 @@ class MarketplaceController extends ChangeNotifier {
     required SellerType sellerType,
   }) {
     final existingIndex = sellers.indexWhere((seller) => seller.id == sellerId);
-    final SellerModel? existing = existingIndex == -1 ? null : sellers[existingIndex];
+    final SellerModel? existing = existingIndex == -1
+        ? null
+        : sellers[existingIndex];
     final activeListings = _products
         .where(
           (item) =>

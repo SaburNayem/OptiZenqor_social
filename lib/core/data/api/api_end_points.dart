@@ -395,8 +395,22 @@ class ApiEndPoints {
       '/marketplace/detail/$productId';
   static const marketplaceCheckout = '/marketplace/checkout';
   static const marketplaceProducts = '/marketplace/products';
+  static const marketplaceDrafts = '/marketplace/drafts';
+  static const marketplaceSellerFollows = '/marketplace/seller-follows';
   static String marketplaceProductById(String productId) =>
       '/marketplace/products/$productId';
+  static String marketplaceDraftById(String draftId) =>
+      '/marketplace/drafts/$draftId';
+  static String marketplaceSellerFollow(String sellerId) =>
+      '/marketplace/sellers/$sellerId/follow';
+  static String marketplaceProductChat(String productId) =>
+      '/marketplace/products/$productId/chat';
+  static String marketplaceProductChatMessages(String productId) =>
+      '/marketplace/products/$productId/chat/messages';
+  static String marketplaceProductOffers(String productId) =>
+      '/marketplace/products/$productId/offers';
+  static String marketplaceOfferById(String offerId) =>
+      '/marketplace/offers/$offerId';
 
   // MonetizationController
   static const monetizationOverview = '/monetization/overview';

@@ -365,8 +365,8 @@ class _SellProductScreenState extends State<SellProductScreen> {
     return SellerType.individual;
   }
 
-  void _onSaveDraft() {
-    widget.controller.saveDraft(
+  Future<void> _onSaveDraft() async {
+    final bool saved = await widget.controller.saveDraft(
       title: _titleController.text,
       description: _descriptionController.text,
       category: _category,
@@ -381,13 +381,19 @@ class _SellProductScreenState extends State<SellProductScreen> {
       optionalFields: _optionalFields,
       sellerId: widget.activeUser.id,
       sellerName: widget.activeUser.name,
-      sellerAvatar: widget.activeUser.avatar,
       sellerType: _sellerType,
     );
-    AppGet.snackbar(
-      'Marketplace',
-      'Draft saved on device. Backend draft persistence is not exposed for marketplace listings.',
-    );
+    if (!mounted) {
+      return;
+    }
+    if (!saved) {
+      AppGet.snackbar(
+        'Marketplace',
+        widget.controller.errorMessage ?? 'Unable to save draft.',
+      );
+      return;
+    }
+    AppGet.snackbar('Marketplace', 'Draft saved to your marketplace account.');
   }
 
   void _onPreview() {

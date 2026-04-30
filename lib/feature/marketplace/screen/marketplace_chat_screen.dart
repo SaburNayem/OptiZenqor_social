@@ -24,6 +24,12 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
   final TextEditingController _messageController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    widget.controller.loadProductInteractions(widget.product.id);
+  }
+
+  @override
   void dispose() {
     _messageController.dispose();
     super.dispose();
@@ -76,8 +82,18 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
                     ])
                       ActionChip(
                         label: Text(reply),
-                        onPressed: () =>
-                            widget.controller.sendQuickReply(reply),
+                        onPressed: () async {
+                          final bool sent = await widget.controller
+                              .sendQuickReply(widget.product.id, reply);
+                          if (!context.mounted || sent) {
+                            return;
+                          }
+                          AppGet.snackbar(
+                            'Marketplace',
+                            widget.controller.errorMessage ??
+                                'Unable to send quick reply.',
+                          );
+                        },
                       ),
                   ],
                 ),
@@ -88,7 +104,9 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
                   itemCount: widget.controller.chatMessages.length,
                   itemBuilder: (context, index) {
                     final message = widget.controller.chatMessages[index];
-                    final isMine = message.senderName == 'You';
+                    final isMine =
+                        message.senderId == null ||
+                        message.senderId != widget.product.sellerId;
                     return Align(
                       alignment: isMine
                           ? Alignment.centerRight
@@ -132,7 +150,9 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.white.withValues(alpha: 0.7),
+                                    color: AppColors.white.withValues(
+                                      alpha: 0.7,
+                                    ),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Text(
@@ -178,11 +198,23 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () => widget.controller.sendMessage(
-                              '',
-                              imageUrl:
-                                  'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
-                            ),
+                            onPressed: () async {
+                              final bool
+                              sent = await widget.controller.sendMessage(
+                                widget.product.id,
+                                '',
+                                imageUrl:
+                                    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
+                              );
+                              if (!context.mounted || sent) {
+                                return;
+                              }
+                              AppGet.snackbar(
+                                'Marketplace',
+                                widget.controller.errorMessage ??
+                                    'Unable to send image message.',
+                              );
+                            },
                             icon: const Icon(Icons.image_outlined),
                             label: const Text('Image'),
                           ),
@@ -210,11 +242,24 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
                         ),
                         const SizedBox(width: 12),
                         IconButton.filled(
-                          onPressed: () {
-                            widget.controller.sendMessage(
-                              _messageController.text,
+                          onPressed: () async {
+                            final bool sent = await widget.controller
+                                .sendMessage(
+                                  widget.product.id,
+                                  _messageController.text,
+                                );
+                            if (!context.mounted) {
+                              return;
+                            }
+                            if (sent) {
+                              _messageController.clear();
+                              return;
+                            }
+                            AppGet.snackbar(
+                              'Marketplace',
+                              widget.controller.errorMessage ??
+                                  'Unable to send message.',
                             );
-                            _messageController.clear();
                           },
                           icon: const Icon(Icons.send_rounded),
                         ),
@@ -261,12 +306,26 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
               ),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: () {
+                onPressed: () async {
                   final amount = double.tryParse(priceController.text);
-                  if (amount != null) {
-                    widget.controller.sendOffer(amount);
-                    Navigator.of(context).pop();
+                  if (amount == null) {
+                    return;
                   }
+                  final bool sent = await widget.controller.sendOffer(
+                    widget.product.id,
+                    amount,
+                  );
+                  if (!context.mounted) {
+                    return;
+                  }
+                  if (sent) {
+                    Navigator.of(context).pop();
+                    return;
+                  }
+                  AppGet.snackbar(
+                    'Marketplace',
+                    widget.controller.errorMessage ?? 'Unable to send offer.',
+                  );
                 },
                 child: const Text('Send offer'),
               ),
@@ -325,4 +384,3 @@ class _ProductStrip extends StatelessWidget {
     );
   }
 }
-

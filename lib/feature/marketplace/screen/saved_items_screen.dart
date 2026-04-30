@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
 import '../widget/product_card.dart';
 import 'product_details_screen.dart';
@@ -65,7 +66,19 @@ class SavedItemsScreen extends StatelessWidget {
                   '${seller.rating} rating • ${seller.responseTime}',
                 ),
                 trailing: FilledButton.tonal(
-                  onPressed: () => controller.toggleFollowSeller(seller.id),
+                  onPressed: () async {
+                    final bool updated = await controller.toggleFollowSeller(
+                      seller.id,
+                    );
+                    if (!context.mounted || updated) {
+                      return;
+                    }
+                    AppGet.snackbar(
+                      'Marketplace',
+                      controller.errorMessage ??
+                          'Unable to update seller follow state.',
+                    );
+                  },
                   child: const Text('Following'),
                 ),
               ),
