@@ -21,18 +21,25 @@ class VerificationRequestController extends ChangeNotifier {
     requiredDocuments: <String>[],
   );
   bool isLoading = true;
+  String? errorMessage;
 
   Future<void> load() async {
     isLoading = true;
+    errorMessage = null;
     notifyListeners();
-    model = await _repository.load();
-    requiredDocuments =
-        await _repository.loadRequiredDocuments() ??
-        (model.requiredDocuments.isNotEmpty
-            ? model.requiredDocuments
-            : requiredDocuments);
-    isLoading = false;
-    notifyListeners();
+    try {
+      model = await _repository.load();
+      requiredDocuments =
+          await _repository.loadRequiredDocuments() ??
+          (model.requiredDocuments.isNotEmpty
+              ? model.requiredDocuments
+              : requiredDocuments);
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> toggleDocument(String documentName) async {
@@ -47,7 +54,13 @@ class VerificationRequestController extends ChangeNotifier {
   }
 
   Future<void> submit() async {
-    model = await _repository.submit(model);
+    errorMessage = null;
+    notifyListeners();
+    try {
+      model = await _repository.submit(model);
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    }
     notifyListeners();
   }
 

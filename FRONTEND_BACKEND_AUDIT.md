@@ -18,6 +18,8 @@ auth-owned API integration work.
 - `lib/feature/safety_privacy/repository/safety_privacy_repository.dart`
 - `lib/feature/support_help/repository/support_help_repository.dart`
 - `lib/feature/trending/repository/trending_repository.dart`
+- `lib/feature/hashtags/repository/hashtags_repository.dart`
+- `lib/feature/verification_request/repository/verification_request_repository.dart`
 
 These areas already use the central API client for their live backend flows.
 Some still keep local cache for UX or optimistic state.
@@ -54,12 +56,9 @@ equivalents.
 - `lib/feature/live_stream/repository/live_stream_repository.dart`
 - `lib/feature/pages/repository/pages_repository.dart`
 - `lib/feature/calls/repository/calls_repository.dart`
-- `lib/feature/subscriptions/repository/subscriptions_repository.dart`
-- `lib/feature/hashtags/repository/hashtags_repository.dart`
 - `lib/feature/account_switching/repository/account_switching_repository.dart`
 - `lib/feature/activity_sessions/repository/activity_sessions_repository.dart`
 - `lib/feature/blocked_muted_accounts/repository/blocked_muted_accounts_repository.dart`
-- `lib/feature/verification_request/repository/verification_request_repository.dart`
 - `lib/feature/saved_collections/repository/saved_collections_repository.dart`
 
 These should be moved to:
@@ -91,6 +90,6 @@ matching backend route is production-backed.
 1. Marketplace offer/follow/chat persistence
 2. Jobs
 3. Events
-4. Communities / Groups / Pages
-5. Group chat / live stream / hidden/archive flows
-6. Drafts / saved collections / verification / settings state sync
+4. Communities / Groups / Pages completeness
+5. Hidden/archive feed state and live stream lifecycle
+6. Learning courses / polls / business profile and remaining utility flows

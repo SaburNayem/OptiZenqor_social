@@ -82,6 +82,34 @@ class SubscriptionsRepository {
     await _preferences.write(StorageKeys.activeSubscriptionPlan, planId);
   }
 
+  Future<void> cancelSubscription({String? subscriptionId}) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .postEndpoint(
+          'subscriptions_cancel',
+          payload: <String, dynamic>{
+            if ((subscriptionId ?? '').trim().isNotEmpty)
+              'subscriptionId': subscriptionId!.trim(),
+          },
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to cancel subscription.');
+    }
+  }
+
+  Future<void> renewSubscription({String? subscriptionId}) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .postEndpoint(
+          'subscriptions_renew',
+          payload: <String, dynamic>{
+            if ((subscriptionId ?? '').trim().isNotEmpty)
+              'subscriptionId': subscriptionId!.trim(),
+          },
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to renew subscription.');
+    }
+  }
+
   String get billingEndpoint => ApiEndPoints.subscriptions;
 
   List<Map<String, dynamic>> _readPlanItems(Map<String, dynamic> response) {

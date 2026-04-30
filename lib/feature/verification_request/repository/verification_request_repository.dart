@@ -15,8 +15,8 @@ class VerificationRequestRepository {
 
   Future<List<String>?> loadRequiredDocuments() async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint('documents');
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint('documents');
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
@@ -34,13 +34,11 @@ class VerificationRequestRepository {
   Future<VerificationRequestModel> submit(
     VerificationRequestModel model,
   ) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.postEndpoint(
-      'submit',
-      payload: <String, dynamic>{
-        'documents': model.selectedDocuments,
-      },
-    );
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .postEndpoint(
+          'submit',
+          payload: <String, dynamic>{'documents': model.selectedDocuments},
+        );
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to submit verification.');
     }
@@ -49,18 +47,13 @@ class VerificationRequestRepository {
 
   Future<VerificationRequestModel> _loadFromApi() async {
     for (final String key in <String>['status', 'verification_request']) {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint(key);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint(key);
       if (!response.isSuccess || response.data['success'] == false) {
         continue;
       }
       return VerificationRequestModel.fromApiJson(response.data);
     }
-    return const VerificationRequestModel(
-      status: VerificationStatus.notRequested,
-      reason: '',
-      selectedDocuments: <String>[],
-      requiredDocuments: <String>[],
-    );
+    throw Exception('Unable to load verification request state.');
   }
 }

@@ -48,9 +48,40 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
           appBar: AppBar(title: const Text('Verification Request')),
           body: _controller.isLoading
               ? const Center(child: CircularProgressIndicator())
+              : (_controller.errorMessage != null &&
+                    _controller.model.selectedDocuments.isEmpty &&
+                    _controller.model.requiredDocuments.isEmpty)
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          _controller.errorMessage!,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: _controller.load,
+                          child: const Text('Try again'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    if ((_controller.errorMessage ?? '').isNotEmpty) ...[
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(_controller.errorMessage!),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     if (widget.requestedForUser != null) ...[
                       Card(
                         child: ListTile(

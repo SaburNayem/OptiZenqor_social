@@ -1,9 +1,29 @@
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../model/hashtag_model.dart';
+import '../service/hashtags_service.dart';
 
 class HashtagsRepository {
-  List<HashtagModel> trending() => const <HashtagModel>[
-        HashtagModel(tag: '#flutter', count: 12000),
-        HashtagModel(tag: '#creator', count: 8700),
-        HashtagModel(tag: '#startup', count: 6500),
-      ];
+  HashtagsRepository({HashtagsService? service})
+    : _service = service ?? HashtagsService();
+
+  final HashtagsService _service;
+
+  Future<List<HashtagModel>> trending() async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('hashtags');
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(
+        response.data['message']?.toString() ?? 'Unable to load hashtags.',
+      );
+    }
+
+    return ApiPayloadReader.readMapList(
+          response.data,
+          preferredKeys: const <String>['items', 'results', 'data', 'hashtags'],
+        )
+        .map(HashtagModel.fromApiJson)
+        .where((HashtagModel item) => item.tag.isNotEmpty)
+        .toList(growable: false);
+  }
 }

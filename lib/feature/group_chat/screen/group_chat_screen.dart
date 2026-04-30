@@ -68,6 +68,20 @@ class GroupChatScreen extends StatelessWidget {
                             group.id,
                             'member${group.members.length + 1}',
                           );
+                        } else if (value == 'rename') {
+                          await _controller.renameGroup(
+                            group.id,
+                            '${group.name} Updated',
+                          );
+                        } else if (value == 'delete') {
+                          await _controller.deleteGroup(group.id);
+                        } else if (value == 'role' &&
+                            group.members.isNotEmpty) {
+                          await _controller.updateMemberRole(
+                            group.id,
+                            group.members.first,
+                            'moderator',
+                          );
                         } else if (group.members.isNotEmpty) {
                           await _controller.removeMember(
                             group.id,
@@ -77,9 +91,18 @@ class GroupChatScreen extends StatelessWidget {
                       },
                       itemBuilder: (_) => const [
                         PopupMenuItem(value: 'add', child: Text('Add member')),
+                        PopupMenuItem(value: 'rename', child: Text('Rename')),
+                        PopupMenuItem(
+                          value: 'role',
+                          child: Text('Make first member moderator'),
+                        ),
                         PopupMenuItem(
                           value: 'remove',
                           child: Text('Remove member'),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Delete group'),
                         ),
                       ],
                     ),

@@ -67,6 +67,44 @@ class GroupChatRepository {
     return _groupFromApiJson(_readGroupPayload(response.data));
   }
 
+  Future<GroupChatModel> renameGroup(String groupId, String name) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .patchEndpoint(
+          ApiEndPoints.groupChatUpdate(groupId),
+          payload: <String, dynamic>{'name': name},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to rename group chat.');
+    }
+    return _groupFromApiJson(_readGroupPayload(response.data));
+  }
+
+  Future<void> deleteGroup(String groupId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .deleteEndpoint(ApiEndPoints.groupChatDelete(groupId));
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to delete group chat.');
+    }
+  }
+
+  Future<GroupChatModel> updateMemberRole(
+    String groupId,
+    String userIdOrUsername,
+    String role,
+  ) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .patchEndpoint(
+          ApiEndPoints.groupChatMemberRole(groupId, userIdOrUsername),
+          payload: <String, dynamic>{'role': role},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(
+        response.message ?? 'Unable to update group member role.',
+      );
+    }
+    return _groupFromApiJson(_readGroupPayload(response.data));
+  }
+
   Map<String, dynamic> _readGroupPayload(Map<String, dynamic> response) {
     return ApiPayloadReader.readMap(response['group']) ??
         ApiPayloadReader.readMap(response['data']) ??

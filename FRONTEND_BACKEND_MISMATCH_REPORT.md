@@ -22,6 +22,11 @@ Updated: 2026-04-30
 - `marketplace` listing publish now posts real listings to `/marketplace/products`.
 - `support_help` now reads `/support-help` instead of shipping hardcoded FAQ data.
 - `trending` now reads `/trending` instead of shipping hardcoded trending cards.
+- `hashtags` now reads `/hashtags` instead of shipping hardcoded hashtag counts.
+- `group_chat` now exposes backend-backed rename/delete/member-role actions.
+- `subscriptions` now exposes backend-backed cancel and renew actions.
+- `verification_request` no longer fabricates a local `notRequested` state when the backend call fails.
+- `archive` screens now surface backend errors instead of silently rendering fake-empty states.
 - `wallet_payments` now reads backend wallet balance and ledger instead of shipping fake transaction data.
 - `safety_privacy` now reads and writes backend privacy/settings state instead of storing local-only production settings.
 
@@ -29,11 +34,11 @@ Updated: 2026-04-30
 
 - `group-chat`
   - Read and member-management routes now exist.
-  - Role update and rename/delete routes exist on backend but are not yet surfaced in the current Flutter screen.
+  - Rename/delete/role update routes are now surfaced in the current Flutter screen.
 - `subscriptions`
   - Read routes exist.
   - Plan-change mutation now exists and is used by the Flutter repository.
-  - Cancel/renew mutation routes now exist but are not yet surfaced in the current Flutter UI.
+  - Cancel/renew mutation routes are now surfaced in the current Flutter UI.
 - `marketplace drafts`
   - Product create exists.
   - No draft-specific backend route exists for marketplace listings, so save-draft remains device-local.
@@ -44,8 +49,8 @@ Updated: 2026-04-30
   - Setup/read/comment/reaction routes now exist and are durable.
   - Full persisted start/end/live moderation lifecycle is still not exposed as a durable frontend CRUD flow.
 - `hidden/archive UI`
-  - Backend routes are now durable.
-  - Current Flutter hidden/archive screens still need full endpoint-driven state instead of local-only controller state.
+  - Archive list screens now read backend routes and show real error states.
+  - Hidden posts screen still depends on local `HomeFeedController` state instead of the backend hidden-post routes.
 
 ## Endpoint notes
 

@@ -86,4 +86,63 @@ class GroupChatController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> renameGroup(String groupId, String name) async {
+    if (name.trim().isEmpty) {
+      errorMessage = 'Group name is required.';
+      notifyListeners();
+      return;
+    }
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.renameGroup(groupId, name.trim());
+      groups = await _repository.all();
+    } catch (error) {
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteGroup(String groupId) async {
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.deleteGroup(groupId);
+      groups = await _repository.all();
+    } catch (error) {
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateMemberRole(
+    String groupId,
+    String username,
+    String role,
+  ) async {
+    if (username.trim().isEmpty) {
+      errorMessage = 'Member identifier is required.';
+      notifyListeners();
+      return;
+    }
+    isLoading = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.updateMemberRole(groupId, username.trim(), role);
+      groups = await _repository.all();
+    } catch (error) {
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }

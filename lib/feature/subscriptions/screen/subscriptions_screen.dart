@@ -25,25 +25,50 @@ class SubscriptionsScreen extends StatelessWidget {
             appBar: AppBar(title: const Text('Subscriptions')),
             body: ListView(
               padding: const EdgeInsets.all(16),
-              children: state.plans
-                  .map(
-                    (plan) => Card(
-                      child: ListTile(
-                        title: Text(plan.name),
-                        subtitle: Text(
-                          '\$${plan.price.toStringAsFixed(2)} / month',
-                        ),
-                        trailing: FilledButton(
-                          onPressed: () =>
-                              controller.upgradeOrDowngrade(plan.id),
-                          child: Text(
-                            state.activePlanId == plan.id ? 'Active' : 'Select',
-                          ),
+              children: <Widget>[
+                if ((state.errorMessage ?? '').isNotEmpty) ...<Widget>[
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(state.errorMessage!),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (state.plans.isEmpty)
+                  const Card(
+                    child: ListTile(
+                      title: Text('No subscription plans available yet'),
+                    ),
+                  ),
+                ...state.plans.map(
+                  (plan) => Card(
+                    child: ListTile(
+                      title: Text(plan.name),
+                      subtitle: Text(
+                        '\$${plan.price.toStringAsFixed(2)} / month',
+                      ),
+                      trailing: FilledButton(
+                        onPressed: () => controller.upgradeOrDowngrade(plan.id),
+                        child: Text(
+                          state.activePlanId == plan.id ? 'Active' : 'Select',
                         ),
                       ),
                     ),
-                  )
-                  .toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: state.isCancelled
+                      ? controller.renew
+                      : controller.cancel,
+                  child: Text(
+                    state.isCancelled
+                        ? 'Renew Subscription'
+                        : 'Cancel Subscription',
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -51,4 +76,3 @@ class SubscriptionsScreen extends StatelessWidget {
     );
   }
 }
-

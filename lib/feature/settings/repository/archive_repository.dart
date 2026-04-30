@@ -26,18 +26,15 @@ class ArchiveRepository {
     String endpoint,
     T Function(Map<String, dynamic>) parser,
   ) async {
-    try {
-      final response = await _apiClient.get(endpoint);
-      if (!response.isSuccess || response.data['success'] == false) {
-        return <T>[];
-      }
-      return _readMapList(response.data)
-          .map(parser)
-          .where((T item) => true)
-          .toList(growable: false);
-    } catch (_) {
-      return <T>[];
+    final response = await _apiClient.get(endpoint);
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(
+        response.data['message']?.toString() ?? 'Unable to load archive data.',
+      );
     }
+    return _readMapList(
+      response.data,
+    ).map(parser).where((T item) => true).toList(growable: false);
   }
 
   List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
@@ -53,9 +50,11 @@ class ArchiveRepository {
       }
       return raw
           .whereType<Object>()
-          .map((Object item) => item is Map<String, dynamic>
-              ? item
-              : Map<String, dynamic>.from(item as Map))
+          .map(
+            (Object item) => item is Map<String, dynamic>
+                ? item
+                : Map<String, dynamic>.from(item as Map),
+          )
           .toList(growable: false);
     }
     return const <Map<String, dynamic>>[];
