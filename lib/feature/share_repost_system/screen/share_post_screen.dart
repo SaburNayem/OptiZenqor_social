@@ -14,11 +14,7 @@ import '../../home_feed/widget/create_post_composer_card.dart';
 import '../widget/share_source_post_card.dart';
 
 class SharePostScreen extends StatefulWidget {
-  const SharePostScreen({
-    super.key,
-    required this.post,
-    required this.author,
-  });
+  const SharePostScreen({super.key, required this.post, required this.author});
 
   final PostModel post;
   final UserModel author;
@@ -37,7 +33,9 @@ class _SharePostScreenState extends State<SharePostScreen> {
     super.initState();
     _controller = CreatePostController()
       ..mediaPaths = List<String>.from(widget.post.media)
-      ..isVideo = widget.post.media.length == 1 && _isVideoPath(widget.post.media.firstOrNull ?? '');
+      ..isVideo =
+          widget.post.media.length == 1 &&
+          _isVideoPath(widget.post.media.firstOrNull ?? '');
     _loadCurrentUser();
   }
 
@@ -219,21 +217,24 @@ class _SharePostScreenState extends State<SharePostScreen> {
   }
 
   Future<void> _submitShare() async {
-    final HomeFeedController homeFeedController = context.read<HomeFeedController>();
+    final HomeFeedController homeFeedController = context
+        .read<HomeFeedController>();
     final String note = _controller.captionController.text.trim();
     final String sourceCaption = widget.post.caption.trim();
     final String mergedCaption = note.isEmpty
         ? 'Shared from @${widget.author.username}: $sourceCaption'
         : '$note\n\nShared from @${widget.author.username}: $sourceCaption';
 
-    await homeFeedController.createLocalPost(
+    await homeFeedController.createPost(
       caption: mergedCaption,
       mediaPaths: widget.post.media,
-      isVideo: widget.post.media.length == 1 && _isVideoPath(widget.post.media.firstOrNull ?? ''),
+      isVideo:
+          widget.post.media.length == 1 &&
+          _isVideoPath(widget.post.media.firstOrNull ?? ''),
       audience: _controller.audience,
       location: _controller.location,
-      taggedPeople: _controller.taggedPeople,
-      coAuthors: _controller.coAuthors,
+      taggedUserIds: _controller.taggedPeople,
+      mentionUsernames: _controller.coAuthors,
       altText: widget.post.altText,
       editHistory: <String>[
         'Shared from @${widget.author.username}',

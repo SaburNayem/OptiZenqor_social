@@ -5,7 +5,7 @@ import '../repository/events_repository.dart';
 
 class EventsController extends ChangeNotifier {
   EventsController({EventsRepository? repository})
-      : _repository = repository ?? EventsRepository();
+    : _repository = repository ?? EventsRepository();
 
   final EventsRepository _repository;
   List<EventItemModel> events = <EventItemModel>[];
@@ -27,11 +27,7 @@ class EventsController extends ChangeNotifier {
     }
   }
 
-  Future<void> create(
-    String title, {
-    String? location,
-    DateTime? date,
-  }) async {
+  Future<void> create(String title, {String? location, DateTime? date}) async {
     final trimmed = title.trim();
     if (trimmed.isEmpty) {
       return;
@@ -50,9 +46,8 @@ class EventsController extends ChangeNotifier {
   void rsvp(String id) {
     events = events
         .map(
-          (event) => event.id == id
-              ? event.copyWith(rsvped: !event.rsvped)
-              : event,
+          (event) =>
+              event.id == id ? event.copyWith(rsvped: !event.rsvped) : event,
         )
         .toList();
     notifyListeners();
@@ -61,9 +56,8 @@ class EventsController extends ChangeNotifier {
   void save(String id) {
     events = events
         .map(
-          (event) => event.id == id
-              ? event.copyWith(saved: !event.saved)
-              : event,
+          (event) =>
+              event.id == id ? event.copyWith(saved: !event.saved) : event,
         )
         .toList();
     notifyListeners();

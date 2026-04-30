@@ -5,35 +5,46 @@ import '../repository/polls_surveys_repository.dart';
 
 class PollsSurveysController extends ChangeNotifier {
   PollsSurveysController({PollsSurveysRepository? repository})
-      : _repository = repository ?? PollsSurveysRepository();
+    : _repository = repository ?? PollsSurveysRepository();
 
   final PollsSurveysRepository _repository;
 
   List<PollModel> activeEntries = <PollModel>[];
   List<PollModel> draftEntries = <PollModel>[];
   List<String> quickTemplates = <String>[];
+  bool isLoading = false;
+  String? errorMessage;
 
-  void load() {
-    activeEntries = _repository.activeEntries();
-    draftEntries = _repository.draftEntries();
-    quickTemplates = _repository.quickTemplates();
+  Future<void> load() async {
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      final payload = await _repository.load();
+      activeEntries = payload.activeEntries;
+      draftEntries = payload.draftEntries;
+      quickTemplates = payload.quickTemplates;
+    } catch (error) {
+      activeEntries = const <PollModel>[];
+      draftEntries = const <PollModel>[];
+      quickTemplates = const <String>[];
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void vote(String id, int index) {
-    activeEntries = activeEntries.map((entry) {
-      if (entry.id != id || index < 0 || index >= entry.votes.length) {
-        return entry;
-      }
-
-      final updatedVotes = List<int>.from(entry.votes);
-      updatedVotes[index] += 1;
-      return entry.copyWith(
-        votes: updatedVotes,
-        responseCount: entry.responseCount + 1,
-      );
-    }).toList();
-
+  Future<void> vote(String id, int index) async {
+    try {
+      final updated = await _repository.vote(id, index);
+      activeEntries = activeEntries
+          .map((entry) => entry.id == id ? updated : entry)
+          .toList(growable: false);
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    }
     notifyListeners();
   }
 }

@@ -10,8 +10,8 @@ class EventsRepository {
   final EventsService _service;
 
   Future<List<EventItemModel>> load() async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.getEndpoint('events');
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('events');
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to load events.');
     }
@@ -31,16 +31,14 @@ class EventsRepository {
     String? location,
     DateTime? date,
   }) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.apiClient.post(
-      _service.endpoints['events']!,
-      <String, dynamic>{
-        'title': title.trim(),
-        if (location != null && location.trim().isNotEmpty)
-          'location': location.trim(),
-        if (date != null) 'date': date.toIso8601String(),
-      },
-    );
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(_service.endpoints['events']!, <String, dynamic>{
+          'title': title.trim(),
+          if (location != null && location.trim().isNotEmpty)
+            'location': location.trim(),
+          if (date != null) 'date': date.toIso8601String(),
+        });
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
@@ -50,6 +48,45 @@ class EventsRepository {
         ApiPayloadReader.readMap(response.data);
     if (payload == null || payload.isEmpty) {
       return null;
+    }
+    return _eventFromApiJson(payload);
+  }
+
+  Future<EventItemModel> toggleRsvp(String id) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch('/events/$id/rsvp', <String, dynamic>{});
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to update RSVP.');
+    }
+    return fetchById(id);
+  }
+
+  Future<EventItemModel> toggleSave(String id) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch('/events/$id/save', <String, dynamic>{});
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(
+        response.message ?? 'Unable to update saved event state.',
+      );
+    }
+    return fetchById(id);
+  }
+
+  Future<EventItemModel> fetchById(String id) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get('/events/$id');
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load event details.');
+    }
+    final Map<String, dynamic>? payload =
+        ApiPayloadReader.readMap(response.data['data']) ??
+        ApiPayloadReader.readMap(response.data['event']) ??
+        ApiPayloadReader.readMap(response.data);
+    if (payload == null || payload.isEmpty) {
+      throw Exception('The backend returned no event payload.');
     }
     return _eventFromApiJson(payload);
   }

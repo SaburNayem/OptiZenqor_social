@@ -160,14 +160,17 @@ class _EventsScreenState extends State<EventsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         itemCount: _controller.events.length,
         separatorBuilder: (_, _) => const SizedBox(height: 16),
-        itemBuilder: (context, index) => _buildEventCard(_controller.events[index]),
+        itemBuilder: (context, index) =>
+            _buildEventCard(_controller.events[index]),
       ),
     );
   }
 
   Widget _buildEventCard(EventItemModel event) {
-    final String imageUrl =
-        event.mediaGallery.firstWhere((item) => item.trim().isNotEmpty, orElse: () => '');
+    final String imageUrl = event.mediaGallery.firstWhere(
+      (item) => item.trim().isNotEmpty,
+      orElse: () => '',
+    );
     final String statsLabel = event.statsLabel.trim().isEmpty
         ? '${event.attendeeAvatarUrls.length} going'
         : event.statsLabel.trim();
@@ -188,7 +191,9 @@ class _EventsScreenState extends State<EventsScreen> {
         children: [
           if (imageUrl.isNotEmpty)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
               child: Image.network(
                 imageUrl,
                 height: 160,
@@ -269,23 +274,13 @@ class _EventsScreenState extends State<EventsScreen> {
                           ),
                         ),
                       ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 8,
+                    FilledButton(
+                      onPressed: () => _controller.rsvp(event.id),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.hexFFE0F7FA,
+                        foregroundColor: AppColors.hexFF00ACC1,
                       ),
-                      decoration: BoxDecoration(
-                        color: AppColors.hexFFE0F7FA,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        event.rsvped ? 'Going' : 'View',
-                        style: const TextStyle(
-                          color: AppColors.hexFF00ACC1,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
+                      child: Text(event.rsvped ? 'Going' : 'RSVP'),
                     ),
                   ],
                 ),
