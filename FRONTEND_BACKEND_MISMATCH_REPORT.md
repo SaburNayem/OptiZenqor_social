@@ -20,6 +20,8 @@ Updated: 2026-04-30
 - `live_stream` setup now reads backend data from `/live-stream/setup` instead of hardcoded presenter/comment data.
 - `marketplace` checkout now posts real orders to `/marketplace/checkout`.
 - `marketplace` listing publish now posts real listings to `/marketplace/products`.
+- `support_help` now reads `/support-help` instead of shipping hardcoded FAQ data.
+- `trending` now reads `/trending` instead of shipping hardcoded trending cards.
 - `wallet_payments` now reads backend wallet balance and ledger instead of shipping fake transaction data.
 - `safety_privacy` now reads and writes backend privacy/settings state instead of storing local-only production settings.
 
@@ -35,6 +37,9 @@ Updated: 2026-04-30
 - `marketplace drafts`
   - Product create exists.
   - No draft-specific backend route exists for marketplace listings, so save-draft remains device-local.
+- `marketplace seller follows / offers / chat`
+  - Flutter still keeps these states locally after initial backend load.
+  - Dedicated durable backend mutation routes are still needed for a full migration.
 - `live-stream lifecycle`
   - Setup/read/comment/reaction routes now exist and are durable.
   - Full persisted start/end/live moderation lifecycle is still not exposed as a durable frontend CRUD flow.
@@ -50,5 +55,7 @@ Updated: 2026-04-30
 
 ## Validation note
 
-- `dart analyze lib --no-fatal-warnings` completed successfully with only pre-existing non-fatal warnings.
-- `flutter pub get` and `flutter test` still could not be completed in this workspace because the `flutter` command did not return within long timeouts.
+- `flutter pub get`: pass
+- `dart format` on the updated support/trending/marketplace files: pass
+- `flutter analyze`: pass with pre-existing non-fatal warnings/info only in `socket_transport_web.dart`, `home_feed_screen.dart`, and story screen unused helpers.
+- `flutter test`: fails because the repo currently has no `test/` directory or `_test.dart` files.

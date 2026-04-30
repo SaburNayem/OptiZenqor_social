@@ -3,12 +3,27 @@ import 'package:flutter/material.dart';
 import '../controller/trending_controller.dart';
 import '../model/trending_item_model.dart';
 
-class TrendingScreen extends StatelessWidget {
-  TrendingScreen({super.key}) {
-    _controller.load();
+class TrendingScreen extends StatefulWidget {
+  const TrendingScreen({super.key});
+
+  @override
+  State<TrendingScreen> createState() => _TrendingScreenState();
+}
+
+class _TrendingScreenState extends State<TrendingScreen> {
+  late final TrendingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TrendingController()..load();
   }
 
-  final TrendingController _controller = TrendingController();
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,14 +31,46 @@ class TrendingScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Trending')),
       body: AnimatedBuilder(
         animation: _controller,
-        builder: (_, _) => ListView(
-          padding: const EdgeInsets.all(16),
-          children: <Widget>[
-            _TrendingSection(title: 'Posts', items: _controller.posts),
-            _TrendingSection(title: 'Hashtags', items: _controller.hashtags),
-            _TrendingSection(title: 'Reels', items: _controller.reels),
-          ],
-        ),
+        builder: (_, _) {
+          if (_controller.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (_controller.errorMessage != null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      _controller.errorMessage!,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: _controller.load,
+                      child: const Text('Try again'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: _controller.load,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: <Widget>[
+                _TrendingSection(title: 'Posts', items: _controller.posts),
+                _TrendingSection(
+                  title: 'Hashtags',
+                  items: _controller.hashtags,
+                ),
+                _TrendingSection(title: 'Reels', items: _controller.reels),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -43,11 +90,7 @@ class _TrendingSection extends StatelessWidget {
         Text(title, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         if (items.isEmpty)
-          const Card(
-            child: ListTile(
-              title: Text('Nothing trending yet'),
-            ),
-          ),
+          const Card(child: ListTile(title: Text('Nothing trending yet'))),
         ...items.map(
           (item) => Card(
             child: ListTile(

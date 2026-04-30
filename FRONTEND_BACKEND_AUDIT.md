@@ -16,6 +16,8 @@ auth-owned API integration work.
 - `lib/feature/stories/repository/buddy_repository.dart`
 - `lib/feature/wallet_payments/repository/wallet_payments_repository.dart`
 - `lib/feature/safety_privacy/repository/safety_privacy_repository.dart`
+- `lib/feature/support_help/repository/support_help_repository.dart`
+- `lib/feature/trending/repository/trending_repository.dart`
 
 These areas already use the central API client for their live backend flows.
 Some still keep local cache for UX or optimistic state.
@@ -44,9 +46,7 @@ equivalents.
 - `lib/feature/group_chat/repository/group_chat_repository.dart`
 - `lib/feature/groups/repository/groups_repository.dart`
 - `lib/feature/events/repository/events_repository.dart`
-- `lib/feature/trending/repository/trending_repository.dart`
 - `lib/feature/polls_surveys/repository/polls_surveys_repository.dart`
-- `lib/feature/support_help/repository/support_help_repository.dart`
 - `lib/feature/learning_courses/repository/learning_courses_repository.dart`
 - `lib/feature/business_profile/repository/business_profile_repository.dart`
 - `lib/feature/jobs_networking/repository/jobs_networking_repository.dart`
@@ -88,7 +88,7 @@ matching backend route is production-backed.
 
 ## Recommended Next Migration Order
 
-1. Marketplace
+1. Marketplace offer/follow/chat persistence
 2. Jobs
 3. Events
 4. Communities / Groups / Pages

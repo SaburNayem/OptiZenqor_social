@@ -56,6 +56,38 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
+        if (_controller.errorMessage != null &&
+            _controller.allProducts.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              surfaceTintColor: AppColors.transparent,
+              leading: IconButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
+              title: const Text('Marketplace'),
+            ),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      _controller.errorMessage!,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: _controller.load,
+                      child: const Text('Try again'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
         return DefaultTabController(
           length: 4,
           child: Scaffold(
@@ -186,7 +218,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   Future<UserModel> _resolveActiveUser() async {
     final UserModel shellUser = context.read<MainShellController>().currentUser;
-    final activeAccountId = await AccountSwitchingRepository().readActiveAccountId();
+    final activeAccountId = await AccountSwitchingRepository()
+        .readActiveAccountId();
     final UserModel? sessionUser = await AuthRepository().currentUser();
     if (activeAccountId == null || activeAccountId.trim().isEmpty) {
       return sessionUser ?? shellUser;
@@ -356,7 +389,6 @@ class _Header extends StatelessWidget {
       },
     );
   }
-
 }
 
 class _BrowseTab extends StatelessWidget {
@@ -594,9 +626,7 @@ class _MarketplaceFeaturedItemsScreenState
 
     return Scaffold(
       backgroundColor: AppColors.hexFFF8FAFC,
-      appBar: AppBar(
-        title: const Text('Featured items'),
-      ),
+      appBar: AppBar(title: const Text('Featured items')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
@@ -633,12 +663,8 @@ class _MarketplaceFeaturedItemsScreenState
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _FeaturedStatPill(
-                      label: '${featuredItems.length} items',
-                    ),
-                    _FeaturedStatPill(
-                      label: controller.selectedLocation,
-                    ),
+                    _FeaturedStatPill(label: '${featuredItems.length} items'),
+                    _FeaturedStatPill(label: controller.selectedLocation),
                     _FeaturedStatPill(
                       label: _isGridView ? 'Grid view' : 'List view',
                     ),
@@ -652,9 +678,9 @@ class _MarketplaceFeaturedItemsScreenState
             children: [
               Text(
                 'All featured listings',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               const Spacer(),
               SegmentedButton<bool>(
@@ -728,10 +754,8 @@ class _MarketplaceFeaturedItemsScreenState
   ) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ProductDetailsScreen(
-          controller: controller,
-          productId: item.id,
-        ),
+        builder: (_) =>
+            ProductDetailsScreen(controller: controller, productId: item.id),
       ),
     );
   }
@@ -817,7 +841,10 @@ class _MarketplaceSearchScreenState extends State<MarketplaceSearchScreen> {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: <Color>[AppColors.hexFF0F172A, AppColors.hexFF1D4ED8],
+                      colors: <Color>[
+                        AppColors.hexFF0F172A,
+                        AppColors.hexFF1D4ED8,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -955,9 +982,7 @@ class _SearchInsightsPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.96),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: const [
           BoxShadow(
             color: AppColors.hex12000000,
@@ -1016,10 +1041,7 @@ class _SearchInsightsPanel extends StatelessWidget {
 }
 
 class _SearchInsightSection extends StatelessWidget {
-  const _SearchInsightSection({
-    required this.title,
-    required this.children,
-  });
+  const _SearchInsightSection({required this.title, required this.children});
 
   final String title;
   final List<Widget> children;
@@ -1029,16 +1051,9 @@ class _SearchInsightSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: children,
-        ),
+        Wrap(spacing: 8, runSpacing: 8, children: children),
       ],
     );
   }
@@ -1069,16 +1084,16 @@ class _SearchSuggestionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.hexFF64748B,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.hexFF64748B),
           ),
           const SizedBox(height: 8),
           ...children,
@@ -1225,4 +1240,3 @@ class _SectionTitle extends StatelessWidget {
     );
   }
 }
-

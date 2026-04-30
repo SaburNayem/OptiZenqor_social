@@ -48,87 +48,72 @@ class MarketplaceRepository {
   final MarketplaceService _service;
 
   Future<MarketplaceSeedData> loadMarketplace() async {
-    final MarketplaceSeedData? remoteData = await _loadRemoteMarketplace();
-    return remoteData ??
-        const MarketplaceSeedData(
-          products: <ProductModel>[],
-          sellers: <SellerModel>[],
-          categories: <MarketplaceCategoryModel>[],
-          savedItemIds: <String>[],
-          followedSellerIds: <String>[],
-          savedSearches: <String>[],
-          recentSearches: <String>[],
-          trendingSearches: <String>[],
-          notifications: <String>[],
-          blockedKeywords: <String>[],
-          chatMessages: <MarketplaceChatMessage>[],
-          offerHistory: <MarketplaceOfferEvent>[],
-          orders: <MarketplaceOrderModel>[],
-        );
+    final MarketplaceSeedData remoteData = await _loadRemoteMarketplace();
+    return remoteData.products.isNotEmpty
+        ? remoteData
+        : const MarketplaceSeedData(
+            products: <ProductModel>[],
+            sellers: <SellerModel>[],
+            categories: <MarketplaceCategoryModel>[],
+            savedItemIds: <String>[],
+            followedSellerIds: <String>[],
+            savedSearches: <String>[],
+            recentSearches: <String>[],
+            trendingSearches: <String>[],
+            notifications: <String>[],
+            blockedKeywords: <String>[],
+            chatMessages: <MarketplaceChatMessage>[],
+            offerHistory: <MarketplaceOfferEvent>[],
+            orders: <MarketplaceOrderModel>[],
+          );
   }
 
-  Future<MarketplaceSeedData?> _loadRemoteMarketplace() async {
-    for (final String key in <String>['marketplace', 'products']) {
-      try {
-        final ServiceResponseModel<Map<String, dynamic>> response =
-            await _service.getEndpoint(key);
-        if (!response.isSuccess || response.data['success'] == false) {
-          continue;
-        }
+  Future<MarketplaceSeedData> _loadRemoteMarketplace() async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('marketplace');
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(
+        response.data['message']?.toString() ??
+            'Failed to load marketplace data from the backend.',
+      );
+    }
 
-        final Map<String, dynamic> payload = _resolveMarketplacePayload(
-          response.data,
-        );
-        final List<Map<String, dynamic>> productItems =
-            ApiPayloadReader.readMapList(
+    final Map<String, dynamic> payload = _resolveMarketplacePayload(
+      response.data,
+    );
+    final List<Map<String, dynamic>> productItems =
+        ApiPayloadReader.readMapList(
           payload,
           preferredKeys: const <String>['products', 'items'],
         );
-        if (productItems.isEmpty) {
-          continue;
-        }
+    final List<ProductModel> products = productItems
+        .map(ProductModel.fromApiJson)
+        .where((ProductModel item) => item.id.isNotEmpty)
+        .toList(growable: false);
 
-        final List<ProductModel> products = productItems
-            .map(ProductModel.fromApiJson)
-            .where((ProductModel item) => item.id.isNotEmpty)
-            .toList(growable: false);
-        if (products.isEmpty) {
-          continue;
-        }
-
-        final List<SellerModel> sellers = _readSellers(payload, products);
-        final List<MarketplaceCategoryModel> categories = _readCategories(
-          payload,
-          products,
-        );
-
-        return MarketplaceSeedData(
-          products: products,
-          sellers: sellers,
-          categories: categories,
-          savedItemIds: ApiPayloadReader.readStringList(payload['savedItemIds']),
-          followedSellerIds: ApiPayloadReader.readStringList(
-            payload['followedSellerIds'],
-          ),
-          savedSearches: ApiPayloadReader.readStringList(payload['savedSearches']),
-          recentSearches: ApiPayloadReader.readStringList(
-            payload['recentSearches'],
-          ),
-          trendingSearches: ApiPayloadReader.readStringList(
-            payload['trendingSearches'],
-          ),
-          notifications: ApiPayloadReader.readStringList(payload['notifications']),
-          blockedKeywords: ApiPayloadReader.readStringList(
-            payload['blockedKeywords'],
-          ),
-          chatMessages: _readChatMessages(payload),
-          offerHistory: _readOfferHistory(payload),
-          orders: _readOrders(payload),
-        );
-      } catch (_) {}
-    }
-
-    return null;
+    return MarketplaceSeedData(
+      products: products,
+      sellers: _readSellers(payload, products),
+      categories: _readCategories(payload, products),
+      savedItemIds: ApiPayloadReader.readStringList(payload['savedItemIds']),
+      followedSellerIds: ApiPayloadReader.readStringList(
+        payload['followedSellerIds'],
+      ),
+      savedSearches: ApiPayloadReader.readStringList(payload['savedSearches']),
+      recentSearches: ApiPayloadReader.readStringList(
+        payload['recentSearches'],
+      ),
+      trendingSearches: ApiPayloadReader.readStringList(
+        payload['trendingSearches'],
+      ),
+      notifications: ApiPayloadReader.readStringList(payload['notifications']),
+      blockedKeywords: ApiPayloadReader.readStringList(
+        payload['blockedKeywords'],
+      ),
+      chatMessages: _readChatMessages(payload),
+      offerHistory: _readOfferHistory(payload),
+      orders: _readOrders(payload),
+    );
   }
 
   Future<MarketplaceOrderModel?> createOrder({
@@ -137,16 +122,14 @@ class MarketplaceRepository {
     required String deliveryMethod,
     required String paymentMethod,
   }) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.apiClient.post(
-      _service.endpoints['checkout']!,
-      <String, dynamic>{
-        'productId': productId,
-        'address': address,
-        'deliveryMethod': deliveryMethod,
-        'paymentMethod': paymentMethod,
-      },
-    );
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(_service.endpoints['checkout']!, <String, dynamic>{
+          'productId': productId,
+          'address': address,
+          'deliveryMethod': deliveryMethod,
+          'paymentMethod': paymentMethod,
+        });
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
@@ -161,7 +144,9 @@ class MarketplaceRepository {
       id: ApiPayloadReader.readString(payload['id']),
       productId: ApiPayloadReader.readString(payload['productId']),
       productTitle: ApiPayloadReader.readString(payload['productTitle']),
-      amount: ApiPayloadReader.readDouble(payload['amount'] ?? payload['price']),
+      amount: ApiPayloadReader.readDouble(
+        payload['amount'] ?? payload['price'],
+      ),
       status: _orderStatusFromValue(payload['status']),
       address: ApiPayloadReader.readString(payload['address']),
       deliveryMethod: ApiPayloadReader.readString(payload['deliveryMethod']),
@@ -182,21 +167,19 @@ class MarketplaceRepository {
     required String sellerId,
     required String sellerName,
   }) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.apiClient.post(
-      _service.endpoints['products']!,
-      <String, dynamic>{
-        'title': title.trim(),
-        'description': description.trim(),
-        'price': price,
-        'category': category,
-        'subcategory': subcategory,
-        'sellerId': sellerId,
-        'sellerName': sellerName,
-        'location': location.trim(),
-        'condition': condition.label,
-      },
-    );
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(_service.endpoints['products']!, <String, dynamic>{
+          'title': title.trim(),
+          'description': description.trim(),
+          'price': price,
+          'category': category,
+          'subcategory': subcategory,
+          'sellerId': sellerId,
+          'sellerName': sellerName,
+          'location': location.trim(),
+          'condition': condition.label,
+        });
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
@@ -210,8 +193,12 @@ class MarketplaceRepository {
     return ProductModel.fromApiJson(payload);
   }
 
-  Map<String, dynamic> _resolveMarketplacePayload(Map<String, dynamic> response) {
-    final Map<String, dynamic>? data = ApiPayloadReader.readMap(response['data']);
+  Map<String, dynamic> _resolveMarketplacePayload(
+    Map<String, dynamic> response,
+  ) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(
+      response['data'],
+    );
     final Map<String, dynamic>? result = ApiPayloadReader.readMap(
       response['result'],
     );
@@ -354,7 +341,9 @@ class MarketplaceRepository {
             productTitle: ApiPayloadReader.readString(
               item['productTitle'] ?? item['title'],
             ),
-            amount: ApiPayloadReader.readDouble(item['amount'] ?? item['price']),
+            amount: ApiPayloadReader.readDouble(
+              item['amount'] ?? item['price'],
+            ),
             status: _orderStatusFromValue(item['status']),
             address: ApiPayloadReader.readString(item['address']),
             deliveryMethod: ApiPayloadReader.readString(
@@ -434,7 +423,9 @@ class MarketplaceRepository {
     return sellersById.values.toList(growable: false);
   }
 
-  List<MarketplaceCategoryModel> _deriveCategories(List<ProductModel> products) {
+  List<MarketplaceCategoryModel> _deriveCategories(
+    List<ProductModel> products,
+  ) {
     final Map<String, Set<String>> categoryMap = <String, Set<String>>{};
     for (final ProductModel product in products) {
       categoryMap.putIfAbsent(product.category, () => <String>{});
