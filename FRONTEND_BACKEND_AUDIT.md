@@ -14,6 +14,8 @@ auth-owned API integration work.
 - `lib/feature/bookmarks/repository/bookmarks_repository.dart`
 - `lib/feature/user_profile/repository/user_profile_repository.dart`
 - `lib/feature/stories/repository/buddy_repository.dart`
+- `lib/feature/wallet_payments/repository/wallet_payments_repository.dart`
+- `lib/feature/safety_privacy/repository/safety_privacy_repository.dart`
 
 These areas already use the central API client for their live backend flows.
 Some still keep local cache for UX or optimistic state.
@@ -47,7 +49,6 @@ equivalents.
 - `lib/feature/support_help/repository/support_help_repository.dart`
 - `lib/feature/learning_courses/repository/learning_courses_repository.dart`
 - `lib/feature/business_profile/repository/business_profile_repository.dart`
-- `lib/feature/wallet_payments/repository/wallet_payments_repository.dart`
 - `lib/feature/jobs_networking/repository/jobs_networking_repository.dart`
 - `lib/feature/marketplace/repository/marketplace_repository.dart`
 - `lib/feature/live_stream/repository/live_stream_repository.dart`
@@ -55,7 +56,6 @@ equivalents.
 - `lib/feature/calls/repository/calls_repository.dart`
 - `lib/feature/subscriptions/repository/subscriptions_repository.dart`
 - `lib/feature/hashtags/repository/hashtags_repository.dart`
-- `lib/feature/safety_privacy/repository/safety_privacy_repository.dart`
 - `lib/feature/account_switching/repository/account_switching_repository.dart`
 - `lib/feature/activity_sessions/repository/activity_sessions_repository.dart`
 - `lib/feature/blocked_muted_accounts/repository/blocked_muted_accounts_repository.dart`
@@ -73,8 +73,7 @@ These should be moved to:
 
 - `lib/feature/events/screen/events_screen.dart`
 - `lib/feature/share_repost_system/screen/share_post_screen.dart`
-- `lib/feature/communities/service/community_mock_data_source.dart`
-- `lib/core/data/mock/mock_data.dart`
+- `lib/feature/wallet_payments/screen/wallet_payments_screen.dart`
 
 These should be removed or isolated behind explicit dev-only flags after each
 matching backend route is production-backed.
@@ -93,5 +92,5 @@ matching backend route is production-backed.
 2. Jobs
 3. Events
 4. Communities / Groups / Pages
-5. Group chat / live stream / calls
+5. Group chat / live stream / hidden/archive flows
 6. Drafts / saved collections / verification / settings state sync

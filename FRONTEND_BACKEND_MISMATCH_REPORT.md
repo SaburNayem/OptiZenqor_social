@@ -1,6 +1,6 @@
 # Frontend/Backend Mismatch Report
 
-Updated: 2026-04-29
+Updated: 2026-04-30
 
 ## Fixed in this frontend pass
 
@@ -20,6 +20,8 @@ Updated: 2026-04-29
 - `live_stream` setup now reads backend data from `/live-stream/setup` instead of hardcoded presenter/comment data.
 - `marketplace` checkout now posts real orders to `/marketplace/checkout`.
 - `marketplace` listing publish now posts real listings to `/marketplace/products`.
+- `wallet_payments` now reads backend wallet balance and ledger instead of shipping fake transaction data.
+- `safety_privacy` now reads and writes backend privacy/settings state instead of storing local-only production settings.
 
 ## Remaining backend contract gaps
 
@@ -34,8 +36,11 @@ Updated: 2026-04-29
   - Product create exists.
   - No draft-specific backend route exists for marketplace listings, so save-draft remains device-local.
 - `live-stream lifecycle`
-  - Setup/read routes exist.
+  - Setup/read/comment/reaction routes now exist and are durable.
   - Full persisted start/end/live moderation lifecycle is still not exposed as a durable frontend CRUD flow.
+- `hidden/archive UI`
+  - Backend routes are now durable.
+  - Current Flutter hidden/archive screens still need full endpoint-driven state instead of local-only controller state.
 
 ## Endpoint notes
 
@@ -45,4 +50,5 @@ Updated: 2026-04-29
 
 ## Validation note
 
-- `flutter pub get`, `flutter analyze`, and `flutter test` could not be completed in this workspace because the `flutter` command did not return within long timeouts.
+- `dart analyze lib --no-fatal-warnings` completed successfully with only pre-existing non-fatal warnings.
+- `flutter pub get` and `flutter test` still could not be completed in this workspace because the `flutter` command did not return within long timeouts.
