@@ -1,37 +1,88 @@
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/service_model/service_response_model.dart';
+import '../../auth/repository/auth_repository.dart';
 import '../model/call_item_model.dart';
+import '../service/calls_service.dart';
 
 class CallsRepository {
-  final List<CallItemModel> _history = <CallItemModel>[
-    CallItemModel(
-      id: 'call_1',
-      user: 'mayaquinn',
-      type: CallType.voice,
-      state: CallState.missed,
-      time: DateTime(2026, 3, 23, 9, 30),
-    ),
-    CallItemModel(
-      id: 'call_2',
-      user: 'raymondlee',
-      type: CallType.video,
-      state: CallState.completed,
-      time: DateTime(2026, 3, 22, 20, 15),
-    ),
-  ];
+  CallsRepository({CallsService? service, AuthRepository? authRepository})
+    : _service = service ?? CallsService(),
+      _authRepository = authRepository ?? AuthRepository();
 
-  List<CallItemModel> load() {
-    return List<CallItemModel>.from(_history);
+  final CallsService _service;
+  final AuthRepository _authRepository;
+
+  Future<List<CallItemModel>> load() async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('calls');
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load calls.');
+    }
+
+    return ApiPayloadReader.readMapList(
+          response.data,
+          preferredKeys: const <String>['calls', 'items', 'results', 'data'],
+        )
+        .map(_callFromApiJson)
+        .where((CallItemModel item) => item.id.isNotEmpty)
+        .toList(growable: false);
   }
 
-  void startCall({required String user, required CallType type}) {
-    _history.insert(
-      0,
-      CallItemModel(
-        id: 'call_${DateTime.now().millisecondsSinceEpoch}',
-        user: user,
-        type: type,
-        state: CallState.outgoing,
-        time: DateTime.now(),
-      ),
+  Future<void> startCall({required String user, required CallType type}) async {
+    final currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(_service.endpoints['sessions']!, <String, dynamic>{
+          'initiatorId': currentUser?.id ?? '',
+          'recipientIds': const <String>[],
+          'mode': type == CallType.video ? 'video' : 'voice',
+        });
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to start call.');
+    }
+  }
+
+  CallItemModel _callFromApiJson(Map<String, dynamic> json) {
+    final String typeValue = ApiPayloadReader.readString(
+      json['type'],
+      fallback: 'voice',
     );
+    final String stateValue = ApiPayloadReader.readString(
+      json['state'] ?? json['status'],
+      fallback: 'completed',
+    );
+    final DateTime resolvedTime =
+        ApiPayloadReader.readDateTime(
+          json['time'] ?? json['startedAt'] ?? json['createdAt'],
+        ) ??
+        DateTime.now();
+
+    return CallItemModel(
+      id: ApiPayloadReader.readString(json['id'] ?? json['sessionId']),
+      user: ApiPayloadReader.readString(
+        json['user'] ?? json['username'] ?? json['name'],
+        fallback: 'call',
+      ),
+      type: typeValue == 'video' ? CallType.video : CallType.voice,
+      state: _stateFromValue(stateValue),
+      time: resolvedTime,
+    );
+  }
+
+  CallState _stateFromValue(String value) {
+    switch (value.toLowerCase()) {
+      case 'incoming':
+      case 'ringing':
+        return CallState.incoming;
+      case 'outgoing':
+      case 'calling':
+        return CallState.outgoing;
+      case 'missed':
+        return CallState.missed;
+      case 'completed':
+      case 'ended':
+      default:
+        return CallState.completed;
+    }
   }
 }
