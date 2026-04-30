@@ -69,6 +69,16 @@ class SubscriptionsRepository {
   }
 
   Future<void> saveActivePlanId(String planId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .postEndpoint(
+          'subscriptions_change_plan',
+          payload: <String, dynamic>{'planId': planId},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(
+        response.message ?? 'Unable to update subscription plan.',
+      );
+    }
     await _preferences.write(StorageKeys.activeSubscriptionPlan, planId);
   }
 
@@ -81,17 +91,18 @@ class SubscriptionsRepository {
     );
     if (directItems.isNotEmpty) {
       final bool looksLikePlanList = directItems.any(
-        (Map<String, dynamic> item) =>
-            ApiPayloadReader.readString(
-              item['billingInterval'] ?? item['code'] ?? item['name'],
-            ).isNotEmpty,
+        (Map<String, dynamic> item) => ApiPayloadReader.readString(
+          item['billingInterval'] ?? item['code'] ?? item['name'],
+        ).isNotEmpty,
       );
       if (looksLikePlanList) {
         return directItems;
       }
     }
 
-    final Map<String, dynamic>? data = ApiPayloadReader.readMap(response['data']);
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(
+      response['data'],
+    );
     final List<Map<String, dynamic>> overviewPlans =
         ApiPayloadReader.readMapListFromAny(data?['plans']);
     if (overviewPlans.isNotEmpty) {
@@ -100,19 +111,22 @@ class SubscriptionsRepository {
 
     final List<Map<String, dynamic>> subscriptions =
         ApiPayloadReader.readMapListFromAny(
-      data?['subscriptions'] ?? response['subscriptions'],
-    );
+          data?['subscriptions'] ?? response['subscriptions'],
+        );
     return subscriptions
         .map(
           (Map<String, dynamic> item) =>
-              ApiPayloadReader.readMap(item['plan']) ?? const <String, dynamic>{},
+              ApiPayloadReader.readMap(item['plan']) ??
+              const <String, dynamic>{},
         )
         .where((Map<String, dynamic> item) => item.isNotEmpty)
         .toList(growable: false);
   }
 
   String _readActivePlanId(Map<String, dynamic> response) {
-    final Map<String, dynamic>? data = ApiPayloadReader.readMap(response['data']);
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(
+      response['data'],
+    );
     final String direct = ApiPayloadReader.readString(
       response['activePlanId'] ?? data?['activePlanId'],
     );
@@ -132,11 +146,15 @@ class SubscriptionsRepository {
 
     final List<Map<String, dynamic>> subscriptions =
         ApiPayloadReader.readMapListFromAny(
-      data?['subscriptions'] ?? response['subscriptions'] ?? data ?? response,
-    );
+          data?['subscriptions'] ??
+              response['subscriptions'] ??
+              data ??
+              response,
+        );
     for (final Map<String, dynamic> item in subscriptions) {
-      final String status = ApiPayloadReader.readString(item['status'])
-          .toLowerCase();
+      final String status = ApiPayloadReader.readString(
+        item['status'],
+      ).toLowerCase();
       if (status == 'active' || status == 'trialing' || status == 'current') {
         return ApiPayloadReader.readString(
           item['planId'] ?? ApiPayloadReader.readMap(item['plan'])?['id'],

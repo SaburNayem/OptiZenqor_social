@@ -10,6 +10,9 @@ class SubscriptionsService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'subscriptions': ApiEndPoints.subscriptions,
+    'subscriptions_change_plan': ApiEndPoints.subscriptionsChangePlan,
+    'subscriptions_cancel': ApiEndPoints.subscriptionsCancel,
+    'subscriptions_renew': ApiEndPoints.subscriptionsRenew,
     'monetization_subscriptions': ApiEndPoints.monetizationSubscriptions,
     'plans': ApiEndPoints.monetizationPlans,
     'premium_plans': ApiEndPoints.premiumPlans,

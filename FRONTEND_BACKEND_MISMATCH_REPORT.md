@@ -9,8 +9,14 @@ Updated: 2026-04-29
   - `/monetization/plans`
   - `/monetization/overview`
   - `/subscriptions`
+- `subscriptions` now writes active plan changes to:
+  - `POST /subscriptions/change-plan`
 - `groups` now reads backend data from `/groups` instead of static local arrays.
 - `group_chat` now reads backend data from `/group-chat` instead of static local arrays.
+- `group_chat` now writes create/member-management actions to:
+  - `POST /group-chat`
+  - `POST /group-chat/:id/members`
+  - `DELETE /group-chat/:id/members/:userId`
 - `live_stream` setup now reads backend data from `/live-stream/setup` instead of hardcoded presenter/comment data.
 - `marketplace` checkout now posts real orders to `/marketplace/checkout`.
 - `marketplace` listing publish now posts real listings to `/marketplace/products`.
@@ -18,11 +24,12 @@ Updated: 2026-04-29
 ## Remaining backend contract gaps
 
 - `group-chat`
-  - `GET /group-chat` exists.
-  - No frontend-safe create/update/member-management route is exposed for the existing screen actions.
+  - Read and member-management routes now exist.
+  - Role update and rename/delete routes exist on backend but are not yet surfaced in the current Flutter screen.
 - `subscriptions`
   - Read routes exist.
-  - No clear frontend mutation route exists for changing the active subscription plan from the app UI.
+  - Plan-change mutation now exists and is used by the Flutter repository.
+  - Cancel/renew mutation routes now exist but are not yet surfaced in the current Flutter UI.
 - `marketplace drafts`
   - Product create exists.
   - No draft-specific backend route exists for marketplace listings, so save-draft remains device-local.

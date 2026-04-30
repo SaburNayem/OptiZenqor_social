@@ -5,7 +5,7 @@ import '../repository/group_chat_repository.dart';
 
 class GroupChatController extends ChangeNotifier {
   GroupChatController({GroupChatRepository? repository})
-      : _repository = repository ?? GroupChatRepository();
+    : _repository = repository ?? GroupChatRepository();
 
   final GroupChatRepository _repository;
   List<GroupChatModel> groups = <GroupChatModel>[];
@@ -27,21 +27,63 @@ class GroupChatController extends ChangeNotifier {
     }
   }
 
-  void createGroup(String name) {
-    errorMessage =
-        'Creating group chats is not exposed by the backend group-chat route yet.';
+  Future<void> createGroup(String name) async {
+    if (name.trim().isEmpty) {
+      errorMessage = 'Group name is required.';
+      notifyListeners();
+      return;
+    }
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      await _repository.createGroup(name.trim());
+      groups = await _repository.all();
+    } catch (error) {
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void addMember(String groupId, String username) {
-    errorMessage =
-        'Member management is not exposed by the backend group-chat route yet.';
+  Future<void> addMember(String groupId, String username) async {
+    if (username.trim().isEmpty) {
+      errorMessage = 'Member identifier is required.';
+      notifyListeners();
+      return;
+    }
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      await _repository.addMember(groupId, username.trim());
+      groups = await _repository.all();
+    } catch (error) {
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void removeMember(String groupId, String username) {
-    errorMessage =
-        'Member management is not exposed by the backend group-chat route yet.';
+  Future<void> removeMember(String groupId, String username) async {
+    if (username.trim().isEmpty) {
+      errorMessage = 'Member identifier is required.';
+      notifyListeners();
+      return;
+    }
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      await _repository.removeMember(groupId, username.trim());
+      groups = await _repository.all();
+    } catch (error) {
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 }

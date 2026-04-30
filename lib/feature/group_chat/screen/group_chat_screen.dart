@@ -38,12 +38,14 @@ class GroupChatScreen extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: _groupController,
-                      decoration: const InputDecoration(hintText: 'New group name'),
+                      decoration: const InputDecoration(
+                        hintText: 'New group name',
+                      ),
                     ),
                   ),
                   IconButton(
-                    onPressed: () {
-                      _controller.createGroup(_groupController.text);
+                    onPressed: () async {
+                      await _controller.createGroup(_groupController.text);
                       _groupController.clear();
                     },
                     icon: const Icon(Icons.add_circle_outline),
@@ -60,24 +62,21 @@ class GroupChatScreen extends StatelessWidget {
                       'Media: ${group.media.join(', ')}',
                     ),
                     trailing: PopupMenuButton<String>(
-                      onSelected: (value) {
+                      onSelected: (value) async {
                         if (value == 'add') {
-                          _controller.addMember(
+                          await _controller.addMember(
                             group.id,
                             'member${group.members.length + 1}',
                           );
                         } else if (group.members.isNotEmpty) {
-                          _controller.removeMember(
+                          await _controller.removeMember(
                             group.id,
                             group.members.last,
                           );
                         }
                       },
                       itemBuilder: (_) => const [
-                        PopupMenuItem(
-                          value: 'add',
-                          child: Text('Add member'),
-                        ),
+                        PopupMenuItem(value: 'add', child: Text('Add member')),
                         PopupMenuItem(
                           value: 'remove',
                           child: Text('Remove member'),

@@ -11,5 +11,6 @@ class GroupChatService extends FeatureServiceBase {
   Map<String, String> get endpoints => <String, String>{
     'group_chat': ApiEndPoints.groupChat,
     'group_chat_detail': ApiEndPoints.groupChatById(':id'),
+    'group_chat_create': ApiEndPoints.groupChatCreate,
   };
 }

@@ -150,6 +150,15 @@ class ApiEndPoints {
   // RealtimeController
   static const groupChat = '/group-chat';
   static String groupChatById(String chatId) => '/group-chat/$chatId';
+  static const groupChatCreate = '/group-chat';
+  static String groupChatUpdate(String chatId) => '/group-chat/$chatId';
+  static String groupChatDelete(String chatId) => '/group-chat/$chatId';
+  static String groupChatMembers(String chatId) =>
+      '/group-chat/$chatId/members';
+  static String groupChatMember(String chatId, String userId) =>
+      '/group-chat/$chatId/members/$userId';
+  static String groupChatMemberRole(String chatId, String userId) =>
+      '/group-chat/$chatId/members/$userId/role';
   static const calls = '/calls';
   static String callById(String callId) => '/calls/$callId';
   static const liveStream = '/live-stream';
@@ -289,6 +298,9 @@ class ApiEndPoints {
   static const premium = '/premium';
   static const walletPayments = '/wallet-payments';
   static const subscriptions = '/subscriptions';
+  static const subscriptionsChangePlan = '/subscriptions/change-plan';
+  static const subscriptionsCancel = '/subscriptions/cancel';
+  static const subscriptionsRenew = '/subscriptions/renew';
 
   // LearningCoursesController
   static const learningCourses = '/learning-courses';
