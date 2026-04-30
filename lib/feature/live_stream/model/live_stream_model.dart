@@ -52,6 +52,7 @@ class LiveReactionModel {
 
 class LiveStreamModel {
   const LiveStreamModel({
+    this.streamId = '',
     required this.creatorName,
     required this.username,
     required this.avatarUrl,
@@ -100,6 +101,7 @@ class LiveStreamModel {
     this.liveStatusText = 'Ready to go live',
   });
 
+  final String streamId;
   final String creatorName;
   final String username;
   final String avatarUrl;

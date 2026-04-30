@@ -8,7 +8,7 @@ import '../repository/live_stream_repository.dart';
 
 class LiveStreamController extends ChangeNotifier {
   LiveStreamController({LiveStreamRepository? repository})
-      : _repository = repository ?? LiveStreamRepository();
+    : _repository = repository ?? LiveStreamRepository();
 
   final LiveStreamRepository _repository;
   final Random _random = Random();
@@ -17,12 +17,17 @@ class LiveStreamController extends ChangeNotifier {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController pinnedCommentController = TextEditingController();
-  final TextEditingController moderationReplyController = TextEditingController();
+  final TextEditingController moderationReplyController =
+      TextEditingController();
 
   Timer? _durationTimer;
   Timer? _commentTimer;
   Duration liveDuration = Duration.zero;
   bool isLive = false;
+  bool isLoading = false;
+  bool isStarting = false;
+  bool isEnding = false;
+  String? errorMessage;
   bool micEnabled = true;
   bool commentsVisible = true;
   bool frontCamera = true;
@@ -36,17 +41,28 @@ class LiveStreamController extends ChangeNotifier {
     String? initialPhotoPath,
     LiveAudienceVisibility? initialAudience,
   }) async {
-    live = await _repository.load(
-      initialTitle: initialTitle,
-      initialPhotoPath: initialPhotoPath,
-      initialAudience: initialAudience,
-    );
-    final model = live!;
-    titleController.text = model.liveTitle;
-    descriptionController.text = model.description;
-    pinnedCommentController.text = model.pinnedComment;
-    visibleComments = model.comments.take(3).toList();
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      live = await _repository.load(
+        initialTitle: initialTitle,
+        initialPhotoPath: initialPhotoPath,
+        initialAudience: initialAudience,
+      );
+      final model = live!;
+      titleController.text = model.liveTitle;
+      descriptionController.text = model.description;
+      pinnedCommentController.text = model.pinnedComment;
+      visibleComments = model.comments.take(3).toList();
+      isLive = model.streamId.isNotEmpty;
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   String get creatorName => live?.creatorName ?? '';
@@ -96,8 +112,14 @@ class LiveStreamController extends ChangeNotifier {
   Color get accentColor => Color(themeColor);
 
   String get formattedDuration {
-    final minutes = liveDuration.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = liveDuration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes = liveDuration.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+    final seconds = liveDuration.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
     return '$minutes:$seconds';
   }
 
@@ -107,6 +129,7 @@ class LiveStreamController extends ChangeNotifier {
       return;
     }
     live = LiveStreamModel(
+      streamId: model.streamId,
       creatorName: model.creatorName,
       username: model.username,
       avatarUrl: model.avatarUrl,
@@ -171,16 +194,19 @@ class LiveStreamController extends ChangeNotifier {
   void setMirrorPreview(bool value) => _rebuild(mirrorPreview: value);
   void setEnableLiveChat(bool value) => _rebuild(enableLiveChat: value);
   void setSlowMode(bool value) => _rebuild(slowMode: value);
-  void setAllowViewerQuestions(bool value) => _rebuild(allowViewerQuestions: value);
+  void setAllowViewerQuestions(bool value) =>
+      _rebuild(allowViewerQuestions: value);
   void setShowViewerCount(bool value) => _rebuild(showViewerCount: value);
-  void setShowReactionOverlay(bool value) => _rebuild(showReactionOverlay: value);
+  void setShowReactionOverlay(bool value) =>
+      _rebuild(showReactionOverlay: value);
   void setModeratorMode(bool value) => _rebuild(moderatorMode: value);
   void setEnableStars(bool value) => _rebuild(enableStars: value);
   void setRaiseMoney(bool value) => _rebuild(raiseMoney: value);
   void setProductLinks(bool value) => _rebuild(productLinks: value);
   void setDonationBanner(bool value) => _rebuild(donationBanner: value);
   void setSubscriberOnlyChat(bool value) => _rebuild(subscriberOnlyChat: value);
-  void setHideOffensiveComments(bool value) => _rebuild(hideOffensiveComments: value);
+  void setHideOffensiveComments(bool value) =>
+      _rebuild(hideOffensiveComments: value);
   void setAgeRestriction(bool value) => _rebuild(ageRestriction: value);
   void setThemeColor(int value) => _rebuild(themeColor: value);
   void setFontScale(double value) => _rebuild(fontScale: value);
@@ -191,7 +217,8 @@ class LiveStreamController extends ChangeNotifier {
   void setMicSource(String value) => _rebuild(micSource: value);
   void setRegionRestriction(String value) => _rebuild(regionRestriction: value);
   void setBadgeStyle(String value) => _rebuild(badgeStyle: value);
-  void setCommentBubbleStyle(String value) => _rebuild(commentBubbleStyle: value);
+  void setCommentBubbleStyle(String value) =>
+      _rebuild(commentBubbleStyle: value);
   void setReactionStyle(String value) => _rebuild(reactionStyle: value);
 
   void updatePinnedComment(String value) {
@@ -243,10 +270,108 @@ class LiveStreamController extends ChangeNotifier {
     });
   }
 
-  void startLive() {
-    if (isLive) {
+  Future<void> startLive() async {
+    if (isLive || live == null) {
       return;
     }
+    isStarting = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final LiveStreamModel started = await _repository.startLive(
+        title: titleController.text,
+        description: descriptionController.text,
+        category: category,
+        location: location,
+        audience: audience,
+        quickOptions: quickOptions,
+        existingStreamId: live?.streamId,
+        initialPhotoPath: previewPhotoPath,
+      );
+      live = started;
+      _beginLiveTimers();
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      rethrow;
+    } finally {
+      isStarting = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> endLive() async {
+    final String streamId = live?.streamId.trim() ?? '';
+    if (!isLive || streamId.isEmpty) {
+      _stopLiveTimers();
+      notifyListeners();
+      return;
+    }
+    isEnding = true;
+    errorMessage = null;
+    notifyListeners();
+    try {
+      live = await _repository.endLive(
+        streamId,
+        initialPhotoPath: previewPhotoPath,
+      );
+      _stopLiveTimers();
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      rethrow;
+    } finally {
+      isEnding = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> sendModeratorReply() async {
+    final text = moderationReplyController.text.trim();
+    final String streamId = live?.streamId.trim() ?? '';
+    if (text.isEmpty || streamId.isEmpty) {
+      return;
+    }
+    errorMessage = null;
+    notifyListeners();
+    try {
+      final LiveCommentModel comment = await _repository.createComment(
+        streamId: streamId,
+        message: text,
+      );
+      visibleComments = <LiveCommentModel>[
+        comment,
+        ...visibleComments,
+      ].take(5).toList(growable: false);
+      moderationReplyController.clear();
+      notifyListeners();
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  List<LiveReactionModel> buildReactionBatch() {
+    return List<LiveReactionModel>.generate(3 + _random.nextInt(3), (index) {
+      final types = LiveReactionType.values;
+      return LiveReactionModel(
+        id: 'r_${DateTime.now().microsecondsSinceEpoch}_$index',
+        type: types[_random.nextInt(types.length)],
+      );
+    });
+  }
+
+  void resetSetup() {
+    final previewPhotoPath = live?.previewPhotoPath;
+    unawaited(
+      load(
+        initialTitle: 'Studio Check-in',
+        initialPhotoPath: previewPhotoPath,
+        initialAudience: LiveAudienceVisibility.public,
+      ),
+    );
+  }
+
+  void _beginLiveTimers() {
     isLive = true;
     liveDuration = const Duration(seconds: 3);
     _durationTimer?.cancel();
@@ -267,52 +392,12 @@ class LiveStreamController extends ChangeNotifier {
       ].take(5).toList(growable: false);
       notifyListeners();
     });
-    notifyListeners();
   }
 
-  void endLive() {
+  void _stopLiveTimers() {
     isLive = false;
     _durationTimer?.cancel();
     _commentTimer?.cancel();
-    notifyListeners();
-  }
-
-  void sendModeratorReply() {
-    final text = moderationReplyController.text.trim();
-    if (text.isEmpty) {
-      return;
-    }
-    visibleComments = <LiveCommentModel>[
-      LiveCommentModel(
-        id: 'host_${DateTime.now().microsecondsSinceEpoch}',
-        username: 'host',
-        avatarUrl: avatarUrl,
-        message: text,
-        verified: true,
-      ),
-      ...visibleComments,
-    ].take(5).toList(growable: false);
-    moderationReplyController.clear();
-    notifyListeners();
-  }
-
-  List<LiveReactionModel> buildReactionBatch() {
-    return List<LiveReactionModel>.generate(3 + _random.nextInt(3), (index) {
-      final types = LiveReactionType.values;
-      return LiveReactionModel(
-        id: 'r_${DateTime.now().microsecondsSinceEpoch}_$index',
-        type: types[_random.nextInt(types.length)],
-      );
-    });
-  }
-
-  void resetSetup() {
-    final previewPhotoPath = live?.previewPhotoPath;
-    unawaited(load(
-      initialTitle: 'Studio Check-in',
-      initialPhotoPath: previewPhotoPath,
-      initialAudience: LiveAudienceVisibility.public,
-    ));
   }
 
   void _rebuild({
@@ -359,6 +444,7 @@ class LiveStreamController extends ChangeNotifier {
       return;
     }
     live = LiveStreamModel(
+      streamId: model.streamId,
       creatorName: model.creatorName,
       username: model.username,
       avatarUrl: model.avatarUrl,

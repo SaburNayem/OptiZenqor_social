@@ -78,12 +78,28 @@ class HiddenPostsScreen extends StatelessWidget {
                                   child: SizedBox(
                                     width: double.infinity,
                                     child: OutlinedButton.icon(
-                                      onPressed: () {
-                                        controller.unhidePost(post.id);
-                                        _showFeedback(
-                                          context,
-                                          'Post restored to feed',
-                                        );
+                                      onPressed: () async {
+                                        try {
+                                          await controller.unhidePost(post.id);
+                                          if (!context.mounted) {
+                                            return;
+                                          }
+                                          _showFeedback(
+                                            context,
+                                            'Post restored to feed',
+                                          );
+                                        } catch (error) {
+                                          if (!context.mounted) {
+                                            return;
+                                          }
+                                          _showFeedback(
+                                            context,
+                                            error.toString().replaceFirst(
+                                              'Exception: ',
+                                              '',
+                                            ),
+                                          );
+                                        }
                                       },
                                       icon: const Icon(
                                         Icons.visibility_rounded,

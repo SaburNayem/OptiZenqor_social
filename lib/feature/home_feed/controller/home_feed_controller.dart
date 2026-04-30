@@ -31,6 +31,7 @@ class HomeFeedController extends Cubit<int> {
   PaginationStateModel pagination = const PaginationStateModel();
   List<PostModel> posts = <PostModel>[];
   List<StoryModel> stories = <StoryModel>[];
+  List<PostModel> hiddenPostRecords = <PostModel>[];
   FeedTab activeTab = FeedTab.forYou;
   final Set<String> _hiddenPostIds = <String>{};
   final Set<String> _failedActionPostIds = <String>{};
@@ -52,9 +53,7 @@ class HomeFeedController extends Cubit<int> {
   List<PostModel> get visiblePosts => posts
       .where((PostModel post) => !_hiddenPostIds.contains(post.id))
       .toList();
-  List<PostModel> get hiddenPosts => posts
-      .where((PostModel post) => _hiddenPostIds.contains(post.id))
-      .toList();
+  List<PostModel> get hiddenPosts => hiddenPostRecords;
   bool isPostActionFailed(String postId) =>
       _failedActionPostIds.contains(postId);
   bool isLiked(String postId) {
@@ -93,7 +92,15 @@ class HomeFeedController extends Cubit<int> {
         ..addAll(prefs['hiddenTopics'] ?? const <String>[]);
       stories = await _repository.fetchStories();
       final FeedSegment segment = _segmentForTab(activeTab);
-      posts = await _repository.fetchFeed(segment: segment, page: 1);
+      final results = await Future.wait<Object>(<Future<Object>>[
+        _repository.fetchFeed(segment: segment, page: 1),
+        _repository.fetchHiddenPosts(),
+      ]);
+      posts = results[0] as List<PostModel>;
+      hiddenPostRecords = results[1] as List<PostModel>;
+      _hiddenPostIds
+        ..clear()
+        ..addAll(hiddenPostRecords.map((PostModel post) => post.id));
       _likedPostIds
         ..clear()
         ..addAll(
@@ -257,18 +264,58 @@ class HomeFeedController extends Cubit<int> {
     _notify();
   }
 
-  void notInterested(String postId) {
-    _hiddenPostIds.add(postId);
-    _analytics.logEvent(
-      'feed_not_interested',
-      params: <String, dynamic>{'postId': postId, 'tab': activeTab.name},
-    );
-    _notify();
+  Future<void> notInterested(String postId) async {
+    final int index = posts.indexWhere((PostModel post) => post.id == postId);
+    if (index == -1) {
+      return;
+    }
+    final PostModel target = posts[index];
+    final bool wasHidden = _hiddenPostIds.contains(postId);
+    if (!wasHidden) {
+      _hiddenPostIds.add(postId);
+      hiddenPostRecords = <PostModel>[
+        target,
+        ...hiddenPostRecords.where((PostModel post) => post.id != postId),
+      ];
+      _notify();
+    }
+    try {
+      await _repository.hidePost(postId);
+      await _analytics.logEvent(
+        'feed_not_interested',
+        params: <String, dynamic>{'postId': postId, 'tab': activeTab.name},
+      );
+    } catch (_) {
+      if (!wasHidden) {
+        _hiddenPostIds.remove(postId);
+        hiddenPostRecords = hiddenPostRecords
+            .where((PostModel post) => post.id != postId)
+            .toList(growable: false);
+        _notify();
+      }
+      rethrow;
+    }
   }
 
-  void unhidePost(String postId) {
-    if (_hiddenPostIds.remove(postId)) {
-      _notify();
+  Future<void> unhidePost(String postId) async {
+    final bool wasHidden = _hiddenPostIds.contains(postId);
+    final List<PostModel> previousHidden = List<PostModel>.from(
+      hiddenPostRecords,
+    );
+    _hiddenPostIds.remove(postId);
+    hiddenPostRecords = hiddenPostRecords
+        .where((PostModel post) => post.id != postId)
+        .toList(growable: false);
+    _notify();
+    try {
+      await _repository.unhidePost(postId);
+    } catch (_) {
+      if (wasHidden) {
+        _hiddenPostIds.add(postId);
+        hiddenPostRecords = previousHidden;
+        _notify();
+      }
+      rethrow;
     }
   }
 
@@ -634,6 +681,7 @@ class HomeFeedController extends Cubit<int> {
     pagination = const PaginationStateModel();
     posts = <PostModel>[];
     stories = <StoryModel>[];
+    hiddenPostRecords = <PostModel>[];
     activeTab = FeedTab.forYou;
     _hiddenPostIds.clear();
     _failedActionPostIds.clear();

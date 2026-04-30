@@ -29,6 +29,13 @@ Updated: 2026-04-30
 - `archive` screens now surface backend errors instead of silently rendering fake-empty states.
 - `wallet_payments` now reads backend wallet balance and ledger instead of shipping fake transaction data.
 - `safety_privacy` now reads and writes backend privacy/settings state instead of storing local-only production settings.
+- `home_feed` hide-post action now writes to `POST /hide/posts/:postId` instead of keeping hidden state only in `HomeFeedController`.
+- `hidden_posts` screen now reads persisted backend data from `GET /hidden-posts` and restores through `DELETE /hidden-posts/:targetId`.
+- `live_stream` now uses backend lifecycle routes for:
+  - `POST /live-stream`
+  - `PATCH /live-stream/:id/start`
+  - `PATCH /live-stream/:id/end`
+- `live_stream` moderator reply now writes to `POST /live-stream/:id/comments`.
 
 ## Remaining backend contract gaps
 
@@ -47,10 +54,12 @@ Updated: 2026-04-30
   - Dedicated durable backend mutation routes are still needed for a full migration.
 - `live-stream lifecycle`
   - Setup/read/comment/reaction routes now exist and are durable.
-  - Full persisted start/end/live moderation lifecycle is still not exposed as a durable frontend CRUD flow.
+  - Create/start/end and moderator reply are now exposed in the shipped Flutter flow.
+  - Deeper moderation/studio preference persistence is still not exposed as a full durable CRUD slice.
 - `hidden/archive UI`
   - Archive list screens now read backend routes and show real error states.
-  - Hidden posts screen still depends on local `HomeFeedController` state instead of the backend hidden-post routes.
+  - Hidden posts now reads backend hidden-post routes and restore uses backend unhide.
+  - Non-post hide targets still need end-to-end mobile coverage.
 
 ## Endpoint notes
 

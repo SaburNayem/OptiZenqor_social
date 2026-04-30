@@ -66,7 +66,37 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
       body: AnimatedBuilder(
         animation: Listenable.merge(<Listenable>[_controller, _enter]),
         builder: (context, _) {
-          if (_controller.live == null) {
+          if (_controller.errorMessage != null && _controller.live == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.live_tv_outlined, color: AppColors.white),
+                    const SizedBox(height: 12),
+                    Text(
+                      _controller.errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.white),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      onPressed: () => unawaited(
+                        _controller.load(
+                          initialTitle: widget.initialTitle,
+                          initialPhotoPath: widget.initialPhotoPath,
+                          initialAudience: widget.initialAudience,
+                        ),
+                      ),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          if (_controller.isLoading || _controller.live == null) {
             return const Center(child: CircularProgressIndicator());
           }
           return FadeTransition(
@@ -288,7 +318,25 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
         ),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: _controller.startLive,
+          onPressed: _controller.isStarting
+              ? null
+              : () async {
+                  try {
+                    await _controller.startLive();
+                    if (!mounted) {
+                      return;
+                    }
+                    _showSnack('Live video started');
+                  } catch (_) {
+                    if (!mounted) {
+                      return;
+                    }
+                    _showSnack(
+                      _controller.errorMessage ??
+                          'Unable to start live stream.',
+                    );
+                  }
+                },
           style: ElevatedButton.styleFrom(
             minimumSize: const Size.fromHeight(56),
             backgroundColor: _controller.accentColor,
@@ -386,7 +434,18 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
                 color: _controller.accentColor,
                 borderRadius: BorderRadius.circular(14),
                 child: InkWell(
-                  onTap: _controller.sendModeratorReply,
+                  onTap: () async {
+                    try {
+                      await _controller.sendModeratorReply();
+                    } catch (_) {
+                      if (!mounted) {
+                        return;
+                      }
+                      _showSnack(
+                        _controller.errorMessage ?? 'Unable to send comment.',
+                      );
+                    }
+                  },
                   borderRadius: BorderRadius.circular(14),
                   child: const SizedBox(
                     width: 44,
@@ -444,7 +503,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
         ),
         const SizedBox(height: 12),
         ElevatedButton(
-          onPressed: _confirmEndLive,
+          onPressed: _controller.isEnding ? null : _confirmEndLive,
           style: ElevatedButton.styleFrom(
             minimumSize: const Size.fromHeight(54),
             backgroundColor: AppColors.hexFFFF5A5F,
@@ -666,7 +725,10 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
           children: LiveAudienceVisibility.values
               .map((audience) {
                 return ListTile(
-                  leading: Icon(_audienceIcon(audience), color: AppColors.white),
+                  leading: Icon(
+                    _audienceIcon(audience),
+                    color: AppColors.white,
+                  ),
                   title: Text(
                     _audienceText(audience),
                     style: const TextStyle(color: AppColors.white),
@@ -813,7 +875,10 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
               },
             ),
             ListTile(
-              leading: const Icon(Icons.favorite_rounded, color: AppColors.white),
+              leading: const Icon(
+                Icons.favorite_rounded,
+                color: AppColors.white,
+              ),
               title: Text(
                 _controller.showReactionOverlay
                     ? 'Hide reactions overlay'
@@ -862,8 +927,18 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
       ),
     );
     if (result == true) {
-      _controller.endLive();
-      _showSnack('Live video ended');
+      try {
+        await _controller.endLive();
+        if (!mounted) {
+          return;
+        }
+        _showSnack('Live video ended');
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+        _showSnack(_controller.errorMessage ?? 'Unable to end live stream.');
+      }
     }
   }
 
@@ -905,4 +980,3 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen>
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
-

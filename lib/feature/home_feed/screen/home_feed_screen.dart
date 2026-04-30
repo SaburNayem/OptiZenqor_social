@@ -85,8 +85,11 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                 context.read<MainShellController>().currentUser.id.isNotEmpty
                 ? context.read<MainShellController>().currentUser
                 : null;
+            final List<UserModel>? currentUserList = currentUser == null
+                ? null
+                : <UserModel>[currentUser];
             final List<UserModel> storyUsers = <UserModel>[
-              if (currentUser != null) currentUser,
+              ...?currentUserList,
               ...visiblePosts
                   .map((PostModel post) => post.author)
                   .whereType<UserModel>(),
@@ -254,10 +257,23 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               ListTile(
                 leading: const Icon(Icons.hide_source_outlined),
                 title: const Text('Hide post'),
-                onTap: () {
-                  controller.notInterested(postId);
+                onTap: () async {
                   Navigator.of(context).pop();
-                  _showFeedback(context, 'Post hidden from feed');
+                  try {
+                    await controller.notInterested(postId);
+                    if (!context.mounted) {
+                      return;
+                    }
+                    _showFeedback(context, 'Post hidden from feed');
+                  } catch (error) {
+                    if (!context.mounted) {
+                      return;
+                    }
+                    _showFeedback(
+                      context,
+                      error.toString().replaceFirst('Exception: ', ''),
+                    );
+                  }
                 },
               ),
             ListTile(

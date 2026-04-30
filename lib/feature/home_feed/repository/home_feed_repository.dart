@@ -192,6 +192,47 @@ class HomeFeedRepository {
     throw Exception(response.message ?? 'Unable to update post like');
   }
 
+  Future<List<PostModel>> fetchHiddenPosts() async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(ApiEndPoints.hiddenPosts);
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load hidden posts.');
+    }
+
+    final List<Map<String, dynamic>> items = _readMapList(
+      response.data,
+      preferredKeys: const <String>['hiddenPosts', 'items', 'data', 'results'],
+    );
+    final List<PostModel> posts = items
+        .map((Map<String, dynamic> item) {
+          final Map<String, dynamic>? entity = _readMap(item['entity']);
+          return entity == null ? null : PostModel.fromApiJson(entity);
+        })
+        .whereType<PostModel>()
+        .where((PostModel post) => post.id.isNotEmpty)
+        .toList(growable: false);
+    return _hydratePostAuthors(posts);
+  }
+
+  Future<void> hidePost(String postId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(ApiEndPoints.hidePost(postId), const <String, dynamic>{});
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to hide post.');
+    }
+  }
+
+  Future<void> unhidePost(String postId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .delete(ApiEndPoints.hiddenPostByTargetId(postId));
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to restore post.');
+    }
+  }
+
   Future<PostModel> updatePost({
     required String postId,
     required String caption,
