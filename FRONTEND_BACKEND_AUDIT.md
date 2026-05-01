@@ -53,7 +53,6 @@ equivalents.
 - `lib/feature/learning_courses/repository/learning_courses_repository.dart`
 - `lib/feature/business_profile/repository/business_profile_repository.dart`
 - `lib/feature/jobs_networking/repository/jobs_networking_repository.dart`
-- `lib/feature/marketplace/repository/marketplace_repository.dart`
 - `lib/feature/pages/repository/pages_repository.dart`
 - `lib/feature/calls/repository/calls_repository.dart`
 - `lib/feature/account_switching/repository/account_switching_repository.dart`
@@ -87,9 +86,8 @@ matching backend route is production-backed.
 
 ## Recommended Next Migration Order
 
-1. Marketplace offer/follow/chat persistence
-2. Jobs
-3. Events
-4. Communities / Groups / Pages completeness
-5. Marketplace drafts, offers, seller follows/chat, and the remaining non-post hide/archive flows
-6. Learning courses / polls / business profile and remaining utility flows
+1. Jobs
+2. Events
+3. Communities / Groups / Pages completeness
+4. Marketplace drafts and the remaining non-post hide/archive flows
+5. Learning courses / polls / business profile and remaining utility flows

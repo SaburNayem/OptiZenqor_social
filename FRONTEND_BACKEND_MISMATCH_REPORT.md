@@ -50,8 +50,8 @@ Updated: 2026-04-30
   - Product create exists.
   - No draft-specific backend route exists for marketplace listings, so save-draft remains device-local.
 - `marketplace seller follows / offers / chat`
-  - Flutter still keeps these states locally after initial backend load.
-  - Dedicated durable backend mutation routes are still needed for a full migration.
+  - Backend mutation routes now exist and the repository calls them for seller follow, product chat, and offer creation.
+  - Remaining work is mostly around richer typed state handling and reducing controller-side derived view state.
 - `live-stream lifecycle`
   - Setup/read/comment/reaction routes now exist and are durable.
   - Create/start/end and moderator reply are now exposed in the shipped Flutter flow.

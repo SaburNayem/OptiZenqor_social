@@ -164,6 +164,8 @@ class ApiEndPoints {
   static const liveStream = '/live-stream';
   static const liveStreamSetup = '/live-stream/setup';
   static const liveStreamStudio = '/live-stream/studio';
+  static String liveStreamModeration(String streamId) =>
+      '/live-stream/$streamId/moderation';
   static String liveStreamComments(String streamId) =>
       '/live-stream/$streamId/comments';
   static String liveStreamReactions(String streamId) =>
@@ -423,6 +425,9 @@ class ApiEndPoints {
   static const notificationsInbox = '/notifications/inbox';
   static const notificationsPreferences = '/notifications/preferences';
   static const notificationsCampaigns = '/notifications/campaigns';
+  static const notificationsDevices = '/notifications/devices';
+  static String notificationDeviceByToken(String token) =>
+      '/notifications/devices/$token';
   static String notificationRead(String notificationId) =>
       '/notifications/$notificationId/read';
 
@@ -449,6 +454,8 @@ class ApiEndPoints {
   // AdminOpsController
   static const adminAuthDemoAccounts = '/admin/auth/demo-accounts';
   static const adminAuthLogin = '/admin/auth/login';
+  static const adminAuthRefresh = '/admin/auth/refresh';
+  static const adminAuthLogout = '/admin/auth/logout';
   static const adminAuthMe = '/admin/auth/me';
   static const adminAuthSessions = '/admin/auth/sessions';
   static String adminAuthSessionRevoke(String sessionId) =>
@@ -474,9 +481,19 @@ class ApiEndPoints {
 
   // AdminController
   static const adminDashboard = '/admin/dashboard';
+  static const adminDashboardOverview = '/admin/dashboard/overview';
+  static const adminDashboardUsers = '/admin/dashboard/users';
+  static const adminDashboardContent = '/admin/dashboard/content';
+  static const adminDashboardReports = '/admin/dashboard/reports';
+  static const adminDashboardRevenue = '/admin/dashboard/revenue';
+  static const adminDashboardModeration = '/admin/dashboard/moderation';
   static const adminUsers = '/admin/users';
+  static String adminUserById(String userId) => '/admin/users/$userId';
   static const adminContent = '/admin/content';
+  static String adminContentModerate(String type, String id) =>
+      '/admin/content/$type/$id/moderate';
   static const adminReports = '/admin/reports';
+  static String adminReportById(String reportId) => '/admin/reports/$reportId';
   static const adminChatCases = '/admin/chat-cases';
   static const adminEvents = '/admin/events';
   static const adminMonetization = '/admin/monetization';
