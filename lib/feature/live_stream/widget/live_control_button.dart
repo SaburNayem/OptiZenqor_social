@@ -54,4 +54,3 @@ class LiveControlButton extends StatelessWidget {
     );
   }
 }
-

@@ -28,10 +28,7 @@ class LiveSetupScreen extends StatelessWidget {
         children: [
           Positioned.fill(
             child: photoPath != null
-                ? Image.file(
-                    File(photoPath!),
-                    fit: BoxFit.cover,
-                  )
+                ? Image.file(File(photoPath!), fit: BoxFit.cover)
                 : Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
@@ -47,9 +44,7 @@ class LiveSetupScreen extends StatelessWidget {
                   ),
           ),
           Positioned.fill(
-            child: Container(
-              color: AppColors.black.withValues(alpha: 0.28),
-            ),
+            child: Container(color: AppColors.black.withValues(alpha: 0.28)),
           ),
           SafeArea(
             child: Padding(
@@ -61,7 +56,10 @@ class LiveSetupScreen extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back, color: AppColors.white),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppColors.white,
+                        ),
                       ),
                       const Spacer(),
                       Container(
@@ -199,4 +197,3 @@ class LiveSetupScreen extends StatelessWidget {
     );
   }
 }
-

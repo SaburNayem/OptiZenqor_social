@@ -68,4 +68,3 @@ class AppAvatar extends StatelessWidget {
     return null;
   }
 }
-

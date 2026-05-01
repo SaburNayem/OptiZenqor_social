@@ -82,9 +82,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
       _currentUser = currentUser;
       _followers = results[0] as List<UserModel>;
       _following = results[1] as List<UserModel>;
-      _followingIds = currentFollowing
-          .map((UserModel item) => item.id)
-          .toSet();
+      _followingIds = currentFollowing.map((UserModel item) => item.id).toSet();
       _pendingRequestIds = <String>{};
       _isLoading = false;
     });
@@ -135,16 +133,12 @@ class _FollowListScreenState extends State<FollowListScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final UserModel? targetUser = _targetUser;
     if (targetUser == null) {
-      return const Scaffold(
-        body: Center(child: Text('Profile not found')),
-      );
+      return const Scaffold(body: Center(child: Text('Profile not found')));
     }
 
     return DefaultTabController(
@@ -187,8 +181,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
             _ConnectionsTab(
               users: _following,
               emptyTitle: 'Not following anyone yet',
-              emptyMessage:
-                  'Accounts this profile follows will appear here.',
+              emptyMessage: 'Accounts this profile follows will appear here.',
               currentUserId: _currentUserId,
               followingIds: _followingIds,
               pendingRequestIds: _pendingRequestIds,
@@ -238,10 +231,7 @@ class _ConnectionsTab extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _SampleConnectionsBanner(
-            title: emptyTitle,
-            message: emptyMessage,
-          ),
+          _SampleConnectionsBanner(title: emptyTitle, message: emptyMessage),
         ],
       );
     }
@@ -293,7 +283,9 @@ class _ConnectionPersonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final String preview = user.profilePreview.isNotEmpty ? user.profilePreview : user.bio;
+    final String preview = user.profilePreview.isNotEmpty
+        ? user.profilePreview
+        : user.bio;
 
     return Material(
       color: colorScheme.surfaceContainerLowest,
@@ -343,9 +335,8 @@ class _ConnectionPersonCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           '@${user.username}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -365,9 +356,9 @@ class _ConnectionPersonCard extends StatelessWidget {
                 preview,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  height: 1.35,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(height: 1.35),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -434,18 +425,12 @@ class _FollowActionButton extends StatelessWidget {
         child: const Text('Following'),
       );
     }
-    return FilledButton.tonal(
-      onPressed: onPressed,
-      child: Text(actionLabel),
-    );
+    return FilledButton.tonal(onPressed: onPressed, child: Text(actionLabel));
   }
 }
 
 class _ConnectionMetaChip extends StatelessWidget {
-  const _ConnectionMetaChip({
-    required this.icon,
-    required this.label,
-  });
+  const _ConnectionMetaChip({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -466,9 +451,9 @@ class _ConnectionMetaChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -477,10 +462,7 @@ class _ConnectionMetaChip extends StatelessWidget {
 }
 
 class _SampleConnectionsBanner extends StatelessWidget {
-  const _SampleConnectionsBanner({
-    required this.title,
-    required this.message,
-  });
+  const _SampleConnectionsBanner({required this.title, required this.message});
 
   final String title;
   final String message;
@@ -506,9 +488,9 @@ class _SampleConnectionsBanner extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
                 Text(

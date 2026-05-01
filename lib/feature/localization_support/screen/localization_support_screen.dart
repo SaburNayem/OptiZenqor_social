@@ -5,7 +5,8 @@ import '../controller/localization_support_controller.dart';
 class LocalizationSupportScreen extends StatelessWidget {
   LocalizationSupportScreen({super.key});
 
-  final LocalizationSupportController _controller = LocalizationSupportController();
+  final LocalizationSupportController _controller =
+      LocalizationSupportController();
 
   @override
   Widget build(BuildContext context) {

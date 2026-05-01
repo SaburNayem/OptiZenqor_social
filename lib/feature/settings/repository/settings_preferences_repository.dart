@@ -3,7 +3,7 @@ import '../../../core/data/shared_preference/app_shared_preferences.dart';
 
 class SettingsPreferencesRepository {
   SettingsPreferencesRepository({AppSharedPreferences? storage})
-      : _storage = storage ?? AppSharedPreferences();
+    : _storage = storage ?? AppSharedPreferences();
 
   final AppSharedPreferences _storage;
 

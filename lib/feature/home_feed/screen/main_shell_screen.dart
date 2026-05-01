@@ -140,9 +140,7 @@ class MainShellScreen extends StatelessWidget {
           ..hideCurrentSnackBar()
           ..showSnackBar(
             SnackBar(
-              content: Text(
-                error.toString().replaceFirst('Exception: ', ''),
-              ),
+              content: Text(error.toString().replaceFirst('Exception: ', '')),
             ),
           );
       }
@@ -172,4 +170,3 @@ class MainShellScreen extends StatelessWidget {
     return confirmed ?? false;
   }
 }
-

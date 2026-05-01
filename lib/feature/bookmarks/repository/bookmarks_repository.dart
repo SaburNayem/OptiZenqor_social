@@ -27,9 +27,7 @@ class BookmarksRepository {
 
     final items = await _storage.readJsonList(StorageKeys.bookmarks);
     return items
-        .map(
-          (item) => _mapItem(item),
-        )
+        .map((item) => _mapItem(item))
         .where((item) => item.id.isNotEmpty)
         .toList();
   }
@@ -39,7 +37,10 @@ class BookmarksRepository {
     return _writeLocal(items);
   }
 
-  Future<void> add(BookmarkItemModel item, List<BookmarkItemModel> items) async {
+  Future<void> add(
+    BookmarkItemModel item,
+    List<BookmarkItemModel> items,
+  ) async {
     try {
       await _service.apiClient.post(
         ApiEndPoints.bookmarkPost(item.id),
@@ -84,8 +85,8 @@ class BookmarksRepository {
 
   Future<List<BookmarkItemModel>?> _readFromApi() async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint('bookmarks');
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint('bookmarks');
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }

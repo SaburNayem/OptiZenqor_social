@@ -32,10 +32,7 @@ class MainShellHomeAppBar extends StatelessWidget
               const SizedBox(width: 10),
               Text(
                 'Search',
-                style: TextStyle(
-                  color: AppColors.grey600,
-                  fontSize: 15,
-                ),
+                style: TextStyle(color: AppColors.grey600, fontSize: 15),
               ),
             ],
           ),
@@ -61,10 +58,7 @@ class MainShellHomeAppBar extends StatelessWidget
                   color: AppColors.red,
                   shape: BoxShape.circle,
                 ),
-                constraints: const BoxConstraints(
-                  minWidth: 8,
-                  minHeight: 8,
-                ),
+                constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
               ),
             ),
           ],

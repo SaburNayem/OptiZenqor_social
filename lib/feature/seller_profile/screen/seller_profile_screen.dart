@@ -13,7 +13,9 @@ class SellerProfileScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Seller Profile')),
       body: ListTile(
         title: Text(controller.profile.storeName),
-        subtitle: Text('Rating ${controller.profile.rating} • ${controller.profile.totalListings} listings'),
+        subtitle: Text(
+          'Rating ${controller.profile.rating} • ${controller.profile.totalListings} listings',
+        ),
       ),
     );
   }

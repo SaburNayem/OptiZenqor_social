@@ -37,7 +37,10 @@ class CreatePostComposerCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(radius: 20, backgroundImage: NetworkImage(avatarUrl)),
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(avatarUrl),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -100,10 +103,7 @@ class CreatePostComposerCard extends StatelessWidget {
             textAlignVertical: TextAlignVertical.top,
             decoration: const InputDecoration(
               hintText: "What's on your mind?",
-              hintStyle: TextStyle(
-                color: AppColors.grey,
-                fontSize: 16,
-              ),
+              hintStyle: TextStyle(color: AppColors.grey, fontSize: 16),
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),

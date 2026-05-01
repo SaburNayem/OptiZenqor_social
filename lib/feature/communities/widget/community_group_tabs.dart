@@ -358,5 +358,3 @@ void _showSnack(BuildContext context, String text) {
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(text)));
 }
-
-

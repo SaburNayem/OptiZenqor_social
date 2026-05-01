@@ -148,14 +148,16 @@ class SocketService {
           _readMap(response.data['data']) ??
           _readMap(response.data['result']) ??
           response.data;
-      final String? url = _firstString(
-        payload,
-        const <String>['url', 'socketUrl', 'endpoint', 'socketEndpoint'],
-      );
-      final String? path = _firstString(
-        payload,
-        const <String>['path', 'socketPath'],
-      );
+      final String? url = _firstString(payload, const <String>[
+        'url',
+        'socketUrl',
+        'endpoint',
+        'socketEndpoint',
+      ]);
+      final String? path = _firstString(payload, const <String>[
+        'path',
+        'socketPath',
+      ]);
       if (url != null && url.isNotEmpty) {
         final Uri base = Uri.parse(url);
         return _appendAuthQuery(base, accessToken: accessToken);

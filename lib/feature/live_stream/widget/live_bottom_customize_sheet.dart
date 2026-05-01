@@ -412,11 +412,7 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
     );
   }
 
-  Widget _switchTile(
-    String label,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
+  Widget _switchTile(String label, bool value, ValueChanged<bool> onChanged) {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       value: value,
@@ -483,7 +479,10 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(label, style: const TextStyle(color: AppColors.white)),
-      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.white70),
+      trailing: const Icon(
+        Icons.chevron_right_rounded,
+        color: AppColors.white70,
+      ),
     );
   }
 
@@ -521,4 +520,3 @@ class LiveBottomCustomizeSheet extends StatelessWidget {
     );
   }
 }
-

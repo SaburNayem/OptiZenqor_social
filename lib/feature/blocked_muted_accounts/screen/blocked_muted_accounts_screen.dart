@@ -160,7 +160,8 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
                                   width: 90,
                                   height: 36,
                                   child: OutlinedButton(
-                                    onPressed: () => _controller.unblock(user.handle),
+                                    onPressed: () =>
+                                        _controller.unblock(user.handle),
                                     style: OutlinedButton.styleFrom(
                                       side: const BorderSide(
                                         color: AppColors.primary,
@@ -193,5 +194,3 @@ class BlockedMutedAccountsScreen extends StatelessWidget {
     );
   }
 }
-
-

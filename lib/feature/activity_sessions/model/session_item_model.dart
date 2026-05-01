@@ -76,7 +76,8 @@ class SessionItemModel {
         json['platform'] ?? json['client'],
         fallback: 'Unknown',
       ),
-      lastActive: lastActiveAt?.toLocal().toString() ??
+      lastActive:
+          lastActiveAt?.toLocal().toString() ??
           ApiPayloadReader.readString(
             json['lastActive'] ?? json['lastSeen'],
             fallback: 'Unknown',

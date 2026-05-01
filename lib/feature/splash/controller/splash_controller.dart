@@ -22,13 +22,13 @@ class SplashController {
     final Future<bool> onboardingFuture = _onboardingRepository.isCompleted();
     final Future<bool> sessionFuture = _authRepository.hasSession();
     final Future<void> splashDelay = Future<void>.delayed(
-      kDebugMode ? const Duration(milliseconds: 150) : const Duration(milliseconds: 450),
+      kDebugMode
+          ? const Duration(milliseconds: 150)
+          : const Duration(milliseconds: 450),
     );
-    final List<Object?> bootstrapResults = await Future.wait<Object?>(<Future<Object?>>[
-      onboardingFuture,
-      sessionFuture,
-      splashDelay,
-    ]);
+    final List<Object?> bootstrapResults = await Future.wait<Object?>(
+      <Future<Object?>>[onboardingFuture, sessionFuture, splashDelay],
+    );
     final bool hasCompletedOnboarding = bootstrapResults[0] as bool;
     final bool hasSession = bootstrapResults[1] as bool;
     if (!context.mounted) {
@@ -43,4 +43,3 @@ class SplashController {
     Navigator.of(context).pushReplacementNamed(nextRoute);
   }
 }
-

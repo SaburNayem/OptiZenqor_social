@@ -136,9 +136,6 @@ class _CreatePostMediaTile extends StatelessWidget {
       return AspectRatio(aspectRatio: 1.5, child: child);
     }
 
-    return SizedBox(
-      width: 122,
-      child: child,
-    );
+    return SizedBox(width: 122, child: child);
   }
 }

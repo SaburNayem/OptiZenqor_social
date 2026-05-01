@@ -116,10 +116,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                 left: 18,
                 top: 14,
                 right: compact ? 116 : 138,
-                child: SafeArea(
-                  bottom: false,
-                  child: _buildTopBar(),
-                ),
+                child: SafeArea(bottom: false, child: _buildTopBar()),
               ),
               Positioned(
                 right: 18,
@@ -136,10 +133,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                 left: 18,
                 right: 18,
                 bottom: 18,
-                child: SafeArea(
-                  top: false,
-                  child: _buildBottomBar(),
-                ),
+                child: SafeArea(top: false, child: _buildBottomBar()),
               ),
             ],
           );
@@ -156,7 +150,11 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
       children: <Widget>[
         IconButton(
           onPressed: _handleBack,
-          icon: const Icon(Icons.close_rounded, color: AppColors.white, size: 30),
+          icon: const Icon(
+            Icons.close_rounded,
+            color: AppColors.white,
+            size: 30,
+          ),
           splashRadius: 24,
         ),
         const SizedBox(width: 10),
@@ -380,15 +378,17 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     final List<int> sortedIndices = _sortedMediaIndices;
 
     return Stack(
-      children: sortedIndices.map((int index) {
-        return Positioned.fill(
-          child: _buildMoveableMediaItem(
-            index: index,
-            path: _mediaPaths[index],
-            canvasSize: canvasSize,
-          ),
-        );
-      }).toList(growable: false),
+      children: sortedIndices
+          .map((int index) {
+            return Positioned.fill(
+              child: _buildMoveableMediaItem(
+                index: index,
+                path: _mediaPaths[index],
+                canvasSize: canvasSize,
+              ),
+            );
+          })
+          .toList(growable: false),
     );
   }
 
@@ -577,7 +577,9 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     );
 
     setState(() {
-      _mediaTransforms[index] = _mediaTransforms[index].copyWith(zIndex: maxZ + 1);
+      _mediaTransforms[index] = _mediaTransforms[index].copyWith(
+        zIndex: maxZ + 1,
+      );
     });
   }
 
@@ -625,8 +627,14 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     final double scaledHeight = baseHeight * transform.scale;
 
     if (singleMedia) {
-      final double overflowX = math.max(0, (scaledWidth - canvasSize.width) / 2);
-      final double overflowY = math.max(0, (scaledHeight - canvasSize.height) / 2);
+      final double overflowX = math.max(
+        0,
+        (scaledWidth - canvasSize.width) / 2,
+      );
+      final double overflowY = math.max(
+        0,
+        (scaledHeight - canvasSize.height) / 2,
+      );
       final double maxX = math.max(overflowX, canvasSize.width * 0.22);
       final double maxY = math.max(overflowY, canvasSize.height * 0.22);
 
@@ -664,7 +672,11 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Icon(Icons.videocam_rounded, color: AppColors.white, size: 42),
+                    Icon(
+                      Icons.videocam_rounded,
+                      color: AppColors.white,
+                      size: 42,
+                    ),
                     SizedBox(height: 8),
                     Text(
                       'Video',
@@ -733,7 +745,8 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                 .clamp(_minTextScale, _maxTextScale)
                 .toDouble();
             final Offset nextOffset =
-                _textOffsetAtStart + (details.focalPoint - _textFocalPointAtStart);
+                _textOffsetAtStart +
+                (details.focalPoint - _textFocalPointAtStart);
 
             setState(() {
               _textScale = nextScale;
@@ -765,10 +778,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     ];
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(
-        minWidth: 110,
-        maxWidth: 260,
-      ),
+      constraints: const BoxConstraints(minWidth: 110, maxWidth: 260),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.black.withValues(
@@ -777,17 +787,15 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Padding(
-          padding: EdgeInsets.all(_controller.hasText || chips.isNotEmpty ? 8 : 0),
+          padding: EdgeInsets.all(
+            _controller.hasText || chips.isNotEmpty ? 8 : 0,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               if (chips.isNotEmpty)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: chips,
-                ),
+                Wrap(spacing: 8, runSpacing: 8, children: chips),
               if (chips.isNotEmpty && _controller.hasText)
                 const SizedBox(height: 12),
               if (_controller.hasText)
@@ -926,8 +934,10 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                   itemCount: StoryPreviewController.textColors.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 10),
                   itemBuilder: (BuildContext context, int index) {
-                    final Color color = StoryPreviewController.textColors[index];
-                    final bool isSelected = color == _controller.selectedTextColor;
+                    final Color color =
+                        StoryPreviewController.textColors[index];
+                    final bool isSelected =
+                        color == _controller.selectedTextColor;
 
                     return GestureDetector(
                       onTap: () => _controller.setTextColor(color),
@@ -1053,11 +1063,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
                           fontWeight: FontWeight.w600,
                         ),
                       )
-                    : Icon(
-                        tool.icon,
-                        color: AppColors.white,
-                        size: 26,
-                      ),
+                    : Icon(tool.icon, color: AppColors.white, size: 26),
               ),
             ),
           ],
@@ -1168,9 +1174,15 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
   Offset _clampTextOffset(Offset offset, Size viewport, double scale) {
     final double estimatedWidth = math.min(viewport.width * 0.84, 220 * scale);
-    final double estimatedHeight = math.min(viewport.height * 0.42, 110 * scale);
+    final double estimatedHeight = math.min(
+      viewport.height * 0.42,
+      110 * scale,
+    );
     final double maxX = math.max(0, (viewport.width - estimatedWidth) / 2 - 8);
-    final double maxY = math.max(0, (viewport.height - estimatedHeight) / 2 - 24);
+    final double maxY = math.max(
+      0,
+      (viewport.height - estimatedHeight) / 2 - 24,
+    );
 
     return Offset(
       offset.dx.clamp(-maxX, maxX).toDouble(),
@@ -1324,7 +1336,8 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(mentionController.text),
+              onPressed: () =>
+                  Navigator.of(context).pop(mentionController.text),
               child: const Text('Save'),
             ),
           ],
@@ -1406,7 +1419,10 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
     setState(() => _isSharing = false);
 
-    final List<String> mediaItems = List<String>.from(_mediaPaths, growable: false);
+    final List<String> mediaItems = List<String>.from(
+      _mediaPaths,
+      growable: false,
+    );
 
     final StoryModel story = StoryModel(
       id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
@@ -1458,6 +1474,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
     );
   }
 
+  // ignore: unused_element
   void _openStoryLink() {
     final String target = _controller.linkUrl.trim();
 

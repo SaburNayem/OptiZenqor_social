@@ -48,9 +48,7 @@ class ArchiveCenterScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.archive_outlined),
                   title: const Text('Archived posts'),
-                  subtitle: const Text(
-                    'Open post archive from backend.',
-                  ),
+                  subtitle: const Text('Open post archive from backend.'),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => _openHiddenPosts(context),
                 ),
@@ -87,15 +85,15 @@ class ArchiveCenterScreen extends StatelessWidget {
   }
 
   void _openHiddenPosts(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ArchivePostsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const ArchivePostsScreen()));
   }
 
   void _openReelsArchive(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const ArchiveReelsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const ArchiveReelsScreen()));
   }
 
   void _openStoriesArchive(BuildContext context) {

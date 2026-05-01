@@ -8,9 +8,7 @@ class HttpService {
     Duration timeout = const Duration(seconds: 30),
     Map<String, String>? defaultHeaders,
     ApiClientService? apiClient,
-  }) : _apiClient =
-           apiClient ??
-           ApiClientService(baseUrl: baseUrl) {
+  }) : _apiClient = apiClient ?? ApiClientService(baseUrl: baseUrl) {
     _defaultHeaders = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -107,7 +105,9 @@ class HttpService {
     if (body is Map) {
       return Map<String, dynamic>.from(body);
     }
-    return body == null ? const <String, dynamic>{} : <String, dynamic>{'data': body};
+    return body == null
+        ? const <String, dynamic>{}
+        : <String, dynamic>{'data': body};
   }
 
   HttpServiceModel<T> _mapResponse<T>(

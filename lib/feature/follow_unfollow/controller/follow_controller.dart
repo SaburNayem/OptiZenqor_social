@@ -6,7 +6,7 @@ import '../repository/follow_repository.dart';
 
 class FollowController extends ChangeNotifier {
   FollowController({FollowRepository? repository})
-      : _repository = repository ?? FollowRepository();
+    : _repository = repository ?? FollowRepository();
 
   final FollowRepository _repository;
   Map<String, FollowStateModel> _states = <String, FollowStateModel>{};
@@ -18,7 +18,9 @@ class FollowController extends ChangeNotifier {
 
   Future<FollowStateModel> stateFor(UserModel user) async {
     final stored = _states[user.id];
-    final bool remoteFollowing = await _repository.isCurrentUserFollowing(user.id);
+    final bool remoteFollowing = await _repository.isCurrentUserFollowing(
+      user.id,
+    );
     return FollowStateModel(
       targetUserId: user.id,
       isPrivateAccount: user.isPrivate,
@@ -30,7 +32,9 @@ class FollowController extends ChangeNotifier {
   Future<void> toggleFollow(UserModel user) async {
     final FollowStateModel current = await stateFor(user);
     if (current.isPrivateAccount && !current.isFollowing) {
-      _states[user.id] = current.copyWith(hasPendingRequest: !current.hasPendingRequest);
+      _states[user.id] = current.copyWith(
+        hasPendingRequest: !current.hasPendingRequest,
+      );
     } else {
       _states[user.id] = current.copyWith(
         isFollowing: !current.isFollowing,

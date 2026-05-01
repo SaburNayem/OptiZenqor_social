@@ -25,8 +25,10 @@ class AudioCallScreen extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
-                        color: AppColors.white),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.white,
+                    ),
                   ),
                   const Text(
                     'End-to-end encrypted',
@@ -61,7 +63,10 @@ class AudioCallScreen extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(24),
@@ -70,9 +75,18 @@ class AudioCallScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _CallControl(icon: Icons.mic_off_outlined, label: 'Mute'),
-                    _CallControl(icon: Icons.volume_up_outlined, label: 'Speaker'),
-                    _CallControl(icon: Icons.bluetooth_audio_outlined, label: 'Audio'),
-                    _CallControl(icon: Icons.add_reaction_outlined, label: 'React'),
+                    _CallControl(
+                      icon: Icons.volume_up_outlined,
+                      label: 'Speaker',
+                    ),
+                    _CallControl(
+                      icon: Icons.bluetooth_audio_outlined,
+                      label: 'Audio',
+                    ),
+                    _CallControl(
+                      icon: Icons.add_reaction_outlined,
+                      label: 'React',
+                    ),
                   ],
                 ),
               ),
@@ -104,10 +118,7 @@ class AudioCallScreen extends StatelessWidget {
 }
 
 class _CallControl extends StatelessWidget {
-  const _CallControl({
-    required this.icon,
-    required this.label,
-  });
+  const _CallControl({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
@@ -144,12 +155,8 @@ class _ActionButton extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
       child: Icon(icon, color: AppColors.white, size: size * 0.4),
     );
   }
 }
-

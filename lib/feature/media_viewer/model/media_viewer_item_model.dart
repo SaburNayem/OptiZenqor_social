@@ -1,8 +1,5 @@
 class MediaViewerItemModel {
-  const MediaViewerItemModel({
-    required this.source,
-    required this.type,
-  });
+  const MediaViewerItemModel({required this.source, required this.type});
 
   final String source;
   final String type;
@@ -16,10 +13,7 @@ class MediaViewerItemModel {
   static const String videoType = 'video';
 
   factory MediaViewerItemModel.fromSource(String source) {
-    return MediaViewerItemModel(
-      source: source,
-      type: detectType(source),
-    );
+    return MediaViewerItemModel(source: source, type: detectType(source));
   }
 
   static String detectType(String source) {

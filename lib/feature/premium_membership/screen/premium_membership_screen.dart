@@ -349,5 +349,3 @@ class PremiumMembershipScreen extends StatelessWidget {
     );
   }
 }
-
-

@@ -56,7 +56,8 @@ class UserProfileController extends ChangeNotifier {
 
   int get reelCount => _reels.length;
 
-  int get followerCount => _followers.isNotEmpty ? _followers.length : user?.followers ?? 0;
+  int get followerCount =>
+      _followers.isNotEmpty ? _followers.length : user?.followers ?? 0;
 
   int get followingCount =>
       _following.isNotEmpty ? _following.length : user?.following ?? 0;
@@ -65,7 +66,8 @@ class UserProfileController extends ChangeNotifier {
 
   List<PostModel> get featuredPosts => _posts.take(2).toList(growable: false);
 
-  List<PostTagSummary> get taggedPosts => List<PostTagSummary>.unmodifiable(_taggedPosts);
+  List<PostTagSummary> get taggedPosts =>
+      List<PostTagSummary>.unmodifiable(_taggedPosts);
 
   List<PostTagSummary> get taggedMedia =>
       taggedPosts.where((item) => item.mediaCount > 0).toList(growable: false);
@@ -120,8 +122,8 @@ class UserProfileController extends ChangeNotifier {
       final String trimmedUserId = userId?.trim() ?? '';
       final bool viewingCurrentUser =
           trimmedUserId.isEmpty || trimmedUserId == _currentUserId;
-      final Future<UserModel?> currentProfileFuture =
-          _repository.getCurrentProfile();
+      final Future<UserModel?> currentProfileFuture = _repository
+          .getCurrentProfile();
 
       final Future<UserModel?> viewedProfileFuture = viewingCurrentUser
           ? currentProfileFuture
@@ -185,13 +187,11 @@ class UserProfileController extends ChangeNotifier {
       final FollowRemoteState followState = resources[8] as FollowRemoteState;
 
       isFollowing = isOwnProfile ? false : followState.isFollowing;
-      followRequestPending = isOwnProfile ? false : followState.hasPendingRequest;
+      followRequestPending = isOwnProfile
+          ? false
+          : followState.hasPendingRequest;
 
-      state = state.copyWith(
-        isLoading: false,
-        isSuccess: true,
-        isEmpty: false,
-      );
+      state = state.copyWith(isLoading: false, isSuccess: true, isEmpty: false);
       await _analytics.profileViewed();
       notifyListeners();
     } catch (_) {
@@ -274,8 +274,7 @@ class UserProfileController extends ChangeNotifier {
     if (current == null) {
       return 'Verification unavailable';
     }
-    final String reason =
-        current.verificationReason?.trim().isNotEmpty == true
+    final String reason = current.verificationReason?.trim().isNotEmpty == true
         ? current.verificationReason!.trim()
         : 'No reason provided';
     return '${current.verificationStatus.toUpperCase()} - $reason';

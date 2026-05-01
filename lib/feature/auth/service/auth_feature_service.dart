@@ -18,6 +18,5 @@ class AuthFeatureService extends FeatureServiceBase {
     'verify_otp': ApiEndPoints.authVerifyOtp,
     'verify_email_confirm': ApiEndPoints.authVerifyEmailConfirm,
     'me': ApiEndPoints.authMe,
-    'demo_accounts': ApiEndPoints.authDemoAccounts,
   };
 }

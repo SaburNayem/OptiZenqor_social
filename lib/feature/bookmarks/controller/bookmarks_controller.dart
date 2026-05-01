@@ -84,16 +84,17 @@ class BookmarksController extends Cubit<BookmarksState> {
       return existing;
     }
 
-    final SavedCollectionModel collection = SavedCollectionModel(
-      id: 'col_${DateTime.now().millisecondsSinceEpoch}',
-      name: trimmed,
-      itemIds: const <String>[],
-    );
-    final List<SavedCollectionModel> collections = <SavedCollectionModel>[
-      collection,
-      ...state.collections,
-    ];
-    await _collectionsRepository.write(collections);
+    final List<SavedCollectionModel> collections = await _collectionsRepository
+        .create(trimmed);
+    final SavedCollectionModel? collection = collections
+        .where(
+          (SavedCollectionModel item) =>
+              item.name.toLowerCase() == trimmed.toLowerCase(),
+        )
+        .firstOrNull;
+    if (collection == null) {
+      return null;
+    }
     emit(state.copyWith(collections: collections));
     return collection;
   }
@@ -123,7 +124,7 @@ class BookmarksController extends Cubit<BookmarksState> {
 
     await _repository.add(item, items);
     if (collectionId != null) {
-      await _collectionsRepository.write(collections);
+      await _collectionsRepository.addItem(collectionId, item.id);
     }
     emit(state.copyWith(items: _sortedItems(items), collections: collections));
   }
@@ -143,7 +144,12 @@ class BookmarksController extends Cubit<BookmarksState> {
         .toList(growable: false);
 
     await _repository.remove(postId, items);
-    await _collectionsRepository.write(collections);
+    for (final SavedCollectionModel collection in collections) {
+      await _collectionsRepository.updateItems(
+        collection.id,
+        collection.itemIds,
+      );
+    }
     emit(state.copyWith(items: items, collections: collections));
   }
 

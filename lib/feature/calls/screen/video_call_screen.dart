@@ -17,12 +17,7 @@ class VideoCallScreen extends StatelessWidget {
       backgroundColor: AppColors.black,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.network(
-              avatarUrl,
-              fit: BoxFit.cover,
-            ),
-          ),
+          Positioned.fill(child: Image.network(avatarUrl, fit: BoxFit.cover)),
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -94,7 +89,10 @@ class VideoCallScreen extends StatelessWidget {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.black.withValues(alpha: 0.28),
                       borderRadius: BorderRadius.circular(28),
@@ -104,15 +102,21 @@ class VideoCallScreen extends StatelessWidget {
                       children: [
                         _VideoAction(
                           icon: Icons.mic_off_outlined,
-                          backgroundColor: AppColors.white.withValues(alpha: 0.12),
+                          backgroundColor: AppColors.white.withValues(
+                            alpha: 0.12,
+                          ),
                         ),
                         _VideoAction(
                           icon: Icons.videocam_off_outlined,
-                          backgroundColor: AppColors.white.withValues(alpha: 0.12),
+                          backgroundColor: AppColors.white.withValues(
+                            alpha: 0.12,
+                          ),
                         ),
                         _VideoAction(
                           icon: Icons.flip_camera_ios_outlined,
-                          backgroundColor: AppColors.white.withValues(alpha: 0.12),
+                          backgroundColor: AppColors.white.withValues(
+                            alpha: 0.12,
+                          ),
                         ),
                         const _VideoAction(
                           icon: Icons.call_end_rounded,
@@ -148,12 +152,8 @@ class _VideoAction extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
       child: Icon(icon, color: AppColors.white, size: size * 0.42),
     );
   }
 }
-

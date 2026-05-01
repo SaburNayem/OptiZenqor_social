@@ -26,7 +26,10 @@ class LivePreviewHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                _TopIconButton(icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
+                _TopIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  onTap: onBack,
+                ),
                 const Spacer(),
                 const Text(
                   'Live video',
@@ -168,7 +171,11 @@ class _LiveBadgeState extends State<_LiveBadge>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.fiber_manual_record, color: AppColors.white, size: 10),
+            const Icon(
+              Icons.fiber_manual_record,
+              color: AppColors.white,
+              size: 10,
+            ),
             const SizedBox(width: 6),
             const Text(
               'LIVE',
@@ -193,4 +200,3 @@ class _LiveBadgeState extends State<_LiveBadge>
     );
   }
 }
-

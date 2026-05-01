@@ -79,10 +79,14 @@ class CreatePostController extends ChangeNotifier {
         return;
       }
       if (response.isSuccess && response.data['success'] != false) {
-        availableUsers = ApiPayloadReader.readMapList(
-          response.data,
-          preferredKeys: const <String>['users', 'items', 'results'],
-        ).map(UserModel.fromApiJson).where((UserModel item) => item.id.isNotEmpty).toList(growable: false);
+        availableUsers =
+            ApiPayloadReader.readMapList(
+                  response.data,
+                  preferredKeys: const <String>['users', 'items', 'results'],
+                )
+                .map(UserModel.fromApiJson)
+                .where((UserModel item) => item.id.isNotEmpty)
+                .toList(growable: false);
       }
     } catch (_) {}
     _safeNotifyListeners();
@@ -259,7 +263,9 @@ class CreatePostController extends ChangeNotifier {
       coAuthors: coAuthors,
       mentionUsernames: resolvedMentionUsernames,
       altText: altText,
-      editHistory: feeling == null ? const <String>[] : <String>['Feeling: $feeling'],
+      editHistory: feeling == null
+          ? const <String>[]
+          : <String>['Feeling: $feeling'],
       feeling: feeling,
     );
   }

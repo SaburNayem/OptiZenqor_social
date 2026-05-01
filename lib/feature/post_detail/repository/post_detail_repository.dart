@@ -185,10 +185,7 @@ class PostDetailRepository {
     final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
         .patch(
           ApiEndPoints.postCommentReact(postId, commentId),
-          <String, dynamic>{
-            'reaction': reaction,
-            'active': active,
-          },
+          <String, dynamic>{'reaction': reaction, 'active': active},
         );
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to react to comment');

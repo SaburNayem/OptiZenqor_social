@@ -27,11 +27,11 @@ class AccountSwitchingRepository {
     await _storage.write(StorageKeys.activeAccountId, accountId);
 
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.postEndpoint(
-        'active',
-        payload: <String, dynamic>{'accountId': accountId},
-      );
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .postEndpoint(
+            'active',
+            payload: <String, dynamic>{'accountId': accountId},
+          );
       if (response.isSuccess && response.data['success'] != false) {
         final String resolvedAccountId = _extractActiveAccountId(response.data);
         if (resolvedAccountId.isNotEmpty) {
@@ -43,8 +43,8 @@ class AccountSwitchingRepository {
 
   Future<List<AccountIdentityModel>> _fetchAccountsFromApi() async {
     for (final String key in <String>['account_switching', 'users']) {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint(key);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint(key);
       if (!response.isSuccess || response.data['success'] == false) {
         continue;
       }
@@ -65,8 +65,8 @@ class AccountSwitchingRepository {
 
   Future<String?> _readActiveAccountId() async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint('active');
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint('active');
       if (response.isSuccess && response.data['success'] != false) {
         final String accountId = _extractActiveAccountId(response.data);
         if (accountId.isNotEmpty) {
@@ -83,7 +83,9 @@ class AccountSwitchingRepository {
     final Map<String, dynamic>? active = ApiPayloadReader.readMap(
       payload['active'] ?? payload['account'],
     );
-    final Map<String, dynamic>? data = ApiPayloadReader.readMap(payload['data']);
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(
+      payload['data'],
+    );
     return ApiPayloadReader.readString(
       payload['activeAccountId'] ??
           payload['accountId'] ??

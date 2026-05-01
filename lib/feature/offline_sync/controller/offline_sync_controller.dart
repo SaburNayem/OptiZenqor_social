@@ -13,7 +13,9 @@ class OfflineSyncController extends ChangeNotifier {
   void markOnlineAndSync() {
     isOffline = false;
     queue = queue
-        .map((action) => OfflineActionModel(title: action.title, pending: false))
+        .map(
+          (action) => OfflineActionModel(title: action.title, pending: false),
+        )
         .toList();
     notifyListeners();
   }

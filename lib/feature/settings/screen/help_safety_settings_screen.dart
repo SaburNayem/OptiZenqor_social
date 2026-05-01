@@ -43,4 +43,3 @@ class HelpSafetySettingsScreen extends StatelessWidget {
     );
   }
 }
-

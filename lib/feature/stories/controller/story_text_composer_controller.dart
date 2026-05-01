@@ -180,4 +180,3 @@ class StoryTextComposerController extends ChangeNotifier {
     super.dispose();
   }
 }
-

@@ -57,16 +57,9 @@ class SellerModel {
   factory SellerModel.fromApiJson(Map<String, dynamic> json) {
     return SellerModel(
       id: ApiPayloadReader.readString(json['id']),
-      name: ApiPayloadReader.readString(
-        json['name'],
-        fallback: 'Seller',
-      ),
-      avatar: ApiPayloadReader.readString(
-        json['avatar'] ?? json['avatarUrl'],
-      ),
-      bio: ApiPayloadReader.readString(
-        json['bio'] ?? json['description'],
-      ),
+      name: ApiPayloadReader.readString(json['name'], fallback: 'Seller'),
+      avatar: ApiPayloadReader.readString(json['avatar'] ?? json['avatarUrl']),
+      bio: ApiPayloadReader.readString(json['bio'] ?? json['description']),
       joinDate:
           ApiPayloadReader.readDateTime(
             json['joinDate'] ?? json['createdAt'],
@@ -112,9 +105,8 @@ class SellerModel {
   }
 
   static List<SellerReview> _reviewsFromValue(Object? value) {
-    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapListFromAny(
-      value,
-    );
+    final List<Map<String, dynamic>> items =
+        ApiPayloadReader.readMapListFromAny(value);
     return items
         .map(
           (Map<String, dynamic> item) => SellerReview(

@@ -56,4 +56,3 @@ class LiveOptionTile extends StatelessWidget {
     );
   }
 }
-

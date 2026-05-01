@@ -10,16 +10,21 @@ class AccountSettingsScreen extends StatefulWidget {
 }
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
-  final TextEditingController _fullNameController =
-      TextEditingController(text: 'Alex Rivera');
-  final TextEditingController _usernameController =
-      TextEditingController(text: 'arivera');
-  final TextEditingController _emailController =
-      TextEditingController(text: 'alex.rivera@example.com');
-  final TextEditingController _phoneController =
-      TextEditingController(text: '+1 (555) 123-4567');
-  final TextEditingController _birthdayController =
-      TextEditingController(text: '1995-08-15');
+  final TextEditingController _fullNameController = TextEditingController(
+    text: 'Alex Rivera',
+  );
+  final TextEditingController _usernameController = TextEditingController(
+    text: 'arivera',
+  );
+  final TextEditingController _emailController = TextEditingController(
+    text: 'alex.rivera@example.com',
+  );
+  final TextEditingController _phoneController = TextEditingController(
+    text: '+1 (555) 123-4567',
+  );
+  final TextEditingController _birthdayController = TextEditingController(
+    text: '1995-08-15',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +262,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               children: [
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 14, color: AppColors.black87),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.black87,
+                  ),
                 ),
                 const Icon(
                   Icons.arrow_forward_ios,
@@ -272,5 +280,3 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 }
-
-

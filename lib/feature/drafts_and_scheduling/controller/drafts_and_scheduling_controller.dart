@@ -4,9 +4,8 @@ import '../model/draft_item_model.dart';
 import '../repository/drafts_and_scheduling_repository.dart';
 
 class DraftsAndSchedulingController extends ChangeNotifier {
-  DraftsAndSchedulingController({
-    DraftsAndSchedulingRepository? repository,
-  }) : _repository = repository ?? DraftsAndSchedulingRepository() {
+  DraftsAndSchedulingController({DraftsAndSchedulingRepository? repository})
+    : _repository = repository ?? DraftsAndSchedulingRepository() {
     load();
   }
 

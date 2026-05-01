@@ -75,8 +75,7 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color =
-        isSelected ? AppColors.hexFF26C6DA : AppColors.grey400;
+    final Color color = isSelected ? AppColors.hexFF26C6DA : AppColors.grey400;
 
     return Expanded(
       child: InkWell(

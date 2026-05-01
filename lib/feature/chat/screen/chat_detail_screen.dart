@@ -270,98 +270,109 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     valueListenable: _messages,
                     builder:
                         (BuildContext context, List<MessageModel> messages, _) {
-                      return ListView.builder(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
-                  itemCount: messages.length + 1,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (index == 0) {
-                      return Center(
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 24),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.grey100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'Today',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.grey500,
-                              fontWeight: FontWeight.w500,
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 20,
                             ),
-                          ),
-                        ),
-                      );
-                    }
+                            itemCount: messages.length + 1,
+                            itemBuilder: (BuildContext context, int index) {
+                              if (index == 0) {
+                                return Center(
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 24),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.grey100,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      'Today',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.grey500,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
 
-                    final MessageModel message = messages[index - 1];
-                    final bool isMe = message.senderId == 'me';
-                    final bool showAvatar =
-                        !isMe &&
-                        (index == 1 || messages[index - 2].senderId == 'me');
+                              final MessageModel message = messages[index - 1];
+                              final bool isMe = message.senderId == 'me';
+                              final bool showAvatar =
+                                  !isMe &&
+                                  (index == 1 ||
+                                      messages[index - 2].senderId == 'me');
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: isMe
-                            ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: isMe
-                                ? MainAxisAlignment.end
-                                : MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              if (!isMe)
-                                SizedBox(
-                                  width: 40,
-                                  child: showAvatar
-                                      ? CircleAvatar(
-                                          radius: 16,
-                                          backgroundImage: NetworkImage(
-                                            widget.user.avatar,
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Column(
+                                  crossAxisAlignment: isMe
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: isMe
+                                          ? MainAxisAlignment.end
+                                          : MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        if (!isMe)
+                                          SizedBox(
+                                            width: 40,
+                                            child: showAvatar
+                                                ? CircleAvatar(
+                                                    radius: 16,
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                          widget.user.avatar,
+                                                        ),
+                                                  )
+                                                : const SizedBox.shrink(),
                                           ),
-                                        )
-                                      : const SizedBox.shrink(),
+                                        if (!isMe) const SizedBox(width: 8),
+                                        ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxWidth:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.7,
+                                          ),
+                                          child: _buildMessageBubble(
+                                            message,
+                                            isMe,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        left: isMe ? 0 : 48,
+                                        right: isMe ? 4 : 0,
+                                      ),
+                                      child: Text(
+                                        DateFormat(
+                                          'h:mm a',
+                                        ).format(message.timestamp),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.grey400,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              if (!isMe) const SizedBox(width: 8),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.7,
-                                ),
-                                child: _buildMessageBubble(message, isMe),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: isMe ? 0 : 48,
-                              right: isMe ? 4 : 0,
-                            ),
-                            child: Text(
-                              DateFormat('h:mm a').format(message.timestamp),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: AppColors.grey400,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                      );
-                    },
+                              );
+                            },
+                          );
+                        },
                   ),
           ),
           _buildMessageComposer(context),
@@ -432,7 +443,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           if (showSend)
             IconButton(
               onPressed: _sendCurrentPayload,
-              icon: const Icon(Icons.send_rounded, color: AppColors.hexFF26C6DA),
+              icon: const Icon(
+                Icons.send_rounded,
+                color: AppColors.hexFF26C6DA,
+              ),
             )
           else
             IconButton(
@@ -916,10 +930,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       mediaPath: mediaPath,
       deliveryState: 'sending',
     );
-    _messages.value = <MessageModel>[
-      ..._messages.value,
-      message,
-    ];
+    _messages.value = <MessageModel>[..._messages.value, message];
     return message;
   }
 
@@ -1256,6 +1267,3 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return normalized.split('/').last;
   }
 }
-
-
-

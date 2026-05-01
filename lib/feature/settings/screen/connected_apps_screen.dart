@@ -19,35 +19,34 @@ class ConnectedAppsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsStateController, SettingsState>(
       builder: (context, state) {
-          final controller = context.read<SettingsStateController>();
-          if (!state.loaded) {
-            return Scaffold(
-              appBar: AppBar(title: Text('Connected Apps')),
-              body: Center(child: AppLoader()),
-            );
-          }
-          final saved = state.getMap(SettingsKeys.connectedApps);
+        final controller = context.read<SettingsStateController>();
+        if (!state.loaded) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Connected Apps')),
-            body: ListView(
-              padding: const EdgeInsets.all(16),
-              children: _apps.entries.map((entry) {
-                final isConnected = (saved[entry.key] as bool?) ?? false;
-                return SwitchListTile(
-                  title: Text(entry.key),
-                  subtitle: Text(entry.value),
-                  value: isConnected,
-                  onChanged: (value) {
-                    final updated = Map<String, dynamic>.from(saved);
-                    updated[entry.key] = value;
-                    controller.setMap(SettingsKeys.connectedApps, updated);
-                  },
-                );
-              }).toList(),
-            ),
+            appBar: AppBar(title: Text('Connected Apps')),
+            body: Center(child: AppLoader()),
           );
+        }
+        final saved = state.getMap(SettingsKeys.connectedApps);
+        return Scaffold(
+          appBar: AppBar(title: const Text('Connected Apps')),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: _apps.entries.map((entry) {
+              final isConnected = (saved[entry.key] as bool?) ?? false;
+              return SwitchListTile(
+                title: Text(entry.key),
+                subtitle: Text(entry.value),
+                value: isConnected,
+                onChanged: (value) {
+                  final updated = Map<String, dynamic>.from(saved);
+                  updated[entry.key] = value;
+                  controller.setMap(SettingsKeys.connectedApps, updated);
+                },
+              );
+            }).toList(),
+          ),
+        );
       },
     );
   }
 }
-

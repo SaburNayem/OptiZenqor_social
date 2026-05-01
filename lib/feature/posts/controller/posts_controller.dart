@@ -5,7 +5,7 @@ import '../repository/posts_repository.dart';
 
 class PostsController extends ChangeNotifier {
   PostsController({PostsRepository? repository})
-      : _repository = repository ?? PostsRepository();
+    : _repository = repository ?? PostsRepository();
 
   final PostsRepository _repository;
   List<PostDraftModel> drafts = <PostDraftModel>[];

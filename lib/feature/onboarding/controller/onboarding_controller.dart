@@ -57,4 +57,3 @@ class OnboardingController {
     pageController.dispose();
   }
 }
-

@@ -70,7 +70,11 @@ class ChatSettingsScreen extends StatelessWidget {
             children: [
               _buildSectionTitle('Chat Info'),
               _buildNavTile(context, 'View profile', Icons.person_outline),
-              _buildNavTile(context, 'Shared media/files', Icons.perm_media_outlined),
+              _buildNavTile(
+                context,
+                'Shared media/files',
+                Icons.perm_media_outlined,
+              ),
               _buildNavTile(context, 'Links & documents', Icons.link_outlined),
               _buildNavTile(context, 'Search in chat', Icons.search_rounded),
               const SizedBox(height: 16),
@@ -109,7 +113,9 @@ class ChatSettingsScreen extends StatelessWidget {
                 value: _controller.disappearingMessages,
                 onChanged: _controller.setDisappearingMessages,
                 title: const Text('Disappear messages'),
-                subtitle: const Text('Enable vanish mode for this conversation'),
+                subtitle: const Text(
+                  'Enable vanish mode for this conversation',
+                ),
               ),
               _buildActionTile(
                 context,
@@ -118,11 +124,20 @@ class ChatSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildSectionTitle('Message Controls'),
-              _buildActionTile(context, 'Delete chat', Icons.delete_outline, destructive: true),
+              _buildActionTile(
+                context,
+                'Delete chat',
+                Icons.delete_outline,
+                destructive: true,
+              ),
               _buildActionTile(context, 'Clear chat', Icons.clear_all_rounded),
               _buildActionTile(context, 'Archive chat', Icons.archive_outlined),
               _buildActionTile(context, 'Pin chat', Icons.push_pin_outlined),
-              _buildActionTile(context, 'Mark as unread', Icons.mark_chat_unread_outlined),
+              _buildActionTile(
+                context,
+                'Mark as unread',
+                Icons.mark_chat_unread_outlined,
+              ),
               const SizedBox(height: 16),
               _buildSectionTitle('Media & Storage'),
               SwitchListTile(
@@ -136,7 +151,11 @@ class ChatSettingsScreen extends StatelessWidget {
                 title: const Text('Auto-download media'),
                 subtitle: const Text('Override global inbox media settings'),
               ),
-              _buildActionTile(context, 'Storage usage for this chat', Icons.storage_rounded),
+              _buildActionTile(
+                context,
+                'Storage usage for this chat',
+                Icons.storage_rounded,
+              ),
               const SizedBox(height: 16),
               _buildSectionTitle('Customization'),
               _buildDropdownTile(
@@ -145,7 +164,11 @@ class ChatSettingsScreen extends StatelessWidget {
                 options: _themeOptions,
                 onChanged: _controller.setCustomTheme,
               ),
-              _buildActionTile(context, 'Custom emoji / reaction set', Icons.emoji_emotions_outlined),
+              _buildActionTile(
+                context,
+                'Custom emoji / reaction set',
+                Icons.emoji_emotions_outlined,
+              ),
               _buildTextTile(
                 context: context,
                 label: 'Nickname for user',
@@ -163,7 +186,11 @@ class ChatSettingsScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildSectionTitle('Group Chat'),
                 _buildActionTile(context, 'Group info', Icons.groups_outlined),
-                _buildActionTile(context, 'Add/remove members', Icons.group_add_outlined),
+                _buildActionTile(
+                  context,
+                  'Add/remove members',
+                  Icons.group_add_outlined,
+                ),
                 _buildDropdownTile(
                   label: 'Who can send messages',
                   value: _controller.messagePermission,
@@ -181,7 +208,12 @@ class ChatSettingsScreen extends StatelessWidget {
                   onChanged: _controller.setGroupMentionsEnabled,
                   title: const Text('Mentions control (@everyone)'),
                 ),
-                _buildActionTile(context, 'Exit group / delete group', Icons.logout_rounded, destructive: true),
+                _buildActionTile(
+                  context,
+                  'Exit group / delete group',
+                  Icons.logout_rounded,
+                  destructive: true,
+                ),
               ],
               const SizedBox(height: 16),
               _buildSectionTitle('Advanced Features'),
@@ -208,17 +240,14 @@ class ChatSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildSectionTitle('Developer Features'),
-              _buildInfoCard(
-                context,
-                <String>[
-                  'Message status tracking: sending -> sent -> delivered -> read',
-                  'Typing indicator debounce',
-                  'Offline queue and retry',
-                  'Sync unread count with backend',
-                  'Pagination and lazy loading',
-                  'Seen by and read timestamp support',
-                ],
-              ),
+              _buildInfoCard(context, <String>[
+                'Message status tracking: sending -> sent -> delivered -> read',
+                'Typing indicator debounce',
+                'Offline queue and retry',
+                'Sync unread count with backend',
+                'Pagination and lazy loading',
+                'Seen by and read timestamp support',
+              ]),
             ],
           ),
         );
@@ -231,10 +260,7 @@ class ChatSettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -255,7 +281,9 @@ class ChatSettingsScreen extends StatelessWidget {
     IconData icon, {
     bool destructive = false,
   }) {
-    final Color? color = destructive ? Theme.of(context).colorScheme.error : null;
+    final Color? color = destructive
+        ? Theme.of(context).colorScheme.error
+        : null;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: color),
@@ -281,10 +309,10 @@ class ChatSettingsScreen extends StatelessWidget {
           }
         },
         items: options
-            .map((item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item),
-                ))
+            .map(
+              (item) =>
+                  DropdownMenuItem<String>(value: item, child: Text(item)),
+            )
             .toList(),
       ),
     );
@@ -303,7 +331,9 @@ class ChatSettingsScreen extends StatelessWidget {
       subtitle: Text(value.isEmpty ? hint : value),
       trailing: const Icon(Icons.edit_outlined),
       onTap: () async {
-        final TextEditingController controller = TextEditingController(text: value);
+        final TextEditingController controller = TextEditingController(
+          text: value,
+        );
         final String? result = await showDialog<String>(
           context: context,
           builder: (context) {
@@ -319,7 +349,8 @@ class ChatSettingsScreen extends StatelessWidget {
                   child: const Text('Cancel'),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+                  onPressed: () =>
+                      Navigator.of(context).pop(controller.text.trim()),
                   child: const Text('Save'),
                 ),
               ],
@@ -344,10 +375,12 @@ class ChatSettingsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: items
-            .map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(item),
-                ))
+            .map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(item),
+              ),
+            )
             .toList(),
       ),
     );
@@ -359,6 +392,3 @@ class ChatSettingsScreen extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
-
-
-

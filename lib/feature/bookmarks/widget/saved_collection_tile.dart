@@ -54,22 +54,31 @@ class SavedCollectionTile extends StatelessWidget {
                         crossAxisCount: 2,
                         crossAxisSpacing: 2,
                         mainAxisSpacing: 2,
-                        children: previews.take(4).map((String preview) {
-                          if (_isVideoPath(preview)) {
-                            return Container(
-                              color: AppColors.black87,
-                              child: const Icon(
-                                Icons.play_circle_fill_rounded,
-                                color: AppColors.white,
-                              ),
-                            );
-                          }
-                          if (preview.startsWith('http://') ||
-                              preview.startsWith('https://')) {
-                            return Image.network(preview, fit: BoxFit.cover);
-                          }
-                          return Image.file(File(preview), fit: BoxFit.cover);
-                        }).toList(growable: false),
+                        children: previews
+                            .take(4)
+                            .map((String preview) {
+                              if (_isVideoPath(preview)) {
+                                return Container(
+                                  color: AppColors.black87,
+                                  child: const Icon(
+                                    Icons.play_circle_fill_rounded,
+                                    color: AppColors.white,
+                                  ),
+                                );
+                              }
+                              if (preview.startsWith('http://') ||
+                                  preview.startsWith('https://')) {
+                                return Image.network(
+                                  preview,
+                                  fit: BoxFit.cover,
+                                );
+                              }
+                              return Image.file(
+                                File(preview),
+                                fit: BoxFit.cover,
+                              );
+                            })
+                            .toList(growable: false),
                       ),
                     ),
             ),
@@ -78,18 +87,12 @@ class SavedCollectionTile extends StatelessWidget {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
             ),
             const SizedBox(height: 4),
             Text(
               '$count saved posts',
-              style: TextStyle(
-                color: AppColors.grey600,
-                fontSize: 12,
-              ),
+              style: TextStyle(color: AppColors.grey600, fontSize: 12),
             ),
           ],
         ),

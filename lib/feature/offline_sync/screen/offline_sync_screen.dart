@@ -19,8 +19,12 @@ class OfflineSyncScreen extends StatelessWidget {
             children: [
               Card(
                 child: ListTile(
-                  title: Text(_controller.isOffline ? 'Offline mode' : 'Online'),
-                  subtitle: const Text('Cached feed and draft recovery are active.'),
+                  title: Text(
+                    _controller.isOffline ? 'Offline mode' : 'Online',
+                  ),
+                  subtitle: const Text(
+                    'Cached feed and draft recovery are active.',
+                  ),
                   trailing: FilledButton(
                     onPressed: _controller.markOnlineAndSync,
                     child: const Text('Sync now'),

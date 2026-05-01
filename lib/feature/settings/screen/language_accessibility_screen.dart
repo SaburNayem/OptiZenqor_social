@@ -13,12 +13,15 @@ class LanguageAccessibilityScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           FilledButton(
-            onPressed: () => Navigator.of(context).pushNamed(RouteNames.localizationSupport),
+            onPressed: () =>
+                Navigator.of(context).pushNamed(RouteNames.localizationSupport),
             child: const Text('Open Localization Settings'),
           ),
           const SizedBox(height: 10),
           FilledButton(
-            onPressed: () => Navigator.of(context).pushNamed(RouteNames.accessibilitySupport),
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamed(RouteNames.accessibilitySupport),
             child: const Text('Open Accessibility Settings'),
           ),
           const SizedBox(height: 16),
@@ -43,4 +46,3 @@ class LanguageAccessibilityScreen extends StatelessWidget {
     );
   }
 }
-

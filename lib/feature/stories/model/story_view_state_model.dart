@@ -4,8 +4,6 @@ class StoryViewStateModel {
   final int currentIndex;
 
   StoryViewStateModel copyWith({int? currentIndex}) {
-    return StoryViewStateModel(
-      currentIndex: currentIndex ?? this.currentIndex,
-    );
+    return StoryViewStateModel(currentIndex: currentIndex ?? this.currentIndex);
   }
 }

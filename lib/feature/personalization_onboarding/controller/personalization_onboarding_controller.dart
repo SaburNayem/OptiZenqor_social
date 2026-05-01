@@ -14,9 +14,11 @@ class PersonalizationOnboardingController extends ChangeNotifier {
 
   void toggle(String name) {
     interests = interests
-        .map((item) => item.name == name
-            ? InterestModel(name: item.name, selected: !item.selected)
-            : item)
+        .map(
+          (item) => item.name == name
+              ? InterestModel(name: item.name, selected: !item.selected)
+              : item,
+        )
         .toList();
     notifyListeners();
   }

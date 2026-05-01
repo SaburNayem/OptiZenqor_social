@@ -20,8 +20,8 @@ class ReelsController extends ChangeNotifier {
 
   Future<void> load() async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint('reels');
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint('reels');
       if (response.isSuccess && response.data['success'] != false) {
         final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
           response.data,
@@ -49,7 +49,8 @@ class ReelsController extends ChangeNotifier {
   int commentCount(ReelModel reel) =>
       reel.comments + (_extraCommentCount[reel.id] ?? 0);
 
-  int shareCount(ReelModel reel) => reel.shares + (_extraShareCount[reel.id] ?? 0);
+  int shareCount(ReelModel reel) =>
+      reel.shares + (_extraShareCount[reel.id] ?? 0);
   bool isSavedDraft(String reelId) => _savedDraftIds.contains(reelId);
 
   void toggleLike(String reelId) {

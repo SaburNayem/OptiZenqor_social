@@ -22,7 +22,8 @@ class ProfileUpdateModel {
       'name': name.trim(),
       'username': username.trim(),
       'bio': bio.trim(),
-      if (website != null && website!.trim().isNotEmpty) 'website': website!.trim(),
+      if (website != null && website!.trim().isNotEmpty)
+        'website': website!.trim(),
       if (location != null && location!.trim().isNotEmpty)
         'location': location!.trim(),
       if (avatarUrl != null && avatarUrl!.trim().isNotEmpty)

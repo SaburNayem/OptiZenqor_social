@@ -19,8 +19,8 @@ class ActivitySessionsRepository {
 
   Future<bool> logoutOtherDevices() async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.postEndpoint('logout_others');
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .postEndpoint('logout_others');
       return response.isSuccess && response.data['success'] != false;
     } catch (_) {
       return false;
@@ -29,8 +29,8 @@ class ActivitySessionsRepository {
 
   Future<List<SessionItemModel>> _loadSessionsFromApi() async {
     for (final String key in <String>['activity_sessions', 'security_state']) {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint(key);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint(key);
       if (!response.isSuccess || response.data['success'] == false) {
         continue;
       }
@@ -49,8 +49,8 @@ class ActivitySessionsRepository {
   }
 
   Future<List<String>> _loadHistoryFromApi() async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.getEndpoint('history');
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('history');
     if (!response.isSuccess || response.data['success'] == false) {
       return const <String>[];
     }

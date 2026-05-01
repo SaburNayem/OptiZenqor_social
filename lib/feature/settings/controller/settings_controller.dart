@@ -24,12 +24,12 @@ class SettingsController {
   );
 
   String get roleLabel => switch (currentUser.role) {
-        UserRole.creator => 'Creator tools enabled',
-        UserRole.business => 'Business controls enabled',
-        UserRole.seller => 'Seller controls enabled',
-        UserRole.recruiter => 'Recruiter controls enabled',
-        _ => 'Personal account controls',
-      };
+    UserRole.creator => 'Creator tools enabled',
+    UserRole.business => 'Business controls enabled',
+    UserRole.seller => 'Seller controls enabled',
+    UserRole.recruiter => 'Recruiter controls enabled',
+    _ => 'Personal account controls',
+  };
 
   List<SettingsSectionModel> get sections {
     return <SettingsSectionModel>[
@@ -155,7 +155,8 @@ class SettingsController {
       ),
       SettingsSectionModel(
         title: 'Content & Feed',
-        description: 'Recommendations, autoplay, drafts, and discovery controls.',
+        description:
+            'Recommendations, autoplay, drafts, and discovery controls.',
         items: const <SettingsItemModel>[
           SettingsItemModel(
             title: 'Feed & content preferences',
@@ -266,7 +267,8 @@ class SettingsController {
       ),
       SettingsSectionModel(
         title: 'Language, Accessibility & Data',
-        description: 'Locale, accessibility, privacy center, and device behavior.',
+        description:
+            'Locale, accessibility, privacy center, and device behavior.',
         items: const <SettingsItemModel>[
           SettingsItemModel(
             title: 'Language and accessibility',
@@ -358,4 +360,3 @@ class SettingsController {
         currentUser.role == UserRole.recruiter;
   }
 }
-

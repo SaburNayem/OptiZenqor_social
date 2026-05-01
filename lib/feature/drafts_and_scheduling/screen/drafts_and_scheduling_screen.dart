@@ -67,10 +67,9 @@ class DraftsAndSchedulingScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: FilledButton.icon(
-                            onPressed: () =>
-                                Navigator.of(context).pushNamed(
-                                  RouteNames.drafts,
-                                ),
+                            onPressed: () => Navigator.of(
+                              context,
+                            ).pushNamed(RouteNames.drafts),
                             icon: const Icon(Icons.drafts_outlined),
                             label: const Text('Open Drafts'),
                           ),
@@ -78,10 +77,9 @@ class DraftsAndSchedulingScreen extends StatelessWidget {
                         const SizedBox(width: 10),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () =>
-                                Navigator.of(context).pushNamed(
-                                  RouteNames.scheduling,
-                                ),
+                            onPressed: () => Navigator.of(
+                              context,
+                            ).pushNamed(RouteNames.scheduling),
                             icon: const Icon(Icons.schedule_outlined),
                             label: const Text('Open Scheduling'),
                           ),
@@ -191,4 +189,3 @@ class _CountPill extends StatelessWidget {
     );
   }
 }
-

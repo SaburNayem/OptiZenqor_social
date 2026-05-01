@@ -21,12 +21,12 @@ class ReelModel {
   factory ReelModel.fromApiJson(Map<String, dynamic> json) {
     return ReelModel(
       id: (json['id'] as Object? ?? '').toString(),
-      authorId:
-          (json['authorId'] as Object? ?? json['userId'] as Object? ?? '')
-              .toString(),
+      authorId: (json['authorId'] as Object? ?? json['userId'] as Object? ?? '')
+          .toString(),
       caption: (json['caption'] as String? ?? '').trim(),
-      audioName: (json['audioName'] as String? ?? json['audio'] as String? ?? '')
-          .trim(),
+      audioName:
+          (json['audioName'] as String? ?? json['audio'] as String? ?? '')
+              .trim(),
       thumbnail:
           (json['thumbnail'] as String? ??
                   json['thumbnailUrl'] as String? ??

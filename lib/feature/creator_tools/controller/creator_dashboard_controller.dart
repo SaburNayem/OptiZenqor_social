@@ -115,4 +115,3 @@ class CreatorDashboardController extends ChangeNotifier {
     'Task manager',
   ];
 }
-

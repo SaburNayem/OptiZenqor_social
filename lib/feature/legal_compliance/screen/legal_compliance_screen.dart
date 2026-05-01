@@ -33,7 +33,9 @@ class LegalComplianceScreen extends StatelessWidget {
               ),
               const Padding(
                 padding: EdgeInsets.all(16),
-                child: Text('Age gate and consent screen placeholders are ready.'),
+                child: Text(
+                  'Age gate and consent screen placeholders are ready.',
+                ),
               ),
             ],
           ),

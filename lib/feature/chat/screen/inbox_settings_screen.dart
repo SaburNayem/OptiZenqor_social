@@ -4,8 +4,7 @@ import '../controller/inbox_settings_controller.dart';
 import '../../../core/constants/app_colors.dart';
 
 class InboxSettingsScreen extends StatelessWidget {
-  InboxSettingsScreen({super.key})
-    : _controller = InboxSettingsController();
+  InboxSettingsScreen({super.key}) : _controller = InboxSettingsController();
 
   final InboxSettingsController _controller;
 
@@ -35,16 +34,9 @@ class InboxSettingsScreen extends StatelessWidget {
     'Email only',
   ];
 
-  static const List<String> _mediaOptions = <String>[
-    'Off',
-    'WiFi',
-    'Mobile',
-  ];
+  static const List<String> _mediaOptions = <String>['Off', 'WiFi', 'Mobile'];
 
-  static const List<String> _exportFormats = <String>[
-    'PDF',
-    'JSON',
-  ];
+  static const List<String> _exportFormats = <String>['PDF', 'JSON'];
 
   @override
   Widget build(BuildContext context) {
@@ -204,17 +196,49 @@ class InboxSettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildSectionTitle('Safety & Control'),
-              _buildActionTile(context, 'Blocked users list', Icons.block_outlined),
-              _buildActionTile(context, 'Muted users list', Icons.volume_off_outlined),
+              _buildActionTile(
+                context,
+                'Blocked users list',
+                Icons.block_outlined,
+              ),
+              _buildActionTile(
+                context,
+                'Muted users list',
+                Icons.volume_off_outlined,
+              ),
               _buildActionTile(context, 'Report center', Icons.report_outlined),
-              _buildActionTile(context, 'Restricted users', Icons.visibility_off_outlined),
-              _buildActionTile(context, 'Keyword filtering', Icons.filter_alt_outlined),
+              _buildActionTile(
+                context,
+                'Restricted users',
+                Icons.visibility_off_outlined,
+              ),
+              _buildActionTile(
+                context,
+                'Keyword filtering',
+                Icons.filter_alt_outlined,
+              ),
               const SizedBox(height: 16),
               _buildSectionTitle('Chat Appearance'),
-              _buildActionTile(context, 'Default chat theme', Icons.palette_outlined),
-              _buildActionTile(context, 'Font size', Icons.format_size_outlined),
-              _buildActionTile(context, 'Chat bubble style', Icons.chat_bubble_outline),
-              _buildActionTile(context, 'Dark / light mode', Icons.dark_mode_outlined),
+              _buildActionTile(
+                context,
+                'Default chat theme',
+                Icons.palette_outlined,
+              ),
+              _buildActionTile(
+                context,
+                'Font size',
+                Icons.format_size_outlined,
+              ),
+              _buildActionTile(
+                context,
+                'Chat bubble style',
+                Icons.chat_bubble_outline,
+              ),
+              _buildActionTile(
+                context,
+                'Dark / light mode',
+                Icons.dark_mode_outlined,
+              ),
               const SizedBox(height: 16),
               _buildSectionTitle('Advanced Features'),
               SwitchListTile(
@@ -259,10 +283,7 @@ class InboxSettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -284,10 +305,10 @@ class InboxSettingsScreen extends StatelessWidget {
           }
         },
         items: options
-            .map((item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item),
-                ))
+            .map(
+              (item) =>
+                  DropdownMenuItem<String>(value: item, child: Text(item)),
+            )
             .toList(),
       ),
     );
@@ -314,10 +335,12 @@ class InboxSettingsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: items
-            .map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(item),
-                ))
+            .map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(item),
+              ),
+            )
             .toList(),
       ),
     );
@@ -329,6 +352,3 @@ class InboxSettingsScreen extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
-
-
-

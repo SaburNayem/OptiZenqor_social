@@ -24,9 +24,7 @@ class CommunitiesScreen extends StatelessWidget {
     final CommunitiesRepositoryImpl repository = CommunitiesRepositoryImpl();
     return BlocProvider(
       create: (_) => CommunitiesCubit(
-        getCommunitiesUseCase: GetCommunitiesUseCase(
-          repository,
-        ),
+        getCommunitiesUseCase: GetCommunitiesUseCase(repository),
         repository: repository,
         showJoinedFirst: showJoinedFirst,
       )..load(),
@@ -202,5 +200,3 @@ class _CommunitiesView extends StatelessWidget {
     );
   }
 }
-
-

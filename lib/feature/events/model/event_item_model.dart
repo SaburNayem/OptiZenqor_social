@@ -24,16 +24,16 @@ class EventItemModel {
   final String statsLabel;
   final List<String> attendeeAvatarUrls;
   EventItemModel copyWith({bool? rsvped, bool? saved}) => EventItemModel(
-        id: id,
-        title: title,
-        date: date,
-        rsvped: rsvped ?? this.rsvped,
-        saved: saved ?? this.saved,
-        mediaGallery: mediaGallery,
-        hostToolsSummary: hostToolsSummary,
-        location: location,
-        priceLabel: priceLabel,
-        statsLabel: statsLabel,
-        attendeeAvatarUrls: attendeeAvatarUrls,
-      );
+    id: id,
+    title: title,
+    date: date,
+    rsvped: rsvped ?? this.rsvped,
+    saved: saved ?? this.saved,
+    mediaGallery: mediaGallery,
+    hostToolsSummary: hostToolsSummary,
+    location: location,
+    priceLabel: priceLabel,
+    statsLabel: statsLabel,
+    attendeeAvatarUrls: attendeeAvatarUrls,
+  );
 }

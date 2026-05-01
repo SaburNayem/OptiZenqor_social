@@ -18,7 +18,8 @@ class BookmarksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<BookmarksController, BookmarksState>(
       builder: (context, state) {
-        final BookmarksController controller = context.read<BookmarksController>();
+        final BookmarksController controller = context
+            .read<BookmarksController>();
         final List<BookmarkItemModel> items = state.items;
 
         return Scaffold(
@@ -60,44 +61,45 @@ class BookmarksScreen extends StatelessWidget {
                                 .toList(growable: false),
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
-                                builder: (_) => const SavedCollectionPostsScreen(
-                                  title: 'All Posts',
-                                ),
+                                builder: (_) =>
+                                    const SavedCollectionPostsScreen(
+                                      title: 'All Posts',
+                                    ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
-                          ...state.collections.map(
-                            (SavedCollectionModel collection) {
-                              final List<BookmarkItemModel> collectionItems =
-                                  controller.itemsForCollection(collection.id);
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: SavedCollectionTile(
-                                  title: collection.name,
-                                  count: collectionItems.length,
-                                  previews: collectionItems
-                                      .map(
-                                        (BookmarkItemModel item) => item.thumbnail,
-                                      )
-                                      .where(
-                                        (String preview) => preview.isNotEmpty,
-                                      )
-                                      .take(4)
-                                      .toList(growable: false),
-                                  onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) =>
-                                          SavedCollectionPostsScreen(
-                                        collectionId: collection.id,
-                                        title: collection.name,
-                                      ),
+                          ...state.collections.map((
+                            SavedCollectionModel collection,
+                          ) {
+                            final List<BookmarkItemModel> collectionItems =
+                                controller.itemsForCollection(collection.id);
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: SavedCollectionTile(
+                                title: collection.name,
+                                count: collectionItems.length,
+                                previews: collectionItems
+                                    .map(
+                                      (BookmarkItemModel item) =>
+                                          item.thumbnail,
+                                    )
+                                    .where(
+                                      (String preview) => preview.isNotEmpty,
+                                    )
+                                    .take(4)
+                                    .toList(growable: false),
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => SavedCollectionPostsScreen(
+                                      collectionId: collection.id,
+                                      title: collection.name,
                                     ),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          }),
                         ],
                       ),
                     ),

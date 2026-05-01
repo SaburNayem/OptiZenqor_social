@@ -833,6 +833,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildStoryFixedMediaSection(
     StoryModel story,
     List<String> mediaItems,
@@ -882,6 +883,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildStoryBodyCanvas({
     required StoryModel story,
     required List<String> bodyMediaItems,
@@ -1038,6 +1040,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
         normalized.endsWith('.webm');
   }
 
+  // ignore: unused_element
   Widget _buildStoryMedia(StoryModel story, List<String> mediaItems) {
     return DecoratedBox(
       decoration: BoxDecoration(color: AppColors.black.withValues(alpha: 0.2)),
@@ -1236,6 +1239,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
     );
   }
 
+  // ignore: unused_element
   void _openStoryLink(StoryModel story) {
     final String target = (story.linkUrl ?? '').trim();
     if (target.isEmpty) {

@@ -9,11 +9,7 @@ class PaginationStateModel {
   final int pageSize;
   final bool hasMore;
 
-  PaginationStateModel copyWith({
-    int? page,
-    int? pageSize,
-    bool? hasMore,
-  }) {
+  PaginationStateModel copyWith({int? page, int? pageSize, bool? hasMore}) {
     return PaginationStateModel(
       page: page ?? this.page,
       pageSize: pageSize ?? this.pageSize,

@@ -18,11 +18,10 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
 
   @override
   Future<List<CommunityGroupModel>> loadGroups() async {
-    final cachedGroups = await _localDataSource.readGroups();
-
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(ApiEndPoints.communities);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(ApiEndPoints.communities);
       if (response.isSuccess) {
         final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
           response.data,
@@ -41,7 +40,7 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
       }
     } catch (_) {}
 
-    return cachedGroups;
+    return const <CommunityGroupModel>[];
   }
 
   @override
@@ -50,8 +49,9 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
     required String description,
   }) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.post(ApiEndPoints.communities, <String, dynamic>{
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .post(ApiEndPoints.communities, <String, dynamic>{
             'name': name.trim(),
             'description': description.trim(),
           });
@@ -69,25 +69,25 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
   }
 
   @override
-  Future<CommunityGroupModel?> updateCommunity(CommunityGroupModel group) async {
+  Future<CommunityGroupModel?> updateCommunity(
+    CommunityGroupModel group,
+  ) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.patch(
-            ApiEndPoints.communityById(group.id),
-            <String, dynamic>{
-              'name': group.name,
-              'description': group.description,
-              'category': group.category,
-              'privacy': group.privacy.name,
-              'approvalRequired': group.approvalRequired,
-              'allowEvents': group.allowEvents,
-              'allowLive': group.allowLive,
-              'allowPolls': group.allowPolls,
-              'allowMarketplace': group.allowMarketplace,
-              'allowChatRoom': group.allowChatRoom,
-              'notificationLevel': group.notificationLevel.name,
-            },
-          );
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .patch(ApiEndPoints.communityById(group.id), <String, dynamic>{
+            'name': group.name,
+            'description': group.description,
+            'category': group.category,
+            'privacy': group.privacy.name,
+            'approvalRequired': group.approvalRequired,
+            'allowEvents': group.allowEvents,
+            'allowLive': group.allowLive,
+            'allowPolls': group.allowPolls,
+            'allowMarketplace': group.allowMarketplace,
+            'allowChatRoom': group.allowChatRoom,
+            'notificationLevel': group.notificationLevel.name,
+          });
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
@@ -107,8 +107,9 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
     required bool joined,
   }) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.post(
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .post(
             joined
                 ? ApiEndPoints.communityJoin(communityId)
                 : ApiEndPoints.communityLeave(communityId),
@@ -170,8 +171,12 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
       ApiPayloadReader.readMap(payload['group']),
       ApiPayloadReader.readMap(payload['data']),
       ApiPayloadReader.readMap(payload['result']),
-      ApiPayloadReader.readMap(ApiPayloadReader.readMap(payload['data'])?['community']),
-      ApiPayloadReader.readMap(ApiPayloadReader.readMap(payload['data'])?['group']),
+      ApiPayloadReader.readMap(
+        ApiPayloadReader.readMap(payload['data'])?['community'],
+      ),
+      ApiPayloadReader.readMap(
+        ApiPayloadReader.readMap(payload['data'])?['group'],
+      ),
     ];
     for (final Map<String, dynamic>? candidate in candidates) {
       if (candidate == null) {

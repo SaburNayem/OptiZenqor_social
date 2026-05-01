@@ -12,12 +12,7 @@ class OfflineActionModel {
   final int retries;
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type,
-      'payload': payload,
-      'retries': retries,
-    };
+    return {'id': id, 'type': type, 'payload': payload, 'retries': retries};
   }
 
   factory OfflineActionModel.fromJson(Map<String, dynamic> json) {

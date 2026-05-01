@@ -1,8 +1,4 @@
-enum SplashStatus {
-  idle,
-  bootstrapping,
-  ready,
-}
+enum SplashStatus { idle, bootstrapping, ready }
 
 class SplashStateModel {
   const SplashStateModel({this.status = SplashStatus.idle});

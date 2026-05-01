@@ -48,4 +48,3 @@ class BlockedUsersScreen extends StatelessWidget {
     );
   }
 }
-

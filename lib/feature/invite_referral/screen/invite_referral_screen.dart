@@ -200,7 +200,11 @@ class InviteReferralScreen extends StatelessWidget {
                   'Twitter',
                   AppColors.lightBlue,
                 ),
-                _buildShareIcon(Icons.mail_outline, 'Email', AppColors.blueGrey),
+                _buildShareIcon(
+                  Icons.mail_outline,
+                  'Email',
+                  AppColors.blueGrey,
+                ),
                 _buildShareIcon(Icons.more_horiz, 'More', AppColors.teal),
               ],
             ),
@@ -320,7 +324,10 @@ class InviteReferralScreen extends StatelessWidget {
           child: Icon(icon, color: AppColors.white, size: 24),
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.grey)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.grey),
+        ),
       ],
     );
   }
@@ -373,5 +380,3 @@ class InviteReferralScreen extends StatelessWidget {
     );
   }
 }
-
-

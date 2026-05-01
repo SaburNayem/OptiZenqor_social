@@ -154,4 +154,3 @@ class CommunityChatBubble extends StatelessWidget {
     );
   }
 }
-

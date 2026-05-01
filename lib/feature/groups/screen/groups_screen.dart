@@ -10,4 +10,3 @@ class GroupsScreen extends StatelessWidget {
     return const CommunitiesScreen(showJoinedFirst: true, title: 'Groups');
   }
 }
-

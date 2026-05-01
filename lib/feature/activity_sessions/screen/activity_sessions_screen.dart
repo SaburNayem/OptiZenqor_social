@@ -33,8 +33,12 @@ class ActivitySessionsScreen extends StatelessWidget {
                           onPressed: controller.loggingOutOthers
                               ? null
                               : () async {
-                                  final bool hadActiveOthers = controller.sessions
-                                      .any((item) => !item.isCurrent && item.active);
+                                  final bool hadActiveOthers = controller
+                                      .sessions
+                                      .any(
+                                        (item) =>
+                                            !item.isCurrent && item.active,
+                                      );
                                   await controller.logoutOtherDevices();
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context)

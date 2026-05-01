@@ -6,11 +6,9 @@ import '../model/page_model.dart';
 import '../service/pages_service.dart';
 
 class PagesRepository {
-  PagesRepository({
-    PagesService? service,
-    LocalStorageService? storage,
-  }) : _service = service ?? PagesService(),
-       _storage = storage ?? LocalStorageService();
+  PagesRepository({PagesService? service, LocalStorageService? storage})
+    : _service = service ?? PagesService(),
+      _storage = storage ?? LocalStorageService();
 
   final PagesService _service;
   final LocalStorageService _storage;
@@ -21,6 +19,55 @@ class PagesRepository {
       return remotePages;
     }
     return const <PageModel>[];
+  }
+
+  Future<PageModel?> createPage({
+    required String name,
+    required String about,
+    required String category,
+  }) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post('/pages/create', <String, dynamic>{
+          'name': name.trim(),
+          'about': about.trim(),
+          'category': category.trim(),
+        });
+    if (!response.isSuccess || response.data['success'] == false) {
+      return null;
+    }
+    final Map<String, dynamic>? payload =
+        ApiPayloadReader.readMap(response.data['data']) ??
+        ApiPayloadReader.readMap(response.data['page']) ??
+        ApiPayloadReader.readMap(response.data['item']) ??
+        ApiPayloadReader.readMap(response.data);
+    if (payload == null || payload.isEmpty) {
+      return null;
+    }
+    final PageModel page = PageModel.fromApiJson(payload);
+    return page.id.isNotEmpty ? page : null;
+  }
+
+  Future<PageModel?> toggleFollow(String pageId) async {
+    final String userId = await currentUserId();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch('/pages/$pageId/follow', <String, dynamic>{
+          if (userId.isNotEmpty) 'userId': userId,
+        });
+    if (!response.isSuccess || response.data['success'] == false) {
+      return null;
+    }
+    final Map<String, dynamic>? payload =
+        ApiPayloadReader.readMap(response.data['data']) ??
+        ApiPayloadReader.readMap(response.data['page']) ??
+        ApiPayloadReader.readMap(response.data['item']) ??
+        ApiPayloadReader.readMap(response.data);
+    if (payload == null || payload.isEmpty) {
+      return null;
+    }
+    final PageModel page = PageModel.fromApiJson(payload);
+    return page.id.isNotEmpty ? page : null;
   }
 
   Future<String> currentUserId() async {
@@ -39,8 +86,8 @@ class PagesRepository {
 
   Future<List<PageModel>?> _loadFromApi() async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.getEndpoint('pages');
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .getEndpoint('pages');
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }

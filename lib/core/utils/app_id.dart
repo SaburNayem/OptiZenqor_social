@@ -25,10 +25,7 @@ class AppId {
     return '${entity}_local_${DateTime.now().microsecondsSinceEpoch}_$sequence';
   }
 
-  static void warnIfNotProductionId(
-    String value, {
-    required String entity,
-  }) {
+  static void warnIfNotProductionId(String value, {required String entity}) {
     final String normalized = value.trim();
     if (normalized.isEmpty ||
         isValid(normalized) ||

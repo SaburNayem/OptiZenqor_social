@@ -123,9 +123,7 @@ class BookmarkItemModel {
       ),
       thumbnail: thumbnail,
       savedAt:
-          ApiPayloadReader.readDateTime(
-            json['savedAt'] ?? json['createdAt'],
-          ) ??
+          ApiPayloadReader.readDateTime(json['savedAt'] ?? json['createdAt']) ??
           DateTime.now(),
       isVideo:
           ApiPayloadReader.readBool(json['isVideo']) ?? _isVideoPath(thumbnail),

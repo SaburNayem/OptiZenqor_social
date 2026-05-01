@@ -97,23 +97,33 @@ class _BuddyScreenState extends State<BuddyScreen>
       _errorMessage = null;
     });
     try {
-      final List<dynamic> results = await Future.wait<dynamic>(<Future<dynamic>>[
-        _repository.fetchSentRequests(),
-        _repository.fetchReceivedRequests(),
-        _repository.fetchBuddies(),
-      ]);
+      final List<dynamic> results =
+          await Future.wait<dynamic>(<Future<dynamic>>[
+            _repository.fetchSentRequests(),
+            _repository.fetchReceivedRequests(),
+            _repository.fetchBuddies(),
+          ]);
       if (!mounted) {
         return;
       }
       setState(() {
         _sentRequests = (results[0] as List<BuddyRelationshipModel>)
-            .map((BuddyRelationshipModel item) => _mapItem(item, _BuddyCardType.sent))
+            .map(
+              (BuddyRelationshipModel item) =>
+                  _mapItem(item, _BuddyCardType.sent),
+            )
             .toList(growable: false);
         _receivedRequests = (results[1] as List<BuddyRelationshipModel>)
-            .map((BuddyRelationshipModel item) => _mapItem(item, _BuddyCardType.received))
+            .map(
+              (BuddyRelationshipModel item) =>
+                  _mapItem(item, _BuddyCardType.received),
+            )
             .toList(growable: false);
         _buddies = (results[2] as List<BuddyRelationshipModel>)
-            .map((BuddyRelationshipModel item) => _mapItem(item, _BuddyCardType.buddy))
+            .map(
+              (BuddyRelationshipModel item) =>
+                  _mapItem(item, _BuddyCardType.buddy),
+            )
             .toList(growable: false);
         _isLoading = false;
       });
@@ -228,7 +238,8 @@ class _BuddyScreenState extends State<BuddyScreen>
         MaterialPageRoute<void>(
           builder: (_) => ChatDetailScreen(
             user: thread.user.id.isNotEmpty ? thread.user : item.user,
-            initialMessage: thread.lastMessageModel ??
+            initialMessage:
+                thread.lastMessageModel ??
                 MessageModel(
                   id: 'buddy_msg_${DateTime.now().microsecondsSinceEpoch}',
                   chatId: thread.chatId,
@@ -248,10 +259,7 @@ class _BuddyScreenState extends State<BuddyScreen>
     }
   }
 
-  _BuddyCardModel _mapItem(
-    BuddyRelationshipModel item,
-    _BuddyCardType type,
-  ) {
+  _BuddyCardModel _mapItem(BuddyRelationshipModel item, _BuddyCardType type) {
     return _BuddyCardModel(
       id: item.id,
       user: item.user,

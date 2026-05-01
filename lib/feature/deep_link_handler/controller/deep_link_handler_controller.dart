@@ -2,7 +2,7 @@ import '../../../core/data/service/deep_link_service.dart';
 
 class DeepLinkHandlerController {
   DeepLinkHandlerController({DeepLinkService? service})
-      : _service = service ?? DeepLinkService();
+    : _service = service ?? DeepLinkService();
 
   final DeepLinkService _service;
 

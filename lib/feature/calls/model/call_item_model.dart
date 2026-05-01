@@ -1,4 +1,5 @@
 enum CallType { voice, video }
+
 enum CallState { incoming, outgoing, missed, completed }
 
 class CallItemModel {

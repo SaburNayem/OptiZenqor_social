@@ -1,11 +1,4 @@
-enum ReactionType {
-  like,
-  love,
-  haha,
-  wow,
-  sad,
-  angry,
-}
+enum ReactionType { like, love, haha, wow, sad, angry }
 
 extension ReactionTypeEmoji on ReactionType {
   String get emoji {

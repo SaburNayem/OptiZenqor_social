@@ -25,10 +25,9 @@ class BlockedMutedAccountsRepository {
 
   Future<bool> unblockAccount(String id) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.delete(
-            _service.endpoints['block_user']!.replaceFirst(':id', id),
-          );
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .delete(_service.endpoints['block_user']!.replaceFirst(':id', id));
       return response.isSuccess && response.data['success'] != false;
     } catch (_) {
       return false;
@@ -39,8 +38,8 @@ class BlockedMutedAccountsRepository {
     required String status,
     required List<String> preferredKeys,
   }) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.getEndpoint('blocked_muted_accounts');
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('blocked_muted_accounts');
     if (!response.isSuccess || response.data['success'] == false) {
       return const <RestrictedAccountModel>[];
     }
@@ -51,10 +50,8 @@ class BlockedMutedAccountsRepository {
     if (items.isNotEmpty || response.data.isNotEmpty) {
       return items
           .map(
-            (Map<String, dynamic> item) => RestrictedAccountModel.fromApiJson(
-              item,
-              status: status,
-            ),
+            (Map<String, dynamic> item) =>
+                RestrictedAccountModel.fromApiJson(item, status: status),
           )
           .where((RestrictedAccountModel item) => item.id.isNotEmpty)
           .toList(growable: false);

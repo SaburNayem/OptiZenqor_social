@@ -20,14 +20,16 @@ class UploadManagerController extends ChangeNotifier {
 
   void retry(String id) {
     tasks = tasks
-        .map((task) => task.id == id
-            ? UploadTaskModel(
-                id: task.id,
-                fileName: task.fileName,
-                progress: 0.2,
-                status: UploadStatus.uploading,
-              )
-            : task)
+        .map(
+          (task) => task.id == id
+              ? UploadTaskModel(
+                  id: task.id,
+                  fileName: task.fileName,
+                  progress: 0.2,
+                  status: UploadStatus.uploading,
+                )
+              : task,
+        )
         .toList();
     notifyListeners();
   }

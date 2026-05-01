@@ -12,7 +12,8 @@ class BlockedMutedAccountsController extends ChangeNotifier {
   List<RestrictedAccountModel> blocked = <RestrictedAccountModel>[];
   List<RestrictedAccountModel> muted = <RestrictedAccountModel>[];
 
-  final List<RestrictedAccountModel> restricted = const <RestrictedAccountModel>[];
+  final List<RestrictedAccountModel> restricted =
+      const <RestrictedAccountModel>[];
 
   Future<void> load() async {
     isLoading = true;

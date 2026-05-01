@@ -19,9 +19,15 @@ class DraftsScreen extends StatelessWidget {
         final drafts = _controller.drafts
             .where((item) => item.scheduledAt == null)
             .toList();
-        final postCount = drafts.where((item) => item.type == PublishType.post).length;
-        final reelCount = drafts.where((item) => item.type == PublishType.reel).length;
-        final storyCount = drafts.where((item) => item.type == PublishType.story).length;
+        final postCount = drafts
+            .where((item) => item.type == PublishType.post)
+            .length;
+        final reelCount = drafts
+            .where((item) => item.type == PublishType.reel)
+            .length;
+        final storyCount = drafts
+            .where((item) => item.type == PublishType.story)
+            .length;
 
         return Scaffold(
           appBar: AppBar(title: const Text('My Drafts')),
@@ -39,10 +45,11 @@ class DraftsScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Draft studio',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -74,7 +81,8 @@ class DraftsScreen extends StatelessWidget {
                   Expanded(
                     child: _StudioMetricCard(
                       title: 'Needs review',
-                      value: '${drafts.where((item) => item.editHistory.isNotEmpty).length}',
+                      value:
+                          '${drafts.where((item) => item.editHistory.isNotEmpty).length}',
                       subtitle: 'Drafts with saved revisions',
                     ),
                   ),
@@ -82,7 +90,8 @@ class DraftsScreen extends StatelessWidget {
                   Expanded(
                     child: _StudioMetricCard(
                       title: 'Ready assets',
-                      value: '${drafts.where((item) => item.altText != null || item.location != null).length}',
+                      value:
+                          '${drafts.where((item) => item.altText != null || item.location != null).length}',
                       subtitle: 'Drafts with extra publishing details',
                     ),
                   ),
@@ -91,9 +100,9 @@ class DraftsScreen extends StatelessWidget {
               const SizedBox(height: 18),
               Text(
                 'Active draft queue',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 6),
               Text(
@@ -168,7 +177,8 @@ class _DraftWorkspaceCard extends StatelessWidget {
                       children: [
                         _MetaPill(label: _typeLabel(item.type)),
                         _MetaPill(label: 'Audience ${item.audience}'),
-                        if (item.location != null) _MetaPill(label: item.location!),
+                        if (item.location != null)
+                          _MetaPill(label: item.location!),
                       ],
                     ),
                   ],
@@ -323,9 +333,9 @@ class _DraftEmptyState extends StatelessWidget {
         children: [
           Text(
             'No drafts yet',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
           Text(
@@ -381,10 +391,7 @@ class _StudioMetricCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: TextStyle(
-              color: colorScheme.onSurfaceVariant,
-              height: 1.35,
-            ),
+            style: TextStyle(color: colorScheme.onSurfaceVariant, height: 1.35),
           ),
         ],
       ),

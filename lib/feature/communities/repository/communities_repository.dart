@@ -12,4 +12,3 @@ abstract class CommunitiesRepository {
     required bool joined,
   });
 }
-

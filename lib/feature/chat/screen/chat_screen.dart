@@ -337,13 +337,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                           _timeLabel(seedMessage.timestamp),
                                           style: TextStyle(
                                             fontSize: 11,
-                                            color: _controller.unreadCount(
+                                            color:
+                                                _controller.unreadCount(
                                                       thread.chatId,
                                                     ) >
                                                     0
                                                 ? AppColors.hexFF00ACC1
                                                 : AppColors.grey,
-                                            fontWeight: _controller.unreadCount(
+                                            fontWeight:
+                                                _controller.unreadCount(
                                                       thread.chatId,
                                                     ) >
                                                     0
@@ -363,7 +365,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               fontSize: 13,
-                                              color: _controller.unreadCount(
+                                              color:
+                                                  _controller.unreadCount(
                                                         thread.chatId,
                                                       ) >
                                                       0
@@ -428,24 +431,25 @@ class _ChatScreenState extends State<ChatScreen> {
                                     );
                                   }
                                 },
-                                itemBuilder: (context) => const <PopupMenuEntry<String>>[
-                                  PopupMenuItem(
-                                    value: 'pin',
-                                    child: Text('Pin'),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'settings',
-                                    child: Text('Chat settings'),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'archive',
-                                    child: Text('Archive'),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'mute',
-                                    child: Text('Mute'),
-                                  ),
-                                ],
+                                itemBuilder: (context) =>
+                                    const <PopupMenuEntry<String>>[
+                                      PopupMenuItem(
+                                        value: 'pin',
+                                        child: Text('Pin'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'settings',
+                                        child: Text('Chat settings'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'archive',
+                                        child: Text('Archive'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'mute',
+                                        child: Text('Mute'),
+                                      ),
+                                    ],
                               ),
                             ],
                           ),
@@ -568,7 +572,8 @@ class _ChatScreenState extends State<ChatScreen> {
             return;
           }
           final MessageModel seedMessage =
-              thread.lastMessageModel ?? _initialMessageFor(user, thread.chatId);
+              thread.lastMessageModel ??
+              _initialMessageFor(user, thread.chatId);
           Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (_) => ChatDetailScreen(

@@ -15,12 +15,11 @@ class AuthRepository {
     AuthService? authService,
     AppSharedPreferences? storage,
     AuthSessionService? sessionService,
-  })
-    : _authService = authService ?? AuthService(),
-      _storage = storage ?? AppSharedPreferences(),
-      _sessionService =
-          sessionService ??
-          AuthSessionService(storage: storage ?? AppSharedPreferences());
+  }) : _authService = authService ?? AuthService(),
+       _storage = storage ?? AppSharedPreferences(),
+       _sessionService =
+           sessionService ??
+           AuthSessionService(storage: storage ?? AppSharedPreferences());
 
   final AuthService _authService;
   final AppSharedPreferences _storage;

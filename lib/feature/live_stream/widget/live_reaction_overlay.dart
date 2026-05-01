@@ -36,7 +36,8 @@ class _LiveReactionOverlayState extends State<LiveReactionOverlay> {
   @override
   void didUpdateWidget(covariant LiveReactionOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.enabled != widget.enabled || oldWidget.active != widget.active) {
+    if (oldWidget.enabled != widget.enabled ||
+        oldWidget.active != widget.active) {
       _syncTimer();
     }
   }
@@ -71,7 +72,9 @@ class _LiveReactionOverlayState extends State<LiveReactionOverlay> {
           return;
         }
         setState(() {
-          _items.removeWhere((element) => batch.any((item) => item.id == element.id));
+          _items.removeWhere(
+            (element) => batch.any((item) => item.id == element.id),
+          );
         });
       });
     });
@@ -87,34 +90,38 @@ class _LiveReactionOverlayState extends State<LiveReactionOverlay> {
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: Stack(
-        children: _items.map((item) {
-          return AnimatedPositioned(
-            key: ValueKey(item.id),
-            duration: const Duration(milliseconds: 2400),
-            curve: Curves.easeOutCubic,
-            left: MediaQuery.of(context).size.width * item.leftFactor,
-            bottom: 20,
-            top: 140,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 2600),
-              builder: (context, value, child) {
-                return Transform.translate(
-                  offset: Offset(0, -240 * value),
-                  child: Opacity(
-                    opacity: value < 0.2 ? value * 4 : (1 - value).clamp(0, 1),
-                    child: child,
+        children: _items
+            .map((item) {
+              return AnimatedPositioned(
+                key: ValueKey(item.id),
+                duration: const Duration(milliseconds: 2400),
+                curve: Curves.easeOutCubic,
+                left: MediaQuery.of(context).size.width * item.leftFactor,
+                bottom: 20,
+                top: 140,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 2600),
+                  builder: (context, value, child) {
+                    return Transform.translate(
+                      offset: Offset(0, -240 * value),
+                      child: Opacity(
+                        opacity: value < 0.2
+                            ? value * 4
+                            : (1 - value).clamp(0, 1),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Icon(
+                    _iconFor(item.type),
+                    color: _colorFor(item.type),
+                    size: item.size,
                   ),
-                );
-              },
-              child: Icon(
-                _iconFor(item.type),
-                color: _colorFor(item.type),
-                size: item.size,
-              ),
-            ),
-          );
-        }).toList(growable: false),
+                ),
+              );
+            })
+            .toList(growable: false),
       ),
     );
   }
@@ -155,4 +162,3 @@ class _FloatingReaction {
   final double leftFactor;
   final double size;
 }
-

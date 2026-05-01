@@ -20,9 +20,9 @@ class SettingsNavigationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final titleStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
-          color: isDestructive ? colorScheme.error : null,
-          fontWeight: FontWeight.w600,
-        );
+      color: isDestructive ? colorScheme.error : null,
+      fontWeight: FontWeight.w600,
+    );
 
     return ListTile(
       leading: icon == null ? null : Icon(icon),

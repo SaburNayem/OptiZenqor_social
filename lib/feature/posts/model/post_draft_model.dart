@@ -15,7 +15,8 @@ class PostDraftModel {
     return PostDraftModel(
       id: map['id'] as String? ?? '',
       title: map['title'] as String? ?? 'Untitled draft',
-      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ??
+      createdAt:
+          DateTime.tryParse(map['createdAt'] as String? ?? '') ??
           DateTime.now(),
       caption: map['caption'] as String?,
     );

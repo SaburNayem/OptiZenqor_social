@@ -22,7 +22,9 @@ class ConnectivityService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> retryFailedAction(Future<void> Function(String actionKey) retry) async {
+  Future<bool> retryFailedAction(
+    Future<void> Function(String actionKey) retry,
+  ) async {
     final action = _lastFailedAction;
     if (!_isOnline || action == null) {
       return false;

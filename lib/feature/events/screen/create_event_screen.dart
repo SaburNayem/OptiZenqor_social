@@ -60,7 +60,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         ),
         title: const Text(
           'Create Event',
-          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppColors.black87,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -181,7 +184,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               color: AppColors.hexFFE0F7FA,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.groups_2_outlined, color: AppColors.hexFF00ACC1),
+            child: const Icon(
+              Icons.groups_2_outlined,
+              color: AppColors.hexFF00ACC1,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -248,10 +254,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       return;
     }
 
-    await _controller.create(
-      title,
-      location: _locationController.text.trim(),
-    );
+    await _controller.create(title, location: _locationController.text.trim());
     AppGet.snackbar('Event ready', 'Your event draft has been created.');
   }
 
@@ -275,7 +278,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
     });
 
-    AppGet.snackbar('Pool added', 'The new pool is now attached to this event.');
+    AppGet.snackbar(
+      'Pool added',
+      'The new pool is now attached to this event.',
+    );
   }
 }
 
@@ -292,6 +298,3 @@ class _PoolDraft {
   final String limit;
   final String benefit;
 }
-
-
-

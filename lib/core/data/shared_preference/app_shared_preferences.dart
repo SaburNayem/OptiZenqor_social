@@ -2,7 +2,7 @@ import '../service/local_storage_service.dart';
 
 class AppSharedPreferences {
   AppSharedPreferences({LocalStorageService? storage})
-      : _storage = storage ?? LocalStorageService();
+    : _storage = storage ?? LocalStorageService();
 
   final LocalStorageService _storage;
 

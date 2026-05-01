@@ -4,10 +4,7 @@ import '../model/job_model.dart';
 import '../../../core/constants/app_colors.dart';
 
 class CareerProfileScreen extends StatelessWidget {
-  const CareerProfileScreen({
-    required this.profile,
-    super.key,
-  });
+  const CareerProfileScreen({required this.profile, super.key});
 
   final CareerProfileModel profile;
 
@@ -20,17 +17,29 @@ class CareerProfileScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const CircleAvatar(radius: 34, child: Icon(Icons.person_rounded, size: 34)),
+              const CircleAvatar(
+                radius: 34,
+                child: Icon(Icons.person_rounded, size: 34),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(profile.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                    Text(
+                      profile.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 4),
                     Text(profile.title),
                     const SizedBox(height: 4),
-                    Text(profile.availability, style: const TextStyle(color: AppColors.green)),
+                    Text(
+                      profile.availability,
+                      style: const TextStyle(color: AppColors.green),
+                    ),
                   ],
                 ),
               ),
@@ -62,7 +71,10 @@ class CareerProfileScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 8),
           Text(content),
         ],
@@ -70,4 +82,3 @@ class CareerProfileScreen extends StatelessWidget {
     );
   }
 }
-

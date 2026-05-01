@@ -12,7 +12,6 @@ class AccountSwitchingService extends FeatureServiceBase {
     'account_switching': ApiEndPoints.accountSwitching,
     'active': ApiEndPoints.accountSwitchingActive,
     'me': ApiEndPoints.authMe,
-    'demo_accounts': ApiEndPoints.authDemoAccounts,
     'users': ApiEndPoints.users,
   };
 }

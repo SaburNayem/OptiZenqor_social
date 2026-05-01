@@ -26,14 +26,8 @@ class SocketHandler {
       (payload['event'] ?? payload['type'] ?? payload['name'] ?? '').toString(),
     );
     final Map<String, dynamic> data =
-        _readMap(payload['data']) ??
-        _readMap(payload['payload']) ??
-        payload;
-    return SocketEnvelope(
-      event: event,
-      data: data,
-      receivedAt: DateTime.now(),
-    );
+        _readMap(payload['data']) ?? _readMap(payload['payload']) ?? payload;
+    return SocketEnvelope(event: event, data: data, receivedAt: DateTime.now());
   }
 
   Map<String, dynamic>? _readMap(dynamic raw) {

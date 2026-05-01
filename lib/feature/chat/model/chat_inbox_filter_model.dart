@@ -1,8 +1,4 @@
-enum ChatInboxFilter {
-  all,
-  unread,
-  requests,
-}
+enum ChatInboxFilter { all, unread, requests }
 
 class ChatInboxFilterModel {
   const ChatInboxFilterModel({required this.filter});

@@ -221,10 +221,7 @@ class StoryModel {
       mentionUsername: ApiPayloadReader.readString(json['mentionUsername']),
       linkLabel: ApiPayloadReader.readString(json['linkLabel']),
       linkUrl: ApiPayloadReader.readString(json['linkUrl']),
-      privacy: ApiPayloadReader.readString(
-        json['privacy'],
-        fallback: 'public',
-      ),
+      privacy: ApiPayloadReader.readString(json['privacy'], fallback: 'public'),
       collageLayout: ApiPayloadReader.readString(
         json['collageLayout'],
         fallback: 'grid',

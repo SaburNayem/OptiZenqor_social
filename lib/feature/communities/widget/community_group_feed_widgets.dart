@@ -426,6 +426,3 @@ class _CommunityPostAction extends StatelessWidget {
     );
   }
 }
-
-
-

@@ -107,7 +107,9 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
               setState(() {});
             },
             icon: Icon(
-              controller.value.isPlaying ? Icons.pause_circle : Icons.play_circle,
+              controller.value.isPlaying
+                  ? Icons.pause_circle
+                  : Icons.play_circle,
               color: AppColors.white,
               size: 30,
             ),
@@ -132,4 +134,3 @@ class _InlineVideoPlayerState extends State<InlineVideoPlayer> {
     );
   }
 }
-

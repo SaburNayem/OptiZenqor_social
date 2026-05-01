@@ -65,8 +65,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.hexFF26C6DA,
                       foregroundColor: AppColors.white,
-                      disabledBackgroundColor:
-                          AppColors.hexFF26C6DA.withValues(alpha: 0.32),
+                      disabledBackgroundColor: AppColors.hexFF26C6DA.withValues(
+                        alpha: 0.32,
+                      ),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -230,7 +231,3 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 }
-
-
-
-

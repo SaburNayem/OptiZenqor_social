@@ -40,10 +40,14 @@ class MaintenanceModeScreen extends StatelessWidget {
                             ScaffoldMessenger.of(context)
                               ..hideCurrentSnackBar()
                               ..showSnackBar(
-                                const SnackBar(content: Text('Service is available now.')),
+                                const SnackBar(
+                                  content: Text('Service is available now.'),
+                                ),
                               );
                           },
-                    child: Text(_controller.isRetrying ? 'Retrying...' : 'Retry'),
+                    child: Text(
+                      _controller.isRetrying ? 'Retrying...' : 'Retry',
+                    ),
                   ),
                 ],
               ),

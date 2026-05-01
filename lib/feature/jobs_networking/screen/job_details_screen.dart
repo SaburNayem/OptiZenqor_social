@@ -21,21 +21,40 @@ class JobDetailsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Job details'),
         actions: [
-          IconButton(onPressed: onSave, icon: Icon(job.saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded)),
-          IconButton(onPressed: () => _showSnack(context, 'Share job'), icon: const Icon(Icons.share_outlined)),
-          IconButton(onPressed: () => _showSnack(context, 'Report job'), icon: const Icon(Icons.flag_outlined)),
+          IconButton(
+            onPressed: onSave,
+            icon: Icon(
+              job.saved
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_border_rounded,
+            ),
+          ),
+          IconButton(
+            onPressed: () => _showSnack(context, 'Share job'),
+            icon: const Icon(Icons.share_outlined),
+          ),
+          IconButton(
+            onPressed: () => _showSnack(context, 'Report job'),
+            icon: const Icon(Icons.flag_outlined),
+          ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(job.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+          Text(
+            job.title,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 10),
           Row(
             children: [
               CircleAvatar(
                 backgroundColor: Color(job.logoColorValue),
-                child: Text(job.logoInitial, style: const TextStyle(color: AppColors.white)),
+                child: Text(
+                  job.logoInitial,
+                  style: const TextStyle(color: AppColors.white),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -44,10 +63,19 @@ class JobDetailsScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Flexible(child: Text(job.company, style: const TextStyle(fontWeight: FontWeight.w700))),
+                        Flexible(
+                          child: Text(
+                            job.company,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
                         if (job.verifiedEmployer) ...[
                           const SizedBox(width: 6),
-                          const Icon(Icons.verified_rounded, size: 18, color: AppColors.hexFF2563EB),
+                          const Icon(
+                            Icons.verified_rounded,
+                            size: 18,
+                            color: AppColors.hexFF2563EB,
+                          ),
                         ],
                       ],
                     ),
@@ -65,7 +93,8 @@ class JobDetailsScreen extends StatelessWidget {
               _pill(context, job.salary),
               _pill(context, _type(job.type)),
               _pill(context, _level(job.experienceLevel)),
-              if (job.deadlineLabel != null) _pill(context, 'Deadline: ${job.deadlineLabel}'),
+              if (job.deadlineLabel != null)
+                _pill(context, 'Deadline: ${job.deadlineLabel}'),
             ],
           ),
           const SizedBox(height: 20),
@@ -107,7 +136,10 @@ class JobDetailsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 8),
           Text(content),
         ],
@@ -121,18 +153,23 @@ class JobDetailsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 8),
-          ...items.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('• '),
-                    Expanded(child: Text(item)),
-                  ],
-                ),
-              )),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('• '),
+                  Expanded(child: Text(item)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -189,4 +226,3 @@ class JobDetailsScreen extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 }
-

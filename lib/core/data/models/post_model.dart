@@ -40,7 +40,7 @@ class PostModel {
                   authorJson?['id'] ??
                   authorJson?['_id'] ??
                   '')
-          .toString(),
+              .toString(),
       caption: (json['caption'] as String? ?? '').trim(),
       tags: _readStringList(json['tags']),
       media: _readStringList(
@@ -59,7 +59,10 @@ class PostModel {
           json['isLikedByMe'] as bool? ??
           false,
       viewCount: _readCount(
-        json['views'] ?? json['viewCount'] ?? json['viewsCount'] ?? json['views_count'],
+        json['views'] ??
+            json['viewCount'] ??
+            json['viewsCount'] ??
+            json['views_count'],
       ),
       shareCount: _readCount(
         json['shares'] ??
@@ -170,23 +173,23 @@ class PostModel {
           .map((Object? item) {
             if (item is Map<String, dynamic>) {
               return (item['url'] ??
-                          item['mediaUrl'] ??
-                          item['imageUrl'] ??
-                          item['fileUrl'] ??
-                          item['path'] ??
-                          item['src'] ??
-                          '')
-                      .toString();
+                      item['mediaUrl'] ??
+                      item['imageUrl'] ??
+                      item['fileUrl'] ??
+                      item['path'] ??
+                      item['src'] ??
+                      '')
+                  .toString();
             }
             if (item is Map) {
               return (item['url'] ??
-                          item['mediaUrl'] ??
-                          item['imageUrl'] ??
-                          item['fileUrl'] ??
-                          item['path'] ??
-                          item['src'] ??
-                          '')
-                      .toString();
+                      item['mediaUrl'] ??
+                      item['imageUrl'] ??
+                      item['fileUrl'] ??
+                      item['path'] ??
+                      item['src'] ??
+                      '')
+                  .toString();
             }
             return item?.toString() ?? '';
           })

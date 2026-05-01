@@ -6,11 +6,9 @@ import '../../../core/data/service/local_storage_service.dart';
 import '../model/follow_state_model.dart';
 
 class FollowRepository {
-  FollowRepository({
-    LocalStorageService? storage,
-    ApiClientService? apiClient,
-  }) : _storage = storage ?? LocalStorageService(),
-       _apiClient = apiClient ?? ApiClientService();
+  FollowRepository({LocalStorageService? storage, ApiClientService? apiClient})
+    : _storage = storage ?? LocalStorageService(),
+      _apiClient = apiClient ?? ApiClientService();
 
   final LocalStorageService _storage;
   final ApiClientService _apiClient;
@@ -87,14 +85,17 @@ class FollowRepository {
 
   Future<bool> isCurrentUserFollowing(String targetUserId) async {
     try {
-      final response = await _apiClient.get(ApiEndPoints.userFollowState(targetUserId));
+      final response = await _apiClient.get(
+        ApiEndPoints.userFollowState(targetUserId),
+      );
       if (!response.isSuccess || response.data['success'] == false) {
         return false;
       }
-      return _extractBoolean(
-            response.data,
-            const <String>['isFollowing', 'following', 'followed'],
-          ) ??
+      return _extractBoolean(response.data, const <String>[
+            'isFollowing',
+            'following',
+            'followed',
+          ]) ??
           false;
     } catch (_) {
       return false;
@@ -133,9 +134,11 @@ class FollowRepository {
       }
       return raw
           .whereType<Object>()
-          .map((Object item) => item is Map<String, dynamic>
-              ? item
-              : Map<String, dynamic>.from(item as Map))
+          .map(
+            (Object item) => item is Map<String, dynamic>
+                ? item
+                : Map<String, dynamic>.from(item as Map),
+          )
           .toList(growable: false);
     }
     return const <Map<String, dynamic>>[];

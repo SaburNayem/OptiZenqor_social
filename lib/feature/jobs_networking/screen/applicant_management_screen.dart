@@ -14,7 +14,8 @@ class ApplicantManagementScreen extends StatefulWidget {
   final void Function(String id, ApplicationStatus status) onStatusChanged;
 
   @override
-  State<ApplicantManagementScreen> createState() => _ApplicantManagementScreenState();
+  State<ApplicantManagementScreen> createState() =>
+      _ApplicantManagementScreenState();
 }
 
 class _ApplicantManagementScreenState extends State<ApplicantManagementScreen> {
@@ -29,12 +30,14 @@ class _ApplicantManagementScreenState extends State<ApplicantManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final applicants = _applicants.where((applicant) {
-      if (_filter == 'All') {
-        return true;
-      }
-      return _statusLabel(applicant.status) == _filter;
-    }).toList(growable: false);
+    final applicants = _applicants
+        .where((applicant) {
+          if (_filter == 'All') {
+            return true;
+          }
+          return _statusLabel(applicant.status) == _filter;
+        })
+        .toList(growable: false);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Applicants')),
@@ -76,7 +79,10 @@ class _ApplicantManagementScreenState extends State<ApplicantManagementScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(applicant.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(
+                        applicant.name,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                       Text(applicant.title),
                     ],
                   ),
@@ -101,11 +107,13 @@ class _ApplicantManagementScreenState extends State<ApplicantManagementScreen> {
                   child: const Text('Message'),
                 ),
                 FilledButton(
-                  onPressed: () => _setStatus(applicant.id, ApplicationStatus.shortlisted),
+                  onPressed: () =>
+                      _setStatus(applicant.id, ApplicationStatus.shortlisted),
                   child: const Text('Shortlist'),
                 ),
                 FilledButton.tonal(
-                  onPressed: () => _setStatus(applicant.id, ApplicationStatus.rejected),
+                  onPressed: () =>
+                      _setStatus(applicant.id, ApplicationStatus.rejected),
                   child: const Text('Reject'),
                 ),
               ],
@@ -138,7 +146,11 @@ class _ApplicantManagementScreenState extends State<ApplicantManagementScreen> {
   void _setStatus(String id, ApplicationStatus status) {
     setState(() {
       _applicants = _applicants
-          .map((applicant) => applicant.id == id ? applicant.copyWith(status: status) : applicant)
+          .map(
+            (applicant) => applicant.id == id
+                ? applicant.copyWith(status: status)
+                : applicant,
+          )
           .toList(growable: false);
     });
     widget.onStatusChanged(id, status);

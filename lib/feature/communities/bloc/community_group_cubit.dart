@@ -10,13 +10,13 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
     required CommunitiesRepository repository,
   }) : _repository = repository,
        super(
-        CommunityGroupState(
-          group: group,
-          posts: group.posts,
-          members: group.members,
-          events: group.events,
-        ),
-      );
+         CommunityGroupState(
+           group: group,
+           posts: group.posts,
+           members: group.members,
+           events: group.events,
+         ),
+       );
 
   final CommunitiesRepository _repository;
 
@@ -184,21 +184,6 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
   }
 
   void loadMorePosts() {
-    final nextIndex = state.posts.length + 1;
-    final nextPost = CommunityPostModel(
-      id: 'extra_$nextIndex',
-      authorName: 'New contributor $nextIndex',
-      authorRole: CommunityRole.member,
-      authorAccent: 0xFF26C6DA,
-      timeLabel: 'Just now',
-      content: 'Fresh group update $nextIndex with local mock pagination.',
-      type: nextIndex.isEven ? CommunityPostType.image : CommunityPostType.text,
-      likes: 18 + nextIndex,
-      comments: 6,
-      shares: 2,
-      mediaLabel: nextIndex.isEven ? 'New upload' : null,
-    );
-    emit(state.copyWith(posts: <CommunityPostModel>[...state.posts, nextPost]));
+    emit(state.copyWith(posts: state.posts));
   }
 }
-

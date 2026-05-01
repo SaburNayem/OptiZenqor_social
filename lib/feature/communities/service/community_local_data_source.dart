@@ -211,4 +211,3 @@ CommunityMemberModel _memberFromMap(Map<String, dynamic> map) {
     following: map['following'] as bool? ?? false,
   );
 }
-

@@ -3,7 +3,7 @@ import '../../../core/data/service/local_storage_service.dart';
 
 class PostsRepository {
   PostsRepository({LocalStorageService? storage})
-      : _storage = storage ?? LocalStorageService();
+    : _storage = storage ?? LocalStorageService();
 
   final LocalStorageService _storage;
 

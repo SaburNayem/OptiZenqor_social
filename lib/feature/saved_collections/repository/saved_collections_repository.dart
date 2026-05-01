@@ -13,31 +13,54 @@ class SavedCollectionsRepository {
     return _readFromApi();
   }
 
-  Future<List<SavedCollectionModel>> write(List<SavedCollectionModel> items) async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.postEndpoint(
-      'collections',
-      payload: <String, dynamic>{
-        'items': items
-            .map(
-              (SavedCollectionModel item) => <String, dynamic>{
-                'id': item.id,
-                'name': item.name,
-                'itemIds': item.itemIds,
-              },
-            )
-            .toList(growable: false),
-      },
-    );
+  Future<List<SavedCollectionModel>> create(String name) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .postEndpoint(
+          'collections',
+          payload: <String, dynamic>{'name': name.trim()},
+        );
     if (!response.isSuccess || response.data['success'] == false) {
-      throw Exception(response.message ?? 'Unable to update saved collections.');
+      throw Exception(
+        response.message ?? 'Unable to create a saved collection.',
+      );
     }
     return _readCollectionsFromPayload(response.data);
   }
 
+  Future<SavedCollectionModel?> addItem(
+    String collectionId,
+    String itemId,
+  ) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch('/saved-collections', <String, dynamic>{
+          'collectionId': collectionId,
+          'itemId': itemId,
+        });
+    if (!response.isSuccess || response.data['success'] == false) {
+      return null;
+    }
+    return _readSingleCollection(response.data);
+  }
+
+  Future<SavedCollectionModel?> updateItems(
+    String collectionId,
+    List<String> itemIds,
+  ) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch('/saved-collections/$collectionId', <String, dynamic>{
+          'itemIds': itemIds,
+        });
+    if (!response.isSuccess || response.data['success'] == false) {
+      return null;
+    }
+    return _readSingleCollection(response.data);
+  }
+
   Future<List<SavedCollectionModel>> _readFromApi() async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.getEndpoint('collections');
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('collections');
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to load saved collections.');
     }
@@ -88,5 +111,24 @@ class SavedCollectionsRepository {
       }
     }
     return const <SavedCollectionModel>[];
+  }
+
+  SavedCollectionModel? _readSingleCollection(Map<String, dynamic> response) {
+    final Map<String, dynamic> payload =
+        ApiPayloadReader.readMap(response['data']) ?? response;
+    final Map<String, dynamic>? item = ApiPayloadReader.readMap(
+      payload['collection'] ?? payload['item'] ?? payload['data'],
+    );
+    if (item == null || item.isEmpty) {
+      return null;
+    }
+    final SavedCollectionModel collection = SavedCollectionModel(
+      id: ApiPayloadReader.readString(item['id']),
+      name: ApiPayloadReader.readString(item['name']),
+      itemIds: ApiPayloadReader.readStringList(
+        item['itemIds'] ?? item['items'],
+      ),
+    );
+    return collection.id.isNotEmpty ? collection : null;
   }
 }

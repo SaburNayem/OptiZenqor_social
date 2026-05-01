@@ -22,7 +22,8 @@ class SavedCollectionPostsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<BookmarksController, BookmarksState>(
       builder: (context, state) {
-        final BookmarksController controller = context.read<BookmarksController>();
+        final BookmarksController controller = context
+            .read<BookmarksController>();
         final List<BookmarkItemModel> items = collectionId == null
             ? state.items
             : controller.itemsForCollection(collectionId!);

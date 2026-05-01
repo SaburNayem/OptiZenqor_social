@@ -13,4 +13,3 @@ class GetCommunitiesUseCase
     return _repository.loadGroups();
   }
 }
-

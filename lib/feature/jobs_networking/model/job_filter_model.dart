@@ -35,8 +35,9 @@ class JobFilterModel {
       location: location ?? this.location,
       salaryRange: salaryRange ?? this.salaryRange,
       jobType: clearJobType ? null : (jobType ?? this.jobType),
-      experienceLevel:
-          clearExperience ? null : (experienceLevel ?? this.experienceLevel),
+      experienceLevel: clearExperience
+          ? null
+          : (experienceLevel ?? this.experienceLevel),
       workMode: workMode ?? this.workMode,
       companySize: companySize ?? this.companySize,
     );

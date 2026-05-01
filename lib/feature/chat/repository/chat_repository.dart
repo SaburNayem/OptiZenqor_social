@@ -25,14 +25,15 @@ class ChatRepository {
     }
 
     return ApiPayloadReader.readMapList(
-      response.data,
-      preferredKeys: const <String>['data', 'threads', 'items'],
-    ).map(
-      (Map<String, dynamic> item) =>
-          ChatThreadModel.fromApiJson(item, currentUserId: currentUserId),
-    ).where((ChatThreadModel item) => item.chatId.isNotEmpty).toList(
-      growable: false,
-    );
+          response.data,
+          preferredKeys: const <String>['data', 'threads', 'items'],
+        )
+        .map(
+          (Map<String, dynamic> item) =>
+              ChatThreadModel.fromApiJson(item, currentUserId: currentUserId),
+        )
+        .where((ChatThreadModel item) => item.chatId.isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<ChatThreadModel> createThread(String targetUserId) async {
@@ -68,26 +69,29 @@ class ChatRepository {
     }
 
     return ApiPayloadReader.readMapList(
-      response.data,
-      preferredKeys: const <String>['data', 'messages', 'items'],
-    ).map(MessageModel.fromApiJson).map((MessageModel item) {
-      if (item.chatId.isNotEmpty) {
-        return item;
-      }
-      return MessageModel(
-        id: item.id,
-        chatId: threadId,
-        senderId: item.senderId,
-        text: item.text,
-        timestamp: item.timestamp,
-        read: item.read,
-        starred: item.starred,
-        replyToMessageId: item.replyToMessageId,
-        deliveryState: item.deliveryState,
-        kind: item.kind,
-        mediaPath: item.mediaPath,
-      );
-    }).toList(growable: false);
+          response.data,
+          preferredKeys: const <String>['data', 'messages', 'items'],
+        )
+        .map(MessageModel.fromApiJson)
+        .map((MessageModel item) {
+          if (item.chatId.isNotEmpty) {
+            return item;
+          }
+          return MessageModel(
+            id: item.id,
+            chatId: threadId,
+            senderId: item.senderId,
+            text: item.text,
+            timestamp: item.timestamp,
+            read: item.read,
+            starred: item.starred,
+            replyToMessageId: item.replyToMessageId,
+            deliveryState: item.deliveryState,
+            kind: item.kind,
+            mediaPath: item.mediaPath,
+          );
+        })
+        .toList(growable: false);
   }
 
   Future<MessageModel> sendMessage({

@@ -47,7 +47,9 @@ class PersonalizationOnboardingScreen extends StatelessWidget {
                               ),
                             ),
                           );
-                        Navigator.of(context).pushReplacementNamed(RouteNames.shell);
+                        Navigator.of(
+                          context,
+                        ).pushReplacementNamed(RouteNames.shell);
                       }
                     : null,
                 child: const Text('Continue'),
@@ -59,4 +61,3 @@ class PersonalizationOnboardingScreen extends StatelessWidget {
     );
   }
 }
-

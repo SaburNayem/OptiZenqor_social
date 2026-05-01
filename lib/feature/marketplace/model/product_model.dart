@@ -170,7 +170,9 @@ class ProductModel {
   final String reviewStatus;
 
   factory ProductModel.fromApiJson(Map<String, dynamic> json) {
-    final Map<String, dynamic>? seller = ApiPayloadReader.readMap(json['seller']);
+    final Map<String, dynamic>? seller = ApiPayloadReader.readMap(
+      json['seller'],
+    );
     final String category = ApiPayloadReader.readString(
       json['category'],
       fallback: 'General',
@@ -190,9 +192,7 @@ class ProductModel {
         json['title'],
         fallback: 'Marketplace item',
       ),
-      description: ApiPayloadReader.readString(
-        json['description'],
-      ),
+      description: ApiPayloadReader.readString(json['description']),
       price: ApiPayloadReader.readDouble(json['price']),
       category: category,
       subcategory: ApiPayloadReader.readString(
@@ -214,15 +214,12 @@ class ProductModel {
           ) ??
           DateTime.now(),
       images: ApiPayloadReader.readStringList(json['images'] ?? json['media']),
-      sellerId: ApiPayloadReader.readString(
-        json['sellerId'] ?? seller?['id'],
-      ),
+      sellerId: ApiPayloadReader.readString(json['sellerId'] ?? seller?['id']),
       sellerName: companyName,
       sellerType: _sellerTypeFromValue(
         json['sellerType'] ?? seller?['sellerType'] ?? seller?['type'],
       ),
-      isNegotiable:
-          ApiPayloadReader.readBool(json['isNegotiable']) ?? false,
+      isNegotiable: ApiPayloadReader.readBool(json['isNegotiable']) ?? false,
       deliveryOptions: _deliveryOptionsFromValue(json['deliveryOptions']),
       attributes: _attributesFromValue(json['attributes']),
       tags: ApiPayloadReader.readStringList(json['tags']),
@@ -230,8 +227,7 @@ class ProductModel {
       quantity: ApiPayloadReader.readInt(json['quantity']),
       isFeatured: ApiPayloadReader.readBool(json['isFeatured']) ?? false,
       isTrending: ApiPayloadReader.readBool(json['isTrending']) ?? false,
-      isRecommended:
-          ApiPayloadReader.readBool(json['isRecommended']) ?? false,
+      isRecommended: ApiPayloadReader.readBool(json['isRecommended']) ?? false,
       isRecentlyViewed:
           ApiPayloadReader.readBool(json['isRecentlyViewed']) ?? false,
       hasPriceDrop: ApiPayloadReader.readBool(json['hasPriceDrop']) ?? false,
@@ -335,18 +331,20 @@ class ProductModel {
     if (items.isEmpty) {
       return const <DeliveryOption>[DeliveryOption.pickup];
     }
-    return items.map((String item) {
-      switch (item.toLowerCase()) {
-        case 'shipping':
-          return DeliveryOption.shipping;
-        case 'delivery':
-        case 'local_delivery':
-          return DeliveryOption.delivery;
-        case 'pickup':
-        default:
-          return DeliveryOption.pickup;
-      }
-    }).toList(growable: false);
+    return items
+        .map((String item) {
+          switch (item.toLowerCase()) {
+            case 'shipping':
+              return DeliveryOption.shipping;
+            case 'delivery':
+            case 'local_delivery':
+              return DeliveryOption.delivery;
+            case 'pickup':
+            default:
+              return DeliveryOption.pickup;
+          }
+        })
+        .toList(growable: false);
   }
 
   static Map<String, String> _attributesFromValue(Object? value) {
@@ -360,9 +358,8 @@ class ProductModel {
   }
 
   static List<ProductReview> _reviewsFromValue(Object? value) {
-    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapListFromAny(
-      value,
-    );
+    final List<Map<String, dynamic>> items =
+        ApiPayloadReader.readMapListFromAny(value);
     return items
         .map(
           (Map<String, dynamic> item) => ProductReview(

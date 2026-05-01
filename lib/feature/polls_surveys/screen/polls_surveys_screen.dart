@@ -239,7 +239,10 @@ class PollsSurveysScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
@@ -280,10 +283,7 @@ class PollsSurveysScreen extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             entry.question,
-            style: const TextStyle(
-              color: AppColors.hexFF475569,
-              height: 1.45,
-            ),
+            style: const TextStyle(color: AppColors.hexFF475569, height: 1.45),
           ),
           const SizedBox(height: 14),
           Wrap(
@@ -392,7 +392,10 @@ class PollsSurveysScreen extends StatelessWidget {
                   entry.question,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.hexFF64748B, height: 1.4),
+                  style: const TextStyle(
+                    color: AppColors.hexFF64748B,
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -528,4 +531,3 @@ class _InfoPill extends StatelessWidget {
     );
   }
 }
-

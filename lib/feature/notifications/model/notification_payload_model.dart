@@ -1,11 +1,6 @@
 import '../../../core/data/api/api_payload_reader.dart';
 
-enum NotificationType {
-  social,
-  commerce,
-  security,
-  system,
-}
+enum NotificationType { social, commerce, security, system }
 
 class NotificationPayloadModel {
   const NotificationPayloadModel({
@@ -38,9 +33,7 @@ class NotificationPayloadModel {
         map['routeName'] ?? map['route'] ?? map['path'],
         fallback: '/',
       ),
-      entityId: ApiPayloadReader.readString(
-        map['entityId'] ?? map['targetId'],
-      ),
+      entityId: ApiPayloadReader.readString(map['entityId'] ?? map['targetId']),
       metadata: metadata,
     );
   }

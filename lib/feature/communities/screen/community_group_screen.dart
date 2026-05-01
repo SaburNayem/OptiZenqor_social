@@ -142,6 +142,3 @@ class _CommunityGroupView extends StatelessWidget {
     );
   }
 }
-
-
-

@@ -19,10 +19,7 @@ Future<void> showSharePostActionSheet({
     try {
       await shareService.postEndpoint(
         'track',
-        payload: <String, dynamic>{
-          'targetId': post.id,
-          'option': option,
-        },
+        payload: <String, dynamic>{'targetId': post.id, 'option': option},
       );
     } catch (_) {}
   }

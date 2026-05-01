@@ -14,8 +14,8 @@ class JobsNetworkingRepository {
   Map<String, dynamic>? _jobsNetworkingPayload;
 
   Future<List<JobModel>> listJobs() async {
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.getEndpoint('jobs');
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('jobs');
     if (response.isSuccess && response.data['success'] != false) {
       final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
         response.data,
@@ -80,7 +80,8 @@ class JobsNetworkingRepository {
   }
 
   Future<CareerProfileModel> profile() async {
-    final Map<String, dynamic>? aggregatePayload = await _readAggregatePayload();
+    final Map<String, dynamic>? aggregatePayload =
+        await _readAggregatePayload();
     final Map<String, dynamic>? aggregateProfile = ApiPayloadReader.readMap(
       aggregatePayload?['profile'],
     );
@@ -99,8 +100,8 @@ class JobsNetworkingRepository {
       }
     }
 
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.getEndpoint('professional_profiles');
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('professional_profiles');
     if (response.isSuccess && response.data['success'] != false) {
       final Map<String, dynamic>? data = ApiPayloadReader.readMap(
         response.data['data'],
@@ -138,7 +139,8 @@ class JobsNetworkingRepository {
   }
 
   Future<EmployerStatsModel> employerStats() async {
-    final Map<String, dynamic>? aggregatePayload = await _readAggregatePayload();
+    final Map<String, dynamic>? aggregatePayload =
+        await _readAggregatePayload();
     final Map<String, dynamic>? aggregateStats = ApiPayloadReader.readMap(
       aggregatePayload?['employerStats'],
     );
@@ -146,8 +148,9 @@ class JobsNetworkingRepository {
       return _employerStatsFromApiJson(aggregateStats);
     }
 
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.apiClient.get(ApiEndPoints.jobsEmployerStats);
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(ApiEndPoints.jobsEmployerStats);
     if (response.isSuccess && response.data.isNotEmpty) {
       final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
       if (payload != null && payload.isNotEmpty) {
@@ -164,7 +167,8 @@ class JobsNetworkingRepository {
   }
 
   Future<EmployerProfileModel> employerProfile() async {
-    final Map<String, dynamic>? aggregatePayload = await _readAggregatePayload();
+    final Map<String, dynamic>? aggregatePayload =
+        await _readAggregatePayload();
     final Map<String, dynamic>? aggregateProfile = ApiPayloadReader.readMap(
       aggregatePayload?['employerProfile'],
     );
@@ -172,8 +176,9 @@ class JobsNetworkingRepository {
       return _employerProfileFromApiJson(aggregateProfile);
     }
 
-    final ServiceResponseModel<Map<String, dynamic>> response =
-        await _service.apiClient.get(ApiEndPoints.jobsEmployerProfile);
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(ApiEndPoints.jobsEmployerProfile);
     if (response.isSuccess && response.data.isNotEmpty) {
       final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
       if (payload != null && payload.isNotEmpty) {
@@ -209,12 +214,14 @@ class JobsNetworkingRepository {
       return _jobsNetworkingPayload;
     }
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(ApiEndPoints.jobsNetworking);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(ApiEndPoints.jobsNetworking);
       if (!response.isSuccess || response.data.isEmpty) {
         return null;
       }
-      _jobsNetworkingPayload = _unwrapSinglePayload(response.data) ?? response.data;
+      _jobsNetworkingPayload =
+          _unwrapSinglePayload(response.data) ?? response.data;
       return _jobsNetworkingPayload;
     } catch (_) {
       return null;
@@ -226,27 +233,29 @@ class JobsNetworkingRepository {
     required String endpoint,
     List<String> preferredKeys = const <String>[],
   }) async {
-    final Map<String, dynamic>? aggregatePayload = await _readAggregatePayload();
+    final Map<String, dynamic>? aggregatePayload =
+        await _readAggregatePayload();
     final List<Map<String, dynamic>> aggregateItems =
         ApiPayloadReader.readMapListFromAny(
-      aggregatePayload?[aggregateKey],
-      preferredKeys: preferredKeys,
-    );
+          aggregatePayload?[aggregateKey],
+          preferredKeys: preferredKeys,
+        );
     if (aggregateItems.isNotEmpty) {
       return aggregateItems;
     }
 
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(endpoint);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(endpoint);
       if (!response.isSuccess || response.data.isEmpty) {
         return const <Map<String, dynamic>>[];
       }
       final List<Map<String, dynamic>> items =
           ApiPayloadReader.readMapListFromAny(
-        response.data,
-        preferredKeys: preferredKeys,
-      );
+            response.data,
+            preferredKeys: preferredKeys,
+          );
       if (items.isNotEmpty) {
         return items;
       }
@@ -263,7 +272,9 @@ class JobsNetworkingRepository {
   }
 
   Map<String, dynamic>? _unwrapSinglePayload(Map<String, dynamic> payload) {
-    final Map<String, dynamic>? data = ApiPayloadReader.readMap(payload['data']);
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(
+      payload['data'],
+    );
     final Map<String, dynamic>? result = ApiPayloadReader.readMap(
       payload['result'],
     );
@@ -297,10 +308,7 @@ class JobsNetworkingRepository {
     return JobAlertModel(
       id: ApiPayloadReader.readString(json['id']),
       keyword: ApiPayloadReader.readString(json['keyword']),
-      location: ApiPayloadReader.readString(
-        json['location'],
-        fallback: 'Any',
-      ),
+      location: ApiPayloadReader.readString(json['location'], fallback: 'Any'),
       frequency: _alertFrequencyFromValue(json['frequency']),
       enabled: ApiPayloadReader.readBool(json['enabled']) ?? true,
     );

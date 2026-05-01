@@ -32,4 +32,3 @@ String mediaFilterLabel(CommunityMediaFilter filter) {
       return 'Videos';
   }
 }
-

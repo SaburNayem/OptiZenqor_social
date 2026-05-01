@@ -27,7 +27,10 @@ class AppNavigator {
     Object? arguments,
   }) {
     final String resolved = _withParameters(routeName, parameters);
-    return _navigator!.pushReplacementNamed<T, TO>(resolved, arguments: arguments);
+    return _navigator!.pushReplacementNamed<T, TO>(
+      resolved,
+      arguments: arguments,
+    );
   }
 
   static Future<T?> offAllNamed<T extends Object?>(
@@ -68,18 +71,11 @@ class AppNavigator {
     );
   }
 
-  static void showSnackBar({
-    required String title,
-    required String message,
-  }) {
+  static void showSnackBar({required String title, required String message}) {
     scaffoldMessengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(
-            title.isEmpty ? message : '$title: $message',
-          ),
-        ),
+        SnackBar(content: Text(title.isEmpty ? message : '$title: $message')),
       );
   }
 

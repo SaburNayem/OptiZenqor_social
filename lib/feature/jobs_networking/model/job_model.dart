@@ -346,9 +346,7 @@ class CareerProfileModel {
         json['resumeLabel'],
         fallback: 'Primary resume',
       ),
-      portfolioLinks: ApiPayloadReader.readStringList(
-        json['portfolioLinks'],
-      ),
+      portfolioLinks: ApiPayloadReader.readStringList(json['portfolioLinks']),
       availability: ApiPayloadReader.readString(
         json['availability'],
         fallback: 'Open to work',

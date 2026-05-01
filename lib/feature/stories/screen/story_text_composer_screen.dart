@@ -67,7 +67,12 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
               ),
               child: SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(16, 14, 16, keyboardInset > 0 ? 12 : 24),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    14,
+                    16,
+                    keyboardInset > 0 ? 12 : 24,
+                  ),
                   child: Column(
                     children: [
                       Row(
@@ -190,7 +195,8 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
                                                     style: TextStyle(
                                                       color: AppColors.white70,
                                                       fontSize: 34,
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                       height: 1.15,
                                                     ),
                                                   ),
@@ -273,10 +279,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     );
   }
 
-  Widget _buildSideTool({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildSideTool({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -326,10 +329,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     );
   }
 
-  Widget _buildOverlayChip({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _buildOverlayChip({required IconData icon, required String label}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -586,7 +586,8 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(mentionController.text),
+              onPressed: () =>
+                  Navigator.of(context).pop(mentionController.text),
               child: const Text('Save'),
             ),
           ],

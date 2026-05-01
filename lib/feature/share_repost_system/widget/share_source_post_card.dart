@@ -70,10 +70,7 @@ class ShareSourcePostCard extends StatelessWidget {
                   post.caption,
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.grey700,
-                    height: 1.35,
-                  ),
+                  style: TextStyle(color: AppColors.grey700, height: 1.35),
                 ),
               ],
             ),

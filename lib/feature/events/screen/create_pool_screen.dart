@@ -38,7 +38,10 @@ class _CreatePoolScreenState extends State<CreatePoolScreen> {
         ),
         title: const Text(
           'Create Pool',
-          style: TextStyle(color: AppColors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: AppColors.black87,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -228,15 +231,19 @@ class _PoolExampleRow extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.only(top: 4),
-          child: Icon(Icons.check_circle, size: 16, color: AppColors.hexFF00ACC1),
+          child: Icon(
+            Icons.check_circle,
+            size: 16,
+            color: AppColors.hexFF00ACC1,
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: DefaultTextStyle.of(context).style.copyWith(
-                color: AppColors.grey700,
-              ),
+              style: DefaultTextStyle.of(
+                context,
+              ).style.copyWith(color: AppColors.grey700),
               children: [
                 TextSpan(
                   text: '$title: ',
@@ -254,5 +261,3 @@ class _PoolExampleRow extends StatelessWidget {
     );
   }
 }
-
-

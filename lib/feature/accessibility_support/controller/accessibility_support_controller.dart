@@ -7,9 +7,15 @@ class AccessibilitySupportController extends ChangeNotifier {
     AccessibilityOptionModel(title: 'Reduce motion', enabled: false),
     AccessibilityOptionModel(title: 'Large tap targets', enabled: true),
     AccessibilityOptionModel(title: 'High contrast labels', enabled: false),
-    AccessibilityOptionModel(title: 'Captions/subtitles support placeholder', enabled: true),
+    AccessibilityOptionModel(
+      title: 'Captions/subtitles support placeholder',
+      enabled: true,
+    ),
     AccessibilityOptionModel(title: 'Alt text viewing', enabled: true),
-    AccessibilityOptionModel(title: 'VoiceOver labels refinement', enabled: true),
+    AccessibilityOptionModel(
+      title: 'VoiceOver labels refinement',
+      enabled: true,
+    ),
   ];
 
   void toggle(int index) {

@@ -7,7 +7,7 @@ enum PagesViewFilter { discover, following, managed }
 
 class PagesController extends ChangeNotifier {
   PagesController({PagesRepository? repository})
-      : _repository = repository ?? PagesRepository();
+    : _repository = repository ?? PagesRepository();
 
   final PagesRepository _repository;
   String currentUserId = '';
@@ -25,9 +25,8 @@ class PagesController extends ChangeNotifier {
       .where((page) => page.ownerId == currentUserId)
       .toList(growable: false);
 
-  List<PageModel> get followingPages => pages
-      .where((page) => page.following)
-      .toList(growable: false);
+  List<PageModel> get followingPages =>
+      pages.where((page) => page.following).toList(growable: false);
 
   List<PageModel> get featuredPages => pages.take(4).toList(growable: false);
 
@@ -54,7 +53,8 @@ class PagesController extends ChangeNotifier {
     return results.toList(growable: false);
   }
 
-  int get totalPosts => pages.fold<int>(0, (sum, page) => sum + page.posts.length);
+  int get totalPosts =>
+      pages.fold<int>(0, (sum, page) => sum + page.posts.length);
 
   void updateQuery(String value) {
     query = value;
@@ -71,69 +71,36 @@ class PagesController extends ChangeNotifier {
 
   bool isManagedPage(PageModel page) => page.ownerId == currentUserId;
 
-  void createPage({
+  Future<void> createPage({
     required String name,
     required String about,
     required String category,
-  }) {
-    final trimmedName = name.trim();
-    final trimmedAbout = about.trim();
-    final trimmedCategory = category.trim();
-    if (trimmedName.isEmpty) {
+  }) async {
+    if (name.trim().isEmpty) {
       return;
     }
-    pages = <PageModel>[
-      PageModel(
-        id: 'page_${DateTime.now().millisecondsSinceEpoch}',
-        name: trimmedName,
-        about: trimmedAbout.isEmpty
-            ? 'New page ready for updates, announcements, and audience growth.'
-            : trimmedAbout,
-        posts: const <String>[
-          'Welcome post created. Add your first update to introduce this page.'
-        ],
-        category: trimmedCategory.isEmpty ? 'General' : trimmedCategory,
-        following: true,
-        actionButtonLabel: 'Manage',
-        reviewSummary: 'Page reviews will appear once your audience starts engaging.',
-        visitorPostsSummary: 'Visitor posts are currently moderated by page admins.',
-        followersInsight: 'New page created. Publish regularly to build reach.',
-        avatarUrl: 'https://placehold.co/120x120',
-        coverUrl:
-            'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200',
-        followersCount: 0,
-        likesCount: 0,
-        verified: false,
-        ownerId: currentUserId,
-        location: 'Creator Studio',
-        contactLabel: 'Manage',
-        highlights: const <String>['Welcome', 'Updates', 'Community'],
-      ),
-      ...pages,
-    ];
+    final PageModel? created = await _repository.createPage(
+      name: name,
+      about: about,
+      category: category,
+    );
+    if (created == null) {
+      return;
+    }
+    pages = <PageModel>[created, ...pages];
     selectedFilter = PagesViewFilter.managed;
     query = '';
     notifyListeners();
   }
 
-  void toggleFollow(String id) {
+  Future<void> toggleFollow(String id) async {
+    final PageModel? updated = await _repository.toggleFollow(id);
+    if (updated == null) {
+      return;
+    }
     pages = pages
-        .map(
-          (page) {
-            if (page.id != id) {
-              return page;
-            }
-            final nextFollowing = !page.following;
-            final nextFollowersCount = nextFollowing
-                ? page.followersCount + 1
-                : (page.followersCount > 0 ? page.followersCount - 1 : 0);
-            return page.copyWith(
-              following: nextFollowing,
-              followersCount: nextFollowersCount,
-            );
-          },
-        )
-        .toList();
+        .map((page) => page.id == id ? updated : page)
+        .toList(growable: false);
     notifyListeners();
   }
 }

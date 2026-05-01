@@ -209,5 +209,3 @@ class CommunitySectionTitle extends StatelessWidget {
     );
   }
 }
-
-

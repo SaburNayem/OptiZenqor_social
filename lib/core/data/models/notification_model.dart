@@ -23,14 +23,14 @@ class NotificationModel {
   final String entityType;
 
   factory NotificationModel.fromApiJson(Map<String, dynamic> json) {
-    final Map<String, dynamic> payload = ApiPayloadReader.readMap(
-          json['payload'],
-        ) ??
+    final Map<String, dynamic> payload =
+        ApiPayloadReader.readMap(json['payload']) ??
         <String, dynamic>{
           'type': json['type'],
           'routeName': json['routeName'] ?? json['route'] ?? '/',
           'entityId': json['entityId'] ?? json['targetId'],
-          'metadata': ApiPayloadReader.readMap(json['metadata']) ??
+          'metadata':
+              ApiPayloadReader.readMap(json['metadata']) ??
               const <String, dynamic>{},
         };
 
@@ -40,9 +40,7 @@ class NotificationModel {
         json['title'],
         fallback: 'Notification',
       ),
-      body: ApiPayloadReader.readString(
-        json['body'] ?? json['message'],
-      ),
+      body: ApiPayloadReader.readString(json['body'] ?? json['message']),
       createdAt:
           ApiPayloadReader.readDateTime(
             json['createdAt'] ?? json['timestamp'],
@@ -50,8 +48,7 @@ class NotificationModel {
           DateTime.now(),
       payload: NotificationPayloadModel.fromMap(payload),
       unread:
-          ApiPayloadReader.readBool(json['unread'] ?? json['isUnread']) ??
-          true,
+          ApiPayloadReader.readBool(json['unread'] ?? json['isUnread']) ?? true,
       actorName: ApiPayloadReader.readString(
         json['actorName'] ?? json['senderName'],
       ),
@@ -62,4 +59,3 @@ class NotificationModel {
     );
   }
 }
-

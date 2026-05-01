@@ -250,5 +250,3 @@ class _CommunityBottomAction extends StatelessWidget {
     );
   }
 }
-
-

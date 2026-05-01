@@ -61,8 +61,9 @@ class UserProfileRepository {
       StorageKeys.authSession,
     );
     final Map<String, dynamic>? sessionUser = _readMap(authSession?['user']);
-    final String sessionUserId =
-        (sessionUser?['id'] as Object? ?? '').toString().trim();
+    final String sessionUserId = (sessionUser?['id'] as Object? ?? '')
+        .toString()
+        .trim();
     if (sessionUserId.isNotEmpty) {
       return sessionUserId;
     }
@@ -162,28 +163,27 @@ class UserProfileRepository {
     }
 
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(ApiEndPoints.userFollowState(trimmedTargetUserId));
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(ApiEndPoints.userFollowState(trimmedTargetUserId));
       if (!response.isSuccess || response.data['success'] == false) {
         return const FollowRemoteState();
       }
       return FollowRemoteState(
         isFollowing:
-            _extractBoolean(
-              response.data,
-              const <String>['isFollowing', 'following', 'followed'],
-            ) ??
+            _extractBoolean(response.data, const <String>[
+              'isFollowing',
+              'following',
+              'followed',
+            ]) ??
             false,
         hasPendingRequest:
-            _extractBoolean(
-              response.data,
-              const <String>[
-                'hasPendingRequest',
-                'pending',
-                'requested',
-                'requestPending',
-              ],
-            ) ??
+            _extractBoolean(response.data, const <String>[
+              'hasPendingRequest',
+              'pending',
+              'requested',
+              'requestPending',
+            ]) ??
             false,
       );
     } catch (_) {
@@ -221,23 +221,24 @@ class UserProfileRepository {
         : ApiEndPoints.userFollow(user.id);
 
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.post(endpoint, const <String, dynamic>{});
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .post(endpoint, const <String, dynamic>{});
       if (response.isSuccess && response.data['success'] != false) {
-        final bool resolvedIsFollowing = _extractBoolean(
-              response.data,
-              const <String>['isFollowing', 'following', 'followed'],
-            ) ??
+        final bool resolvedIsFollowing =
+            _extractBoolean(response.data, const <String>[
+              'isFollowing',
+              'following',
+              'followed',
+            ]) ??
             (wantsPendingRequest ? false : !isCurrentlyFollowing);
-        final bool resolvedPending = _extractBoolean(
-              response.data,
-              const <String>[
-                'hasPendingRequest',
-                'pending',
-                'requested',
-                'requestPending',
-              ],
-            ) ??
+        final bool resolvedPending =
+            _extractBoolean(response.data, const <String>[
+              'hasPendingRequest',
+              'pending',
+              'requested',
+              'requestPending',
+            ]) ??
             (wantsPendingRequest && !resolvedIsFollowing);
         return FollowToggleResult(
           isFollowing: resolvedIsFollowing,
@@ -254,17 +255,18 @@ class UserProfileRepository {
     );
   }
 
-  Future<ProfileSaveResult> updateCurrentProfile(ProfileUpdateModel update) async {
+  Future<ProfileSaveResult> updateCurrentProfile(
+    ProfileUpdateModel update,
+  ) async {
     final UserModel mergedUser =
         (await getCurrentProfile()) ??
         UserModel(
           id: await getCurrentUserId(),
           name: update.name.trim(),
           username: update.username.trim(),
-          avatar:
-              update.avatarUrl?.trim().isNotEmpty == true
-                  ? update.avatarUrl!.trim()
-                  : 'https://placehold.co/120x120',
+          avatar: update.avatarUrl?.trim().isNotEmpty == true
+              ? update.avatarUrl!.trim()
+              : 'https://placehold.co/120x120',
           bio: update.bio.trim(),
           role: UserRole.user,
           followers: 0,
@@ -278,13 +280,11 @@ class UserProfileRepository {
         );
 
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.patchEndpoint(
-            'edit_profile',
-            payload: update.toPayload(),
-          );
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .patchEndpoint('edit_profile', payload: update.toPayload());
       if (response.isSuccess && response.data['success'] != false) {
-        final UserModel savedUser = _extractUserFromPayload(response.data) ?? mergedUser;
+        final UserModel savedUser =
+            _extractUserFromPayload(response.data) ?? mergedUser;
         await _cacheProfile(savedUser);
         await _persistUserInSession(savedUser);
         return ProfileSaveResult(
@@ -311,8 +311,9 @@ class UserProfileRepository {
     }
 
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(ApiEndPoints.profileTaggedPosts(trimmedUserId));
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(ApiEndPoints.profileTaggedPosts(trimmedUserId));
       if (!response.isSuccess || response.data['success'] == false) {
         return const <PostTagSummary>[];
       }
@@ -339,20 +340,26 @@ class UserProfileRepository {
     }
 
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(ApiEndPoints.profileMentionHistory(trimmedUserId));
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(ApiEndPoints.profileMentionHistory(trimmedUserId));
       if (!response.isSuccess || response.data['success'] == false) {
         return const <String>[];
       }
       final List<Map<String, dynamic>> items = _readMapList(response.data);
       if (items.isNotEmpty) {
         return items
-            .map((Map<String, dynamic> item) => (item['message'] as Object? ?? '').toString().trim())
+            .map(
+              (Map<String, dynamic> item) =>
+                  (item['message'] as Object? ?? '').toString().trim(),
+            )
             .where((String item) => item.isNotEmpty)
             .toList(growable: false);
       }
       final List<String> rawItems = _readStringList(response.data);
-      return rawItems.where((String item) => item.trim().isNotEmpty).toList(growable: false);
+      return rawItems
+          .where((String item) => item.trim().isNotEmpty)
+          .toList(growable: false);
     } catch (_) {
       return const <String>[];
     }
@@ -360,11 +367,9 @@ class UserProfileRepository {
 
   Future<Map<String, dynamic>> buildDataExport(UserModel user) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.post(
-            ApiEndPoints.legalDataExport,
-            const <String, dynamic>{},
-          );
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .post(ApiEndPoints.legalDataExport, const <String, dynamic>{});
       if (response.isSuccess && response.data['success'] != false) {
         final List<Map<String, dynamic>> requests = await _storage.readJsonList(
           StorageKeys.dataExportRequests,
@@ -426,8 +431,9 @@ class UserProfileRepository {
 
   Future<UserModel?> _fetchUser(String endpoint) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(endpoint);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(endpoint);
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
@@ -442,8 +448,9 @@ class UserProfileRepository {
     bool allowEmptyResult = false,
   }) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(endpoint);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(endpoint);
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
@@ -462,8 +469,9 @@ class UserProfileRepository {
     required String userId,
   }) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(endpoint);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(endpoint);
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
@@ -481,8 +489,9 @@ class UserProfileRepository {
     required String userId,
   }) async {
     try {
-      final ServiceResponseModel<Map<String, dynamic>> response =
-          await _service.apiClient.get(endpoint);
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get(endpoint);
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }

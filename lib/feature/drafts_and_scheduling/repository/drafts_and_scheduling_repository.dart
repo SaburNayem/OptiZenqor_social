@@ -21,7 +21,10 @@ class DraftsAndSchedulingRepository {
           taggedPeople: <String>['@nexa.studio'],
           altText: 'Incomplete carousel draft from creator meetup',
           versionHistory: <String>['v1 moodboard', 'v2 caption polish'],
-          editHistory: <String>['Audience changed to Followers', 'Still incomplete'],
+          editHistory: <String>[
+            'Audience changed to Followers',
+            'Still incomplete',
+          ],
         ),
         DraftItemModel(
           id: 's1',

@@ -53,7 +53,9 @@ class _PagesScreenState extends State<PagesScreen> {
                   hintText: 'Search pages',
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  fillColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(18),
                     borderSide: BorderSide.none,
@@ -82,9 +84,7 @@ class _PagesScreenState extends State<PagesScreen> {
                         _controller.selectFilter(PagesViewFilter.following),
                   ),
                   ChoiceChip(
-                    label: Text(
-                      'Managed ${_controller.managedPages.length}',
-                    ),
+                    label: Text('Managed ${_controller.managedPages.length}'),
                     selected:
                         _controller.selectedFilter == PagesViewFilter.managed,
                     onSelected: (_) =>
@@ -161,10 +161,12 @@ class _PagesScreenState extends State<PagesScreen> {
                   message: _controller.selectedFilter == PagesViewFilter.managed
                       ? 'Create your first page to start posting updates, building followers, and growing your public presence.'
                       : 'Try a different search or switch filters to browse more pages.',
-                  actionLabel: _controller.selectedFilter == PagesViewFilter.managed
+                  actionLabel:
+                      _controller.selectedFilter == PagesViewFilter.managed
                       ? 'Create page'
                       : null,
-                  onAction: _controller.selectedFilter == PagesViewFilter.managed
+                  onAction:
+                      _controller.selectedFilter == PagesViewFilter.managed
                       ? _showCreatePageSheet
                       : null,
                 )
@@ -231,10 +233,8 @@ class _PagesScreenState extends State<PagesScreen> {
   Future<void> _openPageDetail(String pageId) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => _PageDetailScreen(
-          controller: _controller,
-          pageId: pageId,
-        ),
+        builder: (_) =>
+            _PageDetailScreen(controller: _controller, pageId: pageId),
       ),
     );
   }
@@ -329,11 +329,7 @@ class _CreatePageSheetState extends State<_CreatePageSheet> {
       AppGet.snackbar('Pages', 'Fill in page name, category, and about');
       return;
     }
-    widget.controller.createPage(
-      name: name,
-      about: about,
-      category: category,
-    );
+    widget.controller.createPage(name: name, about: about, category: category);
     Navigator.of(context).pop(true);
   }
 
@@ -420,9 +416,9 @@ class _PagesStatCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 2),
           Text(label),
@@ -445,9 +441,9 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 4),
         Text(subtitle),
@@ -478,7 +474,9 @@ class _FeaturedPageCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
           boxShadow: const [
             BoxShadow(
               color: AppColors.hex12000000,
@@ -491,7 +489,9 @@ class _FeaturedPageCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
               child: Image.network(
                 page.coverUrl,
                 height: 108,
@@ -611,13 +611,17 @@ class _PageListCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
               child: Image.network(
                 page.coverUrl,
                 height: 140,
@@ -733,10 +737,7 @@ class _PageListCard extends StatelessWidget {
 }
 
 class _PageDetailScreen extends StatelessWidget {
-  const _PageDetailScreen({
-    required this.controller,
-    required this.pageId,
-  });
+  const _PageDetailScreen({required this.controller, required this.pageId});
 
   final PagesController controller;
   final String pageId;
@@ -796,9 +797,7 @@ class _PageDetailScreen extends StatelessWidget {
                         Expanded(
                           child: Text(
                             page.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.w800),
                           ),
                         ),
@@ -817,9 +816,9 @@ class _PageDetailScreen extends StatelessWidget {
                     const SizedBox(height: 14),
                     Text(
                       page.about,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        height: 1.4,
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(height: 1.4),
                     ),
                     const SizedBox(height: 18),
                     Row(
@@ -875,9 +874,9 @@ class _PageDetailScreen extends StatelessWidget {
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerLowest,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerLowest,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(post),
@@ -969,9 +968,9 @@ class _InfoCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
           Text(body),

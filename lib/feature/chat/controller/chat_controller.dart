@@ -17,10 +17,9 @@ class ChatController extends ChangeNotifier {
     ChatRepository? repository,
     AnalyticsService? analytics,
     SocketService? socketService,
-  })
-    : _repository = repository ?? ChatRepository(),
-      _analytics = analytics ?? AnalyticsService(),
-      _socketService = socketService ?? SocketService.instance;
+  }) : _repository = repository ?? ChatRepository(),
+       _analytics = analytics ?? AnalyticsService(),
+       _socketService = socketService ?? SocketService.instance;
 
   final ChatRepository _repository;
   final AnalyticsService _analytics;
@@ -49,7 +48,9 @@ class ChatController extends ChangeNotifier {
 
   List<ChatThreadModel> get inboxThreads {
     final visible = threads
-        .where((ChatThreadModel item) => !_archivedChatIds.contains(item.chatId))
+        .where(
+          (ChatThreadModel item) => !_archivedChatIds.contains(item.chatId),
+        )
         .toList();
     visible.sort((ChatThreadModel a, ChatThreadModel b) {
       final bool aPinned = _pinnedChatIds.contains(a.chatId);

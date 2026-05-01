@@ -31,10 +31,7 @@ class PostCommentThread extends StatelessWidget {
     return Column(children: tiles);
   }
 
-  List<Widget> _buildBranch({
-    required String? parentId,
-    required int depth,
-  }) {
+  List<Widget> _buildBranch({required String? parentId, required int depth}) {
     final List<PostCommentModel> currentLevel = comments
         .where((PostCommentModel item) => item.replyTo == parentId)
         .toList(growable: false);

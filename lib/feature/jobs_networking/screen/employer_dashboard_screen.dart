@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../model/job_model.dart';
 
 class EmployerDashboardScreen extends StatelessWidget {
-  const EmployerDashboardScreen({
-    required this.stats,
-    super.key,
-  });
+  const EmployerDashboardScreen({required this.stats, super.key});
 
   final EmployerStatsModel stats;
 
@@ -32,7 +29,9 @@ class EmployerDashboardScreen extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.auto_awesome_rounded),
             title: Text('AI job recommendations'),
-            subtitle: Text('Suggested roles based on applicant interest and trend signals'),
+            subtitle: Text(
+              'Suggested roles based on applicant interest and trend signals',
+            ),
           ),
           const ListTile(
             contentPadding: EdgeInsets.zero,
@@ -60,7 +59,13 @@ class EmployerDashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(label),
             ],

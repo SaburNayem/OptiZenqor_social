@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum CreatePostMediaSheetAction {
-  chooseMedia,
-  chooseVideo,
-  capturePhoto,
-}
+enum CreatePostMediaSheetAction { chooseMedia, chooseVideo, capturePhoto }
 
 class CreatePostSheetHelper {
   CreatePostSheetHelper._();
@@ -104,8 +100,9 @@ class CreatePostSheetHelper {
     String initialValue = '',
     int maxLines = 1,
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: initialValue);
+    final TextEditingController controller = TextEditingController(
+      text: initialValue,
+    );
     final String? result = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -122,7 +119,8 @@ class CreatePostSheetHelper {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
               child: const Text('Save'),
             ),
           ],

@@ -179,10 +179,10 @@ class AuthService {
     required String endpoint,
     required Map<String, dynamic> payload,
   }) {
-    return _storage.writeJson(
-      StorageKeys.authSession,
-      <String, dynamic>{'endpoint': endpoint, ...payload},
-    );
+    return _storage.writeJson(StorageKeys.authSession, <String, dynamic>{
+      'endpoint': endpoint,
+      ...payload,
+    });
   }
 
   Future<void> _persistAuthSessionIfAvailable(
@@ -222,10 +222,9 @@ class AuthService {
     final AuthSessionModel authSession = AuthSessionModel(
       isLoggedIn: true,
       accessToken: accessToken.trim(),
-      refreshToken:
-          (session?['refreshToken'] ?? tokens?['refreshToken'] ?? '')
-              .toString()
-              .trim(),
+      refreshToken: (session?['refreshToken'] ?? tokens?['refreshToken'] ?? '')
+          .toString()
+          .trim(),
       tokenType: (session?['tokenType'] as String? ?? 'Bearer').trim(),
       role: _role.name,
       email: resolvedEmail,

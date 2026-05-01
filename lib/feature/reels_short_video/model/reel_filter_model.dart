@@ -1,8 +1,4 @@
-enum ReelFeedFilter {
-  forYou,
-  following,
-  saved,
-}
+enum ReelFeedFilter { forYou, following, saved }
 
 class ReelFilterModel {
   const ReelFilterModel({required this.filter});

@@ -49,9 +49,7 @@ class PageModel {
         json['name'],
         fallback: 'Untitled page',
       ),
-      about: ApiPayloadReader.readString(
-        json['about'] ?? json['description'],
-      ),
+      about: ApiPayloadReader.readString(json['about'] ?? json['description']),
       posts: ApiPayloadReader.readStringList(
         json['posts'] ?? json['postTitles'],
       ),
@@ -89,9 +87,7 @@ class PageModel {
       verified:
           ApiPayloadReader.readBool(json['verified'] ?? json['isVerified']) ??
           false,
-      ownerId: ApiPayloadReader.readString(
-        json['ownerId'] ?? json['userId'],
-      ),
+      ownerId: ApiPayloadReader.readString(json['ownerId'] ?? json['userId']),
       location: ApiPayloadReader.readString(
         json['location'],
         fallback: 'Global',
@@ -109,24 +105,24 @@ class PageModel {
     int? followersCount,
     List<String>? posts,
   }) => PageModel(
-        id: id,
-        name: name,
-        about: about,
-        posts: posts ?? this.posts,
-        following: following ?? this.following,
-        category: category,
-        actionButtonLabel: actionButtonLabel,
-        reviewSummary: reviewSummary,
-        visitorPostsSummary: visitorPostsSummary,
-        followersInsight: followersInsight,
-        avatarUrl: avatarUrl,
-        coverUrl: coverUrl,
-        followersCount: followersCount ?? this.followersCount,
-        likesCount: likesCount,
-        verified: verified,
-        ownerId: ownerId,
-        location: location,
-        contactLabel: contactLabel,
-        highlights: highlights,
-      );
+    id: id,
+    name: name,
+    about: about,
+    posts: posts ?? this.posts,
+    following: following ?? this.following,
+    category: category,
+    actionButtonLabel: actionButtonLabel,
+    reviewSummary: reviewSummary,
+    visitorPostsSummary: visitorPostsSummary,
+    followersInsight: followersInsight,
+    avatarUrl: avatarUrl,
+    coverUrl: coverUrl,
+    followersCount: followersCount ?? this.followersCount,
+    likesCount: likesCount,
+    verified: verified,
+    ownerId: ownerId,
+    location: location,
+    contactLabel: contactLabel,
+    highlights: highlights,
+  );
 }

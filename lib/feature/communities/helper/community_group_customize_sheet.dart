@@ -298,5 +298,3 @@ class _SheetHeader extends StatelessWidget {
     );
   }
 }
-
-

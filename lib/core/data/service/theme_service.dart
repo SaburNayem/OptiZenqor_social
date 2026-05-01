@@ -9,7 +9,9 @@ class ThemeService {
   static final ThemeService instance = ThemeService._();
 
   final AppSharedPreferences _storage = AppSharedPreferences();
-  final ValueNotifier<ThemeMode> mode = ValueNotifier<ThemeMode>(ThemeMode.system);
+  final ValueNotifier<ThemeMode> mode = ValueNotifier<ThemeMode>(
+    ThemeMode.system,
+  );
 
   Future<void> init() async {
     final saved = await _storage.read<String>(StorageKeys.themeMode);

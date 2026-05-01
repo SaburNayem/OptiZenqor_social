@@ -306,10 +306,7 @@ class ApiClientService {
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
         statusCode: 503,
-        data: <String, dynamic>{
-          'success': false,
-          'message': fallbackMessage,
-        },
+        data: <String, dynamic>{'success': false, 'message': fallbackMessage},
         message: fallbackMessage,
       );
     }
@@ -328,8 +325,7 @@ class ApiClientService {
     return <String, String>{
       'Accept': 'application/json',
       if (includeJsonContentType) 'Content-Type': 'application/json',
-      if (accessToken.isNotEmpty)
-        'Authorization': '$tokenType $accessToken',
+      if (accessToken.isNotEmpty) 'Authorization': '$tokenType $accessToken',
       ...?overrides,
     };
   }
@@ -380,7 +376,9 @@ class ApiClientService {
       final Map<String, dynamic>? sessionPayload = _readMap(
         payload['data'] ?? payload['session'] ?? payload['result'] ?? payload,
       );
-      final Map<String, dynamic>? tokenMap = _readMap(sessionPayload?['tokens']);
+      final Map<String, dynamic>? tokenMap = _readMap(
+        sessionPayload?['tokens'],
+      );
       final String newAccessToken =
           (sessionPayload?['accessToken'] ??
                   sessionPayload?['token'] ??
@@ -412,7 +410,9 @@ class ApiClientService {
       return true;
     } on Object catch (error) {
       if (kDebugMode) {
-        debugPrint('[ApiClientService] refresh failed endpoint=$endpoint $error');
+        debugPrint(
+          '[ApiClientService] refresh failed endpoint=$endpoint $error',
+        );
       }
       await _clearExpiredSession();
       return false;

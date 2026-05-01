@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_button.dart';
 
 class ErrorStateView extends StatelessWidget {
-  const ErrorStateView({
-    required this.message,
-    super.key,
-    this.onRetry,
-  });
+  const ErrorStateView({required this.message, super.key, this.onRetry});
 
   final String message;
   final VoidCallback? onRetry;
@@ -28,11 +24,7 @@ class ErrorStateView extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
-            AppButton(
-              label: 'Retry',
-              onPressed: onRetry,
-              expanded: false,
-            ),
+            AppButton(label: 'Retry', onPressed: onRetry, expanded: false),
           ],
         ),
       ),

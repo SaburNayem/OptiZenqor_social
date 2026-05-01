@@ -22,7 +22,11 @@ class AppUpdateFlowController extends ChangeNotifier {
   bool isUpdating = false;
 
   Future<void> load() async {
-    for (final String key in <String>['app_update_flow', 'config', 'bootstrap']) {
+    for (final String key in <String>[
+      'app_update_flow',
+      'config',
+      'bootstrap',
+    ]) {
       try {
         final ServiceResponseModel<Map<String, dynamic>> response =
             await _service.getEndpoint(key);

@@ -40,11 +40,16 @@ class CommunitiesCubit extends Cubit<CommunitiesState> {
       return;
     }
     final bool targetJoined = !current.joined;
-    final CommunityGroupModel optimistic = current.copyWith(joined: targetJoined);
+    final CommunityGroupModel optimistic = current.copyWith(
+      joined: targetJoined,
+    );
     emit(
       state.copyWith(
         groups: state.groups
-            .map((CommunityGroupModel group) => group.id == id ? optimistic : group)
+            .map(
+              (CommunityGroupModel group) =>
+                  group.id == id ? optimistic : group,
+            )
             .toList(growable: false),
       ),
     );
@@ -56,7 +61,9 @@ class CommunitiesCubit extends Cubit<CommunitiesState> {
       emit(
         state.copyWith(
           groups: state.groups
-              .map((CommunityGroupModel group) => group.id == id ? current : group)
+              .map(
+                (CommunityGroupModel group) => group.id == id ? current : group,
+              )
               .toList(growable: false),
         ),
       );
@@ -87,8 +94,8 @@ class CommunitiesCubit extends Cubit<CommunitiesState> {
     if (created == null) {
       return;
     }
-    emit(state.copyWith(groups: <CommunityGroupModel>[created, ...state.groups]));
+    emit(
+      state.copyWith(groups: <CommunityGroupModel>[created, ...state.groups]),
+    );
   }
 }
-
-

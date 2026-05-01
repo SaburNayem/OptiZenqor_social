@@ -96,7 +96,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           child: const Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.delete_outline, color: AppColors.white),
+                              Icon(
+                                Icons.delete_outline,
+                                color: AppColors.white,
+                              ),
                               SizedBox(height: 4),
                               Text(
                                 'Delete',
@@ -156,9 +159,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   ? AppColors.hexFFF2F7FF
                                   : AppColors.white,
                               borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: AppColors.hexFFE9EEF5,
-                              ),
+                              border: Border.all(color: AppColors.hexFFE9EEF5),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,5 +406,3 @@ class _NotificationActionSheet extends StatelessWidget {
     );
   }
 }
-
-

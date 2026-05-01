@@ -117,10 +117,7 @@ class _SavedPostThumbnail extends StatelessWidget {
     if (item.isVideo) {
       return Container(
         color: AppColors.black87,
-        child: const Icon(
-          Icons.videocam_outlined,
-          color: AppColors.white,
-        ),
+        child: const Icon(Icons.videocam_outlined, color: AppColors.white),
       );
     }
     if (item.thumbnail.startsWith('http://') ||

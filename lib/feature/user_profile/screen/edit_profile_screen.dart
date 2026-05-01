@@ -108,10 +108,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
-                      _buildField(
-                        controller: _nameController,
-                        label: 'Name',
-                      ),
+                      _buildField(controller: _nameController, label: 'Name'),
                       _buildField(
                         controller: _usernameController,
                         label: 'Username',
@@ -235,9 +232,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final ImageProvider imageProvider = _profileImageFile != null
         ? FileImage(_profileImageFile!)
         : (_user?.avatar.trim().isNotEmpty == true
-              ? NetworkImage(_user!.avatar.trim())
-              : const NetworkImage('https://placehold.co/120x120'))
-            as ImageProvider;
+                  ? NetworkImage(_user!.avatar.trim())
+                  : const NetworkImage('https://placehold.co/120x120'))
+              as ImageProvider;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -330,9 +327,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         decoration: InputDecoration(
           labelText: label,
           prefixText: prefixText,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
     );
@@ -438,7 +433,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return;
       }
 
-      final String warningText = warnings.isEmpty ? '' : ' ${warnings.join(' ')}';
+      final String warningText = warnings.isEmpty
+          ? ''
+          : ' ${warnings.join(' ')}';
       AppGet.snackbar('Edit Profile', '${result.message}$warningText');
       AppGet.back(result: true);
     } catch (error) {
@@ -458,7 +455,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<String> _uploadImage(String localPath, {required String folder}) async {
+  Future<String> _uploadImage(
+    String localPath, {
+    required String folder,
+  }) async {
     final String taskId =
         'profile-${DateTime.now().microsecondsSinceEpoch}-${folder.hashCode}';
     UploadProgress? lastProgress;

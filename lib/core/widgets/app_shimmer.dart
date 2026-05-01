@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 class AppShimmer extends StatefulWidget {
-  const AppShimmer({
-    super.key,
-    required this.child,
-  });
+  const AppShimmer({super.key, required this.child});
 
   final Widget child;
 

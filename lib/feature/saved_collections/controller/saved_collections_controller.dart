@@ -43,15 +43,7 @@ class SavedCollectionsController extends Cubit<SavedCollectionsState> {
     if (name.trim().isEmpty) {
       return;
     }
-    final pendingCollections = <SavedCollectionModel>[
-      SavedCollectionModel(
-        id: 'col_${DateTime.now().millisecondsSinceEpoch}',
-        name: name.trim(),
-        itemIds: const <String>[],
-      ),
-      ...state.collections,
-    ];
-    final collections = await _repository.write(pendingCollections);
+    final collections = await _repository.create(name.trim());
     emit(state.copyWith(collections: collections, draftName: ''));
   }
 
@@ -60,33 +52,57 @@ class SavedCollectionsController extends Cubit<SavedCollectionsState> {
     String targetId,
     String itemId,
   ) async {
-    final pendingCollections = state.collections.map((collection) {
-      if (collection.id == sourceId) {
-        return collection.copyWith(
-          itemIds: collection.itemIds.where((id) => id != itemId).toList(),
-        );
-      }
-      if (collection.id == targetId && !collection.itemIds.contains(itemId)) {
-        return collection.copyWith(
-          itemIds: <String>[...collection.itemIds, itemId],
-        );
-      }
-      return collection;
-    }).toList();
-    final collections = await _repository.write(pendingCollections);
+    SavedCollectionModel? sourceUpdated;
+    SavedCollectionModel? targetUpdated;
+    final SavedCollectionModel? source = state.collections
+        .where((collection) => collection.id == sourceId)
+        .firstOrNull;
+    if (source != null) {
+      sourceUpdated = await _repository.updateItems(
+        sourceId,
+        source.itemIds.where((id) => id != itemId).toList(growable: false),
+      );
+    }
+    if (targetId.isNotEmpty) {
+      targetUpdated = await _repository.addItem(targetId, itemId);
+    }
+    final collections = state.collections
+        .map((collection) {
+          if (sourceUpdated != null && collection.id == sourceUpdated.id) {
+            return sourceUpdated;
+          }
+          if (targetUpdated != null && collection.id == targetUpdated.id) {
+            return targetUpdated;
+          }
+          return collection;
+        })
+        .toList(growable: false);
     emit(state.copyWith(collections: collections));
   }
 
   Future<void> remove(String collectionId, String itemId) async {
-    final pendingCollections = state.collections.map((collection) {
-      if (collection.id != collectionId) {
-        return collection;
-      }
-      return collection.copyWith(
-        itemIds: collection.itemIds.where((id) => id != itemId).toList(),
-      );
-    }).toList();
-    final collections = await _repository.write(pendingCollections);
-    emit(state.copyWith(collections: collections));
+    final SavedCollectionModel? source = state.collections
+        .where((collection) => collection.id == collectionId)
+        .firstOrNull;
+    if (source == null) {
+      return;
+    }
+    final SavedCollectionModel? updated = await _repository.updateItems(
+      collectionId,
+      source.itemIds.where((id) => id != itemId).toList(growable: false),
+    );
+    if (updated == null) {
+      return;
+    }
+    emit(
+      state.copyWith(
+        collections: state.collections
+            .map(
+              (collection) =>
+                  collection.id == updated.id ? updated : collection,
+            )
+            .toList(growable: false),
+      ),
+    );
   }
 }

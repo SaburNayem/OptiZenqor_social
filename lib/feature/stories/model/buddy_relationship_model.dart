@@ -22,10 +22,7 @@ class BuddyRelationshipModel {
     );
     return BuddyRelationshipModel(
       id: ApiPayloadReader.readString(json['id'] ?? json['_id']),
-      status: ApiPayloadReader.readString(
-        json['status'],
-        fallback: 'accepted',
-      ),
+      status: ApiPayloadReader.readString(json['status'], fallback: 'accepted'),
       mutualCount: ApiPayloadReader.readInt(
         json['mutualCount'] ?? json['mutuals'],
       ),

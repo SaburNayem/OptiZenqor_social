@@ -1156,5 +1156,3 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 }
-
-

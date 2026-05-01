@@ -12,10 +12,8 @@ Future<String?> showSavePostCollectionSheet({
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (_) => _SavePostCollectionSheet(
-      controller: controller,
-      onSave: onSave,
-    ),
+    builder: (_) =>
+        _SavePostCollectionSheet(controller: controller, onSave: onSave),
   );
 }
 
@@ -29,7 +27,8 @@ class _SavePostCollectionSheet extends StatefulWidget {
   final Future<void> Function(String? collectionId) onSave;
 
   @override
-  State<_SavePostCollectionSheet> createState() => _SavePostCollectionSheetState();
+  State<_SavePostCollectionSheet> createState() =>
+      _SavePostCollectionSheetState();
 }
 
 class _SavePostCollectionSheetState extends State<_SavePostCollectionSheet> {
@@ -72,7 +71,8 @@ class _SavePostCollectionSheetState extends State<_SavePostCollectionSheet> {
     if (!mounted) {
       return;
     }
-    final String selectedLabel = _localCollections
+    final String selectedLabel =
+        _localCollections
             .where(
               (SavedCollectionModel collection) =>
                   collection.id == _selectedCollectionId,
@@ -100,15 +100,10 @@ class _SavePostCollectionSheetState extends State<_SavePostCollectionSheet> {
             children: [
               const Text(
                 'Save post',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Choose a folder, or save it to All Posts only.',
-              ),
+              const Text('Choose a folder, or save it to All Posts only.'),
               const SizedBox(height: 16),
               _CollectionOptionTile(
                 label: 'All Posts',

@@ -49,12 +49,11 @@ class MessageModel {
             source['timestamp'] ?? source['createdAt'] ?? source['sentAt'],
           ) ??
           DateTime.now(),
-      read: ApiPayloadReader.readBool(source['read'] ?? source['isRead']) ??
+      read:
+          ApiPayloadReader.readBool(source['read'] ?? source['isRead']) ??
           false,
       starred:
-          ApiPayloadReader.readBool(
-            source['starred'] ?? source['isStarred'],
-          ) ??
+          ApiPayloadReader.readBool(source['starred'] ?? source['isStarred']) ??
           false,
       replyToMessageId: ApiPayloadReader.readString(
         source['replyToMessageId'] ?? source['replyTo'],

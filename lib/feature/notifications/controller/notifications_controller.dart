@@ -106,7 +106,9 @@ class NotificationsController extends ChangeNotifier {
     }
     notifications = <NotificationModel>[
       incoming,
-      ...notifications.where((NotificationModel item) => item.id != incoming.id),
+      ...notifications.where(
+        (NotificationModel item) => item.id != incoming.id,
+      ),
     ];
     state = state.copyWith(
       isEmpty: notifications.isEmpty,
