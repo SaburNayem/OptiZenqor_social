@@ -13,5 +13,6 @@ class AdvancedPrivacyControlsService extends FeatureServiceBase {
     'safety_config': ApiEndPoints.safetyConfig,
     'legal_consents': ApiEndPoints.legalConsents,
     'security_state': ApiEndPoints.securityState,
+    'settings_state': ApiEndPoints.settingsState,
   };
 }

@@ -15,17 +15,34 @@ class AccessibilitySupportScreen extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Accessibility Support')),
-          body: ListView.builder(
-            itemCount: _controller.options.length,
-            itemBuilder: (context, index) {
-              final option = _controller.options[index];
-              return SwitchListTile(
-                title: Text(option.title),
-                value: option.enabled,
-                onChanged: (_) => _controller.toggle(index),
-              );
-            },
-          ),
+          body: _controller.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _controller.errorMessage != null && _controller.options.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(_controller.errorMessage!),
+                  ),
+                )
+              : ListView(
+                  children: <Widget>[
+                    if (_controller.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(_controller.errorMessage!),
+                      ),
+                    ...List<Widget>.generate(_controller.options.length, (
+                      int index,
+                    ) {
+                      final option = _controller.options[index];
+                      return SwitchListTile(
+                        title: Text(option.title),
+                        value: option.enabled,
+                        onChanged: (_) => _controller.toggle(index),
+                      );
+                    }),
+                  ],
+                ),
         );
       },
     );

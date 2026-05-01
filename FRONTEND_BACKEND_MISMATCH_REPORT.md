@@ -2,6 +2,19 @@
 
 Updated: 2026-05-01
 
+## Latest Pass Update
+
+- Jobs networking mutations are now backend-driven for:
+  - saved jobs
+  - application withdrawal
+  - company follow
+  - alert create/update
+  - recruiter job deletion
+- Jobs profile/employer slices no longer fall back to placeholder display strings; nullable backend data now flows through to the UI state.
+- Advanced privacy, accessibility support, and legal compliance now load live backend state and persist updates through backend settings state instead of using placeholder production entries.
+- `course_model.dart` placeholder default text was removed.
+- `flutter analyze` passes after this pass.
+
 ## Current Frontend Status
 
 The Flutter app is locally connected to a broad live backend surface. The app is not fully mock-free yet, but the most problematic production-local marketplace and blocked-muted flows were removed in this pass.
@@ -24,12 +37,10 @@ The Flutter app is locally connected to a broad live backend surface. The app is
 
 | Feature | Frontend file | Current issue | Backend route status | Needed next |
 | --- | --- | --- | --- | --- |
-| Jobs profile/employer slices | `lib/feature/jobs_networking/repository/jobs_networking_repository.dart` | still falls back to default empty models for some thin responses | routes exist | switch to explicit error/empty-state handling |
-| Advanced privacy | `lib/feature/advanced_privacy_controls/controller/advanced_privacy_controls_controller.dart` | placeholder controller entries remain | partial backend settings data exists | replace controller placeholders with backend-backed state |
-| Accessibility support | `lib/feature/accessibility_support/controller/accessibility_support_controller.dart` | placeholder support rows remain | backend route exists | bind full state to backend response |
-| Legal compliance UI | `lib/feature/legal_compliance/screen/legal_compliance_screen.dart` | placeholder copy remains | backend route exists | convert to real backend-driven copy/state |
-| Learning courses defaults | `lib/feature/learning_courses/model/course_model.dart` | placeholder default text remains in model defaults | backend route exists | reduce placeholder defaults and rely on API payloads |
-| Jobs mutations/UI state | `lib/feature/jobs_networking/controller/jobs_networking_controller.dart` | still performs local optimistic mutations without full backend refresh | partial backend support exists | add backend-backed alert/save/withdraw/status mutations |
+| Jobs list and profile empty/error UX | `lib/feature/jobs_networking/controller/jobs_networking_controller.dart` and screen widgets | core mutations are wired, but empty/error presentation is still basic | routes exist | add richer empty/error/loading affordances throughout the jobs screens |
+| Advanced privacy edit coverage | `lib/feature/advanced_privacy_controls/controller/advanced_privacy_controls_controller.dart` | main toggles are backend-backed, but not every conceptual privacy option has a backend state key yet | partial backend settings data exists | expand backend-backed controls or hide unsupported options |
+| Accessibility edit coverage | `lib/feature/accessibility_support/controller/accessibility_support_controller.dart` | backend-backed options now load, but unsupported placeholder options were removed rather than fully replaced | backend route exists | extend backend state if more accessibility controls are required |
+| Legal compliance adjacent actions | `lib/feature/legal_compliance/*` | consent state is backend-backed, but account deletion/data export flows still need dedicated UX wiring | partial backend/legal routes exist | wire the rest of the legal actions to backend screens |
 
 ## Production-Local State Removed
 

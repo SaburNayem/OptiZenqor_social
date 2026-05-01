@@ -10,5 +10,6 @@ class AccessibilitySupportService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'accessibility_support': ApiEndPoints.accessibilitySupport,
+    'settings_state': ApiEndPoints.settingsState,
   };
 }

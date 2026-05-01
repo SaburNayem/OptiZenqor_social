@@ -14,31 +14,38 @@ class LegalComplianceScreen extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Legal & Compliance')),
-          body: ListView(
-            children: [
-              CheckboxListTile(
-                value: _controller.consent.termsAccepted,
-                onChanged: (_) => _controller.toggleTerms(),
-                title: const Text('Accept Terms and Conditions'),
-              ),
-              CheckboxListTile(
-                value: _controller.consent.privacyAccepted,
-                onChanged: (_) => _controller.togglePrivacy(),
-                title: const Text('Accept Privacy Policy'),
-              ),
-              CheckboxListTile(
-                value: _controller.consent.guidelinesAccepted,
-                onChanged: (_) => _controller.toggleGuidelines(),
-                title: const Text('Accept Community Guidelines'),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Age gate and consent screen placeholders are ready.',
+          body: _controller.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  children: [
+                    if (_controller.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(_controller.errorMessage!),
+                      ),
+                    CheckboxListTile(
+                      value: _controller.consent.termsAccepted,
+                      onChanged: (_) => _controller.toggleTerms(),
+                      title: const Text('Accept Terms and Conditions'),
+                    ),
+                    CheckboxListTile(
+                      value: _controller.consent.privacyAccepted,
+                      onChanged: (_) => _controller.togglePrivacy(),
+                      title: const Text('Accept Privacy Policy'),
+                    ),
+                    CheckboxListTile(
+                      value: _controller.consent.guidelinesAccepted,
+                      onChanged: (_) => _controller.toggleGuidelines(),
+                      title: const Text('Accept Community Guidelines'),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        'Consent states are loaded from your backend account settings.',
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         );
       },
     );

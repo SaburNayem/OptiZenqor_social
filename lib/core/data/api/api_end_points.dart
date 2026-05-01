@@ -284,13 +284,21 @@ class ApiEndPoints {
   static const jobsApply = '/jobs/apply';
   static String jobApply(String jobId) => '/jobs/$jobId/apply';
   static const jobsApplications = '/jobs/applications';
+  static String withdrawJobApplication(String applicationId) =>
+      '/jobs/applications/$applicationId/withdraw';
+  static String updateJobApplicationStatus(String applicationId) =>
+      '/jobs/applications/$applicationId/status';
   static const jobsAlerts = '/jobs/alerts';
+  static String jobAlertById(String alertId) => '/jobs/alerts/$alertId';
   static const jobsCompanies = '/jobs/companies';
+  static String followJobCompany(String companyId) =>
+      '/jobs/companies/$companyId/follow';
   static const jobsProfile = '/jobs/profile';
   static const jobsEmployerStats = '/jobs/employer-stats';
   static const jobsEmployerProfile = '/jobs/employer-profile';
   static const jobsApplicants = '/jobs/applicants';
   static String jobById(String jobId) => '/jobs/$jobId';
+  static String saveJob(String jobId) => '/jobs/$jobId/save';
   static const professionalProfiles = '/professional-profiles';
 
   // EngagementController

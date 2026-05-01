@@ -12,6 +12,10 @@ class JobsNetworkingService extends FeatureServiceBase {
     'jobs': ApiEndPoints.jobs,
     'job': ApiEndPoints.jobById(':id'),
     'apply': ApiEndPoints.jobApply(':id'),
+    'save': ApiEndPoints.saveJob(':id'),
+    'withdraw_application': ApiEndPoints.withdrawJobApplication(':id'),
+    'job_alert': ApiEndPoints.jobAlertById(':id'),
+    'follow_company': ApiEndPoints.followJobCompany(':id'),
     'professional_profiles': ApiEndPoints.professionalProfiles,
   };
 }

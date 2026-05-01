@@ -9,8 +9,10 @@ class LegalComplianceService extends FeatureServiceBase {
 
   @override
   Map<String, String> get endpoints => <String, String>{
+    'compliance': ApiEndPoints.legalCompliance,
     'consents': ApiEndPoints.legalConsents,
     'account_deletion': ApiEndPoints.legalAccountDeletion,
     'data_export': ApiEndPoints.legalDataExport,
+    'settings_state': ApiEndPoints.settingsState,
   };
 }

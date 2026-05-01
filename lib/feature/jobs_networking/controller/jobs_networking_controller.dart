@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
 import '../model/job_application_model.dart';
@@ -26,18 +24,29 @@ class JobsNetworkingController extends ChangeNotifier {
   String category = 'Remote';
   String searchQuery = '';
   JobsUserRole? selectedRole;
+  bool isLoading = false;
+  String? errorMessage;
 
   Future<void> load() async {
-    jobs = await _repository.listJobs();
-    myPostedJobs = await _repository.myJobs();
-    applications = await _repository.myApplications();
-    alerts = await _repository.alerts();
-    companies = await _repository.companies();
-    applicants = await _repository.applicants();
-    careerProfile = await _repository.profile();
-    employerStats = await _repository.employerStats();
-    employerProfile = await _repository.employerProfile();
+    isLoading = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      jobs = await _repository.listJobs();
+      myPostedJobs = await _repository.myJobs();
+      applications = await _repository.myApplications();
+      alerts = await _repository.alerts();
+      companies = await _repository.companies();
+      applicants = await _repository.applicants();
+      careerProfile = await _repository.profile();
+      employerStats = await _repository.employerStats();
+      employerProfile = await _repository.employerProfile();
+    } catch (error) {
+      errorMessage = error.toString();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   List<JobModel> get filteredJobs {
@@ -111,105 +120,143 @@ class JobsNetworkingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleSave(String id) {
-    jobs = jobs
-        .map((job) => job.id == id ? job.copyWith(saved: !job.saved) : job)
-        .toList(growable: false);
-    myPostedJobs = myPostedJobs
-        .map((job) => job.id == id ? job.copyWith(saved: !job.saved) : job)
-        .toList(growable: false);
-    notifyListeners();
-  }
-
-  void applyToJob(
-    String jobId, {
-    String coverLetter = '',
-    String portfolioLink = '',
-  }) {
-    unawaited(
-      _repository.applyToJob(
-        jobId,
-        coverLetter: coverLetter,
-        portfolioLink: portfolioLink,
-      ),
-    );
-    jobs = jobs
-        .map((job) => job.id == jobId ? job.copyWith(applied: true) : job)
-        .toList(growable: false);
-    final exists = applications.any(
-      (application) => application.jobId == jobId,
-    );
-    if (!exists) {
-      applications = <JobApplicationModel>[
-        JobApplicationModel(
-          id: 'app_${DateTime.now().millisecondsSinceEpoch}',
-          jobId: jobId,
-          applicantName: careerProfile?.name ?? 'You',
-          status: ApplicationStatus.pending,
-          appliedDate: 'Today',
-          timeline: const <String>[
-            'Application submitted',
-            'Recruiter review pending',
-          ],
-          coverLetter: coverLetter,
-          portfolioLink: portfolioLink,
-          resumeLabel: careerProfile?.resumeLabel ?? 'Primary resume',
-        ),
-        ...applications,
-      ];
+  Future<void> toggleSave(String id) async {
+    try {
+      final bool saved = await _repository.toggleSavedJob(id);
+      jobs = jobs
+          .map((job) => job.id == id ? job.copyWith(saved: saved) : job)
+          .toList(growable: false);
+      myPostedJobs = myPostedJobs
+          .map((job) => job.id == id ? job.copyWith(saved: saved) : job)
+          .toList(growable: false);
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString();
     }
     notifyListeners();
   }
 
-  void withdrawApplication(String id) {
-    applications = applications
-        .where((item) => item.id != id)
-        .toList(growable: false);
+  Future<void> applyToJob(
+    String jobId, {
+    String coverLetter = '',
+    String portfolioLink = '',
+  }) async {
+    try {
+      await _repository.applyToJob(
+        jobId,
+        coverLetter: coverLetter,
+        portfolioLink: portfolioLink,
+      );
+      await load();
+    } catch (error) {
+      errorMessage = error.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> withdrawApplication(String id) async {
+    try {
+      final JobApplicationModel updated = await _repository.withdrawApplication(
+        id,
+      );
+      applications = applications
+          .map((item) => item.id == id ? updated : item)
+          .toList(growable: false);
+      jobs = jobs
+          .map(
+            (job) => job.id == updated.jobId
+                ? job.copyWith(
+                    applied: updated.status != ApplicationStatus.rejected,
+                  )
+                : job,
+          )
+          .toList(growable: false);
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString();
+    }
     notifyListeners();
   }
 
-  void toggleCompanyFollow(String id) {
-    companies = companies
-        .map(
-          (company) => company.id == id
-              ? company.copyWith(followed: !company.followed)
-              : company,
-        )
-        .toList(growable: false);
+  Future<void> toggleCompanyFollow(String id) async {
+    final CompanyModel? current = companies.cast<CompanyModel?>().firstWhere(
+      (company) => company?.id == id,
+      orElse: () => null,
+    );
+    if (current == null) {
+      return;
+    }
+    try {
+      final bool followed = await _repository.toggleCompanyFollow(
+        id,
+        !current.followed,
+      );
+      companies = companies
+          .map(
+            (company) => company.id == id
+                ? company.copyWith(followed: followed)
+                : company,
+          )
+          .toList(growable: false);
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString();
+    }
     notifyListeners();
   }
 
-  void createAlert({
+  Future<void> createAlert({
     required String keyword,
     required String location,
     required AlertFrequency frequency,
-  }) {
-    alerts = <JobAlertModel>[
-      JobAlertModel(
-        id: 'alert_${DateTime.now().millisecondsSinceEpoch}',
+  }) async {
+    try {
+      final JobAlertModel alert = await _repository.createAlert(
         keyword: keyword,
         location: location,
         frequency: frequency,
-      ),
-      ...alerts,
-    ];
+      );
+      alerts = <JobAlertModel>[alert, ...alerts];
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString();
+    }
     notifyListeners();
   }
 
-  void toggleAlert(String id) {
-    alerts = alerts
-        .map(
-          (alert) =>
-              alert.id == id ? alert.copyWith(enabled: !alert.enabled) : alert,
-        )
-        .toList(growable: false);
+  Future<void> toggleAlert(String id) async {
+    final JobAlertModel? current = alerts.cast<JobAlertModel?>().firstWhere(
+      (alert) => alert?.id == id,
+      orElse: () => null,
+    );
+    if (current == null) {
+      return;
+    }
+    try {
+      final JobAlertModel updated = await _repository.toggleAlert(
+        id,
+        !current.enabled,
+      );
+      alerts = alerts
+          .map((alert) => alert.id == id ? updated : alert)
+          .toList(growable: false);
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString();
+    }
     notifyListeners();
   }
 
-  void deleteMyJob(String id) {
-    myPostedJobs = myPostedJobs
-        .where((job) => job.id != id)
-        .toList(growable: false);
+  Future<void> deleteMyJob(String id) async {
+    try {
+      await _repository.deleteMyJob(id);
+      myPostedJobs = myPostedJobs
+          .where((job) => job.id != id)
+          .toList(growable: false);
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString();
+    }
     notifyListeners();
   }
 
@@ -218,14 +265,22 @@ class JobsNetworkingController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateApplicantStatus(String id, ApplicationStatus status) {
-    applicants = applicants
-        .map(
-          (applicant) => applicant.id == id
-              ? applicant.copyWith(status: status)
-              : applicant,
-        )
-        .toList(growable: false);
+  Future<void> updateApplicantStatus(
+    String applicationId,
+    ApplicationStatus status,
+  ) async {
+    try {
+      final ApplicantModel updated = await _repository.updateApplicantStatus(
+        applicationId,
+        status,
+      );
+      applicants = applicants
+          .map((applicant) => applicant.id == updated.id ? updated : applicant)
+          .toList(growable: false);
+      errorMessage = null;
+    } catch (error) {
+      errorMessage = error.toString();
+    }
     notifyListeners();
   }
 

@@ -1,5 +1,16 @@
 # Frontend/Backend Audit
 
+## 2026-05-01 Update
+
+- `jobs_networking_repository.dart` and `jobs_networking_controller.dart` now use backend mutations for saved jobs, alerts, company follow, applicant status, withdrawal, and recruiter-owned job deletion.
+- `advanced_privacy_controls`, `accessibility_support`, and `legal_compliance` no longer ship placeholder production state for the edited screens in this pass.
+- `course_model.dart` placeholder certificate/quiz defaults were removed.
+- Verification after this pass:
+  - `flutter pub get`: pass
+  - `dart format .`: pass
+  - `flutter analyze`: pass
+  - `flutter test`: no configured `_test.dart` files
+
 This audit summarizes the current frontend data access status after the latest
 auth-owned API integration work.
 

@@ -79,7 +79,7 @@ class JobsNetworkingRepository {
         .toList(growable: false);
   }
 
-  Future<CareerProfileModel> profile() async {
+  Future<CareerProfileModel?> profile() async {
     final Map<String, dynamic>? aggregatePayload =
         await _readAggregatePayload();
     final Map<String, dynamic>? aggregateProfile = ApiPayloadReader.readMap(
@@ -112,16 +112,7 @@ class JobsNetworkingRepository {
       }
     }
 
-    return const CareerProfileModel(
-      name: '',
-      title: '',
-      skills: <String>[],
-      experience: <String>[],
-      education: <String>[],
-      resumeLabel: '',
-      portfolioLinks: <String>[],
-      availability: '',
-    );
+    return null;
   }
 
   Future<void> applyToJob(
@@ -138,7 +129,7 @@ class JobsNetworkingRepository {
     );
   }
 
-  Future<EmployerStatsModel> employerStats() async {
+  Future<EmployerStatsModel?> employerStats() async {
     final Map<String, dynamic>? aggregatePayload =
         await _readAggregatePayload();
     final Map<String, dynamic>? aggregateStats = ApiPayloadReader.readMap(
@@ -158,15 +149,10 @@ class JobsNetworkingRepository {
       }
     }
 
-    return const EmployerStatsModel(
-      totalJobs: 0,
-      totalApplicants: 0,
-      shortlistedCandidates: 0,
-      messages: 0,
-    );
+    return null;
   }
 
-  Future<EmployerProfileModel> employerProfile() async {
+  Future<EmployerProfileModel?> employerProfile() async {
     final Map<String, dynamic>? aggregatePayload =
         await _readAggregatePayload();
     final Map<String, dynamic>? aggregateProfile = ApiPayloadReader.readMap(
@@ -186,15 +172,123 @@ class JobsNetworkingRepository {
       }
     }
 
-    return const EmployerProfileModel(
-      companyName: '',
-      hiringTitle: '',
-      about: '',
-      hiringFocus: <String>[],
-      location: '',
-      openRoles: <String>[],
-      teamHighlights: <String>[],
-    );
+    return null;
+  }
+
+  Future<bool> toggleSavedJob(String jobId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(ApiEndPoints.saveJob(jobId), const <String, dynamic>{});
+    if (!response.isSuccess) {
+      throw StateError('Unable to update saved jobs right now.');
+    }
+    final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
+    final bool? saved = ApiPayloadReader.readBool(payload?['saved']);
+    if (saved == null) {
+      throw StateError('Saved job response was empty.');
+    }
+    return saved;
+  }
+
+  Future<JobApplicationModel> withdrawApplication(String applicationId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(
+          ApiEndPoints.withdrawJobApplication(applicationId),
+          const <String, dynamic>{},
+        );
+    if (!response.isSuccess) {
+      throw StateError('Unable to withdraw this application right now.');
+    }
+    final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
+    if (payload == null || payload.isEmpty) {
+      throw StateError('Withdraw application response was empty.');
+    }
+    return _applicationFromApiJson(payload);
+  }
+
+  Future<bool> toggleCompanyFollow(String companyId, bool followed) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(ApiEndPoints.followJobCompany(companyId), <String, dynamic>{
+          'followed': followed,
+        });
+    if (!response.isSuccess) {
+      throw StateError('Unable to update company follow state right now.');
+    }
+    final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
+    final bool? nextFollowed = ApiPayloadReader.readBool(payload?['followed']);
+    if (nextFollowed == null) {
+      throw StateError('Company follow response was empty.');
+    }
+    return nextFollowed;
+  }
+
+  Future<JobAlertModel> createAlert({
+    required String keyword,
+    required String location,
+    required AlertFrequency frequency,
+  }) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(ApiEndPoints.jobsAlerts, <String, dynamic>{
+          'keyword': keyword,
+          'location': location,
+          'frequency': frequency.name,
+        });
+    if (!response.isSuccess) {
+      throw StateError('Unable to create this job alert right now.');
+    }
+    final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
+    if (payload == null || payload.isEmpty) {
+      throw StateError('Job alert response was empty.');
+    }
+    return _alertFromApiJson(payload);
+  }
+
+  Future<JobAlertModel> toggleAlert(String alertId, bool enabled) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(ApiEndPoints.jobAlertById(alertId), <String, dynamic>{
+          'enabled': enabled,
+        });
+    if (!response.isSuccess) {
+      throw StateError('Unable to update this job alert right now.');
+    }
+    final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
+    if (payload == null || payload.isEmpty) {
+      throw StateError('Job alert update response was empty.');
+    }
+    return _alertFromApiJson(payload);
+  }
+
+  Future<void> deleteMyJob(String jobId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .delete(ApiEndPoints.jobById(jobId));
+    if (!response.isSuccess) {
+      throw StateError('Unable to delete this job right now.');
+    }
+  }
+
+  Future<ApplicantModel> updateApplicantStatus(
+    String applicationId,
+    ApplicationStatus status,
+  ) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(
+          ApiEndPoints.updateJobApplicationStatus(applicationId),
+          <String, dynamic>{'status': _statusToApiValue(status)},
+        );
+    if (!response.isSuccess) {
+      throw StateError('Unable to update applicant status right now.');
+    }
+    final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
+    if (payload == null || payload.isEmpty) {
+      throw StateError('Applicant status response was empty.');
+    }
+    return _applicantFromApiJson(payload);
   }
 
   Future<List<ApplicantModel>> applicants() async {
@@ -346,14 +440,11 @@ class JobsNetworkingRepository {
     return EmployerProfileModel(
       companyName: ApiPayloadReader.readString(
         json['companyName'],
-        fallback: 'Employer profile',
+        fallback: '',
       ),
       hiringTitle: ApiPayloadReader.readString(json['hiringTitle']),
       about: ApiPayloadReader.readString(json['about']),
-      location: ApiPayloadReader.readString(
-        json['location'],
-        fallback: 'Remote',
-      ),
+      location: ApiPayloadReader.readString(json['location']),
       hiringFocus: ApiPayloadReader.readStringList(json['hiringFocus']),
       openRoles: ApiPayloadReader.readStringList(json['openRoles']),
       teamHighlights: ApiPayloadReader.readStringList(json['teamHighlights']),
@@ -380,6 +471,7 @@ class JobsNetworkingRepository {
         return ApplicationStatus.viewed;
       case 'shortlisted':
         return ApplicationStatus.shortlisted;
+      case 'withdrawn':
       case 'rejected':
         return ApplicationStatus.rejected;
       case 'pending':
@@ -397,6 +489,19 @@ class JobsNetworkingRepository {
       case 'daily':
       default:
         return AlertFrequency.daily;
+    }
+  }
+
+  String _statusToApiValue(ApplicationStatus status) {
+    switch (status) {
+      case ApplicationStatus.pending:
+        return 'submitted';
+      case ApplicationStatus.viewed:
+        return 'viewed';
+      case ApplicationStatus.shortlisted:
+        return 'shortlisted';
+      case ApplicationStatus.rejected:
+        return 'rejected';
     }
   }
 }

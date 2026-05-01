@@ -15,17 +15,34 @@ class AdvancedPrivacyControlsScreen extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Advanced Privacy Controls')),
-          body: ListView.builder(
-            itemCount: _controller.settings.length,
-            itemBuilder: (context, index) {
-              final item = _controller.settings[index];
-              return SwitchListTile(
-                title: Text(item.title),
-                value: item.value,
-                onChanged: (_) => _controller.toggle(index),
-              );
-            },
-          ),
+          body: _controller.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _controller.errorMessage != null && _controller.settings.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(_controller.errorMessage!),
+                  ),
+                )
+              : ListView(
+                  children: <Widget>[
+                    if (_controller.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(_controller.errorMessage!),
+                      ),
+                    ...List<Widget>.generate(_controller.settings.length, (
+                      int index,
+                    ) {
+                      final item = _controller.settings[index];
+                      return SwitchListTile(
+                        title: Text(item.title),
+                        value: item.value,
+                        onChanged: (_) => _controller.toggle(index),
+                      );
+                    }),
+                  ],
+                ),
         );
       },
     );

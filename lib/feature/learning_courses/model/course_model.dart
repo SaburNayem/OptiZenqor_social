@@ -4,10 +4,10 @@ class CourseModel {
     required this.title,
     required this.lessons,
     this.progress = 0,
-    this.instructor = 'Instructor profile',
+    this.instructor = '',
     this.saved = false,
-    this.certificateSummary = 'Certificate placeholder',
-    this.quizSummary = 'Quiz placeholder',
+    this.certificateSummary = '',
+    this.quizSummary = '',
   });
   final String id;
   final String title;
