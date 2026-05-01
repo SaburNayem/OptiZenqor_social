@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/data/service/analytics_service.dart';
 import '../../../app_route/route_names.dart';
+import '../model/onboarding_slide_model.dart';
 import '../repository/onboarding_repository.dart';
 
 class OnboardingController {
@@ -16,14 +17,18 @@ class OnboardingController {
   final AnalyticsService _analyticsService;
   int index = 0;
 
-  bool get isLast => index == 2;
+  Future<List<OnboardingSlideModel>> loadSlides() => _repository.loadSlides();
 
   void onPageChanged(int value, VoidCallback onChanged) {
     index = value;
     onChanged();
   }
 
-  Future<void> next(BuildContext context, VoidCallback onChanged) async {
+  Future<void> next(
+    BuildContext context,
+    VoidCallback onChanged, {
+    required bool isLast,
+  }) async {
     if (isLast) {
       await _finish();
       if (!context.mounted) {

@@ -10,7 +10,6 @@ class InviteReferralScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = InviteReferralController();
-    final model = controller.model;
 
     return Scaffold(
       backgroundColor: AppColors.hexFFFBFBFB,
@@ -69,247 +68,286 @@ class InviteReferralScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.hexFFE0F2F1.withValues(alpha: 0.5),
-                shape: BoxShape.circle,
+      body: FutureBuilder(
+        future: controller.load(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text('${snapshot.error}', textAlign: TextAlign.center),
               ),
-              child: const Icon(
-                Icons.card_giftcard_outlined,
-                color: AppColors.primary,
-                size: 40,
+            );
+          }
+          final model = snapshot.data;
+          if (model == null) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'Invite referral data is not available yet.',
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Share the Love!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              model.benefit,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: AppColors.grey),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'Your Referral Code',
-                    style: TextStyle(fontSize: 12, color: AppColors.grey),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.hexFFF4FDFA,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        style: BorderStyle.solid,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        model.inviteCode,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(
-                          ClipboardData(text: model.inviteCode),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Code copied!')),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.copy_outlined,
-                        size: 18,
-                        color: AppColors.primary,
-                      ),
-                      label: const Text(
-                        'Copy Code',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Share via',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            );
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
               children: [
-                _buildShareIcon(
-                  Icons.chat_bubble_outline,
-                  'Message',
-                  AppColors.blue,
-                ),
-                _buildShareIcon(
-                  Icons.flutter_dash,
-                  'Twitter',
-                  AppColors.lightBlue,
-                ),
-                _buildShareIcon(
-                  Icons.mail_outline,
-                  'Email',
-                  AppColors.blueGrey,
-                ),
-                _buildShareIcon(Icons.more_horiz, 'More', AppColors.teal),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Your Progress',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${model.currentInvites} of ${model.totalMilestone} invites',
-                  style: const TextStyle(
-                    fontSize: 12,
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.hexFFE0F2F1.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.card_giftcard_outlined,
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
+                    size: 40,
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: model.currentInvites / model.totalMilestone,
-                minHeight: 8,
-                backgroundColor: AppColors.hexFFF0F0F0,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary,
+                const SizedBox(height: 24),
+                const Text(
+                  'Share the Love!',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildMilestoneTile(
-              '5 invites',
-              'Premium Profile Badge',
-              Icons.card_giftcard_outlined,
-              AppColors.hexFFE0F2F1,
-            ),
-            const SizedBox(height: 12),
-            _buildMilestoneTile(
-              '10 invites',
-              '1 Month Premium Free',
-              Icons.card_giftcard_outlined,
-              AppColors.hexFFF5F5F5,
-            ),
-            const SizedBox(height: 32),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Invited Friends',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: model.invitedFriends.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final friend = model.invitedFriends[index];
-                return Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(friend.avatarUrl),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        friend.name,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
+                const SizedBox(height: 8),
+                Text(
+                  model.benefit,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, color: AppColors.grey),
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Your Referral Code',
+                        style: TextStyle(fontSize: 12, color: AppColors.grey),
                       ),
-                      decoration: BoxDecoration(
-                        color: friend.status == 'Joined'
-                            ? AppColors.hexFFE8F5E9
-                            : AppColors.hexFFFFF8E1,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        friend.status,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: friend.status == 'Joined'
-                              ? AppColors.green
-                              : AppColors.orange,
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.hexFFF4FDFA,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            style: BorderStyle.solid,
+                          ),
                         ),
+                        child: Center(
+                          child: Text(
+                            model.inviteCode,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: model.inviteCode),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Code copied!')),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.copy_outlined,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
+                          label: const Text(
+                            'Copy Code',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Share via',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildShareIcon(
+                      Icons.chat_bubble_outline,
+                      'Message',
+                      AppColors.blue,
+                    ),
+                    _buildShareIcon(
+                      Icons.flutter_dash,
+                      'Twitter',
+                      AppColors.lightBlue,
+                    ),
+                    _buildShareIcon(
+                      Icons.mail_outline,
+                      'Email',
+                      AppColors.blueGrey,
+                    ),
+                    _buildShareIcon(Icons.more_horiz, 'More', AppColors.teal),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Your Progress',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${model.currentInvites} of ${model.totalMilestone} invites',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
-                );
-              },
+                ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: model.currentInvites / model.totalMilestone,
+                    minHeight: 8,
+                    backgroundColor: AppColors.hexFFF0F0F0,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildMilestoneTile(
+                  model.milestones.isEmpty
+                      ? 'No milestones yet'
+                      : '${model.milestones.first.count} invites',
+                  model.milestones.isEmpty
+                      ? 'Referral rewards will appear here once configured.'
+                      : model.milestones.first.reward,
+                  Icons.card_giftcard_outlined,
+                  AppColors.hexFFE0F2F1,
+                ),
+                if (model.milestones.length > 1) ...[
+                  const SizedBox(height: 12),
+                  _buildMilestoneTile(
+                    '${model.milestones[1].count} invites',
+                    model.milestones[1].reward,
+                    Icons.card_giftcard_outlined,
+                    AppColors.hexFFF5F5F5,
+                  ),
+                ],
+                const SizedBox(height: 32),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Invited Friends',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: model.invitedFriends.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final friend = model.invitedFriends[index];
+                    return Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(friend.avatarUrl),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            friend.name,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: friend.status == 'Joined'
+                                ? AppColors.hexFFE8F5E9
+                                : AppColors.hexFFFFF8E1,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            friend.status,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: friend.status == 'Joined'
+                                  ? AppColors.green
+                                  : AppColors.orange,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
