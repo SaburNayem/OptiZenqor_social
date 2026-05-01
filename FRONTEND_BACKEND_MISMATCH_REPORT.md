@@ -1,75 +1,53 @@
-# Frontend/Backend Mismatch Report
+# Frontend Backend Mismatch Report
 
-Updated: 2026-04-30
+Updated: 2026-05-01
 
-## Fixed in this frontend pass
+## Current Frontend Status
 
-- `subscriptions` now reads live plan/catalog data from:
-  - `/premium-plans`
-  - `/monetization/plans`
-  - `/monetization/overview`
-  - `/subscriptions`
-- `subscriptions` now writes active plan changes to:
-  - `POST /subscriptions/change-plan`
-- `groups` now reads backend data from `/groups` instead of static local arrays.
-- `group_chat` now reads backend data from `/group-chat` instead of static local arrays.
-- `group_chat` now writes create/member-management actions to:
-  - `POST /group-chat`
-  - `POST /group-chat/:id/members`
-  - `DELETE /group-chat/:id/members/:userId`
-- `live_stream` setup now reads backend data from `/live-stream/setup` instead of hardcoded presenter/comment data.
-- `marketplace` checkout now posts real orders to `/marketplace/checkout`.
-- `marketplace` listing publish now posts real listings to `/marketplace/products`.
-- `support_help` now reads `/support-help` instead of shipping hardcoded FAQ data.
-- `trending` now reads `/trending` instead of shipping hardcoded trending cards.
-- `hashtags` now reads `/hashtags` instead of shipping hardcoded hashtag counts.
-- `group_chat` now exposes backend-backed rename/delete/member-role actions.
-- `subscriptions` now exposes backend-backed cancel and renew actions.
-- `verification_request` no longer fabricates a local `notRequested` state when the backend call fails.
-- `archive` screens now surface backend errors instead of silently rendering fake-empty states.
-- `wallet_payments` now reads backend wallet balance and ledger instead of shipping fake transaction data.
-- `safety_privacy` now reads and writes backend privacy/settings state instead of storing local-only production settings.
-- `home_feed` hide-post action now writes to `POST /hide/posts/:postId` instead of keeping hidden state only in `HomeFeedController`.
-- `hidden_posts` screen now reads persisted backend data from `GET /hidden-posts` and restores through `DELETE /hidden-posts/:targetId`.
-- `live_stream` now uses backend lifecycle routes for:
-  - `POST /live-stream`
-  - `PATCH /live-stream/:id/start`
-  - `PATCH /live-stream/:id/end`
-- `live_stream` moderator reply now writes to `POST /live-stream/:id/comments`.
+The Flutter app is locally connected to a broad live backend surface. The app is not fully mock-free yet, but the most problematic production-local marketplace and blocked-muted flows were removed in this pass.
 
-## Remaining backend contract gaps
+## Fixed In This Pass
 
-- `group-chat`
-  - Read and member-management routes now exist.
-  - Rename/delete/role update routes are now surfaced in the current Flutter screen.
-- `subscriptions`
-  - Read routes exist.
-  - Plan-change mutation now exists and is used by the Flutter repository.
-  - Cancel/renew mutation routes are now surfaced in the current Flutter UI.
-- `marketplace drafts`
-  - Product create exists.
-  - No draft-specific backend route exists for marketplace listings, so save-draft remains device-local.
-- `marketplace seller follows / offers / chat`
-  - Backend mutation routes now exist and the repository calls them for seller follow, product chat, and offer creation.
-  - Remaining work is mostly around richer typed state handling and reducing controller-side derived view state.
-- `live-stream lifecycle`
-  - Setup/read/comment/reaction routes now exist and are durable.
-  - Create/start/end and moderator reply are now exposed in the shipped Flutter flow.
-  - Deeper moderation/studio preference persistence is still not exposed as a full durable CRUD slice.
-- `hidden/archive UI`
-  - Archive list screens now read backend routes and show real error states.
-  - Hidden posts now reads backend hidden-post routes and restore uses backend unhide.
-  - Non-post hide targets still need end-to-end mobile coverage.
+- `AuthService` no longer actively calls demo-account endpoints.
+- Marketplace compare list now persists through:
+  - `GET /marketplace/compare`
+  - `PATCH /marketplace/compare`
+- Marketplace sold/pause/repost listing actions now persist through:
+  - `PATCH /marketplace/products/:id/status`
+- Marketplace saved-item toggles now persist through backend bookmarks:
+  - `POST /bookmarks`
+  - `DELETE /bookmarks/:id`
+- Blocked-muted account unmute now persists through:
+  - `PATCH /blocked-muted-accounts/:targetId/unmute`
 
-## Endpoint notes
+## Remaining Frontend Mismatches
 
-- `ApiEndPoints.premiumPlans` is now part of the active subscriptions fetch flow.
-- `ApiEndPoints.marketplaceCheckout` is now used for order creation instead of local-only order insertion.
-- `ApiEndPoints.marketplaceProducts` is now used for listing creation instead of local-only listing insertion.
+| Feature | Frontend file | Current issue | Backend route status | Needed next |
+| --- | --- | --- | --- | --- |
+| Jobs profile/employer slices | `lib/feature/jobs_networking/repository/jobs_networking_repository.dart` | still falls back to default empty models for some thin responses | routes exist | switch to explicit error/empty-state handling |
+| Advanced privacy | `lib/feature/advanced_privacy_controls/controller/advanced_privacy_controls_controller.dart` | placeholder controller entries remain | partial backend settings data exists | replace controller placeholders with backend-backed state |
+| Accessibility support | `lib/feature/accessibility_support/controller/accessibility_support_controller.dart` | placeholder support rows remain | backend route exists | bind full state to backend response |
+| Legal compliance UI | `lib/feature/legal_compliance/screen/legal_compliance_screen.dart` | placeholder copy remains | backend route exists | convert to real backend-driven copy/state |
+| Learning courses defaults | `lib/feature/learning_courses/model/course_model.dart` | placeholder default text remains in model defaults | backend route exists | reduce placeholder defaults and rely on API payloads |
+| Jobs mutations/UI state | `lib/feature/jobs_networking/controller/jobs_networking_controller.dart` | still performs local optimistic mutations without full backend refresh | partial backend support exists | add backend-backed alert/save/withdraw/status mutations |
 
-## Validation note
+## Production-Local State Removed
+
+- marketplace compare list
+- marketplace listing sold/pause/repost state
+- marketplace saved items
+- blocked-muted unmute behavior
+- active demo auth endpoint usage
+
+## Validation
 
 - `flutter pub get`: pass
-- `dart format` on the updated support/trending/marketplace files: pass
-- `flutter analyze`: pass with pre-existing non-fatal warnings/info only in `socket_transport_web.dart`, `home_feed_screen.dart`, and story screen unused helpers.
-- `flutter test`: fails because the repo currently has no `test/` directory or `_test.dart` files.
+- `dart format .`: pass
+- `flutter analyze`: pass
+- `flutter test`: still expected to fail or no-op if the repo has no real test suite configured
+
+## Next Recommended Frontend Pass
+
+1. Remove default-model fallback behavior from jobs/profile/business modules.
+2. Replace advanced-privacy/accessibility/legal-compliance placeholder controller content with backend-backed reads.
+3. Expand backend mutation coverage for jobs alerts/saved jobs/company follow if those screens are meant to be fully durable.
