@@ -16,6 +16,7 @@ class MarketplaceSeedData {
     required this.sellers,
     required this.categories,
     required this.savedItemIds,
+    required this.compareItemIds,
     required this.followedSellerIds,
     required this.savedSearches,
     required this.recentSearches,
@@ -31,6 +32,7 @@ class MarketplaceSeedData {
   final List<SellerModel> sellers;
   final List<MarketplaceCategoryModel> categories;
   final List<String> savedItemIds;
+  final List<String> compareItemIds;
   final List<String> followedSellerIds;
   final List<String> savedSearches;
   final List<String> recentSearches;
@@ -57,6 +59,7 @@ class MarketplaceRepository {
             sellers: <SellerModel>[],
             categories: <MarketplaceCategoryModel>[],
             savedItemIds: <String>[],
+            compareItemIds: <String>[],
             followedSellerIds: <String>[],
             savedSearches: <String>[],
             recentSearches: <String>[],
@@ -103,6 +106,9 @@ class MarketplaceRepository {
       sellers: _readSellers(payload, combinedProducts),
       categories: _readCategories(payload, combinedProducts),
       savedItemIds: ApiPayloadReader.readStringList(payload['savedItemIds']),
+      compareItemIds: ApiPayloadReader.readStringList(
+        payload['compareItemIds'],
+      ),
       followedSellerIds: ApiPayloadReader.readStringList(
         payload['followedSellerIds'],
       ),
@@ -138,6 +144,69 @@ class MarketplaceRepository {
           : 'Unable to unfollow this seller right now.',
     );
     return _readBooleanResult(response.data, defaultValue: shouldFollow);
+  }
+
+  Future<bool> setSavedItem({
+    required String productId,
+    required bool shouldSave,
+    String? title,
+  }) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = shouldSave
+        ? await _service.apiClient.post(
+            ApiEndPoints.bookmarks,
+            <String, dynamic>{
+              'id': productId,
+              'title': title ?? '',
+              'type': 'product',
+            },
+          )
+        : await _service.apiClient.delete(ApiEndPoints.bookmarkById(productId));
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: shouldSave
+          ? 'Unable to save this marketplace item right now.'
+          : 'Unable to remove this marketplace item right now.',
+    );
+    return shouldSave;
+  }
+
+  Future<List<String>> updateCompareItems(List<String> productIds) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(_service.endpoints['compare']!, <String, dynamic>{
+          'productIds': productIds,
+        });
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: 'Unable to update marketplace compare items right now.',
+    );
+    final Map<String, dynamic> payload = _readRequiredPayload(
+      response.data,
+      fallbackMessage: 'Marketplace compare response was empty.',
+    );
+    return ApiPayloadReader.readStringList(payload['productIds']);
+  }
+
+  Future<ProductModel> updateListingStatus({
+    required String productId,
+    required ListingStatus status,
+  }) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(
+          ApiEndPoints.marketplaceProductStatus(productId),
+          <String, dynamic>{'status': _listingStatusValue(status)},
+        );
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: 'Unable to update marketplace listing status right now.',
+    );
+    return ProductModel.fromApiJson(
+      _readRequiredPayload(
+        response.data,
+        fallbackMessage: 'Marketplace listing status response was empty.',
+      ),
+    );
   }
 
   Future<ProductModel> saveDraft({
@@ -838,5 +907,20 @@ class MarketplaceRepository {
           }
         })
         .toList(growable: false);
+  }
+
+  String _listingStatusValue(ListingStatus status) {
+    switch (status) {
+      case ListingStatus.active:
+        return 'active';
+      case ListingStatus.sold:
+        return 'sold';
+      case ListingStatus.expired:
+        return 'expired';
+      case ListingStatus.pending:
+        return 'pending';
+      case ListingStatus.draft:
+        return 'draft';
+    }
   }
 }

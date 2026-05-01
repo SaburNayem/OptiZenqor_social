@@ -151,10 +151,6 @@ class AuthService {
     return response;
   }
 
-  Future<ServiceResponseModel<Map<String, dynamic>>> demoAccounts() {
-    return _apiClient.get(ApiEndPoints.authDemoAccounts);
-  }
-
   Future<ServiceResponseModel<Map<String, dynamic>>> me() {
     return _apiClient.get(ApiEndPoints.authMe);
   }

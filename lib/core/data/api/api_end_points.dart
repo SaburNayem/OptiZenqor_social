@@ -21,7 +21,6 @@ class ApiEndPoints {
   static const appSessionInit = '/app/session-init';
 
   // AuthController
-  static const authDemoAccounts = '/auth/demo-accounts';
   static const authLogin = '/auth/login';
   static const authGoogle = '/auth/google';
   static const authRefreshToken = '/auth/refresh-token';
@@ -337,6 +336,10 @@ class ApiEndPoints {
   static const pushNotificationPreferences = '/push-notification-preferences';
   static const legalCompliance = '/legal-compliance';
   static const blockedMutedAccounts = '/blocked-muted-accounts';
+  static String blockedMutedAccountMute(String targetId) =>
+      '/blocked-muted-accounts/$targetId/mute';
+  static String blockedMutedAccountUnmute(String targetId) =>
+      '/blocked-muted-accounts/$targetId/unmute';
 
   // ReportCenterController
   static const reportCenter = '/report-center';
@@ -401,8 +404,11 @@ class ApiEndPoints {
   static const marketplaceSellerFollows = '/marketplace/seller-follows';
   static String marketplaceProductById(String productId) =>
       '/marketplace/products/$productId';
+  static String marketplaceProductStatus(String productId) =>
+      '/marketplace/products/$productId/status';
   static String marketplaceDraftById(String draftId) =>
       '/marketplace/drafts/$draftId';
+  static const marketplaceCompare = '/marketplace/compare';
   static String marketplaceSellerFollow(String sellerId) =>
       '/marketplace/sellers/$sellerId/follow';
   static String marketplaceProductChat(String productId) =>
@@ -452,7 +458,6 @@ class ApiEndPoints {
   // Admin API Module
 
   // AdminOpsController
-  static const adminAuthDemoAccounts = '/admin/auth/demo-accounts';
   static const adminAuthLogin = '/admin/auth/login';
   static const adminAuthRefresh = '/admin/auth/refresh';
   static const adminAuthLogout = '/admin/auth/logout';

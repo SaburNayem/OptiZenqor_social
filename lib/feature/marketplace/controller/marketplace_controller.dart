@@ -57,6 +57,7 @@ class MarketplaceController extends ChangeNotifier {
       sellers = data.sellers;
       categories = data.categories;
       savedItemIds = List<String>.from(data.savedItemIds);
+      compareItemIds = List<String>.from(data.compareItemIds);
       followedSellerIds = List<String>.from(data.followedSellerIds);
       savedSearches = List<String>.from(data.savedSearches);
       recentSearches = List<String>.from(data.recentSearches);
@@ -229,22 +230,60 @@ class MarketplaceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleSave(String productId) {
-    if (savedItemIds.contains(productId)) {
-      savedItemIds.remove(productId);
-    } else {
-      savedItemIds.insert(0, productId);
-    }
+  Future<bool> toggleSave(String productId) async {
+    final bool shouldSave = !savedItemIds.contains(productId);
+    final ProductModel? product = _products
+        .where((item) => item.id == productId)
+        .cast<ProductModel?>()
+        .firstOrNull;
+
+    isSyncingMarketplaceAction = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      await _repository.setSavedItem(
+        productId: productId,
+        shouldSave: shouldSave,
+        title: product?.title,
+      );
+      if (shouldSave) {
+        if (!savedItemIds.contains(productId)) {
+          savedItemIds.insert(0, productId);
+        }
+      } else {
+        savedItemIds.remove(productId);
+      }
+      return true;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isSyncingMarketplaceAction = false;
+      notifyListeners();
+    }
   }
 
-  void toggleCompare(String productId) {
-    if (compareItemIds.contains(productId)) {
-      compareItemIds.remove(productId);
-    } else if (compareItemIds.length < 3) {
-      compareItemIds.add(productId);
+  Future<bool> toggleCompare(String productId) async {
+    final List<String> nextCompareItems = List<String>.from(compareItemIds);
+    if (nextCompareItems.contains(productId)) {
+      nextCompareItems.remove(productId);
+    } else if (nextCompareItems.length < 3) {
+      nextCompareItems.add(productId);
     }
+
+    isSyncingMarketplaceAction = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      compareItemIds = await _repository.updateCompareItems(nextCompareItems);
+      return true;
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+      return false;
+    } finally {
+      isSyncingMarketplaceAction = false;
+      notifyListeners();
+    }
   }
 
   void markViewed(String productId) {
@@ -339,14 +378,14 @@ class MarketplaceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void markAsSold(String productId) =>
-      _updateListingStatus(productId, ListingStatus.sold);
+  Future<void> markAsSold(String productId) =>
+      _persistListingStatus(productId, ListingStatus.sold);
 
-  void pauseListing(String productId) =>
-      _updateListingStatus(productId, ListingStatus.expired);
+  Future<void> pauseListing(String productId) =>
+      _persistListingStatus(productId, ListingStatus.expired);
 
-  void repostListing(String productId) =>
-      _updateListingStatus(productId, ListingStatus.active);
+  Future<void> repostListing(String productId) =>
+      _persistListingStatus(productId, ListingStatus.active);
 
   Future<bool> publishDraft({
     required String title,
@@ -609,14 +648,26 @@ class MarketplaceController extends ChangeNotifier {
     sellers[existingIndex] = updatedSeller;
   }
 
-  void _updateListingStatus(String productId, ListingStatus status) {
-    _products = _products
-        .map(
-          (item) => item.id == productId
-              ? item.copyWith(listingStatus: status)
-              : item,
-        )
-        .toList();
+  Future<void> _persistListingStatus(
+    String productId,
+    ListingStatus status,
+  ) async {
+    isSyncingMarketplaceAction = true;
+    errorMessage = null;
     notifyListeners();
+    try {
+      final ProductModel updated = await _repository.updateListingStatus(
+        productId: productId,
+        status: status,
+      );
+      _products = _products
+          .map((item) => item.id == productId ? updated : item)
+          .toList(growable: false);
+    } catch (error) {
+      errorMessage = error.toString().replaceFirst('Exception: ', '');
+    } finally {
+      isSyncingMarketplaceAction = false;
+      notifyListeners();
+    }
   }
 }

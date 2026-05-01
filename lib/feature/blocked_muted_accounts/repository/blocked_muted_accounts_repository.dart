@@ -1,3 +1,4 @@
+import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/restricted_account_model.dart';
@@ -34,6 +35,20 @@ class BlockedMutedAccountsRepository {
     }
   }
 
+  Future<bool> unmuteAccount(String id) async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .patch(
+            ApiEndPoints.blockedMutedAccountUnmute(id),
+            const <String, dynamic>{},
+          );
+      return response.isSuccess && response.data['success'] != false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<List<RestrictedAccountModel>> _loadFromApi({
     required String status,
     required List<String> preferredKeys,
@@ -50,8 +65,10 @@ class BlockedMutedAccountsRepository {
     if (items.isNotEmpty || response.data.isNotEmpty) {
       return items
           .map(
-            (Map<String, dynamic> item) =>
-                RestrictedAccountModel.fromApiJson(item, status: status),
+            (Map<String, dynamic> item) => RestrictedAccountModel.fromApiJson(
+              ApiPayloadReader.readMap(item['user']) ?? item,
+              status: status,
+            ),
           )
           .where((RestrictedAccountModel item) => item.id.isNotEmpty)
           .toList(growable: false);
