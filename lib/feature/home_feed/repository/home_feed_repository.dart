@@ -1,5 +1,4 @@
 import '../../../core/data/api/api_end_points.dart';
-import '../../../core/config/app_config.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
@@ -33,10 +32,6 @@ class HomeFeedRepository {
       return <PostModel>[];
     }
 
-    final List<PostModel> localPosts = AppConfig.useRemoteOnly
-        ? const <PostModel>[]
-        : await readLocalCreatedPosts();
-
     try {
       final response = await _service.apiClient.get(_feedEndpointFor(segment));
       final List<Map<String, dynamic>> items = _readMapList(response.data);
@@ -44,27 +39,13 @@ class HomeFeedRepository {
         final List<PostModel> parsedPosts = items
             .map(PostModel.fromApiJson)
             .toList(growable: false);
-        final List<PostModel> posts = await _hydratePostAuthors(parsedPosts);
-        if (AppConfig.allowOfflineFallback) {
-          await _storage.writeJsonList(
-            StorageKeys.cachedFeed,
-            posts.map((PostModel post) => post.toCacheJson()).toList(),
-          );
-        }
-        return AppConfig.useRemoteOnly ? posts : _mergePosts(localPosts, posts);
+        return _hydratePostAuthors(parsedPosts);
       }
-    } catch (_) {}
-
-    if (AppConfig.allowOfflineFallback) {
-      final List<PostModel> cached = await readCachedFeed();
-      if (cached.isNotEmpty) {
-        return AppConfig.useRemoteOnly
-            ? cached
-            : _mergePosts(localPosts, cached);
-      }
+    } catch (_) {
+      return const <PostModel>[];
     }
 
-    return AppConfig.useRemoteOnly ? const <PostModel>[] : localPosts;
+    return const <PostModel>[];
   }
 
   Future<List<PostModel>> readCachedFeed() async {
@@ -615,24 +596,6 @@ class HomeFeedRepository {
           b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
       return bTime.compareTo(aTime);
     });
-    return ordered;
-  }
-
-  List<PostModel> _mergePosts(
-    List<PostModel> localPosts,
-    List<PostModel> remotePosts,
-  ) {
-    final Map<String, PostModel> merged = <String, PostModel>{};
-    for (final PostModel post in remotePosts) {
-      merged[post.id] = post;
-    }
-    for (final PostModel post in localPosts) {
-      merged[post.id] = post;
-    }
-    final List<PostModel> ordered = merged.values.toList(growable: false);
-    ordered.sort(
-      (PostModel a, PostModel b) => b.createdAt.compareTo(a.createdAt),
-    );
     return ordered;
   }
 

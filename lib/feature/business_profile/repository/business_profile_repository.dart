@@ -24,13 +24,11 @@ class BusinessProfileRepository {
     return BusinessProfileModel(
       name: ApiPayloadReader.readString(
         payload['companyName'] ?? payload['name'],
-        fallback: 'Business profile',
       ),
       info: ApiPayloadReader.readString(
         payload['about'] ?? payload['category'],
-        fallback: 'Business information is available from the backend.',
       ),
-      analyticsPlaceholder: highlights.join(' | '),
+      analyticsSummary: highlights.join(' | '),
     );
   }
 }

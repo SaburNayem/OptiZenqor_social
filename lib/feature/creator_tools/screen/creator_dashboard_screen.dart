@@ -137,7 +137,7 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${payload.creatorUsername} • ${payload.creatorRole}',
+            _buildOverviewSubtitle(payload),
             style: const TextStyle(color: AppColors.white70, height: 1.45),
           ),
           const SizedBox(height: 18),
@@ -149,7 +149,7 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
                   payload.totals.isNotEmpty
                       ? payload.totals.first.label
                       : 'Posts',
-                  payload.totals.isNotEmpty ? payload.totals.first.value : '0',
+                  payload.totals.isNotEmpty ? payload.totals.first.value : '',
                 ),
               ),
               const SizedBox(width: 12),
@@ -159,9 +159,7 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
                   payload.metrics.isNotEmpty
                       ? payload.metrics.first.label
                       : 'Metric',
-                  payload.metrics.isNotEmpty
-                      ? payload.metrics.first.value
-                      : '0',
+                  payload.metrics.isNotEmpty ? payload.metrics.first.value : '',
                 ),
               ),
             ],
@@ -189,7 +187,7 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            value,
+            value.isEmpty ? 'Unavailable' : value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: AppColors.white,
               fontWeight: FontWeight.w700,
@@ -218,7 +216,7 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           ),
           const Spacer(),
           Text(
-            metric.value,
+            metric.value.isEmpty ? 'Unavailable' : metric.value,
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
@@ -227,7 +225,7 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
           Text(metric.label, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 6),
           Text(
-            metric.delta,
+            metric.delta.isEmpty ? 'Live backend metric' : metric.delta,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -244,12 +242,23 @@ class _CreatorDashboardScreenState extends State<CreatorDashboardScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       title: Text(item.label),
       trailing: Text(
-        item.value,
+        item.value.isEmpty ? 'Unavailable' : item.value,
         style: Theme.of(
           context,
         ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
       ),
     );
+  }
+
+  String _buildOverviewSubtitle(CreatorDashboardPayload payload) {
+    final List<String> parts = <String>[
+      payload.creatorUsername,
+      payload.creatorRole,
+    ].where((String value) => value.trim().isNotEmpty).toList(growable: false);
+    if (parts.isEmpty) {
+      return 'Live creator account data';
+    }
+    return parts.join(' | ');
   }
 
   Widget _sectionTitle(BuildContext context, String title) {

@@ -21,8 +21,8 @@ class CreatorMetricModel {
     final String label = (json['label'] ?? '').toString().trim();
     return CreatorMetricModel(
       label: label,
-      value: (json['value'] ?? '0').toString(),
-      delta: (json['delta'] ?? 'Live backend metric').toString(),
+      value: (json['value'] ?? '').toString(),
+      delta: (json['delta'] ?? '').toString(),
       icon: _iconForLabel(label),
       highlightColor: _colorForLabel(label),
     );

@@ -81,7 +81,11 @@ class BusinessProfileScreen extends StatelessWidget {
               Card(
                 child: ListTile(
                   title: const Text('Analytics'),
-                  subtitle: Text(profile.analyticsPlaceholder),
+                  subtitle: Text(
+                    profile.analyticsSummary.isEmpty
+                        ? 'No analytics summary is available from the backend yet.'
+                        : profile.analyticsSummary,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),

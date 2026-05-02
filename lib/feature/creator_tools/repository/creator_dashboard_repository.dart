@@ -38,54 +38,36 @@ class CreatorDashboardRepository {
             .toList(growable: false);
 
     return CreatorDashboardPayload(
-      creatorName: ApiPayloadReader.readString(
-        creator['name'],
-        fallback: 'Creator',
-      ),
-      creatorUsername: ApiPayloadReader.readString(
-        creator['username'],
-        fallback: '@creator',
-      ),
-      creatorRole: ApiPayloadReader.readString(
-        creator['role'],
-        fallback: 'Creator',
-      ),
+      creatorName: ApiPayloadReader.readString(creator['name']),
+      creatorUsername: ApiPayloadReader.readString(creator['username']),
+      creatorRole: ApiPayloadReader.readString(creator['role']),
       metrics: metrics,
       totals: <CreatorSummaryItem>[
         CreatorSummaryItem(
           label: 'Posts',
-          value: ApiPayloadReader.readString(totals['posts'], fallback: '0'),
+          value: ApiPayloadReader.readString(totals['posts']),
         ),
         CreatorSummaryItem(
           label: 'Reels',
-          value: ApiPayloadReader.readString(totals['reels'], fallback: '0'),
+          value: ApiPayloadReader.readString(totals['reels']),
         ),
         CreatorSummaryItem(
           label: 'Story views',
-          value: ApiPayloadReader.readString(totals['stories'], fallback: '0'),
+          value: ApiPayloadReader.readString(totals['stories']),
         ),
       ],
       detailItems: <CreatorSummaryItem>[
         CreatorSummaryItem(
           label: 'Followers',
-          value: ApiPayloadReader.readString(
-            creator['followers'],
-            fallback: 'Unavailable',
-          ),
+          value: ApiPayloadReader.readString(creator['followers']),
         ),
         CreatorSummaryItem(
           label: 'Following',
-          value: ApiPayloadReader.readString(
-            creator['following'],
-            fallback: 'Unavailable',
-          ),
+          value: ApiPayloadReader.readString(creator['following']),
         ),
         CreatorSummaryItem(
           label: 'Role',
-          value: ApiPayloadReader.readString(
-            creator['role'],
-            fallback: 'Creator',
-          ),
+          value: ApiPayloadReader.readString(creator['role']),
         ),
       ],
     );
