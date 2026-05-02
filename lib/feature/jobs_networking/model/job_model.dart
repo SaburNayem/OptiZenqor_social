@@ -84,16 +84,9 @@ class JobModel {
     );
     final String companyName = ApiPayloadReader.readString(
       json['companyName'] ?? json['company'] ?? company?['name'],
-      fallback: 'Unknown company',
     );
-    final String title = ApiPayloadReader.readString(
-      json['title'],
-      fallback: 'Job opportunity',
-    );
-    final String location = ApiPayloadReader.readString(
-      json['location'],
-      fallback: 'Remote',
-    );
+    final String title = ApiPayloadReader.readString(json['title']);
+    final String location = ApiPayloadReader.readString(json['location']);
 
     return JobModel(
       id: ApiPayloadReader.readString(json['id']),
@@ -109,7 +102,6 @@ class JobModel {
       ),
       postedTime: ApiPayloadReader.readString(
         json['postedTime'] ?? json['createdAt'],
-        fallback: 'Recently posted',
       ),
       logoInitial: companyName.isEmpty ? 'J' : companyName.substring(0, 1),
       logoColorValue: ApiPayloadReader.readInt(
@@ -334,23 +326,14 @@ class CareerProfileModel {
 
   factory CareerProfileModel.fromApiJson(Map<String, dynamic> json) {
     return CareerProfileModel(
-      name: ApiPayloadReader.readString(
-        json['name'],
-        fallback: 'Professional profile',
-      ),
+      name: ApiPayloadReader.readString(json['name']),
       title: ApiPayloadReader.readString(json['title']),
       skills: ApiPayloadReader.readStringList(json['skills']),
       experience: ApiPayloadReader.readStringList(json['experience']),
       education: ApiPayloadReader.readStringList(json['education']),
-      resumeLabel: ApiPayloadReader.readString(
-        json['resumeLabel'],
-        fallback: 'Primary resume',
-      ),
+      resumeLabel: ApiPayloadReader.readString(json['resumeLabel']),
       portfolioLinks: ApiPayloadReader.readStringList(json['portfolioLinks']),
-      availability: ApiPayloadReader.readString(
-        json['availability'],
-        fallback: 'Open to work',
-      ),
+      availability: ApiPayloadReader.readString(json['availability']),
     );
   }
 }

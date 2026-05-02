@@ -135,19 +135,13 @@ class LiveStreamRepository {
   }) {
     final String liveTitle = initialTitle?.trim().isNotEmpty == true
         ? initialTitle!.trim()
-        : ApiPayloadReader.readString(payload['title'], fallback: 'Go live');
+        : ApiPayloadReader.readString(payload['title']);
     return LiveStreamModel(
       streamId: ApiPayloadReader.readString(
         payload['id'] ?? payload['streamId'],
       ),
-      creatorName: ApiPayloadReader.readString(
-        payload['host'],
-        fallback: 'Live host',
-      ),
-      username: ApiPayloadReader.readString(
-        payload['username'],
-        fallback: '@live',
-      ),
+      creatorName: ApiPayloadReader.readString(payload['host']),
+      username: ApiPayloadReader.readString(payload['username']),
       avatarUrl: ApiPayloadReader.readString(payload['avatarUrl']),
       previewLabel: 'Describe what your live video is about',
       liveTitle: liveTitle,
@@ -156,10 +150,7 @@ class LiveStreamRepository {
       viewerCount: ApiPayloadReader.readInt(
         payload['audienceCount'] ?? payload['viewerCount'],
       ),
-      category: ApiPayloadReader.readString(
-        payload['category'],
-        fallback: 'Live',
-      ),
+      category: ApiPayloadReader.readString(payload['category']),
       location: ApiPayloadReader.readString(payload['location']),
       previewPhotoPath: initialPhotoPath,
       quickOptions: _readQuickOptions(payload['quickOptions']),
@@ -171,14 +162,7 @@ class LiveStreamRepository {
     final List<Map<String, dynamic>> items =
         ApiPayloadReader.readMapListFromAny(value);
     if (items.isEmpty) {
-      return const <LiveQuickOptionModel>[
-        LiveQuickOptionModel(
-          id: 'live',
-          label: 'Live video',
-          icon: Icons.videocam_rounded,
-          selected: true,
-        ),
-      ];
+      return const <LiveQuickOptionModel>[];
     }
 
     return items
@@ -186,7 +170,7 @@ class LiveStreamRepository {
           final String id = ApiPayloadReader.readString(item['id']);
           return LiveQuickOptionModel(
             id: id,
-            label: ApiPayloadReader.readString(item['label'], fallback: id),
+            label: ApiPayloadReader.readString(item['label']),
             icon: _iconForQuickOption(id),
             selected: ApiPayloadReader.readBool(item['selected']) ?? false,
           );
@@ -204,10 +188,7 @@ class LiveStreamRepository {
   LiveCommentModel _mapComment(Map<String, dynamic> item) {
     return LiveCommentModel(
       id: ApiPayloadReader.readString(item['id']),
-      username: ApiPayloadReader.readString(
-        item['username'],
-        fallback: 'viewer',
-      ),
+      username: ApiPayloadReader.readString(item['username']),
       avatarUrl: ApiPayloadReader.readString(item['avatarUrl']),
       message: ApiPayloadReader.readString(item['message']),
       verified: ApiPayloadReader.readBool(item['verified']) ?? false,

@@ -2,37 +2,39 @@
 
 Last updated: 2026-05-02
 
+## Files Changed In This Pass
+
+- `lib/feature/calls/repository/calls_repository.dart`
+- `lib/feature/jobs_networking/model/job_model.dart`
+- `lib/feature/live_stream/repository/live_stream_repository.dart`
+- `lib/feature/marketplace/model/product_model.dart`
+- `lib/feature/marketplace/model/seller_model.dart`
+- `lib/feature/marketplace/repository/marketplace_repository.dart`
+
+## What Was Tightened
+
+- marketplace repository now depends on canonical backend `sellers` and `categories` payloads instead of deriving them from products
+- marketplace draft parsing no longer injects placeholder draft titles, categories, locations, or sample images
+- marketplace chat/offer parsing no longer invents fallback sender/actor labels
+- product and seller models no longer inject several user-facing fallback business labels
+- calls repository no longer fabricates default call type/state/user labels
+- live stream repository no longer fabricates default stream title/host/category/quick-option/comment labels
+- jobs/profile models no longer fabricate default company/job/profile labels
+
 ## Validation
 
 - `flutter pub get` -> passed
+- `dart format .` -> passed
 - `flutter analyze` -> passed
+- `flutter test` -> failed because the repo has no `test/*_test.dart` files
 
-## Audit Findings From This Pass
+## Remaining Frontend Gaps
 
-- Central API infrastructure is present through `lib/core/data/service/api_client_service.dart`.
-- The backend already exposes server-backed routes for major server-owned state domains including settings, preferences, account switching, activity sessions, blocked/muted accounts, marketplace compare/drafts/offers/chat, jobs alerts/apply/withdraw/company follow, events RSVP/create, and business profile.
-- Several target feature repositories already call backend endpoints rather than shipping pure mock repositories.
+- support/help still needs backend-backed ticket detail, replies, updates, and richer retry/error/loading/empty states
+- groups, group chat, events, polls/surveys, learning courses, pages, account switching, activity sessions, blocked/muted accounts, and saved collections still need the same strict no-placeholder audit standard applied end to end
+- calls/live should move further toward explicit durable backend lifecycle contracts once those server routes are finalized
+- any remaining production fallback labels outside the edited files should be removed in follow-up feature passes
 
-## Still Needs Cleanup
+## Honest Status
 
-- A deeper pass is still needed to certify that every requested production feature is fully backend-driven with no local-only source-of-truth behavior.
-- The modules that still deserve focused verification include:
-  - `group_chat`
-  - `groups`
-  - `events`
-  - `polls_surveys`
-  - `learning_courses`
-  - `business_profile`
-  - `jobs_networking`
-  - `pages`
-  - `calls`
-  - `account_switching`
-  - `activity_sessions`
-  - `blocked_muted_accounts`
-  - `saved_collections`
-
-## Notes
-
-- No Flutter source files were changed in this pass.
-- `dart format .` was intentionally not run in this pass because no Flutter source edits were made and a repo-wide format sweep would create unrelated churn.
-- The app cannot yet be claimed fully complete against the requested “backend only source of truth for all production features” acceptance target without the remaining feature-level audit and cleanup work.
+The Flutter app is materially closer to a backend-first production contract after this pass, especially in marketplace, calls, live, and jobs parsing. It is not yet fully complete across every feature slice named in the brief.

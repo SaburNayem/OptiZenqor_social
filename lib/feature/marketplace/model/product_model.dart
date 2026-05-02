@@ -173,13 +173,9 @@ class ProductModel {
     final Map<String, dynamic>? seller = ApiPayloadReader.readMap(
       json['seller'],
     );
-    final String category = ApiPayloadReader.readString(
-      json['category'],
-      fallback: 'General',
-    );
+    final String category = ApiPayloadReader.readString(json['category']);
     final String companyName = ApiPayloadReader.readString(
       seller?['name'] ?? json['sellerName'],
-      fallback: 'Unknown seller',
     );
     final String brand = ApiPayloadReader.readString(
       json['brand'] ?? seller?['storeName'],
@@ -188,26 +184,14 @@ class ProductModel {
 
     return ProductModel(
       id: ApiPayloadReader.readString(json['id']),
-      title: ApiPayloadReader.readString(
-        json['title'],
-        fallback: 'Marketplace item',
-      ),
+      title: ApiPayloadReader.readString(json['title']),
       description: ApiPayloadReader.readString(json['description']),
       price: ApiPayloadReader.readDouble(json['price']),
       category: category,
-      subcategory: ApiPayloadReader.readString(
-        json['subcategory'],
-        fallback: category,
-      ),
+      subcategory: ApiPayloadReader.readString(json['subcategory']),
       condition: _conditionFromValue(json['condition']),
-      location: ApiPayloadReader.readString(
-        json['location'],
-        fallback: 'Unknown',
-      ),
-      distanceLabel: ApiPayloadReader.readString(
-        json['distanceLabel'],
-        fallback: 'Nearby',
-      ),
+      location: ApiPayloadReader.readString(json['location']),
+      distanceLabel: ApiPayloadReader.readString(json['distanceLabel']),
       timePosted:
           ApiPayloadReader.readDateTime(
             json['timePosted'] ?? json['createdAt'],
@@ -241,10 +225,7 @@ class ProductModel {
       chats: ApiPayloadReader.readInt(json['chats']),
       isHiddenByModeration:
           ApiPayloadReader.readBool(json['isHiddenByModeration']) ?? false,
-      reviewStatus: ApiPayloadReader.readString(
-        json['reviewStatus'],
-        fallback: 'Approved',
-      ),
+      reviewStatus: ApiPayloadReader.readString(json['reviewStatus']),
     );
   }
 

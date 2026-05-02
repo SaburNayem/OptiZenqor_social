@@ -43,13 +43,9 @@ class CallsRepository {
   }
 
   CallItemModel _callFromApiJson(Map<String, dynamic> json) {
-    final String typeValue = ApiPayloadReader.readString(
-      json['type'],
-      fallback: 'voice',
-    );
+    final String typeValue = ApiPayloadReader.readString(json['type']);
     final String stateValue = ApiPayloadReader.readString(
       json['state'] ?? json['status'],
-      fallback: 'completed',
     );
     final DateTime resolvedTime =
         ApiPayloadReader.readDateTime(
@@ -61,7 +57,6 @@ class CallsRepository {
       id: ApiPayloadReader.readString(json['id'] ?? json['sessionId']),
       user: ApiPayloadReader.readString(
         json['user'] ?? json['username'] ?? json['name'],
-        fallback: 'call',
       ),
       type: typeValue == 'video' ? CallType.video : CallType.voice,
       state: _stateFromValue(stateValue),

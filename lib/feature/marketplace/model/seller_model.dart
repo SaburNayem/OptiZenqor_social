@@ -57,7 +57,7 @@ class SellerModel {
   factory SellerModel.fromApiJson(Map<String, dynamic> json) {
     return SellerModel(
       id: ApiPayloadReader.readString(json['id']),
-      name: ApiPayloadReader.readString(json['name'], fallback: 'Seller'),
+      name: ApiPayloadReader.readString(json['name']),
       avatar: ApiPayloadReader.readString(json['avatar'] ?? json['avatarUrl']),
       bio: ApiPayloadReader.readString(json['bio'] ?? json['description']),
       joinDate:
@@ -67,10 +67,7 @@ class SellerModel {
           DateTime.now(),
       rating: ApiPayloadReader.readDouble(json['rating']),
       responseRate: ApiPayloadReader.readInt(json['responseRate']),
-      responseTime: ApiPayloadReader.readString(
-        json['responseTime'],
-        fallback: 'within 1 day',
-      ),
+      responseTime: ApiPayloadReader.readString(json['responseTime']),
       followers: ApiPayloadReader.readInt(json['followers']),
       following: ApiPayloadReader.readInt(json['following']),
       isVerified:
@@ -82,12 +79,9 @@ class SellerModel {
       reviews: _reviewsFromValue(json['reviews']),
       storeName: ApiPayloadReader.readString(
         json['storeName'],
-        fallback: ApiPayloadReader.readString(json['name'], fallback: 'Seller'),
+        fallback: ApiPayloadReader.readString(json['name']),
       ),
-      strikeStatus: ApiPayloadReader.readString(
-        json['strikeStatus'],
-        fallback: 'No warnings',
-      ),
+      strikeStatus: ApiPayloadReader.readString(json['strikeStatus']),
     );
   }
 
@@ -112,7 +106,6 @@ class SellerModel {
           (Map<String, dynamic> item) => SellerReview(
             buyerName: ApiPayloadReader.readString(
               item['buyerName'] ?? item['author'],
-              fallback: 'Buyer',
             ),
             rating: ApiPayloadReader.readDouble(item['rating']),
             comment: ApiPayloadReader.readString(item['comment']),

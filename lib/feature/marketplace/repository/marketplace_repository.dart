@@ -51,25 +51,7 @@ class MarketplaceRepository {
   final MarketplaceService _service;
 
   Future<MarketplaceSeedData> loadMarketplace() async {
-    final MarketplaceSeedData remoteData = await _loadRemoteMarketplace();
-    return remoteData.products.isNotEmpty
-        ? remoteData
-        : const MarketplaceSeedData(
-            products: <ProductModel>[],
-            sellers: <SellerModel>[],
-            categories: <MarketplaceCategoryModel>[],
-            savedItemIds: <String>[],
-            compareItemIds: <String>[],
-            followedSellerIds: <String>[],
-            savedSearches: <String>[],
-            recentSearches: <String>[],
-            trendingSearches: <String>[],
-            notifications: <String>[],
-            blockedKeywords: <String>[],
-            chatMessages: <MarketplaceChatMessage>[],
-            offerHistory: <MarketplaceOfferEvent>[],
-            orders: <MarketplaceOrderModel>[],
-          );
+    return _loadRemoteMarketplace();
   }
 
   Future<MarketplaceSeedData> _loadRemoteMarketplace() async {
@@ -103,8 +85,8 @@ class MarketplaceRepository {
 
     return MarketplaceSeedData(
       products: combinedProducts,
-      sellers: _readSellers(payload, combinedProducts),
-      categories: _readCategories(payload, combinedProducts),
+      sellers: _readSellers(payload),
+      categories: _readCategories(payload),
       savedItemIds: ApiPayloadReader.readStringList(payload['savedItemIds']),
       compareItemIds: ApiPayloadReader.readStringList(
         payload['compareItemIds'],
@@ -512,10 +494,7 @@ class MarketplaceRepository {
     return result ?? defaultValue;
   }
 
-  List<SellerModel> _readSellers(
-    Map<String, dynamic> payload,
-    List<ProductModel> products,
-  ) {
+  List<SellerModel> _readSellers(Map<String, dynamic> payload) {
     final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
       payload,
       preferredKeys: const <String>['sellers'],
@@ -529,13 +508,10 @@ class MarketplaceRepository {
         return sellers;
       }
     }
-    return _deriveSellers(products);
+    return const <SellerModel>[];
   }
 
-  List<MarketplaceCategoryModel> _readCategories(
-    Map<String, dynamic> payload,
-    List<ProductModel> products,
-  ) {
+  List<MarketplaceCategoryModel> _readCategories(Map<String, dynamic> payload) {
     final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
       payload,
       preferredKeys: const <String>['categories'],
@@ -549,7 +525,7 @@ class MarketplaceRepository {
         return categories;
       }
     }
-    return _deriveCategories(products);
+    return const <MarketplaceCategoryModel>[];
   }
 
   MarketplaceCategoryModel _categoryFromApiJson(Map<String, dynamic> json) {
@@ -582,10 +558,7 @@ class MarketplaceRepository {
             sellerId: ApiPayloadReader.readString(
               item['sellerId'] ?? item['userId'],
             ),
-            sellerName: ApiPayloadReader.readString(
-              item['sellerName'],
-              fallback: 'Draft listing',
-            ),
+            sellerName: ApiPayloadReader.readString(item['sellerName']),
             sellerType: SellerType.individual,
           ),
         )
@@ -611,41 +584,22 @@ class MarketplaceRepository {
     final List<String> images = ApiPayloadReader.readStringList(json['images']);
     return ProductModel(
       id: ApiPayloadReader.readString(json['id']),
-      title: ApiPayloadReader.readString(
-        json['title'],
-        fallback: 'Untitled draft',
-      ),
+      title: ApiPayloadReader.readString(json['title']),
       description: ApiPayloadReader.readString(json['description']),
       price: ApiPayloadReader.readDouble(json['price']),
-      category: ApiPayloadReader.readString(
-        json['category'],
-        fallback: 'General',
-      ),
-      subcategory: ApiPayloadReader.readString(
-        json['subcategory'],
-        fallback: ApiPayloadReader.readString(
-          json['category'],
-          fallback: 'General',
-        ),
-      ),
+      category: ApiPayloadReader.readString(json['category']),
+      subcategory: ApiPayloadReader.readString(json['subcategory']),
       condition: ProductModel.fromApiJson(<String, dynamic>{
         'condition': json['condition'],
       }).condition,
-      location: ApiPayloadReader.readString(
-        json['location'],
-        fallback: 'Draft',
-      ),
-      distanceLabel: 'Draft',
+      location: ApiPayloadReader.readString(json['location']),
+      distanceLabel: '',
       timePosted:
           ApiPayloadReader.readDateTime(
             json['updatedAt'] ?? json['createdAt'],
           ) ??
           DateTime.now(),
-      images: images.isNotEmpty
-          ? images
-          : const <String>[
-              'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80',
-            ],
+      images: images,
       sellerId: sellerId,
       sellerName: sellerName,
       sellerType: sellerType,
@@ -659,10 +613,7 @@ class MarketplaceRepository {
                   MapEntry(key, value?.toString() ?? ''),
             ),
       tags: ApiPayloadReader.readStringList(metadata?['tags']),
-      brand: ApiPayloadReader.readString(
-        attributes?['Brand'],
-        fallback: sellerName,
-      ),
+      brand: ApiPayloadReader.readString(attributes?['Brand']),
       quantity: ApiPayloadReader.readInt(metadata?['quantity']),
       isFeatured: false,
       isTrending: false,
@@ -678,7 +629,7 @@ class MarketplaceRepository {
       watchers: 0,
       chats: 0,
       isHiddenByModeration: false,
-      reviewStatus: 'Draft',
+      reviewStatus: ApiPayloadReader.readString(json['reviewStatus']),
     );
   }
 
@@ -699,7 +650,6 @@ class MarketplaceRepository {
       senderId: ApiPayloadReader.readString(item['senderId']),
       senderName: ApiPayloadReader.readString(
         item['senderName'] ?? item['sender'] ?? item['author'],
-        fallback: 'Seller',
       ),
       text: ApiPayloadReader.readString(
         item['text'] ?? item['message'] ?? item['body'],
@@ -735,13 +685,9 @@ class MarketplaceRepository {
       id: ApiPayloadReader.readString(item['id']),
       productId: ApiPayloadReader.readString(item['productId']),
       actor: ApiPayloadReader.readString(
-        item['actor'] ?? item['senderName'],
-        fallback: 'User',
+        item['actor'] ?? item['actorName'] ?? item['senderName'],
       ),
-      action: ApiPayloadReader.readString(
-        item['action'] ?? item['type'],
-        fallback: 'Offered',
-      ),
+      action: ApiPayloadReader.readString(item['action'] ?? item['type']),
       amount: ApiPayloadReader.readDouble(item['amount'] ?? item['price']),
       timestamp:
           ApiPayloadReader.readDateTime(
@@ -805,71 +751,6 @@ class MarketplaceRepository {
       default:
         return MarketplaceOrderStatus.pending;
     }
-  }
-
-  List<SellerModel> _deriveSellers(List<ProductModel> products) {
-    final Map<String, SellerModel> sellersById = <String, SellerModel>{};
-    for (final ProductModel product in products) {
-      if (product.sellerId.isEmpty) {
-        continue;
-      }
-      sellersById.putIfAbsent(
-        product.sellerId,
-        () => SellerModel(
-          id: product.sellerId,
-          name: product.sellerName,
-          avatar: '',
-          bio: 'Marketplace seller on OptiZenqor.',
-          joinDate: DateTime.now(),
-          rating: product.rating,
-          responseRate: 0,
-          responseTime: '',
-          followers: 0,
-          following: 0,
-          isVerified: product.sellerType == SellerType.verified,
-          sellerType: product.sellerType,
-          activeListings: products
-              .where((ProductModel item) => item.sellerId == product.sellerId)
-              .length,
-          completedOrders: 0,
-          reviews: product.reviews
-              .map(
-                (ProductReview item) => SellerReview(
-                  buyerName: item.author,
-                  rating: item.rating,
-                  comment: item.comment,
-                  dateLabel: item.dateLabel,
-                ),
-              )
-              .toList(growable: false),
-          storeName: product.sellerName,
-          strikeStatus: '',
-        ),
-      );
-    }
-    return sellersById.values.toList(growable: false);
-  }
-
-  List<MarketplaceCategoryModel> _deriveCategories(
-    List<ProductModel> products,
-  ) {
-    final Map<String, Set<String>> categoryMap = <String, Set<String>>{};
-    for (final ProductModel product in products) {
-      categoryMap.putIfAbsent(product.category, () => <String>{});
-      if (product.subcategory.isNotEmpty) {
-        categoryMap[product.category]!.add(product.subcategory);
-      }
-    }
-
-    return categoryMap.entries
-        .map(
-          (MapEntry<String, Set<String>> entry) => MarketplaceCategoryModel(
-            name: entry.key,
-            icon: _iconForCategory(entry.key),
-            subcategories: entry.value.toList(growable: false),
-          ),
-        )
-        .toList(growable: false);
   }
 
   IconData _iconForCategory(String category) {
