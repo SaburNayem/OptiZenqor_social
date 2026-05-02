@@ -5,7 +5,7 @@ import '../controller/deep_link_handler_controller.dart';
 
 class DeepLinkHandlerScreen extends StatelessWidget {
   const DeepLinkHandlerScreen({super.key});
-  static const String _initialLink = 'https://optizenqor.app/post/p1';
+  static const String _initialLink = '';
 
   @override
   Widget build(BuildContext context) {
@@ -19,25 +19,28 @@ class DeepLinkHandlerScreen extends StatelessWidget {
             body: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text(controller.explain('/post/p1')),
+                Text(controller.explain('the provided route')),
                 const SizedBox(height: 12),
                 TextFormField(
                   initialValue: state.link,
                   onChanged: context.read<_DeepLinkHandlerCubit>().updateLink,
                   decoration: const InputDecoration(
                     labelText: 'Deep link URL',
-                    hintText: 'https://optizenqor.app/profile/u1',
+                    hintText: 'Paste a backend-issued deep link',
                   ),
                 ),
                 const SizedBox(height: 8),
                 FilledButton(
-                  onPressed: () async {
-                    final resolved = await controller.resolve(state.link);
-                    if (!context.mounted) return;
-                    context.read<_DeepLinkHandlerCubit>().updateResolved(
-                      resolved ?? 'Unable to resolve route',
-                    );
-                  },
+                  onPressed: state.link.trim().isEmpty
+                      ? null
+                      : () async {
+                          final resolved = await controller.resolve(state.link);
+                          if (!context.mounted) return;
+                          context.read<_DeepLinkHandlerCubit>().updateResolved(
+                            resolved ??
+                                'Unable to resolve the provided backend link',
+                          );
+                        },
                   child: const Text('Resolve link'),
                 ),
                 const SizedBox(height: 8),
@@ -54,7 +57,7 @@ class DeepLinkHandlerScreen extends StatelessWidget {
 class _DeepLinkHandlerState {
   const _DeepLinkHandlerState({
     this.link = DeepLinkHandlerScreen._initialLink,
-    this.resolved = 'No route resolved yet',
+    this.resolved = 'Enter a backend-issued deep link to resolve it',
   });
 
   final String link;

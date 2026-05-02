@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "167114516857",
+    "project_id": "optizenqor-socity",
+    "storage_bucket": "optizenqor-socity.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167114516857:android:b0c5fe92061deb2650a7a8",
+        "android_client_info": {
+          "package_name": "com.example.optizenqor_social"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzHINUxathu0AURt5nRYqyLhHqPHkRz7U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

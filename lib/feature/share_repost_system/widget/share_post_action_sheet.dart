@@ -12,8 +12,8 @@ Future<void> showSharePostActionSheet({
   required PostModel post,
   required UserModel author,
 }) {
-  final String postLink = 'https://optizenqor.app/post/${post.id}';
   final ShareRepostSystemService shareService = ShareRepostSystemService();
+  final String? backendShareLink = _resolveBackendShareLink(post);
 
   Future<void> trackShare(String option) async {
     try {
@@ -52,11 +52,22 @@ Future<void> showSharePostActionSheet({
               leading: const Icon(Icons.send_outlined),
               title: const Text('Share externally'),
               subtitle: const Text(
-                'Copy the post link and share it in another app',
+                'Use the backend-provided share link when available',
               ),
               onTap: () async {
                 await trackShare('external_share');
-                await Clipboard.setData(ClipboardData(text: postLink));
+                if (backendShareLink == null || backendShareLink.isEmpty) {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  Navigator.of(sheetContext).pop();
+                  AppGet.snackbar(
+                    'Unavailable',
+                    'This post does not have a backend share link yet.',
+                  );
+                  return;
+                }
+                await Clipboard.setData(ClipboardData(text: backendShareLink));
                 if (!context.mounted) {
                   return;
                 }
@@ -70,10 +81,23 @@ Future<void> showSharePostActionSheet({
             ListTile(
               leading: const Icon(Icons.link_rounded),
               title: const Text('Copy post link'),
-              subtitle: Text(postLink),
+              subtitle: Text(
+                backendShareLink ?? 'Backend share link unavailable',
+              ),
               onTap: () async {
-                await Clipboard.setData(ClipboardData(text: postLink));
                 await trackShare('copy_link');
+                if (backendShareLink == null || backendShareLink.isEmpty) {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  Navigator.of(sheetContext).pop();
+                  AppGet.snackbar(
+                    'Unavailable',
+                    'This post does not have a backend share link yet.',
+                  );
+                  return;
+                }
+                await Clipboard.setData(ClipboardData(text: backendShareLink));
                 if (!context.mounted) {
                   return;
                 }
@@ -86,4 +110,13 @@ Future<void> showSharePostActionSheet({
       );
     },
   );
+}
+
+String? _resolveBackendShareLink(PostModel post) {
+  // The current post payload does not expose a durable share URL yet.
+  // Keep the client honest until backend contracts provide one explicitly.
+  if (post.id.isEmpty) {
+    return null;
+  }
+  return null;
 }

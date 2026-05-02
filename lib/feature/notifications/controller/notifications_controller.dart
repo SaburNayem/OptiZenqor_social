@@ -165,6 +165,37 @@ class NotificationsController extends ChangeNotifier {
     return resolvedRoute;
   }
 
+  Future<String?> openPushPayload(Map<String, dynamic> payload) async {
+    final NotificationPayloadModel normalized =
+        NotificationPayloadModel.fromMap(payload);
+
+    await _analytics.logEvent(
+      'push_notification_open',
+      params: <String, dynamic>{
+        'type': normalized.type.name,
+        'route': normalized.routeName,
+        if (normalized.entityId != null) 'entityId': normalized.entityId,
+      },
+    );
+
+    final resolvedRoute = await _deepLinkService.open(normalized.routeName);
+    if (resolvedRoute == null || resolvedRoute.isEmpty) {
+      return resolvedRoute;
+    }
+
+    final Map<String, dynamic> arguments = <String, dynamic>{
+      ...normalized.metadata,
+      if (normalized.entityId != null) 'entityId': normalized.entityId,
+    };
+    final uri = Uri.tryParse(resolvedRoute);
+    if (uri != null && uri.queryParameters.isNotEmpty) {
+      await AppGet.toNamed(uri.path, parameters: uri.queryParameters);
+    } else {
+      await AppGet.toNamed(resolvedRoute, arguments: arguments);
+    }
+    return resolvedRoute;
+  }
+
   @override
   void dispose() {
     _notificationSubscription?.cancel();

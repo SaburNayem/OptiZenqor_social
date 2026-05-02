@@ -6,9 +6,16 @@ import 'app.dart';
 import 'core/bloc/app_bloc_observer.dart';
 import 'core/config/app_config.dart';
 import 'core/data/service/theme_service.dart';
+import 'core/firebase_masseging/notification_permission.dart';
+import 'core/firebase_masseging/notification_receive.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ensureFirebaseInitialized();
+  await FirebaseNotificationReceive.initializeLocalNotifications();
+  FirebaseNotificationReceive.setupBackgroundMessageHandler();
+  await FirebaseNotificationReceive.registerInteractionHandlers();
+  await initializePushNotifications();
   await ThemeService.instance.init();
   Bloc.observer = AppBlocObserver();
   FlutterError.onError = (FlutterErrorDetails details) {
