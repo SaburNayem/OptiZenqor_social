@@ -399,22 +399,13 @@ class JobsNetworkingRepository {
     return JobApplicationModel(
       id: ApiPayloadReader.readString(json['id']),
       jobId: ApiPayloadReader.readString(json['jobId']),
-      applicantName: ApiPayloadReader.readString(
-        json['applicantName'],
-        fallback: 'You',
-      ),
+      applicantName: ApiPayloadReader.readString(json['applicantName']),
       status: _applicationStatusFromValue(json['status']),
-      appliedDate: ApiPayloadReader.readString(
-        json['appliedDate'],
-        fallback: 'Recently',
-      ),
+      appliedDate: ApiPayloadReader.readString(json['appliedDate']),
       timeline: ApiPayloadReader.readStringList(json['timeline']),
       coverLetter: ApiPayloadReader.readString(json['coverLetter']),
       portfolioLink: ApiPayloadReader.readString(json['portfolioLink']),
-      resumeLabel: ApiPayloadReader.readString(
-        json['resumeLabel'],
-        fallback: 'Primary resume',
-      ),
+      resumeLabel: ApiPayloadReader.readString(json['resumeLabel']),
     );
   }
 
@@ -422,17 +413,14 @@ class JobsNetworkingRepository {
     return JobAlertModel(
       id: ApiPayloadReader.readString(json['id']),
       keyword: ApiPayloadReader.readString(json['keyword']),
-      location: ApiPayloadReader.readString(json['location'], fallback: 'Any'),
+      location: ApiPayloadReader.readString(json['location']),
       frequency: _alertFrequencyFromValue(json['frequency']),
       enabled: ApiPayloadReader.readBool(json['enabled']) ?? true,
     );
   }
 
   CompanyModel _companyFromApiJson(Map<String, dynamic> json) {
-    final String name = ApiPayloadReader.readString(
-      json['name'],
-      fallback: 'Company',
-    );
+    final String name = ApiPayloadReader.readString(json['name']);
     return CompanyModel(
       id: ApiPayloadReader.readString(json['id']),
       name: name,
@@ -458,10 +446,7 @@ class JobsNetworkingRepository {
 
   EmployerProfileModel _employerProfileFromApiJson(Map<String, dynamic> json) {
     return EmployerProfileModel(
-      companyName: ApiPayloadReader.readString(
-        json['companyName'],
-        fallback: '',
-      ),
+      companyName: ApiPayloadReader.readString(json['companyName']),
       hiringTitle: ApiPayloadReader.readString(json['hiringTitle']),
       about: ApiPayloadReader.readString(json['about']),
       location: ApiPayloadReader.readString(json['location']),
@@ -478,10 +463,7 @@ class JobsNetworkingRepository {
       title: ApiPayloadReader.readString(json['title']),
       skills: ApiPayloadReader.readStringList(json['skills']),
       status: _applicationStatusFromValue(json['status']),
-      resumeLabel: ApiPayloadReader.readString(
-        json['resumeLabel'],
-        fallback: 'Primary resume',
-      ),
+      resumeLabel: ApiPayloadReader.readString(json['resumeLabel']),
     );
   }
 

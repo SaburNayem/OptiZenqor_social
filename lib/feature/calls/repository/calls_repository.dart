@@ -56,7 +56,7 @@ class CallsRepository {
     return CallItemModel(
       id: ApiPayloadReader.readString(json['id'] ?? json['sessionId']),
       user: ApiPayloadReader.readString(
-        json['user'] ?? json['username'] ?? json['name'],
+        json['userLabel'] ?? json['name'] ?? json['username'] ?? json['user'],
       ),
       type: typeValue == 'video' ? CallType.video : CallType.voice,
       state: _stateFromValue(stateValue),

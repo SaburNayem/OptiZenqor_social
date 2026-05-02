@@ -346,7 +346,6 @@ class ProductModel {
           (Map<String, dynamic> item) => ProductReview(
             author: ApiPayloadReader.readString(
               item['author'] ?? item['buyerName'],
-              fallback: 'Buyer',
             ),
             rating: ApiPayloadReader.readDouble(item['rating']),
             comment: ApiPayloadReader.readString(item['comment']),
