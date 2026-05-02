@@ -51,14 +51,20 @@ Future<void> showSharePostActionSheet({
             ListTile(
               leading: const Icon(Icons.send_outlined),
               title: const Text('Share externally'),
-              subtitle: const Text('Open static external share options'),
+              subtitle: const Text(
+                'Copy the post link and share it in another app',
+              ),
               onTap: () async {
                 await trackShare('external_share');
+                await Clipboard.setData(ClipboardData(text: postLink));
                 if (!context.mounted) {
                   return;
                 }
                 Navigator.of(sheetContext).pop();
-                AppGet.snackbar('Share post', 'Static external share opened');
+                AppGet.snackbar(
+                  'Copied',
+                  'Post link copied for external sharing',
+                );
               },
             ),
             ListTile(

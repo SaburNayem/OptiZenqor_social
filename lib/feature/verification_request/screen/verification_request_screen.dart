@@ -130,7 +130,7 @@ class _VerificationRequestScreenState extends State<VerificationRequestScreen> {
                         ),
                         title: Text(document),
                         subtitle: const Text(
-                          'Placeholder for backend upload integration',
+                          'Select the documents you will upload through the app upload flow before submission.',
                         ),
                         onChanged: (_) => _controller.toggleDocument(document),
                       ),

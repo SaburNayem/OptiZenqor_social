@@ -12,6 +12,13 @@ class PollsSurveysScreen extends StatelessWidget {
 
   final PollsSurveysController _controller = PollsSurveysController();
 
+  void _showUnavailableMessage(String label) {
+    AppGet.snackbar(
+      label,
+      'This action is not available until the backend composer flow is implemented.',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,12 +27,7 @@ class PollsSurveysScreen extends StatelessWidget {
         title: const Text('Polls & Surveys'),
         actions: [
           TextButton.icon(
-            onPressed: () {
-              AppGet.snackbar(
-                'Create',
-                'Static create poll or survey composer opened',
-              );
-            },
+            onPressed: () => _showUnavailableMessage('Create'),
             icon: const Icon(Icons.add_circle_outline),
             label: const Text('Create'),
           ),
@@ -44,12 +46,7 @@ class PollsSurveysScreen extends StatelessWidget {
               _buildSectionHeader(
                 title: 'Quick templates',
                 actionLabel: 'See all',
-                onTap: () {
-                  AppGet.snackbar(
-                    'Templates',
-                    'Static poll and survey templates opened',
-                  );
-                },
+                onTap: () => _showUnavailableMessage('Templates'),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -62,12 +59,8 @@ class PollsSurveysScreen extends StatelessWidget {
                     final template = _controller.quickTemplates[index];
                     return ActionChip(
                       label: Text(template),
-                      onPressed: () {
-                        AppGet.snackbar(
-                          'Template selected',
-                          'Static $template template opened',
-                        );
-                      },
+                      onPressed: () =>
+                          _showUnavailableMessage('Template selected'),
                       backgroundColor: AppColors.white,
                       side: const BorderSide(color: AppColors.hexFFE2E8F0),
                     );
@@ -78,12 +71,7 @@ class PollsSurveysScreen extends StatelessWidget {
               _buildSectionHeader(
                 title: 'Active section',
                 actionLabel: 'Analytics',
-                onTap: () {
-                  AppGet.snackbar(
-                    'Analytics',
-                    'Static poll analytics view opened',
-                  );
-                },
+                onTap: () => _showUnavailableMessage('Analytics'),
               ),
               const SizedBox(height: 12),
               ..._controller.activeEntries.map(_buildActiveCard),
@@ -91,9 +79,7 @@ class PollsSurveysScreen extends StatelessWidget {
               _buildSectionHeader(
                 title: 'Drafts',
                 actionLabel: 'Manage',
-                onTap: () {
-                  AppGet.snackbar('Drafts', 'Static drafts manager opened');
-                },
+                onTap: () => _showUnavailableMessage('Drafts'),
               ),
               const SizedBox(height: 12),
               ..._controller.draftEntries.map(_buildDraftCard),
@@ -175,12 +161,7 @@ class PollsSurveysScreen extends StatelessWidget {
             subtitle: 'Fast yes/no or multi-choice vote',
             backgroundColor: AppColors.hexFFE0F2FE,
             iconColor: AppColors.hexFF0284C7,
-            onTap: () {
-              AppGet.snackbar(
-                'Create Poll',
-                'Static poll creation flow opened',
-              );
-            },
+            onTap: () => _showUnavailableMessage('Create Poll'),
           ),
         ),
         const SizedBox(width: 12),
@@ -191,12 +172,7 @@ class PollsSurveysScreen extends StatelessWidget {
             subtitle: 'Gather deeper profile feedback',
             backgroundColor: AppColors.hexFFDCFCE7,
             iconColor: AppColors.hexFF16A34A,
-            onTap: () {
-              AppGet.snackbar(
-                'Create Survey',
-                'Static survey creation flow opened',
-              );
-            },
+            onTap: () => _showUnavailableMessage('Create Survey'),
           ),
         ),
       ],
@@ -265,12 +241,7 @@ class PollsSurveysScreen extends StatelessWidget {
               ),
               const Spacer(),
               IconButton(
-                onPressed: () {
-                  AppGet.snackbar(
-                    'More',
-                    'Static action sheet for ${entry.title} opened',
-                  );
-                },
+                onPressed: () => _showUnavailableMessage('More'),
                 icon: const Icon(Icons.more_horiz),
               ),
             ],
@@ -410,12 +381,7 @@ class PollsSurveysScreen extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           OutlinedButton(
-            onPressed: () {
-              AppGet.snackbar(
-                'Edit draft',
-                'Static edit flow for ${entry.title} opened',
-              );
-            },
+            onPressed: () => _showUnavailableMessage('Edit draft'),
             child: const Text('Edit'),
           ),
         ],

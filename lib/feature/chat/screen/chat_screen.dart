@@ -126,7 +126,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () {
-                      AppGet.snackbar('Search', 'Static message search opened');
+                      AppGet.snackbar(
+                        'Search unavailable',
+                        'Backend message search is not implemented yet.',
+                      );
                     },
                     child: Container(
                       height: 48,
