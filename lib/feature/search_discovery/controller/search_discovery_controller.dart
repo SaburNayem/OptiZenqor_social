@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../core/data/api/api_payload_reader.dart';
@@ -36,7 +38,9 @@ class SearchBucketItem {
 class SearchDiscoveryController extends ChangeNotifier {
   SearchDiscoveryController({SearchDiscoveryService? service})
     : _debouncer = Debouncer(milliseconds: 350),
-      _service = service ?? SearchDiscoveryService();
+      _service = service ?? SearchDiscoveryService() {
+    unawaited(loadTrendingTerms());
+  }
 
   final Debouncer _debouncer;
   final SearchDiscoveryService _service;
@@ -54,16 +58,38 @@ class SearchDiscoveryController extends ChangeNotifier {
   List<SearchBucketItem> eventResults = <SearchBucketItem>[];
   List<SearchBucketItem> jobResults = <SearchBucketItem>[];
 
-  final List<String> trendingTerms = <String>[
-    'creator economy',
-    'flutter jobs',
-    'workspace reels',
-    'design systems',
-  ];
+  List<String> trendingTerms = const <String>[];
 
   void search(String query) {
     currentQuery = query;
     _debouncer.run(() => _runSearch(query));
+  }
+
+  Future<void> loadTrendingTerms() async {
+    try {
+      final response = await _service.getEndpoint('trending');
+      if (!response.isSuccess || response.data['success'] == false) {
+        return;
+      }
+
+      final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        response.data,
+        preferredKeys: const <String>['items', 'results', 'trending'],
+      );
+      final List<String> nextTerms = items
+          .map(
+            (Map<String, dynamic> item) => ApiPayloadReader.readString(
+              item['title'] ?? item['tag'] ?? item['name'],
+            ),
+          )
+          .where((String item) => item.isNotEmpty)
+          .take(8)
+          .toList(growable: false);
+      if (nextTerms.isNotEmpty) {
+        trendingTerms = nextTerms;
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   Future<void> _runSearch(String query) async {
