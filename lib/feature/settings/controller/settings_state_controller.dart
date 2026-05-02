@@ -6,15 +6,27 @@ class SettingsState {
   const SettingsState({
     this.values = const <String, dynamic>{},
     this.loaded = false,
+    this.loading = false,
+    this.errorMessage,
   });
 
   final Map<String, dynamic> values;
   final bool loaded;
+  final bool loading;
+  final String? errorMessage;
 
-  SettingsState copyWith({Map<String, dynamic>? values, bool? loaded}) {
+  SettingsState copyWith({
+    Map<String, dynamic>? values,
+    bool? loaded,
+    bool? loading,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
     return SettingsState(
       values: values ?? this.values,
       loaded: loaded ?? this.loaded,
+      loading: loading ?? this.loading,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 
@@ -54,11 +66,22 @@ class SettingsStateController extends Cubit<SettingsState> {
   final SettingsPreferencesRepository _repository;
 
   Future<void> load() async {
-    if (state.loaded) {
+    if (state.loaded || state.loading) {
       return;
     }
-    final values = await _repository.readAll();
-    emit(SettingsState(values: values, loaded: true));
+    emit(state.copyWith(loading: true, clearError: true));
+    try {
+      final values = await _repository.readAll();
+      emit(SettingsState(values: values, loaded: true, loading: false));
+    } catch (error) {
+      emit(
+        state.copyWith(
+          loaded: true,
+          loading: false,
+          errorMessage: error.toString(),
+        ),
+      );
+    }
   }
 
   Future<void> setBool(String key, bool value) async {
@@ -74,7 +97,25 @@ class SettingsStateController extends Cubit<SettingsState> {
   }
 
   Future<void> _write(Map<String, dynamic> values) async {
-    emit(state.copyWith(values: values));
-    await _repository.writeAll(values);
+    emit(state.copyWith(values: values, loading: true, clearError: true));
+    try {
+      await _repository.writeAll(values);
+      emit(
+        state.copyWith(
+          values: values,
+          loaded: true,
+          loading: false,
+          clearError: true,
+        ),
+      );
+    } catch (error) {
+      emit(
+        state.copyWith(
+          loaded: true,
+          loading: false,
+          errorMessage: error.toString(),
+        ),
+      );
+    }
   }
 }

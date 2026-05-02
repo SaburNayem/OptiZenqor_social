@@ -95,8 +95,12 @@ class LegalComplianceController extends ChangeNotifier {
     notifyListeners();
     try {
       await _service.patchEndpoint(
-        'settings_state',
-        payload: <String, dynamic>{key: value},
+        'consents',
+        payload: <String, dynamic>{
+          if (key == 'legal.terms_accepted') 'terms': value,
+          if (key == 'legal.privacy_accepted') 'privacy': value,
+          if (key == 'legal.guidelines_accepted') 'guidelines': value,
+        },
       );
     } catch (error) {
       consent = previous;

@@ -30,9 +30,7 @@ class BusinessProfileRepository {
         payload['about'] ?? payload['category'],
         fallback: 'Business information is available from the backend.',
       ),
-      analyticsPlaceholder: highlights.isEmpty
-          ? 'No analytics highlights available yet.'
-          : highlights.join(' • '),
+      analyticsPlaceholder: highlights.join(' | '),
     );
   }
 }

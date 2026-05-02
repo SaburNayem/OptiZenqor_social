@@ -41,41 +41,24 @@ class SafetyPrivacyScreen extends StatelessWidget {
                   },
                   title: const Text('Allow mentions'),
                 ),
+                const Divider(height: 24),
                 const ListTile(
-                  leading: Icon(Icons.gpp_maybe_outlined),
-                  title: Text('Copyright report placeholder'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.person_search_outlined),
-                  title: Text('Impersonation report placeholder'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.sentiment_very_dissatisfied_outlined),
-                  title: Text('Harassment / bullying report flow'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.self_improvement_outlined),
-                  title: Text('Self-harm concern placeholder'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.rotate_right_outlined),
-                  title: Text('Appeal flow placeholder'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.family_restroom_outlined),
-                  title: Text('Supervised account placeholder'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.admin_panel_settings_outlined),
-                  title: Text('Guardian controls placeholder'),
+                  leading: Icon(Icons.report_gmailerrorred_outlined),
+                  title: Text(
+                    'Use the report center for account safety issues',
+                  ),
+                  subtitle: Text(
+                    'Copyright, impersonation, harassment, and appeals are handled through backend moderation flows.',
+                  ),
                 ),
                 const ListTile(
                   leading: Icon(Icons.privacy_tip_outlined),
-                  title: Text('Teen privacy defaults placeholder'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.visibility_off_outlined),
-                  title: Text('Restricted discoverability placeholder'),
+                  title: Text(
+                    'Discoverability is controlled by your privacy settings',
+                  ),
+                  subtitle: Text(
+                    'Private account and sensitive-content preferences are saved to your backend profile.',
+                  ),
                 ),
               ],
             ),

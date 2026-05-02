@@ -36,6 +36,10 @@ class AppConfig {
       return explicitBaseUrl;
     }
 
+    if (useRemoteOnly) {
+      return defaultApiBaseUrl;
+    }
+
     if (kReleaseMode || appFlavor == 'prod') {
       return defaultApiBaseUrl;
     }
@@ -86,7 +90,7 @@ class AppConfig {
   }
 
   static String? get debugLocalNetworkHint {
-    if (kReleaseMode || appFlavor == 'prod') {
+    if (kReleaseMode || appFlavor == 'prod' || useRemoteOnly) {
       return null;
     }
     if (kIsWeb) {

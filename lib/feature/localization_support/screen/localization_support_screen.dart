@@ -15,21 +15,33 @@ class LocalizationSupportScreen extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Localization Support')),
-          body: ListView(
-            children: _controller.locales
-                .map(
-                  (locale) => ListTile(
-                    title: Text(locale.label),
-                    trailing: Icon(
-                      _controller.selected == locale.localeCode
-                          ? Icons.check_circle
-                          : Icons.circle_outlined,
+          body: _controller.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  children: [
+                    if (_controller.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(_controller.errorMessage!),
+                      ),
+                    if (_controller.locales.isEmpty)
+                      const ListTile(
+                        leading: Icon(Icons.language_outlined),
+                        title: Text('No locales are available right now.'),
+                      ),
+                    ..._controller.locales.map(
+                      (locale) => ListTile(
+                        title: Text(locale.label),
+                        trailing: Icon(
+                          _controller.selected == locale.localeCode
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                        ),
+                        onTap: () => _controller.setLocale(locale.localeCode),
+                      ),
                     ),
-                    onTap: () => _controller.setLocale(locale.localeCode),
-                  ),
-                )
-                .toList(),
-          ),
+                  ],
+                ),
         );
       },
     );

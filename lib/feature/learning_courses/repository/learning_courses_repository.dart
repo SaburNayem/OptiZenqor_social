@@ -40,12 +40,8 @@ class LearningCoursesRepository {
       saved: ApiPayloadReader.readBool(json['saved']) ?? false,
       certificateSummary: ApiPayloadReader.readString(
         json['certificateSummary'],
-        fallback: 'No certificate data yet',
       ),
-      quizSummary: ApiPayloadReader.readString(
-        json['quizSummary'],
-        fallback: 'No quiz data yet',
-      ),
+      quizSummary: ApiPayloadReader.readString(json['quizSummary']),
     );
   }
 }

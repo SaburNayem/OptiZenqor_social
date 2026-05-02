@@ -56,33 +56,14 @@ class DevicesSessionsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const Card(
-                      child: Column(
-                        children: [
-                          ListTile(
-                            leading: Icon(Icons.sd_storage_outlined),
-                            title: Text('Storage usage screen placeholder'),
-                          ),
-                          Divider(height: 1),
-                          ListTile(
-                            leading: Icon(Icons.cleaning_services_outlined),
-                            title: Text('Cache/media cleanup placeholder'),
-                          ),
-                          Divider(height: 1),
-                          ListTile(
-                            leading: Icon(Icons.download_outlined),
-                            title: Text('Download quality settings'),
-                          ),
-                          Divider(height: 1),
-                          ListTile(
-                            leading: Icon(Icons.upload_outlined),
-                            title: Text('Upload quality settings'),
-                          ),
-                          Divider(height: 1),
-                          ListTile(
-                            leading: Icon(Icons.downloading_outlined),
-                            title: Text('Auto-download media controls'),
-                          ),
-                        ],
+                      child: ListTile(
+                        leading: Icon(Icons.info_outline),
+                        title: Text(
+                          'Session security is backed by your account',
+                        ),
+                        subtitle: Text(
+                          'Use Activity Sessions to review current devices, login history, and remote sign-outs.',
+                        ),
                       ),
                     ),
                   ],

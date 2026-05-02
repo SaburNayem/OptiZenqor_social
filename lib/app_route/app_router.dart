@@ -129,7 +129,7 @@ class AppRouter {
       case RouteNames.advancedPrivacyControls:
         return AdvancedPrivacyControlsScreen();
       case RouteNames.shareRepostSystem:
-        return const ShareRepostSystemScreen();
+        return ShareRepostSystemScreen();
       case RouteNames.mediaViewer:
         return MediaViewerScreen(arguments: _mediaViewerArguments(arguments));
       case RouteNames.postDetail:

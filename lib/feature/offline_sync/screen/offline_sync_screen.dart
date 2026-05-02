@@ -14,33 +14,49 @@ class OfflineSyncScreen extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Offline & Sync')),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Card(
-                child: ListTile(
-                  title: Text(
-                    _controller.isOffline ? 'Offline mode' : 'Online',
-                  ),
-                  subtitle: const Text(
-                    'Cached feed and draft recovery are active.',
-                  ),
-                  trailing: FilledButton(
-                    onPressed: _controller.markOnlineAndSync,
-                    child: const Text('Sync now'),
-                  ),
+          body: _controller.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (_controller.errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(_controller.errorMessage!),
+                      ),
+                    Card(
+                      child: ListTile(
+                        title: Text(
+                          _controller.isOffline ? 'Offline mode' : 'Online',
+                        ),
+                        subtitle: Text(
+                          _controller.queue.isEmpty
+                              ? 'No queued sync actions from the backend.'
+                              : 'Queued actions are being tracked by your account state.',
+                        ),
+                        trailing: FilledButton(
+                          onPressed: _controller.markOnlineAndSync,
+                          child: const Text('Sync now'),
+                        ),
+                      ),
+                    ),
+                    if (_controller.queue.isEmpty)
+                      const ListTile(
+                        leading: Icon(Icons.cloud_done_outlined),
+                        title: Text('Nothing is waiting to sync.'),
+                      ),
+                    ..._controller.queue.map(
+                      (item) => ListTile(
+                        title: Text(item.title),
+                        trailing: Icon(
+                          item.pending
+                              ? Icons.sync_problem
+                              : Icons.check_circle,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              ..._controller.queue.map(
-                (item) => ListTile(
-                  title: Text(item.title),
-                  trailing: Icon(
-                    item.pending ? Icons.sync_problem : Icons.check_circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
         );
       },
     );

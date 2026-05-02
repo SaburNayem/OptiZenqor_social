@@ -1,36 +1,31 @@
-import '../../../core/constants/storage_keys.dart';
-import '../../../core/data/shared_preference/app_shared_preferences.dart';
+import '../../../core/data/api/api_end_points.dart';
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/service/api_client_service.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 
 class SettingsPreferencesRepository {
-  SettingsPreferencesRepository({AppSharedPreferences? storage})
-    : _storage = storage ?? AppSharedPreferences();
+  SettingsPreferencesRepository({ApiClientService? apiClient})
+    : _apiClient = apiClient ?? ApiClientService();
 
-  final AppSharedPreferences _storage;
+  final ApiClientService _apiClient;
 
   Future<Map<String, dynamic>> readAll() async {
-    final data = await _storage.readJson(StorageKeys.settingsState);
-    return data ?? <String, dynamic>{};
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .get(ApiEndPoints.settingsState);
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load account settings.');
+    }
+
+    return ApiPayloadReader.readMap(response.data['data']) ??
+        ApiPayloadReader.readMap(response.data) ??
+        <String, dynamic>{};
   }
 
   Future<void> writeAll(Map<String, dynamic> value) async {
-    await _storage.writeJson(StorageKeys.settingsState, value);
-  }
-
-  Future<bool> readBool(String key, {bool fallback = false}) async {
-    final data = await readAll();
-    final value = data[key];
-    if (value is bool) {
-      return value;
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .patch(ApiEndPoints.settingsState, value);
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to save account settings.');
     }
-    return fallback;
-  }
-
-  Future<String> readString(String key, {String fallback = ''}) async {
-    final data = await readAll();
-    final value = data[key];
-    if (value is String) {
-      return value;
-    }
-    return fallback;
   }
 }
