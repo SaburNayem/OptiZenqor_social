@@ -2,6 +2,7 @@ import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/faq_item_model.dart';
 import '../model/support_help_data_model.dart';
+import '../model/support_ticket_summary_model.dart';
 import '../service/support_help_service.dart';
 
 class SupportHelpRepository {
@@ -32,6 +33,10 @@ class SupportHelpRepository {
       payload,
       preferredKeys: const <String>['tickets'],
     );
+    final List<SupportTicketSummaryModel> ticketModels = tickets
+        .map(SupportTicketSummaryModel.fromApiJson)
+        .where((SupportTicketSummaryModel item) => item.id.isNotEmpty)
+        .toList(growable: false);
     final Map<String, dynamic> chat =
         ApiPayloadReader.readMap(payload['chat']) ?? const <String, dynamic>{};
 
@@ -40,10 +45,11 @@ class SupportHelpRepository {
       contactEmail: ApiPayloadReader.readString(mail['contactEmail']),
       escalationEmail: ApiPayloadReader.readString(mail['escalationEmail']),
       responseTime: ApiPayloadReader.readString(mail['responseTime']),
-      ticketCount: tickets.length,
+      ticketCount: ticketModels.length,
       hasChatThread:
           ApiPayloadReader.readString(chat['threadId']).isNotEmpty ||
           ApiPayloadReader.readString(chat['conversationId']).isNotEmpty,
+      tickets: ticketModels,
     );
   }
 }

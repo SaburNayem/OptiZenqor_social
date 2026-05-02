@@ -1,4 +1,5 @@
 import 'faq_item_model.dart';
+import 'support_ticket_summary_model.dart';
 
 class SupportHelpDataModel {
   const SupportHelpDataModel({
@@ -8,6 +9,7 @@ class SupportHelpDataModel {
     required this.responseTime,
     required this.ticketCount,
     required this.hasChatThread,
+    required this.tickets,
   });
 
   final List<FaqItemModel> faqs;
@@ -16,4 +18,5 @@ class SupportHelpDataModel {
   final String responseTime;
   final int ticketCount;
   final bool hasChatThread;
+  final List<SupportTicketSummaryModel> tickets;
 }

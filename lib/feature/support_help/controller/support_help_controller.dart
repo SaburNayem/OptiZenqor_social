@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../model/faq_item_model.dart';
 import '../model/support_help_data_model.dart';
+import '../model/support_ticket_summary_model.dart';
 import '../repository/support_help_repository.dart';
 
 class SupportHelpController extends ChangeNotifier {
@@ -15,6 +16,7 @@ class SupportHelpController extends ChangeNotifier {
   String responseTime = '';
   int ticketCount = 0;
   bool hasChatThread = false;
+  List<SupportTicketSummaryModel> tickets = <SupportTicketSummaryModel>[];
   bool isLoading = false;
   String? errorMessage;
 
@@ -31,9 +33,11 @@ class SupportHelpController extends ChangeNotifier {
       responseTime = data.responseTime;
       ticketCount = data.ticketCount;
       hasChatThread = data.hasChatThread;
+      tickets = data.tickets;
     } catch (error) {
       errorMessage = error.toString().replaceFirst('Exception: ', '');
       faqs = <FaqItemModel>[];
+      tickets = <SupportTicketSummaryModel>[];
     } finally {
       isLoading = false;
       notifyListeners();

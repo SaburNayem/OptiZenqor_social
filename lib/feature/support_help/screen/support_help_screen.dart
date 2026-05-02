@@ -156,6 +156,34 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                 _buildSummaryCard(),
                 const SizedBox(height: 32),
                 const Text(
+                  'Your Tickets',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                if (_controller.tickets.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.hexFFF0F0F0),
+                    ),
+                    child: const Text(
+                      'No synced support tickets are available for this account yet.',
+                      style: TextStyle(color: AppColors.grey),
+                    ),
+                  )
+                else
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.hexFFF0F0F0),
+                    ),
+                    child: Column(children: _buildTicketTiles()),
+                  ),
+                const SizedBox(height: 32),
+                const Text(
                   'Popular Articles',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
@@ -281,6 +309,39 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildTicketTiles() {
+    final int visibleCount = _controller.tickets.length < 3
+        ? _controller.tickets.length
+        : 3;
+    final List<Widget> widgets = <Widget>[];
+    for (int index = 0; index < visibleCount; index++) {
+      final ticket = _controller.tickets[index];
+      widgets.add(
+        ListTile(
+          title: Text(ticket.subject),
+          subtitle: Text(
+            ticket.latestMessage.isNotEmpty
+                ? ticket.latestMessage
+                : ticket.category,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Text(
+            ticket.status,
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      );
+      if (index < visibleCount - 1) {
+        widgets.add(const Divider(height: 1, color: AppColors.hexFFF0F0F0));
+      }
+    }
+    return widgets;
   }
 
   Widget _buildSupportActionsCard() {
