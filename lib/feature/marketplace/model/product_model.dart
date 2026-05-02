@@ -310,7 +310,7 @@ class ProductModel {
   static List<DeliveryOption> _deliveryOptionsFromValue(Object? value) {
     final List<String> items = ApiPayloadReader.readStringList(value);
     if (items.isEmpty) {
-      return const <DeliveryOption>[DeliveryOption.pickup];
+      return const <DeliveryOption>[];
     }
     return items
         .map((String item) {

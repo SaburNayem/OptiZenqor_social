@@ -357,29 +357,15 @@ class MarketplaceRepository {
           'deliveryMethod': deliveryMethod,
           'paymentMethod': paymentMethod,
         });
-    if (!response.isSuccess || response.data['success'] == false) {
-      return null;
-    }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['order']) ??
-        ApiPayloadReader.readMap(response.data);
-    if (payload == null || payload.isEmpty) {
-      return null;
-    }
-    return MarketplaceOrderModel(
-      id: ApiPayloadReader.readString(payload['id']),
-      productId: ApiPayloadReader.readString(payload['productId']),
-      productTitle: ApiPayloadReader.readString(payload['productTitle']),
-      amount: ApiPayloadReader.readDouble(
-        payload['amount'] ?? payload['price'],
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: 'Unable to create this marketplace order right now.',
+    );
+    return _readOrder(
+      _readRequiredPayload(
+        response.data,
+        fallbackMessage: 'Marketplace order response was empty.',
       ),
-      status: _orderStatusFromValue(payload['status']),
-      address: ApiPayloadReader.readString(payload['address']),
-      deliveryMethod: ApiPayloadReader.readString(payload['deliveryMethod']),
-      paymentMethod: ApiPayloadReader.readString(payload['paymentMethod']),
-      createdAt:
-          ApiPayloadReader.readDateTime(payload['createdAt']) ?? DateTime.now(),
     );
   }
 
@@ -407,17 +393,16 @@ class MarketplaceRepository {
           'location': location.trim(),
           'condition': condition.label,
         });
-    if (!response.isSuccess || response.data['success'] == false) {
-      return null;
-    }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['product']) ??
-        ApiPayloadReader.readMap(response.data);
-    if (payload == null || payload.isEmpty) {
-      return null;
-    }
-    return ProductModel.fromApiJson(payload);
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: 'Unable to create this marketplace listing right now.',
+    );
+    return ProductModel.fromApiJson(
+      _readRequiredPayload(
+        response.data,
+        fallbackMessage: 'Marketplace listing response was empty.',
+      ),
+    );
   }
 
   Map<String, dynamic> _resolveMarketplacePayload(
@@ -705,31 +690,31 @@ class MarketplaceRepository {
       preferredKeys: const <String>['orders'],
     );
     return items
-        .map(
-          (Map<String, dynamic> item) => MarketplaceOrderModel(
-            id: ApiPayloadReader.readString(item['id']),
-            productId: ApiPayloadReader.readString(
-              item['productId'] ?? item['listingId'],
-            ),
-            productTitle: ApiPayloadReader.readString(
-              item['productTitle'] ?? item['title'],
-            ),
-            amount: ApiPayloadReader.readDouble(
-              item['amount'] ?? item['price'],
-            ),
-            status: _orderStatusFromValue(item['status']),
-            address: ApiPayloadReader.readString(item['address']),
-            deliveryMethod: ApiPayloadReader.readString(
-              item['deliveryMethod'] ?? item['shippingMethod'],
-            ),
-            paymentMethod: ApiPayloadReader.readString(item['paymentMethod']),
-            createdAt:
-                ApiPayloadReader.readDateTime(item['createdAt']) ??
-                DateTime.now(),
-          ),
-        )
+        .map(_readOrder)
         .where((MarketplaceOrderModel item) => item.id.isNotEmpty)
         .toList(growable: false);
+  }
+
+  MarketplaceOrderModel _readOrder(Map<String, dynamic> item) {
+    return MarketplaceOrderModel(
+      id: ApiPayloadReader.readString(item['id']),
+      productId: ApiPayloadReader.readString(
+        item['productId'] ?? item['listingId'],
+      ),
+      productTitle: ApiPayloadReader.readString(
+        item['productTitle'] ?? item['title'],
+      ),
+      amount: ApiPayloadReader.readDouble(item['amount'] ?? item['price']),
+      status: _orderStatusFromValue(item['status']),
+      address: ApiPayloadReader.readString(item['address']),
+      deliveryMethod: ApiPayloadReader.readString(
+        item['deliveryMethod'] ?? item['shippingMethod'],
+      ),
+      paymentMethod: ApiPayloadReader.readString(item['paymentMethod']),
+      createdAt:
+          ApiPayloadReader.readDateTime(item['createdAt']) ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
   }
 
   MarketplaceOrderStatus _orderStatusFromValue(Object? value) {
@@ -772,7 +757,7 @@ class MarketplaceRepository {
 
   List<DeliveryOption> _deliveryOptionsFromStrings(List<String> values) {
     if (values.isEmpty) {
-      return const <DeliveryOption>[DeliveryOption.pickup];
+      return const <DeliveryOption>[];
     }
     return values
         .map((String value) {

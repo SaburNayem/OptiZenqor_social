@@ -2,46 +2,39 @@
 
 Updated: 2026-05-02
 
-## Latest Pass Update
+## Fixed In This Pass
 
-- jobs networking repository no longer hides failed aggregate/list requests behind empty production lists
-- jobs networking screen now renders explicit loading, retry, error, and empty states for discover, profile, applications, applicants, saved jobs, and alerts tabs
-- blocked/muted account loading still fails closed from the earlier pass instead of pretending backend errors are real empty state
-- accessibility, localization, personalization onboarding, and legal compliance controllers from the earlier pass still reject malformed or empty backend payloads
-- `flutter analyze` passes after these changes
+- `marketplace_repository.dart`
+  - create-order now throws on backend failure instead of returning a nullable fake-success result
+  - create-listing now throws on backend failure instead of returning a nullable fake-success result
+  - missing delivery options no longer default to a fabricated pickup-only state
+- `calls_repository.dart`
+  - session creation now sends the selected recipient id to the backend
+- `live_stream_repository.dart`
+  - preview label is now backend-driven when provided instead of hardcoded in the repository
+- `flutter analyze` and `flutter test` both pass after the repository updates
 
 ## Current Frontend Status
 
-The Flutter app is more honest about backend failures than it was before. It is still not fully free of client-side business derivation, especially in marketplace and some jobs/calls model layers.
-
-## Fixed In This Implementation Cycle
-
-- marketplace compare list persists through backend compare routes
-- marketplace sold/pause/repost actions persist through backend listing-status routes
-- marketplace saved-item toggles persist through backend bookmarks
-- blocked/muted unmute no longer uses local-only success behavior
-- jobs saved-job, application withdrawal, company follow, recruiter job deletion, applicant status, and alert mutations are backend-driven
-- jobs list-style endpoints no longer silently degrade to empty success when the backend fails
+The Flutter app now fails more honestly in key server-owned flows and validates cleanly. It still contains broader display-level fallback strings and partial derivation in several feature slices that need another cleanup pass.
 
 ## Remaining Frontend Mismatches
 
-| Feature | Frontend file | Current issue | Backend route status | Needed next |
-| --- | --- | --- | --- | --- |
-| Marketplace contracts | `lib/feature/marketplace/repository/marketplace_repository.dart` | still derives sellers, categories, draft imagery, labels, timestamps, and order/chat/offer fields from partial payloads | partial routes exist | stabilize backend marketplace payloads and remove client-side derivation |
-| Jobs model placeholder labels | `lib/feature/jobs_networking/model/job_model.dart` | some model constructors still provide placeholder display labels when backend fields are absent | partial routes exist | tighten backend payload completeness and then remove placeholder strings |
-| Calls lifecycle | `lib/feature/calls/repository/calls_repository.dart` | backend-backed flows still infer lifecycle details instead of reading durable server snapshots | incomplete lifecycle backend | add persisted lifecycle state and stricter contracts |
-| Support/help depth | `lib/feature/support_help/repository/support_help_repository.dart` | overview is backend-backed, but deeper support workflow coverage is still thin | partial routes exist | add ticket detail/reply/update UX with explicit retry/error states |
-| Accessibility/legal/localization catalogs | corresponding controller files | controllers now fail correctly, but backend config is still operational-setting driven rather than fully normalized catalog tables | partial backend persistence exists | normalize catalog models and tighten contracts further |
+| Feature | Frontend file | Current issue | Needed next |
+| --- | --- | --- | --- |
+| Marketplace payload richness | `lib/feature/marketplace/repository/marketplace_repository.dart` | sellers, categories, draft visuals, and some order/chat/offer display fields still depend on partial payload interpretation | complete backend marketplace payloads and remove more derivation |
+| Jobs placeholder labels | `lib/feature/jobs_networking/model/job_model.dart` | model constructors still fill some missing backend fields with display placeholders | finish backend payload completeness, then remove placeholders |
+| Calls lifecycle | `lib/feature/calls/repository/calls_repository.dart` | lifecycle UI still relies on shallow history payloads rather than durable snapshots | expand server lifecycle snapshot contract |
+| Support/help depth | `lib/feature/support_help/repository/support_help_repository.dart` | overview is good, but detail/reply/update UX remains thin | add richer support workflow coverage |
+| Groups/pages/learning/events slices | multiple repositories/models | some user-visible placeholder labels and defensive fallback shaping still remain | continue no-placeholder cleanup across the requested modules |
 
 ## Validation
 
-- `flutter pub get`: pass
-- `dart format` on changed files: pass
-- `flutter analyze`: pass
-- `flutter test`: no runnable suite because there are no `*_test.dart` files under `test`
+- `flutter pub get` -> passed
+- `dart format .` -> passed
+- `flutter analyze` -> passed
+- `flutter test` -> passed
 
-## Next Recommended Frontend Pass
+## Honest Status
 
-1. Remove runtime business derivation from `marketplace_repository.dart`.
-2. Tighten jobs model constructors once backend payload completeness is guaranteed.
-3. Expand backend-driven support and call lifecycle coverage so the UI can stop inferring state.
+- Flutter completion: 82%

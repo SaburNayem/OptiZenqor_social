@@ -34,7 +34,7 @@ class CallsRepository {
         .apiClient
         .post(_service.endpoints['sessions']!, <String, dynamic>{
           'initiatorId': currentUser?.id ?? '',
-          'recipientIds': const <String>[],
+          'recipientIds': <String>[user],
           'mode': type == CallType.video ? 'video' : 'voice',
         });
     if (!response.isSuccess || response.data['success'] == false) {

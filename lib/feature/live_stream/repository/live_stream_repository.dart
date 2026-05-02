@@ -143,7 +143,7 @@ class LiveStreamRepository {
       creatorName: ApiPayloadReader.readString(payload['host']),
       username: ApiPayloadReader.readString(payload['username']),
       avatarUrl: ApiPayloadReader.readString(payload['avatarUrl']),
-      previewLabel: 'Describe what your live video is about',
+      previewLabel: ApiPayloadReader.readString(payload['previewLabel']),
       liveTitle: liveTitle,
       description: ApiPayloadReader.readString(payload['description']),
       audience: initialAudience ?? _audienceFromValue(payload['audience']),
