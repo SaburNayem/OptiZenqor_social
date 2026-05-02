@@ -1,19 +1,13 @@
-import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/api/api_payload_reader.dart';
-import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/subscription_plan_model.dart';
 import '../service/subscriptions_service.dart';
 
 class SubscriptionsRepository {
-  SubscriptionsRepository({
-    AppSharedPreferences? preferences,
-    SubscriptionsService? service,
-  }) : _preferences = preferences ?? AppSharedPreferences(),
-       _service = service ?? SubscriptionsService();
+  SubscriptionsRepository({SubscriptionsService? service})
+    : _service = service ?? SubscriptionsService();
 
-  final AppSharedPreferences _preferences;
   final SubscriptionsService _service;
 
   Future<List<SubscriptionPlanModel>> plans() async {
@@ -43,12 +37,12 @@ class SubscriptionsRepository {
   }
 
   Future<String?> activePlanId() async {
-    try {
-      for (final String key in <String>[
-        'subscriptions',
-        'monetization_subscriptions',
-        'monetization_overview',
-      ]) {
+    for (final String key in <String>[
+      'subscriptions',
+      'monetization_subscriptions',
+      'monetization_overview',
+    ]) {
+      try {
         final ServiceResponseModel<Map<String, dynamic>> response =
             await _service.getEndpoint(key);
         if (!response.isSuccess || response.data['success'] == false) {
@@ -56,16 +50,12 @@ class SubscriptionsRepository {
         }
         final String remotePlanId = _readActivePlanId(response.data);
         if (remotePlanId.isNotEmpty) {
-          await _preferences.write(
-            StorageKeys.activeSubscriptionPlan,
-            remotePlanId,
-          );
           return remotePlanId;
         }
-      }
-    } catch (_) {}
+      } catch (_) {}
+    }
 
-    return _preferences.read<String>(StorageKeys.activeSubscriptionPlan);
+    return null;
   }
 
   Future<void> saveActivePlanId(String planId) async {
@@ -79,7 +69,6 @@ class SubscriptionsRepository {
         response.message ?? 'Unable to update subscription plan.',
       );
     }
-    await _preferences.write(StorageKeys.activeSubscriptionPlan, planId);
   }
 
   Future<void> cancelSubscription({String? subscriptionId}) async {
