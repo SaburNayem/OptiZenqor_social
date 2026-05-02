@@ -1,17 +1,13 @@
-import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/api/api_payload_reader.dart';
-import '../../../core/data/service/local_storage_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/page_model.dart';
 import '../service/pages_service.dart';
 
 class PagesRepository {
-  PagesRepository({PagesService? service, LocalStorageService? storage})
-    : _service = service ?? PagesService(),
-      _storage = storage ?? LocalStorageService();
+  PagesRepository({PagesService? service})
+    : _service = service ?? PagesService();
 
   final PagesService _service;
-  final LocalStorageService _storage;
 
   Future<List<PageModel>> load() async {
     final List<PageModel>? remotePages = await _loadFromApi();
@@ -49,12 +45,9 @@ class PagesRepository {
   }
 
   Future<PageModel?> toggleFollow(String pageId) async {
-    final String userId = await currentUserId();
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
-        .patch('/pages/$pageId/follow', <String, dynamic>{
-          if (userId.isNotEmpty) 'userId': userId,
-        });
+        .patch('/pages/$pageId/follow', const <String, dynamic>{});
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
@@ -71,15 +64,22 @@ class PagesRepository {
   }
 
   Future<String> currentUserId() async {
-    final Map<String, dynamic>? authSession = await _storage.readJson(
-      StorageKeys.authSession,
-    );
-    final Object? user = authSession?['user'];
-    if (user is Map<String, dynamic>) {
-      return ApiPayloadReader.readString(user['id']);
-    }
-    if (user is Map) {
-      return ApiPayloadReader.readString(user['id']);
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .get('/auth/me');
+      if (!response.isSuccess || response.data['success'] == false) {
+        return '';
+      }
+      final Map<String, dynamic>? payload =
+          ApiPayloadReader.readMap(response.data['data']) ??
+          ApiPayloadReader.readMap(response.data['user']) ??
+          ApiPayloadReader.readMap(response.data);
+      if (payload != null && payload.isNotEmpty) {
+        return ApiPayloadReader.readString(payload['id']);
+      }
+    } catch (_) {
+      return '';
     }
     return '';
   }

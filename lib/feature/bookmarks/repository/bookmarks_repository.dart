@@ -24,20 +24,14 @@ class BookmarksRepository {
       await _writeLocal(remoteItems);
       return remoteItems;
     }
-
-    final items = await _storage.readJsonList(StorageKeys.bookmarks);
-    return items
-        .map((item) => _mapItem(item))
-        .where((item) => item.id.isNotEmpty)
-        .toList();
+    return const <BookmarkItemModel>[];
   }
 
   Future<void> write(List<BookmarkItemModel> items) {
-    unawaited(_syncRemote(items));
     return _writeLocal(items);
   }
 
-  Future<void> add(
+  Future<bool> add(
     BookmarkItemModel item,
     List<BookmarkItemModel> items,
   ) async {
@@ -46,15 +40,21 @@ class BookmarksRepository {
         ApiEndPoints.bookmarkPost(item.id),
         const <String, dynamic>{},
       );
-    } catch (_) {}
-    await write(items);
+      await write(items);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
-  Future<void> remove(String itemId, List<BookmarkItemModel> items) async {
+  Future<bool> remove(String itemId, List<BookmarkItemModel> items) async {
     try {
       await _service.apiClient.delete(ApiEndPoints.bookmarkPost(itemId));
-    } catch (_) {}
-    await write(items);
+      await write(items);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _writeLocal(List<BookmarkItemModel> items) {
@@ -79,10 +79,6 @@ class BookmarksRepository {
     );
   }
 
-  BookmarkItemModel _mapItem(Map<String, dynamic> item) {
-    return BookmarkItemModel.fromApiJson(item);
-  }
-
   Future<List<BookmarkItemModel>?> _readFromApi() async {
     try {
       final ServiceResponseModel<Map<String, dynamic>> response = await _service
@@ -101,32 +97,6 @@ class BookmarksRepository {
             .toList(growable: false);
       }
     } catch (_) {}
-    return const <BookmarkItemModel>[];
-  }
-
-  Future<void> _syncRemote(List<BookmarkItemModel> items) async {
-    try {
-      await _service.postEndpoint(
-        'bookmarks',
-        payload: <String, dynamic>{
-          'items': items
-              .map(
-                (BookmarkItemModel item) => <String, dynamic>{
-                  'id': item.id,
-                  'title': item.title,
-                  'type': item.type.name,
-                  'authorId': item.authorId,
-                  'authorName': item.authorName,
-                  'authorAvatar': item.authorAvatar,
-                  'caption': item.caption,
-                  'thumbnail': item.thumbnail,
-                  'savedAt': item.savedAt.toIso8601String(),
-                  'isVideo': item.isVideo,
-                },
-              )
-              .toList(growable: false),
-        },
-      );
-    } catch (_) {}
+    return null;
   }
 }

@@ -122,7 +122,10 @@ class BookmarksController extends Cubit<BookmarksState> {
             itemId: item.id,
           );
 
-    await _repository.add(item, items);
+    final bool saved = await _repository.add(item, items);
+    if (!saved) {
+      return;
+    }
     if (collectionId != null) {
       await _collectionsRepository.addItem(collectionId, item.id);
     }
@@ -143,7 +146,10 @@ class BookmarksController extends Cubit<BookmarksState> {
         )
         .toList(growable: false);
 
-    await _repository.remove(postId, items);
+    final bool removed = await _repository.remove(postId, items);
+    if (!removed) {
+      return;
+    }
     for (final SavedCollectionModel collection in collections) {
       await _collectionsRepository.updateItems(
         collection.id,

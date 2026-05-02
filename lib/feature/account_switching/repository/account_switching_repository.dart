@@ -24,21 +24,19 @@ class AccountSwitchingRepository {
   }
 
   Future<void> setActiveAccount(String accountId) async {
-    await _storage.write(StorageKeys.activeAccountId, accountId);
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .postEndpoint(
+          'active',
+          payload: <String, dynamic>{'accountId': accountId},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      return;
+    }
 
-    try {
-      final ServiceResponseModel<Map<String, dynamic>> response = await _service
-          .postEndpoint(
-            'active',
-            payload: <String, dynamic>{'accountId': accountId},
-          );
-      if (response.isSuccess && response.data['success'] != false) {
-        final String resolvedAccountId = _extractActiveAccountId(response.data);
-        if (resolvedAccountId.isNotEmpty) {
-          await _storage.write(StorageKeys.activeAccountId, resolvedAccountId);
-        }
-      }
-    } catch (_) {}
+    final String resolvedAccountId = _extractActiveAccountId(response.data);
+    if (resolvedAccountId.isNotEmpty) {
+      await _storage.write(StorageKeys.activeAccountId, resolvedAccountId);
+    }
   }
 
   Future<List<AccountIdentityModel>> _fetchAccountsFromApi() async {
@@ -64,19 +62,18 @@ class AccountSwitchingRepository {
   }
 
   Future<String?> _readActiveAccountId() async {
-    try {
-      final ServiceResponseModel<Map<String, dynamic>> response = await _service
-          .getEndpoint('active');
-      if (response.isSuccess && response.data['success'] != false) {
-        final String accountId = _extractActiveAccountId(response.data);
-        if (accountId.isNotEmpty) {
-          await _storage.write(StorageKeys.activeAccountId, accountId);
-          return accountId;
-        }
-      }
-    } catch (_) {}
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('active');
+    if (!response.isSuccess || response.data['success'] == false) {
+      return null;
+    }
 
-    return _storage.read<String>(StorageKeys.activeAccountId);
+    final String accountId = _extractActiveAccountId(response.data);
+    if (accountId.isNotEmpty) {
+      await _storage.write(StorageKeys.activeAccountId, accountId);
+      return accountId;
+    }
+    return null;
   }
 
   String _extractActiveAccountId(Map<String, dynamic> payload) {
