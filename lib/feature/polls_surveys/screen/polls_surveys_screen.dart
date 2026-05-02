@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:optizenqor_social/core/navigation/app_get.dart';
 
+import '../../../core/common_widget/error_state_view.dart';
 import '../controller/polls_surveys_controller.dart';
 import '../model/poll_model.dart';
 import '../../../core/constants/app_colors.dart';
@@ -12,78 +12,56 @@ class PollsSurveysScreen extends StatelessWidget {
 
   final PollsSurveysController _controller = PollsSurveysController();
 
-  void _showUnavailableMessage(String label) {
-    AppGet.snackbar(
-      label,
-      'This action is not available until the backend composer flow is implemented.',
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.hexFFF7FAFC,
-      appBar: AppBar(
-        title: const Text('Polls & Surveys'),
-        actions: [
-          TextButton.icon(
-            onPressed: () => _showUnavailableMessage('Create'),
-            icon: const Icon(Icons.add_circle_outline),
-            label: const Text('Create'),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Polls & Surveys')),
       body: AnimatedBuilder(
         animation: _controller,
         builder: (_, _) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _buildHeroCard(),
-              const SizedBox(height: 20),
-              _buildQuickActions(),
-              const SizedBox(height: 24),
-              _buildSectionHeader(
-                title: 'Quick templates',
-                actionLabel: 'See all',
-                onTap: () => _showUnavailableMessage('Templates'),
+          if (_controller.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (_controller.errorMessage != null) {
+            return ErrorStateView(
+              message: _controller.errorMessage!,
+              onRetry: _controller.load,
+            );
+          }
+
+          if (_controller.activeEntries.isEmpty &&
+              _controller.draftEntries.isEmpty) {
+            return RefreshIndicator(
+              onRefresh: _controller.load,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                children: const [SizedBox(height: 120), _EmptyPollState()],
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 44,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _controller.quickTemplates.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 10),
-                  itemBuilder: (context, index) {
-                    final template = _controller.quickTemplates[index];
-                    return ActionChip(
-                      label: Text(template),
-                      onPressed: () =>
-                          _showUnavailableMessage('Template selected'),
-                      backgroundColor: AppColors.white,
-                      side: const BorderSide(color: AppColors.hexFFE2E8F0),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-              _buildSectionHeader(
-                title: 'Active section',
-                actionLabel: 'Analytics',
-                onTap: () => _showUnavailableMessage('Analytics'),
-              ),
-              const SizedBox(height: 12),
-              ..._controller.activeEntries.map(_buildActiveCard),
-              const SizedBox(height: 24),
-              _buildSectionHeader(
-                title: 'Drafts',
-                actionLabel: 'Manage',
-                onTap: () => _showUnavailableMessage('Drafts'),
-              ),
-              const SizedBox(height: 12),
-              ..._controller.draftEntries.map(_buildDraftCard),
-            ],
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: _controller.load,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildHeroCard(),
+                const SizedBox(height: 24),
+                if (_controller.activeEntries.isNotEmpty) ...[
+                  _buildSectionHeader(title: 'Active'),
+                  const SizedBox(height: 12),
+                  ..._controller.activeEntries.map(_buildActiveCard),
+                  const SizedBox(height: 24),
+                ],
+                if (_controller.draftEntries.isNotEmpty) ...[
+                  _buildSectionHeader(title: 'Drafts'),
+                  const SizedBox(height: 12),
+                  ..._controller.draftEntries.map(_buildDraftCard),
+                ],
+              ],
+            ),
           );
         },
       ),
@@ -91,6 +69,13 @@ class PollsSurveysScreen extends StatelessWidget {
   }
 
   Widget _buildHeroCard() {
+    final int liveCount = _controller.activeEntries.length;
+    final int draftCount = _controller.draftEntries.length;
+    final int responseCount = _controller.activeEntries.fold<int>(
+      0,
+      (sum, entry) => sum + entry.responseCount,
+    );
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -130,7 +115,7 @@ class PollsSurveysScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Ask quick opinion questions, collect structured feedback, and keep drafts ready for the next campaign.',
+            'This screen reflects only backend-synced polls and surveys. Pull to refresh if the latest entries are missing.',
             style: TextStyle(
               color: AppColors.white.withValues(alpha: 0.78),
               height: 1.45,
@@ -140,10 +125,10 @@ class PollsSurveysScreen extends StatelessWidget {
           Wrap(
             spacing: 10,
             runSpacing: 10,
-            children: const [
-              _MetricBadge(label: '2 live'),
-              _MetricBadge(label: '2 drafts'),
-              _MetricBadge(label: '172 responses'),
+            children: [
+              _MetricBadge(label: '$liveCount live'),
+              _MetricBadge(label: '$draftCount drafts'),
+              _MetricBadge(label: '$responseCount responses'),
             ],
           ),
         ],
@@ -151,47 +136,13 @@ class PollsSurveysScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: _QuickActionCard(
-            icon: Icons.poll_outlined,
-            title: 'Create poll',
-            subtitle: 'Fast yes/no or multi-choice vote',
-            backgroundColor: AppColors.hexFFE0F2FE,
-            iconColor: AppColors.hexFF0284C7,
-            onTap: () => _showUnavailableMessage('Create Poll'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickActionCard(
-            icon: Icons.assignment_outlined,
-            title: 'Create survey',
-            subtitle: 'Gather deeper profile feedback',
-            backgroundColor: AppColors.hexFFDCFCE7,
-            iconColor: AppColors.hexFF16A34A,
-            onTap: () => _showUnavailableMessage('Create Survey'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader({
-    required String title,
-    required String actionLabel,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildSectionHeader({required String title}) {
     return Row(
       children: [
         Text(
           title,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
         ),
-        const Spacer(),
-        TextButton(onPressed: onTap, child: Text(actionLabel)),
       ],
     );
   }
@@ -240,10 +191,6 @@ class PollsSurveysScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              IconButton(
-                onPressed: () => _showUnavailableMessage('More'),
-                icon: const Icon(Icons.more_horiz),
-              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -305,7 +252,7 @@ class PollsSurveysScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerRight,
-                    child: TextButton(
+                    child: FilledButton.tonal(
                       onPressed: () => _controller.vote(entry.id, index),
                       child: const Text('Vote'),
                     ),
@@ -380,69 +327,8 @@ class PollsSurveysScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          OutlinedButton(
-            onPressed: () => _showUnavailableMessage('Edit draft'),
-            child: const Text('Edit'),
-          ),
+          OutlinedButton(onPressed: null, child: const Text('Backend draft')),
         ],
-      ),
-    );
-  }
-}
-
-class _QuickActionCard extends StatelessWidget {
-  const _QuickActionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.backgroundColor,
-    required this.iconColor,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color backgroundColor;
-  final Color iconColor;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.hexFFE2E8F0),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: iconColor),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: const TextStyle(color: AppColors.hexFF64748B, height: 1.4),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -468,6 +354,38 @@ class _MetricBadge extends StatelessWidget {
           color: AppColors.white,
           fontWeight: FontWeight.w600,
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyPollState extends StatelessWidget {
+  const _EmptyPollState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.hexFFE2E8F0),
+      ),
+      child: const Column(
+        children: [
+          Icon(Icons.poll_outlined, size: 48, color: AppColors.hexFF64748B),
+          SizedBox(height: 12),
+          Text(
+            'No polls or surveys yet',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'The backend returned no active or draft entries for this account.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.hexFF64748B, height: 1.5),
+          ),
+        ],
       ),
     );
   }

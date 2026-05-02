@@ -123,38 +123,31 @@ class _ChatScreenState extends State<ChatScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      AppGet.snackbar(
-                        'Search unavailable',
-                        'Backend message search is not implemented yet.',
-                      );
-                    },
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.grey50,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: <Widget>[
-                          const Icon(
-                            Icons.search,
-                            color: AppColors.grey,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Search messages...',
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppColors.grey50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: <Widget>[
+                        const Icon(
+                          Icons.search,
+                          color: AppColors.grey,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Message search will appear once the backend search endpoint is enabled.',
                             style: TextStyle(
                               color: AppColors.grey400,
-                              fontSize: 15,
+                              fontSize: 13,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
