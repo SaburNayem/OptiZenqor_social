@@ -16,19 +16,21 @@ class JobsNetworkingRepository {
   Future<List<JobModel>> listJobs() async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .getEndpoint('jobs');
-    if (response.isSuccess && response.data['success'] != false) {
-      final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
-        response.data,
-        preferredKeys: const <String>['jobs', 'items'],
-      );
-      if (items.isNotEmpty) {
-        return items
-            .map(JobModel.fromApiJson)
-            .where((JobModel item) => item.id.isNotEmpty)
-            .toList(growable: false);
-      }
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: 'Unable to load jobs right now.',
+    );
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      response.data,
+      preferredKeys: const <String>['jobs', 'items'],
+    );
+    if (items.isNotEmpty) {
+      return items
+          .map(JobModel.fromApiJson)
+          .where((JobModel item) => item.id.isNotEmpty)
+          .toList(growable: false);
     }
-    return const <JobModel>[];
+    throw StateError('Jobs response was empty.');
   }
 
   Future<List<JobModel>> myJobs() async {
@@ -307,19 +309,20 @@ class JobsNetworkingRepository {
     if (_jobsNetworkingPayload != null && _jobsNetworkingPayload!.isNotEmpty) {
       return _jobsNetworkingPayload;
     }
-    try {
-      final ServiceResponseModel<Map<String, dynamic>> response = await _service
-          .apiClient
-          .get(ApiEndPoints.jobsNetworking);
-      if (!response.isSuccess || response.data.isEmpty) {
-        return null;
-      }
-      _jobsNetworkingPayload =
-          _unwrapSinglePayload(response.data) ?? response.data;
-      return _jobsNetworkingPayload;
-    } catch (_) {
-      return null;
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(ApiEndPoints.jobsNetworking);
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: 'Unable to load jobs networking data right now.',
+    );
+    final Map<String, dynamic> payload =
+        _unwrapSinglePayload(response.data) ?? response.data;
+    if (payload.isEmpty) {
+      throw StateError('Jobs networking aggregate response was empty.');
     }
+    _jobsNetworkingPayload = payload;
+    return _jobsNetworkingPayload;
   }
 
   Future<List<Map<String, dynamic>>> _readJobList({
@@ -338,31 +341,34 @@ class JobsNetworkingRepository {
       return aggregateItems;
     }
 
-    try {
-      final ServiceResponseModel<Map<String, dynamic>> response = await _service
-          .apiClient
-          .get(endpoint);
-      if (!response.isSuccess || response.data.isEmpty) {
-        return const <Map<String, dynamic>>[];
-      }
-      final List<Map<String, dynamic>> items =
-          ApiPayloadReader.readMapListFromAny(
-            response.data,
-            preferredKeys: preferredKeys,
-          );
-      if (items.isNotEmpty) {
-        return items;
-      }
-      final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
-      if (payload != null && payload.isNotEmpty) {
-        return ApiPayloadReader.readMapListFromAny(
-          payload,
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(endpoint);
+    _throwIfRequestFailed(
+      response,
+      fallbackMessage: 'Unable to load jobs data right now.',
+    );
+    final List<Map<String, dynamic>> items =
+        ApiPayloadReader.readMapListFromAny(
+          response.data,
           preferredKeys: preferredKeys,
         );
+    if (items.isNotEmpty) {
+      return items;
+    }
+    final Map<String, dynamic>? payload = _unwrapSinglePayload(response.data);
+    if (payload != null && payload.isNotEmpty) {
+      final List<Map<String, dynamic>> payloadItems =
+          ApiPayloadReader.readMapListFromAny(
+            payload,
+            preferredKeys: preferredKeys,
+          );
+      if (payloadItems.isNotEmpty) {
+        return payloadItems;
       }
-    } catch (_) {}
+    }
 
-    return const <Map<String, dynamic>>[];
+    throw StateError('Jobs list response for $aggregateKey was empty.');
   }
 
   Map<String, dynamic>? _unwrapSinglePayload(Map<String, dynamic> payload) {
@@ -373,6 +379,20 @@ class JobsNetworkingRepository {
       payload['result'],
     );
     return data ?? result ?? payload;
+  }
+
+  void _throwIfRequestFailed(
+    ServiceResponseModel<Map<String, dynamic>> response, {
+    required String fallbackMessage,
+  }) {
+    if (response.isSuccess && response.data['success'] != false) {
+      return;
+    }
+    throw StateError(
+      response.data['message']?.toString().trim().isNotEmpty == true
+          ? response.data['message'].toString()
+          : fallbackMessage,
+    );
   }
 
   JobApplicationModel _applicationFromApiJson(Map<String, dynamic> json) {

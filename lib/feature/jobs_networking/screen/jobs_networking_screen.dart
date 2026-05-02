@@ -243,29 +243,58 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
           ),
         ];
       },
-      body: TabBarView(
-        controller: _tabController,
-        children: role == JobsUserRole.provider
-            ? [
-                _discoverTab(),
-                _createTab(),
-                _myJobsTab(),
-                _applicantsTab(),
-                _alertsTab(),
-              ]
-            : [
-                _discoverTab(),
-                _careerTab(),
-                _applicationsTab(),
-                _savedTab(),
-                _alertsTab(),
-              ],
-      ),
+      body: _jobsBody(role),
+    );
+  }
+
+  Widget _jobsBody(JobsUserRole role) {
+    if (_controller.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_controller.errorMessage != null &&
+        _controller.errorMessage!.trim().isNotEmpty) {
+      return _statusState(
+        icon: Icons.error_outline_rounded,
+        title: 'Could not load jobs',
+        description: _controller.errorMessage!,
+        actionLabel: 'Retry',
+        onAction: _controller.load,
+      );
+    }
+
+    return TabBarView(
+      controller: _tabController,
+      children: role == JobsUserRole.provider
+          ? [
+              _discoverTab(),
+              _createTab(),
+              _myJobsTab(),
+              _applicantsTab(),
+              _alertsTab(),
+            ]
+          : [
+              _discoverTab(),
+              _careerTab(),
+              _applicationsTab(),
+              _savedTab(),
+              _alertsTab(),
+            ],
     );
   }
 
   Widget _discoverTab() {
     final jobs = _controller.filteredJobs;
+    if (jobs.isEmpty && _controller.companies.isEmpty) {
+      return _statusState(
+        icon: Icons.work_outline_rounded,
+        title: 'No jobs available yet',
+        description:
+            'There are no backend jobs or featured companies to show right now.',
+        actionLabel: 'Refresh',
+        onAction: _controller.load,
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       children: [
@@ -391,7 +420,12 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   Widget _careerTab() {
     final profile = _controller.careerProfile;
     if (profile == null) {
-      return const SizedBox.shrink();
+      return _statusState(
+        icon: Icons.person_search_outlined,
+        title: 'No career profile yet',
+        description:
+            'Your backend career profile is empty or has not been created yet.',
+      );
     }
 
     return ListView(
@@ -519,6 +553,15 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   }
 
   Widget _myJobsTab() {
+    if (_controller.myPostedJobs.isEmpty) {
+      return _statusState(
+        icon: Icons.add_business_outlined,
+        title: 'No posted jobs yet',
+        description: 'You have not created any backend job listings yet.',
+        actionLabel: 'Create job',
+        onAction: _openCreateJob,
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       children: [
@@ -540,6 +583,13 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   }
 
   Widget _applicationsTab() {
+    if (_controller.applications.isEmpty) {
+      return _statusState(
+        icon: Icons.assignment_outlined,
+        title: 'No applications yet',
+        description: 'You have not applied to any backend job listings yet.',
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       children: _controller.applications
@@ -592,6 +642,14 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   }
 
   Widget _applicantsTab() {
+    if (_controller.applicants.isEmpty) {
+      return _statusState(
+        icon: Icons.groups_outlined,
+        title: 'No applicants yet',
+        description:
+            'There are no applicant records from the backend for your jobs yet.',
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       children: [
@@ -626,6 +684,13 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   }
 
   Widget _savedTab() {
+    if (_controller.savedJobs.isEmpty) {
+      return _statusState(
+        icon: Icons.bookmark_border_rounded,
+        title: 'No saved jobs yet',
+        description: 'Saved backend job listings will appear here.',
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       children: _controller.savedJobs
@@ -645,6 +710,25 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   }
 
   Widget _alertsTab() {
+    if (_controller.alerts.isEmpty) {
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+        children: [
+          FilledButton.tonalIcon(
+            onPressed: _createAlert,
+            icon: const Icon(Icons.add_alert_rounded),
+            label: const Text('Create job alert'),
+          ),
+          const SizedBox(height: 18),
+          _statusState(
+            icon: Icons.notifications_active_outlined,
+            title: 'No alerts yet',
+            description:
+                'Create a backend job alert to start tracking openings.',
+          ),
+        ],
+      );
+    }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       children: [
@@ -808,6 +892,44 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
       child: Text(
         title,
         style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
+  Widget _statusState({
+    required IconData icon,
+    required String title,
+    required String description,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 42),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(description, textAlign: TextAlign.center),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: 16),
+                FilledButton(onPressed: onAction, child: Text(actionLabel)),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
