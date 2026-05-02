@@ -44,15 +44,18 @@ class LocalizationSupportController extends ChangeNotifier {
                   localeCode: ApiPayloadReader.readString(item['localeCode']),
                   label: ApiPayloadReader.readString(
                     item['label'],
-                    fallback: ApiPayloadReader.readString(item['localeCode']),
+                    fallback: item['localeCode']?.toString() ?? '',
                   ),
                 );
               })
               .where((item) => item.localeCode.isNotEmpty)
               .toList(growable: false);
+      if (locales.isEmpty) {
+        throw StateError('Localization response did not include any locales.');
+      }
       selected = ApiPayloadReader.readString(
         payload['selected'],
-        fallback: locales.firstOrNull?.localeCode ?? 'en',
+        fallback: payload['fallbackLocale']?.toString() ?? 'en',
       );
     } catch (error) {
       errorMessage = error.toString();

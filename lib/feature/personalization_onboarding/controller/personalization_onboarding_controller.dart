@@ -48,6 +48,9 @@ class PersonalizationOnboardingController extends ChangeNotifier {
               })
               .where((item) => item.name.isNotEmpty)
               .toList(growable: false);
+      if (interests.isEmpty) {
+        throw StateError('Personalization onboarding response was empty.');
+      }
     } catch (error) {
       errorMessage = error.toString();
       interests = const <InterestModel>[];

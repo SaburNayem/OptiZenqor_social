@@ -28,16 +28,24 @@ class LegalComplianceController extends ChangeNotifier {
     notifyListeners();
     try {
       final response = await _service.getEndpoint('compliance');
+      if (!response.isSuccess || response.data['success'] == false) {
+        throw StateError(
+          response.message ?? 'Unable to load legal compliance settings.',
+        );
+      }
       final Map<String, dynamic>? payload = ApiPayloadReader.readMap(
         response.data['data'],
       );
+      if (payload == null || payload.isEmpty) {
+        throw StateError('Legal compliance response was empty.');
+      }
       consent = LegalConsentModel(
         termsAccepted:
-            ApiPayloadReader.readBool(payload?['termsAccepted']) ?? false,
+            ApiPayloadReader.readBool(payload['termsAccepted']) ?? false,
         privacyAccepted:
-            ApiPayloadReader.readBool(payload?['privacyAccepted']) ?? false,
+            ApiPayloadReader.readBool(payload['privacyAccepted']) ?? false,
         guidelinesAccepted:
-            ApiPayloadReader.readBool(payload?['guidelinesAccepted']) ?? false,
+            ApiPayloadReader.readBool(payload['guidelinesAccepted']) ?? false,
       );
     } catch (error) {
       errorMessage = error.toString();
@@ -94,7 +102,7 @@ class LegalComplianceController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
-      await _service.patchEndpoint(
+      final response = await _service.patchEndpoint(
         'consents',
         payload: <String, dynamic>{
           if (key == 'legal.terms_accepted') 'terms': value,
@@ -102,6 +110,9 @@ class LegalComplianceController extends ChangeNotifier {
           if (key == 'legal.guidelines_accepted') 'guidelines': value,
         },
       );
+      if (!response.isSuccess || response.data['success'] == false) {
+        throw StateError(response.message ?? 'Unable to update legal consent.');
+      }
     } catch (error) {
       consent = previous;
       errorMessage = error.toString();

@@ -24,6 +24,11 @@ class AccessibilitySupportController extends ChangeNotifier {
     notifyListeners();
     try {
       final response = await _service.getEndpoint('accessibility_support');
+      if (!response.isSuccess || response.data['success'] == false) {
+        throw StateError(
+          response.message ?? 'Unable to load accessibility options.',
+        );
+      }
       final Map<String, dynamic>? payload = ApiPayloadReader.readMap(
         response.data['data'],
       );
@@ -38,6 +43,9 @@ class AccessibilitySupportController extends ChangeNotifier {
           )
           .where((item) => item.title.isNotEmpty)
           .toList(growable: false);
+      if (options.isEmpty) {
+        throw StateError('Accessibility response did not include any options.');
+      }
     } catch (error) {
       errorMessage = error.toString();
       options = const <AccessibilityOptionModel>[];
@@ -71,10 +79,15 @@ class AccessibilitySupportController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
     try {
-      await _service.patchEndpoint(
+      final response = await _service.patchEndpoint(
         'settings_state',
         payload: <String, dynamic>{key: nextValue},
       );
+      if (!response.isSuccess || response.data['success'] == false) {
+        throw StateError(
+          response.message ?? 'Unable to update accessibility option.',
+        );
+      }
     } catch (error) {
       options = options
           .asMap()
