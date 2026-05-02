@@ -2,60 +2,107 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/data/service/theme_service.dart';
-import '../../../app_route/route_names.dart';
 import '../../bookmarks/controller/bookmarks_controller.dart';
 import '../../home_feed/controller/home_feed_controller.dart';
 import '../../home_feed/controller/main_shell_controller.dart';
 import '../controller/settings_controller.dart';
 import '../model/settings_item_model.dart';
 import '../model/settings_section_model.dart';
+import '../repository/settings_catalog_repository.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key, this.showAppBar = true});
 
   final bool showAppBar;
 
   @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  late final SettingsCatalogRepository _repository;
+  late Future<List<SettingsSectionModel>> _sectionsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = SettingsCatalogRepository();
+    _sectionsFuture = _repository.fetchSections();
+  }
+
+  void _retry() {
+    setState(() {
+      _sectionsFuture = _repository.fetchSections();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<MainShellController, int>(
       builder: (context, _) {
-        final SettingsController controller = SettingsController(
-          currentUser: context.read<MainShellController>().currentUser,
-        );
-        final theme = Theme.of(context);
-        final sections = _displaySections(controller);
+        final shellUser = context.read<MainShellController>().currentUser;
+        final currentUser = shellUser.id.trim().isEmpty ? null : shellUser;
 
-        return Scaffold(
-          backgroundColor: AppColors.hexFFF8F8FA,
-          body: SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-              children: [
-                _topBar(context, controller),
-                const SizedBox(height: 18),
-                _profileCard(context, controller),
-                const SizedBox(height: 18),
-                ...sections.map(
-                  (section) => Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: _sectionCard(context, section),
-                  ),
+        return FutureBuilder<List<SettingsSectionModel>>(
+          future: currentUser == null
+              ? Future<List<SettingsSectionModel>>.value(
+                  const <SettingsSectionModel>[],
+                )
+              : _sectionsFuture,
+          builder: (context, snapshot) {
+            final SettingsController controller = SettingsController(
+              currentUser: currentUser,
+              sections: snapshot.data ?? const <SettingsSectionModel>[],
+            );
+            final theme = Theme.of(context);
+            final sections = _displaySections(controller);
+
+            return Scaffold(
+              backgroundColor: AppColors.hexFFF8F8FA,
+              body: SafeArea(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
+                  children: [
+                    _topBar(context, controller),
+                    const SizedBox(height: 18),
+                    if (!controller.isAuthenticated)
+                      _unauthorizedCard(context)
+                    else
+                      _profileCard(context, controller),
+                    const SizedBox(height: 18),
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      const Center(child: CircularProgressIndicator())
+                    else if (snapshot.hasError)
+                      _errorCard(context)
+                    else if (sections.isEmpty)
+                      _emptyCard(context)
+                    else
+                      ...sections.map(
+                        (section) => Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _sectionCard(context, section, controller),
+                        ),
+                      ),
+                    if (controller.isAuthenticated) ...[
+                      const SizedBox(height: 6),
+                      _logoutButton(context),
+                    ],
+                    const SizedBox(height: 14),
+                    Text(
+                      'OptiZenqor Socity Version 2.4.1',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.hexFFB4B7C1,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                _logoutButton(context),
-                const SizedBox(height: 14),
-                Text(
-                  'OptiZenqor Socity Version 2.4.1',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.hexFFB4B7C1,
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -91,16 +138,21 @@ class SettingsScreen extends StatelessWidget {
           (action) =>
               IconButton(onPressed: action.onTap, icon: Icon(action.icon)),
         ),
-        CircleAvatar(
-          radius: 16,
-          backgroundImage: NetworkImage(controller.currentUser.avatar),
-        ),
+        controller.avatarUrl == null
+            ? const CircleAvatar(
+                radius: 16,
+                child: Icon(Icons.person_outline_rounded, size: 18),
+              )
+            : CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage(controller.avatarUrl!),
+              ),
       ],
     );
   }
 
   Widget _profileCard(BuildContext context, SettingsController controller) {
-    final user = controller.currentUser;
+    final user = controller.currentUser!;
 
     return InkWell(
       onTap: () => AppGet.toNamed(RouteNames.accountSettings),
@@ -114,24 +166,29 @@ class SettingsScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundImage: NetworkImage(user.avatar),
-            ),
+            user.avatar.trim().isEmpty
+                ? const CircleAvatar(
+                    radius: 22,
+                    child: Icon(Icons.person_outline_rounded),
+                  )
+                : CircleAvatar(
+                    radius: 22,
+                    backgroundImage: NetworkImage(user.avatar),
+                  ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.name,
+                    controller.displayName,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '@${user.username}',
+                    controller.displayUsername,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: AppColors.hexFF8A8E99,
                     ),
@@ -149,7 +206,87 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionCard(BuildContext context, _SettingsDisplaySection section) {
+  Widget _unauthorizedCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.hexFFECECF1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Sign in required',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Settings are loaded from your real account state on the backend. Sign in to continue.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: () => AppGet.offAllNamed(RouteNames.login),
+            child: const Text('Go to login'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _errorCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.hexFFECECF1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Unable to load settings',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'The backend did not return the settings catalog right now.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(onPressed: _retry, child: const Text('Retry')),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.hexFFECECF1),
+      ),
+      child: Text(
+        'No settings sections are available from the backend yet.',
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+    );
+  }
+
+  Widget _sectionCard(
+    BuildContext context,
+    _SettingsDisplaySection section,
+    SettingsController controller,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -172,7 +309,7 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             children: [
               for (var i = 0; i < section.items.length; i++) ...[
-                _settingsRow(context, section.items[i]),
+                _settingsRow(context, section.items[i], controller),
                 if (i != section.items.length - 1)
                   const Divider(height: 1, indent: 68, endIndent: 16),
               ],
@@ -183,7 +320,11 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _settingsRow(BuildContext context, SettingsItemModel item) {
+  Widget _settingsRow(
+    BuildContext context,
+    SettingsItemModel item,
+    SettingsController controller,
+  ) {
     final iconColor = _iconColor(item.title);
 
     return ListTile(
@@ -196,11 +337,7 @@ class SettingsScreen extends StatelessWidget {
           color: iconColor.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          item.icon ?? Icons.settings_outlined,
-          color: iconColor,
-          size: 20,
-        ),
+        child: Icon(controller.iconForItem(item), color: iconColor, size: 20),
       ),
       title: Text(
         item.title,
@@ -293,7 +430,9 @@ class SettingsScreen extends StatelessWidget {
       [_themeItem()],
     ]);
     final contentItems = _takeItems(sectionMap['Content & Feed'], null);
-    final professionalItems = _takeItems(sectionMap['Professional'], null);
+    final professionalItems = controller.hasProfessionalControls
+        ? _takeItems(sectionMap['Professional'], null)
+        : const <SettingsItemModel>[];
     final appItems = _mergeItems([
       _takeItems(sectionMap['Account'], [
         'Devices and sessions',

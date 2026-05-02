@@ -60,9 +60,9 @@ class MainShellController extends Cubit<int> {
 
   static const UserModel _guestUser = UserModel(
     id: '',
-    name: 'Guest',
-    username: 'guest',
-    avatar: 'https://placehold.co/120x120',
+    name: '',
+    username: '',
+    avatar: '',
     bio: '',
     role: UserRole.guest,
     followers: 0,

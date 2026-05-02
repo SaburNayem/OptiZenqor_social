@@ -37,11 +37,7 @@ Future<bool> requestNotificationPermission() async {
         await androidImplementation.requestNotificationsPermission() ?? false;
   }
 
-  final bool isGranted = isMessagingAuthorized && isLocalNotificationAuthorized;
-  if (isGranted) {
-  } else {}
-
-  return isGranted;
+  return isMessagingAuthorized && isLocalNotificationAuthorized;
 }
 
 Future<void> initializePushNotifications({
@@ -66,7 +62,9 @@ Future<void> initializePushNotifications({
     }
 
     await syncFcmTokenWithBackend();
-  } catch (e) {}
+  } catch (error) {
+    debugPrint('[Notifications] initializePushNotifications failed: $error');
+  }
 }
 
 Future<String?> getFcmToken() async {
@@ -83,7 +81,9 @@ Future<void> syncFcmTokenWithBackend() async {
     }
 
     await sendFcmTokenToBackend(normalized);
-  } catch (e) {}
+  } catch (error) {
+    debugPrint('[Notifications] syncFcmTokenWithBackend failed: $error');
+  }
 }
 
 Future<void> sendFcmTokenToBackend(String token) async {
@@ -95,16 +95,18 @@ Future<void> sendFcmTokenToBackend(String token) async {
 
   final uri = Uri.parse(ApiEndPoints.notificationsDevices);
   final headers = {
-    "Authorization": "Bearer $userToken",
-    "Content-Type": "application/json",
+    'Authorization': 'Bearer $userToken',
+    'Content-Type': 'application/json',
   };
   final body = jsonEncode({
-    "token": token,
-    "platform": _resolveNotificationPlatform(),
+    'token': token,
+    'platform': _resolveNotificationPlatform(),
   });
   try {
     await http.post(uri, headers: headers, body: body);
-  } catch (e) {}
+  } catch (error) {
+    debugPrint('[Notifications] sendFcmTokenToBackend failed: $error');
+  }
 }
 
 Future<void> deleteFcmTokenFromBackend([String? currentToken]) async {
@@ -123,12 +125,14 @@ Future<void> deleteFcmTokenFromBackend([String? currentToken]) async {
     ApiEndPoints.notificationDeviceByToken(Uri.encodeComponent(token)),
   );
   final headers = {
-    "Authorization": "Bearer $userToken",
-    "Content-Type": "application/json",
+    'Authorization': 'Bearer $userToken',
+    'Content-Type': 'application/json',
   };
   try {
     await http.delete(uri, headers: headers);
-  } catch (e) {}
+  } catch (error) {
+    debugPrint('[Notifications] deleteFcmTokenFromBackend failed: $error');
+  }
 }
 
 void listenTokenRefresh() {

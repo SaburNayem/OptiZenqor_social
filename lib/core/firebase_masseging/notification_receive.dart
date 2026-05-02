@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../firebase_options.dart';
@@ -12,7 +13,9 @@ Future<FirebaseApp> ensureFirebaseInitialized() async {
     return Firebase.app();
   }
 
-  return Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  return Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 }
 
 @pragma('vm:entry-point')
@@ -139,7 +142,11 @@ class FirebaseNotificationReceive {
         await _routeMessageData(Map<String, dynamic>.from(decoded));
         return;
       }
-    } catch (e) {}
+    } catch (error) {
+      debugPrint(
+        '[Notifications] Failed to decode notification payload: $error',
+      );
+    }
 
     await _routeMessageData(const <String, dynamic>{});
   }
