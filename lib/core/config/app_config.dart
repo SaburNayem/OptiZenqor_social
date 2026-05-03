@@ -25,42 +25,13 @@ class AppConfig {
     'SOCKET_CONTRACT_PATH',
     defaultValue: '/socket/contract',
   );
-  static const localApiPort = String.fromEnvironment(
-    'LOCAL_API_PORT',
-    defaultValue: '3000',
-  );
 
   static String get currentApiBaseUrl {
     final String explicitBaseUrl = apiBaseUrl.trim();
     if (explicitBaseUrl.isNotEmpty) {
       return explicitBaseUrl;
     }
-
-    if (useRemoteOnly) {
-      return defaultApiBaseUrl;
-    }
-
-    if (kReleaseMode || appFlavor == 'prod') {
-      return defaultApiBaseUrl;
-    }
-
-    if (kIsWeb) {
-      if (Uri.base.hasAuthority) {
-        return Uri.base.origin;
-      }
-      return 'http://127.0.0.1:$localApiPort';
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return 'http://10.0.2.2:$localApiPort';
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-      case TargetPlatform.fuchsia:
-        return 'http://127.0.0.1:$localApiPort';
-    }
+    return defaultApiBaseUrl;
   }
 
   static String get currentSocketBaseUrl {
@@ -90,23 +61,10 @@ class AppConfig {
   }
 
   static String? get debugLocalNetworkHint {
-    if (kReleaseMode || appFlavor == 'prod' || useRemoteOnly) {
+    if (kReleaseMode || appFlavor == 'prod') {
       return null;
     }
-    if (kIsWeb) {
-      return 'Web dev defaults to the current origin unless API_BASE_URL is set.';
-    }
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        return 'Android emulator should usually use 10.0.2.2 for localhost.';
-      case TargetPlatform.iOS:
-        return 'iOS simulator can usually reach localhost via 127.0.0.1.';
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.linux:
-      case TargetPlatform.fuchsia:
-        return 'Desktop/local dev defaults to 127.0.0.1 unless API_BASE_URL is set.';
-    }
+    return 'Flutter is configured to use the deployed Vercel backend by default. Override API_BASE_URL only when intentionally targeting another backend.';
   }
 
   static String get apiDocsUrl => '$currentApiBaseUrl/docs';
@@ -117,10 +75,7 @@ class AppConfig {
   static const uploadTimeoutMs = 90000;
   static const socketConnectTimeoutMs = 15000;
   static const socketReconnectDelayMs = 3000;
-  static const useRemoteOnly = bool.fromEnvironment(
-    'USE_REMOTE_ONLY',
-    defaultValue: true,
-  );
+  static const useRemoteOnly = true;
   static const allowOfflineFallback = bool.fromEnvironment(
     'ALLOW_OFFLINE_FALLBACK',
     defaultValue: false,
