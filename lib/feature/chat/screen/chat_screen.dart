@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/enums/user_role.dart';
 import '../../home_feed/controller/main_shell_controller.dart';
 import '../../home_feed/repository/home_feed_repository.dart';
 import '../../stories/widget/story_ring_list.dart';
@@ -61,7 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final UserModel currentUser = context
+    final UserModel? currentUser = context
         .read<MainShellController>()
         .currentUser;
 
@@ -85,7 +86,9 @@ class _ChatScreenState extends State<ChatScreen> {
               },
               child: CircleAvatar(
                 radius: 16,
-                backgroundImage: NetworkImage(currentUser.avatar),
+                backgroundImage: currentUser?.avatar.trim().isNotEmpty == true
+                    ? NetworkImage(currentUser!.avatar)
+                    : null,
               ),
             ),
           ),
@@ -184,7 +187,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     else
                       StoryRingList(
                         stories: _stories,
-                        currentUser: currentUser.id.isEmpty
+                        currentUser:
+                            currentUser == null || currentUser.id.isEmpty
                             ? null
                             : currentUser,
                         users: storyUsers,
@@ -515,11 +519,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   List<UserModel> _storyUsers({
-    required UserModel currentUser,
+    required UserModel? currentUser,
     required List<UserModel> conversationUsers,
   }) {
     return <String, UserModel>{
-      if (currentUser.id.isNotEmpty) currentUser.id: currentUser,
+      if (currentUser != null && currentUser.id.isNotEmpty)
+        currentUser.id: currentUser,
       for (final UserModel user in conversationUsers) user.id: user,
       for (final StoryModel story in _stories)
         if (story.author != null)
@@ -531,7 +536,7 @@ class _ChatScreenState extends State<ChatScreen> {
             username: story.userId,
             avatar: 'https://placehold.co/120x120',
             bio: '',
-            role: currentUser.role,
+            role: currentUser?.role ?? UserRole.guest,
             followers: 0,
             following: 0,
           ),

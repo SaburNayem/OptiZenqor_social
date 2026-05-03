@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../app_route/route_names.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/enums/user_role.dart';
 import '../../auth/repository/auth_repository.dart';
 import '../../account_switching/repository/account_switching_repository.dart';
 import '../../home_feed/controller/main_shell_controller.dart';
@@ -217,17 +218,40 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   Future<UserModel> _resolveActiveUser() async {
-    final UserModel shellUser = context.read<MainShellController>().currentUser;
+    final UserModel? shellUser = context
+        .read<MainShellController>()
+        .currentUser;
     final activeAccountId = await AccountSwitchingRepository()
         .readActiveAccountId();
     final UserModel? sessionUser = await AuthRepository().currentUser();
     if (activeAccountId == null || activeAccountId.trim().isEmpty) {
-      return sessionUser ?? shellUser;
+      return sessionUser ??
+          shellUser ??
+          const UserModel(
+            id: '',
+            name: '',
+            username: '',
+            avatar: '',
+            bio: '',
+            role: UserRole.guest,
+            followers: 0,
+            following: 0,
+          );
     }
     if (sessionUser != null && sessionUser.id == activeAccountId) {
       return sessionUser;
     }
-    return shellUser;
+    return shellUser ??
+        const UserModel(
+          id: '',
+          name: '',
+          username: '',
+          avatar: '',
+          bio: '',
+          role: UserRole.guest,
+          followers: 0,
+          following: 0,
+        );
   }
 
   bool _canCreateListing(

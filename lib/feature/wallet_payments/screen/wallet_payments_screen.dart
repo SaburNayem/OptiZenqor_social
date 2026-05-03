@@ -62,7 +62,10 @@ class _WalletPaymentsScreenState extends State<WalletPaymentsScreen> {
                     padding: const EdgeInsets.only(right: 12.0),
                     child: CircleAvatar(
                       radius: 16,
-                      backgroundImage: NetworkImage(currentUser.avatar),
+                      backgroundImage:
+                          currentUser?.avatar.trim().isNotEmpty == true
+                          ? NetworkImage(currentUser!.avatar)
+                          : null,
                     ),
                   ),
                 ],

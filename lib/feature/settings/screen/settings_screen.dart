@@ -44,7 +44,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return BlocBuilder<MainShellController, int>(
       builder: (context, _) {
         final shellUser = context.read<MainShellController>().currentUser;
-        final currentUser = shellUser.id.trim().isEmpty ? null : shellUser;
+        final currentUser = shellUser == null || shellUser.id.trim().isEmpty
+            ? null
+            : shellUser;
 
         return FutureBuilder<List<SettingsSectionModel>>(
           future: currentUser == null

@@ -15,31 +15,55 @@ class UploadManagerScreen extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(title: const Text('Upload Manager')),
-          body: ListView.builder(
-            itemCount: _controller.tasks.length,
-            itemBuilder: (context, index) {
-              final task = _controller.tasks[index];
-              return Card(
-                child: ListTile(
-                  title: Text(task.fileName),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      LinearProgressIndicator(value: task.progress),
-                      const SizedBox(height: 6),
-                      Text(task.status.name),
-                    ],
+          body: _controller.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _controller.errorMessage != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _controller.errorMessage!,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: _controller.load,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
                   ),
-                  trailing: task.status == UploadStatus.failed
-                      ? IconButton(
-                          onPressed: () => _controller.retry(task.id),
-                          icon: const Icon(Icons.refresh),
-                        )
-                      : null,
+                )
+              : _controller.tasks.isEmpty
+              ? const Center(child: Text('No uploads found from the backend.'))
+              : ListView.builder(
+                  itemCount: _controller.tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = _controller.tasks[index];
+                    return Card(
+                      child: ListTile(
+                        title: Text(task.fileName),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LinearProgressIndicator(value: task.progress),
+                            const SizedBox(height: 6),
+                            Text(task.status.name),
+                          ],
+                        ),
+                        trailing: task.status == UploadStatus.failed
+                            ? IconButton(
+                                onPressed: () => _controller.retry(task.id),
+                                icon: const Icon(Icons.refresh),
+                              )
+                            : null,
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         );
       },
     );

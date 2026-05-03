@@ -34,9 +34,9 @@ class CreatePostController extends ChangeNotifier {
   bool _isDisposed = false;
   UserModel currentUser = const UserModel(
     id: '',
-    name: 'Guest',
-    username: 'guest',
-    avatar: 'https://placehold.co/120x120',
+    name: '',
+    username: '',
+    avatar: '',
     bio: '',
     role: UserRole.guest,
     followers: 0,
