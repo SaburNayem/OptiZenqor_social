@@ -199,7 +199,6 @@ class LiveStreamRepository {
     return ApiPayloadReader.readMap(response['data']) ??
         ApiPayloadReader.readMap(response['stream']) ??
         ApiPayloadReader.readMap(response['comment']) ??
-        ApiPayloadReader.readMap(response['result']) ??
         response;
   }
 

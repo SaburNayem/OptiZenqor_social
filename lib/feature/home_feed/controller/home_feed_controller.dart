@@ -360,57 +360,17 @@ class HomeFeedController extends Cubit<int> {
     String? altText,
     List<String> editHistory = const <String>[],
   }) async {
-    if (caption.trim().isEmpty &&
-        mediaPaths.every((item) => item.trim().isEmpty)) {
-      return;
-    }
-
-    final currentUser = await _repository.currentUserProfile();
-    final String authorId = currentUser?.id ?? '';
-    if (authorId.trim().isEmpty) {
-      loadState = loadState.copyWith(
-        hasError: true,
-        errorMessage: 'You need to be logged in to create a post.',
-      );
-      _notify();
-      return;
-    }
-
-    final PostModel post = HomeFeedPostFactory.buildLocalPost(
+    await createPost(
       caption: caption,
       mediaPaths: mediaPaths,
+      isVideo: isVideo,
       audience: audience,
-      authorId: authorId,
-      author: currentUser,
       location: location,
-      taggedPeople: taggedPeople,
-      coAuthors: coAuthors,
+      taggedUserIds: taggedPeople,
+      mentionUsernames: coAuthors,
       altText: altText,
       editHistory: editHistory,
     );
-
-    posts = <PostModel>[post, ...posts];
-    final List<PostModel> localPosts = <PostModel>[
-      post,
-      ...(await _repository.readLocalCreatedPosts()).where(
-        (PostModel item) => item.id != post.id,
-      ),
-    ];
-    await _repository.saveLocalCreatedPosts(localPosts);
-    loadState = loadState.copyWith(
-      hasError: false,
-      isEmpty: posts.isEmpty,
-      isSuccess: posts.isNotEmpty,
-      errorMessage: null,
-    );
-    await _analytics.logEvent(
-      'post_created_local',
-      params: <String, dynamic>{
-        'hasMedia': post.media.isNotEmpty,
-        'isVideo': isVideo,
-      },
-    );
-    _notify();
   }
 
   Future<void> createPost({

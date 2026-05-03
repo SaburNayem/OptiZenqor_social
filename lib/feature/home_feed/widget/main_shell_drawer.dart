@@ -17,6 +17,14 @@ class MainShellDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentUser = controller.currentUser;
+    final String profileId = currentUser?.id ?? '';
+    final String name = currentUser?.name.trim().isNotEmpty == true
+        ? currentUser!.name
+        : 'Signed out';
+    final String username = currentUser?.username.trim().isNotEmpty == true
+        ? '@${currentUser!.username}'
+        : 'Sign in required';
+    final String avatarUrl = currentUser?.avatar ?? '';
 
     return Drawer(
       child: SafeArea(
@@ -24,16 +32,18 @@ class MainShellDrawer extends StatelessWidget {
           children: [
             UserAccountsDrawerHeader(
               currentAccountPicture: AppAvatar(
-                imageUrl: currentUser.avatar,
+                imageUrl: avatarUrl,
                 radius: 28,
               ),
-              accountName: Text(currentUser.name),
-              accountEmail: Text('@${currentUser.username}'),
+              accountName: Text(name),
+              accountEmail: Text(username),
               margin: EdgeInsets.zero,
-              onDetailsPressed: () => AppGet.toNamed(
-                RouteNames.userProfile,
-                parameters: <String, String>{'id': currentUser.id},
-              ),
+              onDetailsPressed: profileId.isEmpty
+                  ? null
+                  : () => AppGet.toNamed(
+                      RouteNames.userProfile,
+                      parameters: <String, String>{'id': profileId},
+                    ),
             ),
             Expanded(
               child: ListView(

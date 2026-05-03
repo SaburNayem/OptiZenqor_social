@@ -23,8 +23,12 @@ class DeepLinkService {
       return null;
     }
 
-    final Map<String, dynamic> payload =
-        ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+    final Map<String, dynamic>? payload = ApiPayloadReader.readMap(
+      response.data['data'],
+    );
+    if (payload == null || payload.isEmpty) {
+      return null;
+    }
     final String resolvedRoute = ApiPayloadReader.readString(
       payload['resolvedRoute'] ?? payload['path'] ?? payload['route'],
     );

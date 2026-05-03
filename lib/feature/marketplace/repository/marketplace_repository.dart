@@ -408,16 +408,11 @@ class MarketplaceRepository {
   Map<String, dynamic> _resolveMarketplacePayload(
     Map<String, dynamic> response,
   ) {
-    final Map<String, dynamic>? data = ApiPayloadReader.readMap(
-      response['data'],
-    );
-    final Map<String, dynamic>? result = ApiPayloadReader.readMap(
-      response['result'],
-    );
-    final Map<String, dynamic>? payload = ApiPayloadReader.readMap(
-      response['payload'],
-    );
-    return data ?? result ?? payload ?? response;
+    final Map<String, dynamic>? data = ApiPayloadReader.readMap(response['data']);
+    if (data == null || data.isEmpty) {
+      throw Exception('Marketplace response did not include a data payload.');
+    }
+    return data;
   }
 
   Map<String, dynamic> _readRequiredPayload(
@@ -425,10 +420,7 @@ class MarketplaceRepository {
     required String fallbackMessage,
   }) {
     final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response['data']) ??
-        ApiPayloadReader.readMap(response['result']) ??
-        ApiPayloadReader.readMap(response['payload']) ??
-        ApiPayloadReader.readMap(response);
+        ApiPayloadReader.readMap(response['data']);
     if (payload == null || payload.isEmpty) {
       throw Exception(fallbackMessage);
     }

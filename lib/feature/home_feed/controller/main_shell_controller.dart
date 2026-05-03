@@ -56,18 +56,7 @@ class MainShellController extends Cubit<int> {
         ),
       ];
 
-  UserModel currentUser = _guestUser;
-
-  static const UserModel _guestUser = UserModel(
-    id: '',
-    name: '',
-    username: '',
-    avatar: '',
-    bio: '',
-    role: UserRole.guest,
-    followers: 0,
-    following: 0,
-  );
+  UserModel? currentUser;
 
   String get currentTitle => destinations[index].title;
 
@@ -99,12 +88,12 @@ class MainShellController extends Cubit<int> {
       final UserModel? sessionUser = await _authRepository.currentUser();
       if (sessionUser == null) {
         if (force) {
-          currentUser = _guestUser;
+          currentUser = null;
           emit(index);
         }
         return;
       }
-      if (!force && currentUser.id == sessionUser.id) {
+      if (!force && currentUser?.id == sessionUser.id) {
         return;
       }
       currentUser = sessionUser;
@@ -116,6 +105,7 @@ class MainShellController extends Cubit<int> {
   }
 
   List<MainShellDrawerSectionModel> get drawerSections {
+    final UserRole role = currentUser?.role ?? UserRole.guest;
     return <MainShellDrawerSectionModel>[
       const MainShellDrawerSectionModel(
         title: 'Create & Manage',
@@ -184,15 +174,15 @@ class MainShellController extends Cubit<int> {
           ),
         ],
       ),
-      if (currentUser.role == UserRole.creator ||
-          currentUser.role == UserRole.business ||
-          currentUser.role == UserRole.seller ||
-          currentUser.role == UserRole.recruiter)
+      if (role == UserRole.creator ||
+          role == UserRole.business ||
+          role == UserRole.seller ||
+          role == UserRole.recruiter)
         MainShellDrawerSectionModel(
           title: 'Professional',
           subtitle: 'Role-aware tools for growth and monetization.',
           items: <MainShellDrawerItemModel>[
-            if (currentUser.role == UserRole.creator)
+            if (role == UserRole.creator)
               const MainShellDrawerItemModel(
                 title: 'Creator Dashboard',
                 icon: Icons.insights_rounded,
@@ -235,7 +225,7 @@ class MainShellController extends Cubit<int> {
     emit(index);
     try {
       await _authRepository.logout();
-      currentUser = _guestUser;
+      currentUser = null;
       index = 0;
       // Navigation is handled by the shell screen listener.
       emit(index);

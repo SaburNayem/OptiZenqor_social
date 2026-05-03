@@ -82,9 +82,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
             final BookmarksController bookmarksController = context
                 .read<BookmarksController>();
             final UserModel? currentUser =
-                context.read<MainShellController>().currentUser.id.isNotEmpty
-                ? context.read<MainShellController>().currentUser
-                : null;
+                context.read<MainShellController>().currentUser;
             final List<UserModel>? currentUserList = currentUser == null
                 ? null
                 : <UserModel>[currentUser];
