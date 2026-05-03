@@ -18,7 +18,7 @@ class MediaUrlResolver {
     if (!uri.hasScheme) {
       return _resolveRelative(trimmed);
     }
-    return trimmed;
+    return _normalizeKnownImageHosts(trimmed, uri);
   }
 
   static String _resolveRelative(String value) {
@@ -38,5 +38,21 @@ class MediaUrlResolver {
       return path;
     }
     return '$normalizedBase$path';
+  }
+
+  static String _normalizeKnownImageHosts(String value, Uri uri) {
+    if (uri.host.toLowerCase() != 'placehold.co') {
+      return value;
+    }
+
+    final String path = uri.path.toLowerCase();
+    if (path.endsWith('.png') ||
+        path.endsWith('.jpg') ||
+        path.endsWith('.jpeg') ||
+        path.endsWith('.webp')) {
+      return value;
+    }
+
+    return '$value/png';
   }
 }

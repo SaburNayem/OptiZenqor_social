@@ -1,4 +1,5 @@
 import '../../enums/user_role.dart';
+import '../../helpers/media_url_resolver.dart';
 
 class UserModel {
   const UserModel({
@@ -52,7 +53,7 @@ class UserModel {
               .trim()
               .replaceFirst('@', ''),
       username: username,
-      avatar: _sanitizeImageUrl(
+      avatar: MediaUrlResolver.resolve(
         (json['avatar'] as String? ??
                 json['avatarUrl'] as String? ??
                 json['profileImage'] as String? ??
@@ -67,12 +68,13 @@ class UserModel {
       following: _readInt(json['following']),
       website: (json['website'] as String? ?? '').trim(),
       location: (json['location'] as String? ?? '').trim(),
-      coverImageUrl:
-          (json['coverImageUrl'] as String? ??
-                  json['coverUrl'] as String? ??
-                  json['coverPhotoUrl'] as String? ??
-                  '')
-              .trim(),
+      coverImageUrl: MediaUrlResolver.resolve(
+        (json['coverImageUrl'] as String? ??
+                json['coverUrl'] as String? ??
+                json['coverPhotoUrl'] as String? ??
+                '')
+            .trim(),
+      ),
       isPrivate: json['isPrivate'] as bool? ?? false,
       verified:
           json['verified'] as bool? ?? verificationStatus.contains('verified'),
@@ -197,28 +199,6 @@ class UserModel {
       return value.toInt();
     }
     return int.tryParse(value?.toString() ?? '') ?? 0;
-  }
-
-  static String _sanitizeImageUrl(String value) {
-    final String trimmed = value.trim();
-    if (trimmed.isEmpty) {
-      return '';
-    }
-    final Uri? uri = Uri.tryParse(trimmed);
-    if (uri == null) {
-      return trimmed;
-    }
-    if (uri.host.toLowerCase() != 'placehold.co') {
-      return trimmed;
-    }
-    final String path = uri.path.toLowerCase();
-    if (path.endsWith('.png') ||
-        path.endsWith('.jpg') ||
-        path.endsWith('.jpeg') ||
-        path.endsWith('.webp')) {
-      return trimmed;
-    }
-    return '$trimmed/png';
   }
 
   static UserRole _parseRole(Object? value) {

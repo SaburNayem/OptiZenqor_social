@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
+import '../config/app_config.dart';
 import '../data/api/api_end_points.dart';
 import '../data/service/auth_session_service.dart';
 
@@ -93,7 +94,9 @@ Future<void> sendFcmTokenToBackend(String token) async {
     return;
   }
 
-  final uri = Uri.parse(ApiEndPoints.notificationsDevices);
+  final uri = Uri.parse(
+    AppConfig.currentApiBaseUrl,
+  ).resolve(ApiEndPoints.notificationsDevices);
   final headers = {
     'Authorization': 'Bearer $userToken',
     'Content-Type': 'application/json',
@@ -121,7 +124,7 @@ Future<void> deleteFcmTokenFromBackend([String? currentToken]) async {
     return;
   }
 
-  final uri = Uri.parse(
+  final uri = Uri.parse(AppConfig.currentApiBaseUrl).resolve(
     ApiEndPoints.notificationDeviceByToken(Uri.encodeComponent(token)),
   );
   final headers = {
