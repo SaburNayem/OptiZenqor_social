@@ -31,10 +31,14 @@ class SplashController {
     );
     final bool hasCompletedOnboarding = bootstrapResults[0] as bool;
     final bool hasSession = bootstrapResults[1] as bool;
+    bool canShowOnboarding = true;
+    if (!hasCompletedOnboarding) {
+      canShowOnboarding = await _onboardingRepository.hasUsableContent();
+    }
     if (!context.mounted) {
       return;
     }
-    final nextRoute = !hasCompletedOnboarding
+    final nextRoute = !hasCompletedOnboarding && canShowOnboarding
         ? RouteNames.onboarding
         : hasSession
         ? RouteNames.shell

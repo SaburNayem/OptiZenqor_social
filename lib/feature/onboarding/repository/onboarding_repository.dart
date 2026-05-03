@@ -34,6 +34,15 @@ class OnboardingRepository {
     return await _storage.read<bool>(StorageKeys.onboardingDone) ?? false;
   }
 
+  Future<bool> hasUsableContent() async {
+    try {
+      final List<OnboardingSlideModel> slides = await loadSlides();
+      return slides.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<List<OnboardingSlideModel>> loadSlides() async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient

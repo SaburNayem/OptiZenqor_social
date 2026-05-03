@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/common_widget/app_button.dart';
 import '../controller/onboarding_controller.dart';
 import '../model/onboarding_slide_model.dart';
@@ -38,6 +39,15 @@ class OnboardingScreen extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
+                      const SizedBox(height: 20),
+                      AppButton(
+                        label: 'Go to Login',
+                        onPressed: () {
+                          Navigator.of(
+                            context,
+                          ).pushReplacementNamed(RouteNames.login);
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -47,15 +57,7 @@ class OnboardingScreen extends StatelessWidget {
             final List<OnboardingSlideModel> slides =
                 snapshot.data ?? const <OnboardingSlideModel>[];
             if (slides.isEmpty) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(
-                    'Onboarding content is not available yet.',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
+              return const Center(child: _OnboardingUnavailableView());
             }
 
             return Padding(
@@ -149,6 +151,33 @@ class OnboardingScreen extends StatelessWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _OnboardingUnavailableView extends StatelessWidget {
+  const _OnboardingUnavailableView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Onboarding content is not available yet.',
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          AppButton(
+            label: 'Go to Login',
+            onPressed: () {
+              Navigator.of(context).pushReplacementNamed(RouteNames.login);
+            },
+          ),
+        ],
       ),
     );
   }
