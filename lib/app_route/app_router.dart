@@ -46,7 +46,7 @@ class AppRouter {
       case RouteNames.login:
         return LoginScreen();
       case RouteNames.signup:
-        return const SignupScreen();
+        return SignupScreen();
       case RouteNames.emailVerification:
         return EmailVerificationScreen(email: _emailFromArguments(arguments));
       case RouteNames.forgotPassword:

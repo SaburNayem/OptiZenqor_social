@@ -10,11 +10,9 @@ import '../../widget/auth_google_button.dart';
 import '../controller/login_controller.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+  LoginScreen({super.key});
 
-  final GlobalKey<FormState> _formKey = const GlobalObjectKey<FormState>(
-    'login_form',
-  );
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {

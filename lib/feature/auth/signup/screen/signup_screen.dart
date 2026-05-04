@@ -38,12 +38,10 @@ const int _signupAvatarImageQuality = 75;
 const double _signupAvatarMaxDimension = 1280;
 
 class SignupScreen extends StatelessWidget {
-  const SignupScreen({super.key});
+  SignupScreen({super.key});
 
-  final GlobalKey<FormState> _accountDetailsFormKey =
-      const GlobalObjectKey<FormState>('signup_account_details_form');
-  final GlobalKey<FormState> _profileDetailsFormKey =
-      const GlobalObjectKey<FormState>('signup_profile_details_form');
+  final GlobalKey<FormState> _accountDetailsFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _profileDetailsFormKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {

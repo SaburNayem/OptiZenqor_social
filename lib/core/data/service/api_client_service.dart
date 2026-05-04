@@ -471,6 +471,11 @@ class ApiClientService {
         'Unable to reach the server. Check your connection and try again.',
       );
     }
+    if (kIsWeb && trimmedMessage.toLowerCase() == 'failed to fetch') {
+      return _appendDebugHint(
+        'Browser blocked the request before it reached the API. This usually means the backend CORS policy does not allow this web origin yet.',
+      );
+    }
     return _appendDebugHint(trimmedMessage);
   }
 

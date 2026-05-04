@@ -8,14 +8,12 @@ import '../../../../core/validators/input_validators.dart';
 import '../controller/reset_password_controller.dart';
 
 class ResetPasswordScreen extends StatelessWidget {
-  const ResetPasswordScreen({super.key, this.email, this.otp});
+  ResetPasswordScreen({super.key, this.email, this.otp});
 
   final String? email;
   final String? otp;
 
-  final GlobalKey<FormState> _formKey = const GlobalObjectKey<FormState>(
-    'reset_password_form',
-  );
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {

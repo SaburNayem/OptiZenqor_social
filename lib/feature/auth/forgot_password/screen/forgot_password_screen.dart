@@ -8,13 +8,11 @@ import '../../../../core/validators/input_validators.dart';
 import '../controller/forgot_password_controller.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
-  const ForgotPasswordScreen({super.key, this.email});
+  ForgotPasswordScreen({super.key, this.email});
 
   final String? email;
 
-  final GlobalKey<FormState> _formKey = const GlobalObjectKey<FormState>(
-    'forgot_password_form',
-  );
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {

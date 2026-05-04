@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
@@ -7,8 +8,10 @@ class AppConfig {
     'APP_FLAVOR',
     defaultValue: kReleaseMode ? 'prod' : 'dev',
   );
-  static const defaultApiBaseUrl =
-      'https://opti-zenqor-social-backend.vercel.app';
+  static const defaultApiBaseUrl = kReleaseMode
+      ? 'https://opti-zenqor-social-backend.vercel.app'
+      : 'http://127.0.0.1:3000';
+  static const defaultWebApiProxyPath = '/api';
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: '',
@@ -34,6 +37,12 @@ class AppConfig {
     final String explicitBaseUrl = apiBaseUrl.trim();
     if (explicitBaseUrl.isNotEmpty) {
       return explicitBaseUrl;
+    }
+    if (kIsWeb && !_isLocalWebOrigin) {
+      return Uri.base.resolve(defaultWebApiProxyPath).toString();
+    }
+    if (!kIsWeb && !kReleaseMode && Platform.isAndroid) {
+      return localAndroidDebugApiBaseUrl;
     }
     return defaultApiBaseUrl;
   }
@@ -71,6 +80,18 @@ class AppConfig {
     if (kReleaseMode || appFlavor == 'prod') {
       return null;
     }
+    if (kIsWeb) {
+      if (_isLocalWebOrigin) {
+        return 'Debug web build is running on a local origin and calling the deployed Vercel backend directly. If Chrome shows `Failed to fetch`, the backend is likely blocking this localhost origin with CORS. Deploy the web app behind the bundled Vercel `/api` rewrite or allow this origin in the backend CORS policy.';
+      }
+      if (isUsingDefaultRemoteBackend) {
+        return 'Debug web build is using the deployed backend through the same-origin `/api` proxy path.';
+      }
+      return 'Debug web build is using an overridden backend: $currentApiBaseUrl';
+    }
+    if (!kIsWeb && Platform.isAndroid && apiBaseUrl.trim().isEmpty) {
+      return 'Debug Android build is using the local backend by default. Make sure `adb reverse tcp:3000 tcp:3000` is active, or pass `--dart-define=API_BASE_URL=$defaultApiBaseUrl` to force the deployed backend.';
+    }
     if (isUsingDefaultRemoteBackend) {
       return 'Debug build is using the deployed Vercel backend. To test the local backend on a USB-connected Android device, run `adb reverse tcp:3000 tcp:3000` and launch with `--dart-define=API_BASE_URL=$localAndroidDebugApiBaseUrl`.';
     }
@@ -90,4 +111,14 @@ class AppConfig {
     'ALLOW_OFFLINE_FALLBACK',
     defaultValue: false,
   );
+
+  static bool get _isLocalWebOrigin {
+    if (!kIsWeb) {
+      return false;
+    }
+    final String host = Uri.base.host.toLowerCase().trim();
+    return host == 'localhost' ||
+        host == '127.0.0.1' ||
+        host == '0.0.0.0';
+  }
 }
