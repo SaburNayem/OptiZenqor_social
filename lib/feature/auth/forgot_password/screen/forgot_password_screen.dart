@@ -8,7 +8,9 @@ import '../../../../core/validators/input_validators.dart';
 import '../controller/forgot_password_controller.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
-  const ForgotPasswordScreen({super.key});
+  const ForgotPasswordScreen({super.key, this.email});
+
+  final String? email;
 
   final GlobalKey<FormState> _formKey = const GlobalObjectKey<FormState>(
     'forgot_password_form',
@@ -17,7 +19,7 @@ class ForgotPasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<ForgotPasswordController>(
-      create: (_) => ForgotPasswordController(),
+      create: (_) => ForgotPasswordController(initialEmail: email),
       child: Scaffold(
         backgroundColor: AppColors.white,
         appBar: AppBar(
@@ -104,6 +106,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
+                        initialValue: email?.trim(),
                         validator: (value) =>
                             InputValidators.email(value ?? ''),
                         keyboardType: TextInputType.emailAddress,

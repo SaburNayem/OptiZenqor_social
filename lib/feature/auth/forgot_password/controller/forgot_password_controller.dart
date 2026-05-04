@@ -9,13 +9,16 @@ import '../../model/auth_exception.dart';
 import '../../repository/auth_repository.dart';
 
 class ForgotPasswordController extends Cubit<FormStateModel> {
-  ForgotPasswordController({AuthRepository? authRepository})
-    : _authRepository = authRepository ?? AuthRepository(),
-      super(const FormStateModel());
+  ForgotPasswordController({
+    AuthRepository? authRepository,
+    String? initialEmail,
+  }) : _authRepository = authRepository ?? AuthRepository(),
+       email = initialEmail?.trim() ?? '',
+       super(const FormStateModel());
 
   final AuthRepository _authRepository;
 
-  String email = '';
+  String email;
 
   Future<void> sendResetCode() async {
     final String trimmedEmail = email.trim();

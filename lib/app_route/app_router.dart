@@ -50,7 +50,7 @@ class AppRouter {
       case RouteNames.emailVerification:
         return EmailVerificationScreen(email: _emailFromArguments(arguments));
       case RouteNames.forgotPassword:
-        return const ForgotPasswordScreen();
+        return ForgotPasswordScreen(email: _emailFromArguments(arguments));
       case RouteNames.otpVerification:
         return OtpVerificationScreen(email: _emailFromArguments(arguments));
       case RouteNames.resetPassword:

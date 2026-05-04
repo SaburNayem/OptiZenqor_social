@@ -145,6 +145,14 @@ class LoginScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            if (_showsRemoteRecoveryActions(
+                              formState.errorMessage,
+                            )) ...[
+                              const SizedBox(height: 12),
+                              _RemoteAccountRecoveryCard(
+                                email: controller.email.trim(),
+                              ),
+                            ],
                             const SizedBox(height: 16),
                           ] else
                             const SizedBox(height: 24),
@@ -230,6 +238,70 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+bool _showsRemoteRecoveryActions(String? errorMessage) {
+  final String normalized = errorMessage?.trim().toLowerCase() ?? '';
+  return normalized.contains('demo password is 123456');
+}
+
+class _RemoteAccountRecoveryCard extends StatelessWidget {
+  const _RemoteAccountRecoveryCard({required this.email});
+
+  final String email;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.splashBackground.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.splashBackground.withValues(alpha: 0.14),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'This Vercel account data looks different from your previous backend data.',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.hexFF495057,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Reset the password for this deployed backend or create the account again there.',
+            style: TextStyle(fontSize: 13, color: AppColors.hexFF495057),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton(
+                onPressed: () => AppGet.toNamed(
+                  RouteNames.forgotPassword,
+                  arguments: <String, String>{
+                    if (email.isNotEmpty) 'email': email,
+                  },
+                ),
+                child: const Text('Reset On Vercel'),
+              ),
+              TextButton(
+                onPressed: () => AppGet.toNamed(RouteNames.signup),
+                child: const Text('Create Account'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

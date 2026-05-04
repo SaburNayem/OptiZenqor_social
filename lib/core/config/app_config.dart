@@ -13,6 +13,10 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: '',
   );
+  static const localAndroidDebugApiBaseUrl = String.fromEnvironment(
+    'LOCAL_ANDROID_DEBUG_API_BASE_URL',
+    defaultValue: 'http://127.0.0.1:3000',
+  );
   static const socketBaseUrl = String.fromEnvironment(
     'SOCKET_BASE_URL',
     defaultValue: '',
@@ -33,6 +37,9 @@ class AppConfig {
     }
     return defaultApiBaseUrl;
   }
+
+  static bool get isUsingDefaultRemoteBackend =>
+      apiBaseUrl.trim().isEmpty && currentApiBaseUrl == defaultApiBaseUrl;
 
   static String get currentSocketBaseUrl {
     if (socketBaseUrl.trim().isNotEmpty) {
@@ -64,7 +71,10 @@ class AppConfig {
     if (kReleaseMode || appFlavor == 'prod') {
       return null;
     }
-    return 'Flutter is configured to use the deployed Vercel backend by default. Override API_BASE_URL only when intentionally targeting another backend.';
+    if (isUsingDefaultRemoteBackend) {
+      return 'Debug build is using the deployed Vercel backend. To test the local backend on a USB-connected Android device, run `adb reverse tcp:3000 tcp:3000` and launch with `--dart-define=API_BASE_URL=$localAndroidDebugApiBaseUrl`.';
+    }
+    return 'Debug build is using an overridden backend: $currentApiBaseUrl';
   }
 
   static String get apiDocsUrl => '$currentApiBaseUrl/docs';
