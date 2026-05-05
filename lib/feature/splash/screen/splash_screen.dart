@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../controller/splash_controller.dart';
@@ -18,45 +19,33 @@ class SplashScreen extends StatelessWidget {
       });
     }
     return Scaffold(
-      backgroundColor: AppColors.splashBackground,
+      backgroundColor: AppColors.white,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.white, width: 3),
-                borderRadius: BorderRadius.circular(25),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                'assets/logo.svg',
+                width: 84,
+                height: 84,
               ),
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons
-                        .handshake_rounded, // Best fit for the logo shape in icons
-                    color: AppColors.black,
-                    size: 50,
+              const SizedBox(width: 16),
+              const Flexible(
+                child: Text(
+                  'OptiZenqor Socity',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'OPTIZENQOR SOCIETY',
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
