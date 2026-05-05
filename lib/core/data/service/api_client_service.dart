@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 import '../../config/app_config.dart';
@@ -14,11 +14,14 @@ import 'auth_session_service.dart';
 class ApiClientService {
   ApiClientService({
     String? baseUrl,
-    http.Client? client,
+    Dio? client,
     AppSharedPreferences? storage,
     AuthSessionService? sessionService,
   }) : baseUrl = baseUrl ?? AppConfig.currentApiBaseUrl,
-       _client = client ?? http.Client(),
+       _baseUrlCandidates = baseUrl != null
+           ? <String>[baseUrl.trim().replaceFirst(RegExp(r'/+$'), '')]
+           : AppConfig.apiBaseUrlCandidates,
+       _client = client ?? Dio(),
        _sessionService =
            sessionService ??
            AuthSessionService(storage: storage ?? AppSharedPreferences());
@@ -28,7 +31,8 @@ class ApiClientService {
       <String, DateTime>{};
 
   final String baseUrl;
-  final http.Client _client;
+  final List<String> _baseUrlCandidates;
+  final Dio _client;
   final AuthSessionService _sessionService;
   Future<bool>? _refreshInFlight;
 
@@ -72,7 +76,6 @@ class ApiClientService {
     if (cooldownResponse != null) {
       return cooldownResponse;
     }
-    final Uri uri = Uri.parse(resolvedEndpoint);
     final Stopwatch stopwatch = Stopwatch()..start();
     final Map<String, String> requestHeaders = await _buildHeaders(
       includeJsonContentType: false,
@@ -91,41 +94,41 @@ class ApiClientService {
     );
 
     try {
-      final http.MultipartRequest request = http.MultipartRequest('POST', uri)
-        ..headers.addAll(requestHeaders)
-        ..fields.addAll(fields ?? const <String, String>{})
-        ..files.add(
-          await http.MultipartFile.fromPath(
-            fileField,
-            filePath,
-            filename: filename ?? path.basename(filePath),
-          ),
-        );
-
-      final http.StreamedResponse streamedResponse = await _client
-          .send(request)
-          .timeout(Duration(milliseconds: AppConfig.uploadTimeoutMs));
-      final http.Response response = await http.Response.fromStream(
-        streamedResponse,
+      final FormData formData = FormData.fromMap(<String, Object>{
+        ...?fields,
+        fileField: await MultipartFile.fromFile(
+          filePath,
+          filename: filename ?? path.basename(filePath),
+        ),
+      });
+      final Response<dynamic> response = await _client.post<dynamic>(
+        resolvedEndpoint,
+        data: formData,
+        options: Options(
+          headers: requestHeaders,
+          sendTimeout: Duration(milliseconds: AppConfig.uploadTimeoutMs),
+          receiveTimeout: Duration(milliseconds: AppConfig.uploadTimeoutMs),
+          validateStatus: (_) => true,
+        ),
       );
       final Map<String, dynamic> responseBody = _decodeResponseBody(
-        response.bodyBytes,
+        response.data,
       );
       _clearRecentTransportFailure();
       stopwatch.stop();
       _logResponse(
         method: 'POST',
         endpoint: resolvedEndpoint,
-        statusCode: response.statusCode,
+        statusCode: response.statusCode ?? 0,
         elapsedMs: stopwatch.elapsedMilliseconds,
         responseBody: responseBody,
       );
 
       return ServiceResponseModel<Map<String, dynamic>>(
         endpoint: resolvedEndpoint,
-        statusCode: response.statusCode,
+        statusCode: response.statusCode ?? 0,
         data: responseBody,
-        message: _extractMessage(responseBody, response.reasonPhrase),
+        message: _extractMessage(responseBody, response.statusMessage),
       );
     } on TimeoutException {
       final String timeoutMessage = _buildTimeoutMessage();
@@ -137,8 +140,23 @@ class ApiClientService {
         data: <String, dynamic>{'success': false, 'message': timeoutMessage},
         message: timeoutMessage,
       );
-    } on http.ClientException catch (error) {
-      final String clientErrorMessage = _buildClientErrorMessage(error.message);
+    } on DioException catch (error) {
+      final int? timeoutStatus = _timeoutStatusCode(error);
+      if (timeoutStatus != null) {
+        final String timeoutMessage = _buildTimeoutMessage();
+        _rememberRecentTransportFailure();
+        _logNetworkIssue('timeout', resolvedEndpoint, timeoutMessage);
+        return ServiceResponseModel<Map<String, dynamic>>(
+          endpoint: resolvedEndpoint,
+          statusCode: timeoutStatus,
+          data: <String, dynamic>{'success': false, 'message': timeoutMessage},
+          message: timeoutMessage,
+        );
+      }
+
+      final String clientErrorMessage = _buildClientErrorMessage(
+        error.message ?? error.toString(),
+      );
       _rememberRecentTransportFailure();
       _logNetworkIssue('client_error', resolvedEndpoint, clientErrorMessage);
       return ServiceResponseModel<Map<String, dynamic>>(
@@ -207,7 +225,9 @@ class ApiClientService {
     Map<String, String>? headers,
     bool retryOnUnauthorized = true,
   }) async {
-    final String resolvedEndpoint = _resolveEndpoint(
+    final List<String> candidateBaseUrls = _candidateBaseUrlsForRequest();
+    final String resolvedEndpoint = _resolveEndpointForBaseUrl(
+      candidateBaseUrls.first,
       endpoint,
       queryParameters: queryParameters,
     );
@@ -216,100 +236,158 @@ class ApiClientService {
     if (cooldownResponse != null) {
       return cooldownResponse;
     }
-    final Uri uri = Uri.parse(resolvedEndpoint);
+    ServiceResponseModel<Map<String, dynamic>>? lastTransportFailure;
 
-    try {
-      final http.Request request = http.Request(method, uri)
-        ..headers.addAll(
-          await _buildHeaders(
-            includeJsonContentType: method != 'GET',
-            overrides: headers,
+    for (int index = 0; index < candidateBaseUrls.length; index++) {
+      final String candidateBaseUrl = candidateBaseUrls[index];
+      final String candidateEndpoint = _resolveEndpointForBaseUrl(
+        candidateBaseUrl,
+        endpoint,
+        queryParameters: queryParameters,
+      );
+
+      try {
+        final Map<String, String> requestHeaders = await _buildHeaders(
+          includeJsonContentType: method != 'GET',
+          overrides: headers,
+        );
+        final Stopwatch stopwatch = Stopwatch()..start();
+
+        _logRequest(
+          method: method,
+          endpoint: candidateEndpoint,
+          headers: requestHeaders,
+          payload: payload,
+        );
+
+        final Response<dynamic> response = await _client.request<dynamic>(
+          candidateEndpoint,
+          data: payload != null && payload.isNotEmpty ? payload : null,
+          options: Options(
+            method: method,
+            headers: requestHeaders,
+            receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
+            sendTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
+            validateStatus: (_) => true,
           ),
         );
-      final Stopwatch stopwatch = Stopwatch()..start();
+        final Map<String, dynamic> responseBody = _decodeResponseBody(
+          response.data,
+        );
+        if (response.statusCode == 401) {
+          if (retryOnUnauthorized && await _refreshAccessToken()) {
+            return _send(
+              method: method,
+              endpoint: endpoint,
+              queryParameters: queryParameters,
+              payload: payload,
+              headers: headers,
+              retryOnUnauthorized: false,
+            );
+          }
+          await _clearExpiredSession();
+        }
+        _clearRecentTransportFailure();
+        stopwatch.stop();
+        _logResponse(
+          method: method,
+          endpoint: candidateEndpoint,
+          statusCode: response.statusCode ?? 0,
+          elapsedMs: stopwatch.elapsedMilliseconds,
+          responseBody: responseBody,
+        );
 
-      if (payload != null && payload.isNotEmpty) {
-        request.body = jsonEncode(payload);
-      }
-      _logRequest(
-        method: method,
-        endpoint: resolvedEndpoint,
-        headers: request.headers,
-        payload: payload,
-      );
-
-      final http.StreamedResponse streamedResponse = await _client
-          .send(request)
-          .timeout(Duration(milliseconds: AppConfig.receiveTimeoutMs));
-      final http.Response response = await http.Response.fromStream(
-        streamedResponse,
-      );
-      final Map<String, dynamic> responseBody = _decodeResponseBody(
-        response.bodyBytes,
-      );
-      if (response.statusCode == 401) {
-        if (retryOnUnauthorized && await _refreshAccessToken()) {
-          return _send(
-            method: method,
-            endpoint: endpoint,
-            queryParameters: queryParameters,
-            payload: payload,
-            headers: headers,
-            retryOnUnauthorized: false,
+        return ServiceResponseModel<Map<String, dynamic>>(
+          endpoint: candidateEndpoint,
+          statusCode: response.statusCode ?? 0,
+          data: responseBody,
+          message: _extractMessage(responseBody, response.statusMessage),
+        );
+      } on TimeoutException {
+        final String timeoutMessage = _buildTimeoutMessage(
+          attemptedBaseUrl: candidateBaseUrl,
+        );
+        _logNetworkIssue('timeout', candidateEndpoint, timeoutMessage);
+        lastTransportFailure = ServiceResponseModel<Map<String, dynamic>>(
+          endpoint: candidateEndpoint,
+          statusCode: 408,
+          data: <String, dynamic>{'success': false, 'message': timeoutMessage},
+          message: timeoutMessage,
+        );
+      } on DioException catch (error) {
+        final int? timeoutStatus = _timeoutStatusCode(error);
+        if (timeoutStatus != null) {
+          final String timeoutMessage = _buildTimeoutMessage(
+            attemptedBaseUrl: candidateBaseUrl,
+          );
+          _logNetworkIssue('timeout', candidateEndpoint, timeoutMessage);
+          lastTransportFailure = ServiceResponseModel<Map<String, dynamic>>(
+            endpoint: candidateEndpoint,
+            statusCode: timeoutStatus,
+            data: <String, dynamic>{
+              'success': false,
+              'message': timeoutMessage,
+            },
+            message: timeoutMessage,
+          );
+        } else {
+          final String clientErrorMessage = _buildClientErrorMessage(
+            error.message ?? error.toString(),
+            attemptedBaseUrl: candidateBaseUrl,
+          );
+          _logNetworkIssue(
+            'client_error',
+            candidateEndpoint,
+            clientErrorMessage,
+          );
+          lastTransportFailure = ServiceResponseModel<Map<String, dynamic>>(
+            endpoint: candidateEndpoint,
+            statusCode: 503,
+            data: <String, dynamic>{
+              'success': false,
+              'message': clientErrorMessage,
+            },
+            message: clientErrorMessage,
           );
         }
-        await _clearExpiredSession();
+      } on Exception catch (error) {
+        final String fallbackMessage = _buildClientErrorMessage(
+          error.toString(),
+          attemptedBaseUrl: candidateBaseUrl,
+        );
+        _logNetworkIssue(
+          'unexpected_error',
+          candidateEndpoint,
+          fallbackMessage,
+        );
+        lastTransportFailure = ServiceResponseModel<Map<String, dynamic>>(
+          endpoint: candidateEndpoint,
+          statusCode: 503,
+          data: <String, dynamic>{'success': false, 'message': fallbackMessage},
+          message: fallbackMessage,
+        );
       }
-      _clearRecentTransportFailure();
-      stopwatch.stop();
-      _logResponse(
-        method: method,
-        endpoint: resolvedEndpoint,
-        statusCode: response.statusCode,
-        elapsedMs: stopwatch.elapsedMilliseconds,
-        responseBody: responseBody,
-      );
 
-      return ServiceResponseModel<Map<String, dynamic>>(
-        endpoint: resolvedEndpoint,
-        statusCode: response.statusCode,
-        data: responseBody,
-        message: _extractMessage(responseBody, response.reasonPhrase),
-      );
-    } on TimeoutException {
-      final String timeoutMessage = _buildTimeoutMessage();
-      _rememberRecentTransportFailure();
-      _logNetworkIssue('timeout', resolvedEndpoint, timeoutMessage);
-      return ServiceResponseModel<Map<String, dynamic>>(
-        endpoint: resolvedEndpoint,
-        statusCode: 408,
-        data: <String, dynamic>{'success': false, 'message': timeoutMessage},
-        message: timeoutMessage,
-      );
-    } on http.ClientException catch (error) {
-      final String clientErrorMessage = _buildClientErrorMessage(error.message);
-      _rememberRecentTransportFailure();
-      _logNetworkIssue('client_error', resolvedEndpoint, clientErrorMessage);
-      return ServiceResponseModel<Map<String, dynamic>>(
-        endpoint: resolvedEndpoint,
-        statusCode: 503,
-        data: <String, dynamic>{
-          'success': false,
-          'message': clientErrorMessage,
-        },
-        message: clientErrorMessage,
-      );
-    } on Exception catch (error) {
-      final String fallbackMessage = _buildClientErrorMessage(error.toString());
-      _rememberRecentTransportFailure();
-      _logNetworkIssue('unexpected_error', resolvedEndpoint, fallbackMessage);
-      return ServiceResponseModel<Map<String, dynamic>>(
-        endpoint: resolvedEndpoint,
-        statusCode: 503,
-        data: <String, dynamic>{'success': false, 'message': fallbackMessage},
-        message: fallbackMessage,
-      );
+      if (index < candidateBaseUrls.length - 1) {
+        _logFallbackAttempt(candidateBaseUrl, candidateBaseUrls[index + 1]);
+      }
     }
+
+    _rememberRecentTransportFailure();
+    return lastTransportFailure ??
+        ServiceResponseModel<Map<String, dynamic>>(
+          endpoint: resolvedEndpoint,
+          statusCode: 503,
+          data: <String, dynamic>{
+            'success': false,
+            'message': _buildClientErrorMessage(
+              'Unable to reach the server. Check your connection and try again.',
+            ),
+          },
+          message: _buildClientErrorMessage(
+            'Unable to reach the server. Check your connection and try again.',
+          ),
+        );
   }
 
   Future<Map<String, String>> _buildHeaders({
@@ -351,28 +429,26 @@ class ApiClientService {
     }
 
     final String endpoint = _resolveEndpoint(ApiEndPoints.authRefreshToken);
-    final Uri uri = Uri.parse(endpoint);
     try {
-      final http.Request request = http.Request('POST', uri)
-        ..headers.addAll(<String, String>{
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        })
-        ..body = jsonEncode(<String, dynamic>{'refreshToken': refreshToken});
-      final http.StreamedResponse streamedResponse = await _client
-          .send(request)
-          .timeout(Duration(milliseconds: AppConfig.receiveTimeoutMs));
-      final http.Response response = await http.Response.fromStream(
-        streamedResponse,
+      final Response<dynamic> response = await _client.post<dynamic>(
+        endpoint,
+        data: <String, dynamic>{'refreshToken': refreshToken},
+        options: Options(
+          headers: <String, String>{
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
+          sendTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
+          validateStatus: (_) => true,
+        ),
       );
-      if (response.statusCode < 200 || response.statusCode >= 300) {
+      if ((response.statusCode ?? 0) < 200 || (response.statusCode ?? 0) >= 300) {
         await _clearExpiredSession();
         return false;
       }
 
-      final Map<String, dynamic> payload = _decodeResponseBody(
-        response.bodyBytes,
-      );
+      final Map<String, dynamic> payload = _decodeResponseBody(response.data);
       final Map<String, dynamic>? sessionPayload = _readMap(
         payload['data'] ?? payload['session'] ?? payload['result'] ?? payload,
       );
@@ -410,9 +486,7 @@ class ApiClientService {
       return true;
     } on Object catch (error) {
       if (kDebugMode) {
-        debugPrint(
-          '[ApiClientService] refresh failed endpoint=$endpoint $error',
-        );
+        debugPrint('[ApiClientService] refresh failed endpoint=$endpoint $error');
       }
       await _clearExpiredSession();
       return false;
@@ -423,12 +497,29 @@ class ApiClientService {
     await _sessionService.clear();
   }
 
-  Map<String, dynamic> _decodeResponseBody(List<int> bodyBytes) {
-    if (bodyBytes.isEmpty) {
+  Map<String, dynamic> _decodeResponseBody(dynamic body) {
+    if (body == null) {
       return const <String, dynamic>{};
     }
+    if (body is Map<String, dynamic>) {
+      return body;
+    }
+    if (body is Map) {
+      return Map<String, dynamic>.from(body);
+    }
+    if (body is List) {
+      return <String, dynamic>{'data': body};
+    }
+    if (body is List<int>) {
+      return _decodeTextResponse(utf8.decode(body));
+    }
+    if (body is String) {
+      return _decodeTextResponse(body);
+    }
+    return <String, dynamic>{'data': body};
+  }
 
-    final String rawBody = utf8.decode(bodyBytes);
+  Map<String, dynamic> _decodeTextResponse(String rawBody) {
     if (rawBody.trim().isEmpty) {
       return const <String, dynamic>{};
     }
@@ -458,25 +549,41 @@ class ApiClientService {
     return fallback;
   }
 
-  String _buildTimeoutMessage() {
+  int? _timeoutStatusCode(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 408;
+      default:
+        return null;
+    }
+  }
+
+  String _buildTimeoutMessage({String? attemptedBaseUrl}) {
     return _appendDebugHint(
       'Request timed out. Check your connection and try again.',
+      attemptedBaseUrl: attemptedBaseUrl,
     );
   }
 
-  String _buildClientErrorMessage(String message) {
+  String _buildClientErrorMessage(String message, {String? attemptedBaseUrl}) {
     final String trimmedMessage = message.trim();
     if (trimmedMessage.isEmpty) {
       return _appendDebugHint(
         'Unable to reach the server. Check your connection and try again.',
+        attemptedBaseUrl: attemptedBaseUrl,
       );
     }
-    if (kIsWeb && trimmedMessage.toLowerCase() == 'failed to fetch') {
+    if (kIsWeb &&
+        (trimmedMessage.toLowerCase() == 'failed to fetch' ||
+            trimmedMessage.toLowerCase().contains('xmlhttprequest error'))) {
       return _appendDebugHint(
         'Browser blocked the request before it reached the API. This usually means the backend CORS policy does not allow this web origin yet.',
+        attemptedBaseUrl: attemptedBaseUrl,
       );
     }
-    return _appendDebugHint(trimmedMessage);
+    return _appendDebugHint(trimmedMessage, attemptedBaseUrl: attemptedBaseUrl);
   }
 
   String _buildCooldownMessage() {
@@ -486,15 +593,25 @@ class ApiClientService {
     );
   }
 
-  String _appendDebugHint(String message) {
+  String _appendDebugHint(String message, {String? attemptedBaseUrl}) {
     if (!kDebugMode) {
       return message;
     }
 
+    final List<String> fallbackBaseUrls = _candidateBaseUrlsForRequest();
+    final String resolvedAttempt = attemptedBaseUrl?.trim().isNotEmpty == true
+        ? attemptedBaseUrl!.trim()
+        : baseUrl;
     final StringBuffer buffer = StringBuffer(message)
       ..write(' Using API: ')
-      ..write(baseUrl)
+      ..write(resolvedAttempt)
       ..write('.');
+    if (fallbackBaseUrls.length > 1) {
+      buffer
+        ..write(' Fallback order: ')
+        ..write(fallbackBaseUrls.join(' -> '))
+        ..write('.');
+    }
     final String? hint = AppConfig.debugLocalNetworkHint;
     if (hint != null) {
       buffer
@@ -512,6 +629,17 @@ class ApiClientService {
     debugPrint(
       '[ApiClientService] $type baseUrl=$baseUrl endpoint=$endpoint '
       'message=$message',
+    );
+  }
+
+  void _logFallbackAttempt(String failedBaseUrl, String nextBaseUrl) {
+    if (!kDebugMode || failedBaseUrl == nextBaseUrl) {
+      return;
+    }
+
+    debugPrint(
+      '[ApiClientService] transport fallback failedBaseUrl=$failedBaseUrl '
+      'nextBaseUrl=$nextBaseUrl',
     );
   }
 
@@ -633,14 +761,44 @@ class ApiClientService {
     return '${normalized.substring(0, maxLength)}...';
   }
 
+  List<String> _candidateBaseUrlsForRequest() {
+    final List<String> uniqueCandidates = <String>[];
+
+    void addCandidate(String value) {
+      final String normalized = value.trim().replaceFirst(RegExp(r'/+$'), '');
+      if (normalized.isEmpty || uniqueCandidates.contains(normalized)) {
+        return;
+      }
+      uniqueCandidates.add(normalized);
+    }
+
+    addCandidate(baseUrl);
+    for (final String candidate in _baseUrlCandidates) {
+      addCandidate(candidate);
+    }
+    return uniqueCandidates;
+  }
+
   String _resolveEndpoint(
+    String endpoint, {
+    Map<String, dynamic>? queryParameters,
+  }) {
+    return _resolveEndpointForBaseUrl(
+      baseUrl,
+      endpoint,
+      queryParameters: queryParameters,
+    );
+  }
+
+  String _resolveEndpointForBaseUrl(
+    String resolvedBaseUrl,
     String endpoint, {
     Map<String, dynamic>? queryParameters,
   }) {
     final String normalizedEndpoint = endpoint.startsWith('/')
         ? endpoint
         : '/$endpoint';
-    final Uri baseUri = Uri.parse(baseUrl);
+    final Uri baseUri = Uri.parse(resolvedBaseUrl);
     final Uri resolvedUri = baseUri.replace(
       path: _joinPaths(baseUri.path, normalizedEndpoint),
       queryParameters: queryParameters?.map(

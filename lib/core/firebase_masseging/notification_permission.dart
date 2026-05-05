@@ -1,9 +1,9 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
 import '../data/api/api_end_points.dart';
@@ -106,7 +106,11 @@ Future<void> sendFcmTokenToBackend(String token) async {
     'platform': _resolveNotificationPlatform(),
   });
   try {
-    await http.post(uri, headers: headers, body: body);
+    await Dio().postUri(
+      uri,
+      data: body,
+      options: Options(headers: headers),
+    );
   } catch (error) {
     debugPrint('[Notifications] sendFcmTokenToBackend failed: $error');
   }
@@ -132,7 +136,7 @@ Future<void> deleteFcmTokenFromBackend([String? currentToken]) async {
     'Content-Type': 'application/json',
   };
   try {
-    await http.delete(uri, headers: headers);
+    await Dio().deleteUri(uri, options: Options(headers: headers));
   } catch (error) {
     debugPrint('[Notifications] deleteFcmTokenFromBackend failed: $error');
   }

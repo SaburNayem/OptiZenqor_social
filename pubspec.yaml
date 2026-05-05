@@ -47,7 +47,7 @@ dependencies:
   video_player: ^2.9.2
   flutter_staggered_grid_view: ^0.7.0
   intl: ^0.20.2
-  http: ^1.6.0
+  dio: ^5.9.0
   image: ^4.1.7
   video_compress: ^3.1.4
   firebase_core: ^4.7.0
@@ -60,6 +60,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -80,7 +81,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/logo.svg
-    - assets/logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -107,3 +107,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/logo.png
+  remove_alpha_ios: true

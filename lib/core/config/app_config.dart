@@ -41,18 +41,48 @@ class AppConfig {
   );
 
   static String get currentApiBaseUrl {
+    return apiBaseUrlCandidates.first;
+  }
+
+  static List<String> get apiBaseUrlCandidates {
+    final List<String> candidates = <String>[];
+
+    void addCandidate(String value) {
+      final String normalized = _normalizeUrl(value);
+      if (normalized.isEmpty || candidates.contains(normalized)) {
+        return;
+      }
+      candidates.add(normalized);
+    }
+
     final String explicitBaseUrl = apiBaseUrl.trim();
     if (explicitBaseUrl.isNotEmpty) {
-      return explicitBaseUrl;
+      addCandidate(explicitBaseUrl);
+      return candidates;
     }
+
     if (kIsWeb && !_isLocalWebOrigin) {
-      return Uri.base.resolve(defaultWebApiProxyPath).toString();
+      addCandidate(Uri.base.resolve(defaultWebApiProxyPath).toString());
+      return candidates;
     }
+
     final String sharedDebugBaseUrl = debugSharedApiBaseUrl.trim();
     if (!kReleaseMode && sharedDebugBaseUrl.isNotEmpty) {
-      return sharedDebugBaseUrl;
+      addCandidate(sharedDebugBaseUrl);
     }
-    return deployedApiBaseUrl;
+
+    final String localLanBaseUrl = localLanApiBaseUrl.trim();
+    if (!kReleaseMode && localLanBaseUrl.isNotEmpty) {
+      addCandidate(localLanBaseUrl);
+    }
+
+    if (!kReleaseMode && !kIsWeb) {
+      addCandidate(localAndroidDebugApiBaseUrl);
+      addCandidate(localAdbReverseApiBaseUrl);
+    }
+
+    addCandidate(deployedApiBaseUrl);
+    return candidates;
   }
 
   static bool get isUsingDefaultRemoteBackend =>
@@ -106,6 +136,9 @@ class AppConfig {
     if (debugSharedApiBaseUrl.trim().isNotEmpty) {
       return 'Debug build is using the shared debug backend: ${debugSharedApiBaseUrl.trim()}. This is the simplest single route for phone, emulator, and local web.';
     }
+    if (localLanApiBaseUrl.trim().isNotEmpty) {
+      return 'Debug build has LAN fallback enabled at ${localLanApiBaseUrl.trim()}. The app will try configured debug fallback URLs before the deployed backend.';
+    }
     if (isUsingDefaultRemoteBackend) {
       final String lanHint = localLanApiBaseUrl.trim().isEmpty
           ? '<your-pc-lan-ip>:3000'
@@ -134,8 +167,10 @@ class AppConfig {
       return false;
     }
     final String host = Uri.base.host.toLowerCase().trim();
-    return host == 'localhost' ||
-        host == '127.0.0.1' ||
-        host == '0.0.0.0';
+    return host == 'localhost' || host == '127.0.0.1' || host == '0.0.0.0';
+  }
+
+  static String _normalizeUrl(String value) {
+    return value.trim().replaceFirst(RegExp(r'/+$'), '');
   }
 }
