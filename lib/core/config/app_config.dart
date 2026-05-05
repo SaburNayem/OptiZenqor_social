@@ -66,6 +66,11 @@ class AppConfig {
       return candidates;
     }
 
+    if (!kReleaseMode && useRemoteOnly) {
+      addCandidate(deployedApiBaseUrl);
+      return candidates;
+    }
+
     final String sharedDebugBaseUrl = debugSharedApiBaseUrl.trim();
     if (!kReleaseMode && sharedDebugBaseUrl.isNotEmpty) {
       addCandidate(sharedDebugBaseUrl);
@@ -151,10 +156,10 @@ class AppConfig {
   static String get apiDocsUrl => '$currentApiBaseUrl/docs';
   static String get apiOpenApiJsonUrl => '$currentApiBaseUrl/docs-json';
   static String get apiOpenApiYamlUrl => '$currentApiBaseUrl/docs-yaml';
-  static const connectTimeoutMs = 15000;
-  static const receiveTimeoutMs = 30000;
-  static const uploadTimeoutMs = 90000;
-  static const socketConnectTimeoutMs = 15000;
+  static int get connectTimeoutMs => kDebugMode ? 4000 : 12000;
+  static int get receiveTimeoutMs => kDebugMode ? 10000 : 20000;
+  static int get uploadTimeoutMs => kDebugMode ? 30000 : 90000;
+  static int get socketConnectTimeoutMs => kDebugMode ? 5000 : 15000;
   static const socketReconnectDelayMs = 3000;
   static const useRemoteOnly = true;
   static const allowOfflineFallback = bool.fromEnvironment(

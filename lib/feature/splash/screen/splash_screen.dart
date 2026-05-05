@@ -23,35 +23,19 @@ class SplashScreen extends StatelessWidget {
       backgroundColor: AppColors.white,
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-          final double logoWidth = constraints.maxWidth * 0.68;
-          final double logoHeight = constraints.maxHeight * 0.18;
+          final double logoWidth = constraints.maxWidth * 0.72;
+          final double logoHeight = constraints.maxHeight * 0.22;
 
           return Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: logoWidth.clamp(180.0, 320.0),
-                    height: logoHeight.clamp(72.0, 140.0),
-                    child: SvgPicture.asset(
-                      'assets/logo.svg',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'OptiZenqor Socity',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
+              child: SizedBox(
+                width: logoWidth.clamp(200.0, 360.0),
+                height: logoHeight.clamp(84.0, 160.0),
+                child: SvgPicture.asset(
+                  'assets/logo.svg',
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           );

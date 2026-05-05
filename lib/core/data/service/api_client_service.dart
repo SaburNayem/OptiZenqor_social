@@ -106,6 +106,7 @@ class ApiClientService {
         data: formData,
         options: Options(
           headers: requestHeaders,
+          connectTimeout: Duration(milliseconds: AppConfig.connectTimeoutMs),
           sendTimeout: Duration(milliseconds: AppConfig.uploadTimeoutMs),
           receiveTimeout: Duration(milliseconds: AppConfig.uploadTimeoutMs),
           validateStatus: (_) => true,
@@ -266,6 +267,7 @@ class ApiClientService {
           options: Options(
             method: method,
             headers: requestHeaders,
+            connectTimeout: Duration(milliseconds: AppConfig.connectTimeoutMs),
             receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
             sendTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
             validateStatus: (_) => true,
@@ -438,6 +440,7 @@ class ApiClientService {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
           },
+          connectTimeout: Duration(milliseconds: AppConfig.connectTimeoutMs),
           receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
           sendTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
           validateStatus: (_) => true,
