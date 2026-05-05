@@ -17,33 +17,41 @@ class SplashController {
   final OnboardingRepository _onboardingRepository;
   SplashStateModel state = const SplashStateModel();
 
-  Future<void> bootstrap(BuildContext context) async {
+  Future<String> resolveInitialRoute() async {
     state = state.copyWith(status: SplashStatus.bootstrapping);
     final Future<bool> onboardingFuture = _onboardingRepository.isCompleted();
     final Future<bool> sessionFuture = _authRepository.hasSession();
-    final Future<void> splashDelay = Future<void>.delayed(
-      kDebugMode
-          ? const Duration(milliseconds: 150)
-          : const Duration(milliseconds: 450),
-    );
-    final List<Object?> bootstrapResults = await Future.wait<Object?>(
-      <Future<Object?>>[onboardingFuture, sessionFuture, splashDelay],
-    );
+    final List<Object?> bootstrapResults = await Future.wait<Object?>(<Future<
+      Object?
+    >>[onboardingFuture, sessionFuture]);
     final bool hasCompletedOnboarding = bootstrapResults[0] as bool;
     final bool hasSession = bootstrapResults[1] as bool;
     bool canShowOnboarding = true;
     if (!hasCompletedOnboarding) {
       canShowOnboarding = await _onboardingRepository.hasUsableContent();
     }
-    if (!context.mounted) {
-      return;
-    }
-    final nextRoute = !hasCompletedOnboarding && canShowOnboarding
+    state = state.copyWith(status: SplashStatus.ready);
+    return !hasCompletedOnboarding && canShowOnboarding
         ? RouteNames.onboarding
         : hasSession
         ? RouteNames.shell
         : RouteNames.login;
-    state = state.copyWith(status: SplashStatus.ready);
+  }
+
+  Future<void> bootstrap(BuildContext context) async {
+    final Future<void> splashDelay = Future<void>.delayed(
+      kDebugMode
+          ? const Duration(milliseconds: 150)
+          : const Duration(milliseconds: 450),
+    );
+    final Future<String> routeFuture = resolveInitialRoute();
+    final List<Object?> bootstrapResults = await Future.wait<Object?>(<Future<
+      Object?
+    >>[routeFuture, splashDelay]);
+    if (!context.mounted) {
+      return;
+    }
+    final String nextRoute = bootstrapResults[0] as String;
     Navigator.of(context).pushReplacementNamed(nextRoute);
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../controller/splash_controller.dart';
@@ -27,10 +26,11 @@ class SplashScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset(
-                'assets/logo.svg',
+              Image.asset(
+                'assets/logo.png',
                 width: 84,
                 height: 84,
+                fit: BoxFit.contain,
               ),
               const SizedBox(width: 16),
               const Flexible(

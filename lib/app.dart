@@ -11,7 +11,9 @@ import 'feature/settings/controller/settings_state_controller.dart';
 import 'app_route/app_router.dart';
 
 class OptiZenqorApp extends StatelessWidget {
-  const OptiZenqorApp({super.key});
+  const OptiZenqorApp({super.key, required this.initialRoute});
+
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class OptiZenqorApp extends StatelessWidget {
             navigatorKey: AppNavigator.navigatorKey,
             scaffoldMessengerKey: AppNavigator.scaffoldMessengerKey,
             onGenerateRoute: AppRouter.onGenerateRoute,
-            initialRoute: AppRouter.initialRoute,
+            initialRoute: initialRoute,
           );
         },
       ),

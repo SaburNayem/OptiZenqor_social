@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app.dart';
+import 'app_route/app_router.dart';
 import 'core/bloc/app_bloc_observer.dart';
 import 'core/config/app_config.dart';
 import 'core/data/service/theme_service.dart';
 import 'core/firebase_masseging/notification_permission.dart';
 import 'core/firebase_masseging/notification_receive.dart';
+import 'feature/splash/controller/splash_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,5 +46,15 @@ Future<void> main() async {
     }
   }
 
-  runApp(const OptiZenqorApp());
+  String initialRoute = AppRouter.initialRoute;
+  try {
+    initialRoute = await SplashController().resolveInitialRoute();
+  } catch (error, stackTrace) {
+    if (kDebugMode) {
+      debugPrint('[StartupRoute] Falling back to default route: $error');
+      debugPrint('$stackTrace');
+    }
+  }
+
+  runApp(OptiZenqorApp(initialRoute: initialRoute));
 }
