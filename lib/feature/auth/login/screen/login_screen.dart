@@ -243,7 +243,8 @@ class LoginScreen extends StatelessWidget {
 
 bool _showsRemoteRecoveryActions(String? errorMessage) {
   final String normalized = errorMessage?.trim().toLowerCase() ?? '';
-  return normalized.contains('demo password is 123456');
+  return normalized.contains('account not found') ||
+      normalized.contains('invalid credentials');
 }
 
 class _RemoteAccountRecoveryCard extends StatelessWidget {
