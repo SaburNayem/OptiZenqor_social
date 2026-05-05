@@ -612,7 +612,6 @@ class ApiClientService {
   bool _shouldRedact(String key) {
     return key.contains('authorization') ||
         key.contains('token') ||
-        key.contains('password') ||
         key.contains('secret') ||
         key == 'code';
   }

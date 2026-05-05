@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
@@ -8,18 +7,26 @@ class AppConfig {
     'APP_FLAVOR',
     defaultValue: kReleaseMode ? 'prod' : 'dev',
   );
-  static const defaultApiBaseUrl = kReleaseMode
-      ? 'https://opti-zenqor-social-backend.vercel.app'
-      : 'http://127.0.0.1:3000';
+  static const deployedApiBaseUrl =
+      'https://opti-zenqor-social-backend.vercel.app';
   static const defaultWebApiProxyPath = '/api';
   static const apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: '',
   );
+  static const debugSharedApiBaseUrl = String.fromEnvironment(
+    'DEBUG_SHARED_API_BASE_URL',
+    defaultValue: '',
+  );
+  static const localLanApiBaseUrl = String.fromEnvironment(
+    'LOCAL_LAN_API_BASE_URL',
+    defaultValue: '',
+  );
   static const localAndroidDebugApiBaseUrl = String.fromEnvironment(
     'LOCAL_ANDROID_DEBUG_API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:3000',
+    defaultValue: 'http://10.0.2.2:3000',
   );
+  static const localAdbReverseApiBaseUrl = 'http://127.0.0.1:3000';
   static const socketBaseUrl = String.fromEnvironment(
     'SOCKET_BASE_URL',
     defaultValue: '',
@@ -41,14 +48,15 @@ class AppConfig {
     if (kIsWeb && !_isLocalWebOrigin) {
       return Uri.base.resolve(defaultWebApiProxyPath).toString();
     }
-    if (!kIsWeb && !kReleaseMode && Platform.isAndroid) {
-      return localAndroidDebugApiBaseUrl;
+    final String sharedDebugBaseUrl = debugSharedApiBaseUrl.trim();
+    if (!kReleaseMode && sharedDebugBaseUrl.isNotEmpty) {
+      return sharedDebugBaseUrl;
     }
-    return defaultApiBaseUrl;
+    return deployedApiBaseUrl;
   }
 
   static bool get isUsingDefaultRemoteBackend =>
-      apiBaseUrl.trim().isEmpty && currentApiBaseUrl == defaultApiBaseUrl;
+      apiBaseUrl.trim().isEmpty && currentApiBaseUrl == deployedApiBaseUrl;
 
   static String get currentSocketBaseUrl {
     if (socketBaseUrl.trim().isNotEmpty) {
@@ -80,20 +88,29 @@ class AppConfig {
     if (kReleaseMode || appFlavor == 'prod') {
       return null;
     }
+    if (apiBaseUrl.trim().isNotEmpty) {
+      return 'Debug build is using an explicit API override: $currentApiBaseUrl';
+    }
     if (kIsWeb) {
       if (_isLocalWebOrigin) {
-        return 'Debug web build is running on a local origin and calling the deployed Vercel backend directly. If Chrome shows `Failed to fetch`, the backend is likely blocking this localhost origin with CORS. Deploy the web app behind the bundled Vercel `/api` rewrite or allow this origin in the backend CORS policy.';
+        if (debugSharedApiBaseUrl.trim().isNotEmpty) {
+          return 'Debug web build is using the shared debug backend: ${debugSharedApiBaseUrl.trim()}.';
+        }
+        return 'Debug web build is running on a local origin and calling the deployed backend directly. If Chrome shows `Failed to fetch`, either use `--dart-define=DEBUG_SHARED_API_BASE_URL=<public-backend-url>` for one shared route across devices, deploy the web app behind the bundled Vercel `/api` rewrite, or allow this localhost origin in the backend CORS policy.';
       }
       if (isUsingDefaultRemoteBackend) {
         return 'Debug web build is using the deployed backend through the same-origin `/api` proxy path.';
       }
       return 'Debug web build is using an overridden backend: $currentApiBaseUrl';
     }
-    if (!kIsWeb && Platform.isAndroid && apiBaseUrl.trim().isEmpty) {
-      return 'Debug Android build is using the local backend by default. Make sure `adb reverse tcp:3000 tcp:3000` is active, or pass `--dart-define=API_BASE_URL=$defaultApiBaseUrl` to force the deployed backend.';
+    if (debugSharedApiBaseUrl.trim().isNotEmpty) {
+      return 'Debug build is using the shared debug backend: ${debugSharedApiBaseUrl.trim()}. This is the simplest single route for phone, emulator, and local web.';
     }
     if (isUsingDefaultRemoteBackend) {
-      return 'Debug build is using the deployed Vercel backend. To test the local backend on a USB-connected Android device, run `adb reverse tcp:3000 tcp:3000` and launch with `--dart-define=API_BASE_URL=$localAndroidDebugApiBaseUrl`.';
+      final String lanHint = localLanApiBaseUrl.trim().isEmpty
+          ? '<your-pc-lan-ip>:3000'
+          : localLanApiBaseUrl.trim();
+      return 'Debug build is using the deployed backend by default. For one shared local route across devices, start your backend on port 3000 and launch with `--dart-define=DEBUG_SHARED_API_BASE_URL=http://$lanHint`. Emulator-only local uses `$localAndroidDebugApiBaseUrl`, USB reverse uses `$localAdbReverseApiBaseUrl`, and real devices should use your PC LAN IP.';
     }
     return 'Debug build is using an overridden backend: $currentApiBaseUrl';
   }
