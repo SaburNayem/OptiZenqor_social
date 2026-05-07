@@ -228,13 +228,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           _buildProfileTypeChip(user),
                         ],
                       ),
-                      Text(
-                        '@${user.username}',
-                        style: TextStyle(
-                          color: AppColors.grey500,
-                          fontSize: 14,
-                        ),
-                      ),
                       const SizedBox(height: 12),
                       Text(
                         user.bio.isNotEmpty
@@ -297,13 +290,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildUtilityIcon(
-                        Icons.bookmark_border,
-                        'Saved',
-                        AppColors.hexFFE0F2F1,
-                        AppColors.hexFF00897B,
-                        onTap: () => AppGet.toNamed(RouteNames.bookmarks),
-                      ),
                       _buildUtilityIcon(
                         Icons.account_balance_wallet_outlined,
                         'Wallet',
@@ -376,7 +362,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text('Profile'),
+      ),
       body: profileContent,
     );
   }

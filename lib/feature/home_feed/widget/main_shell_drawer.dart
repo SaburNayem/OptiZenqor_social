@@ -21,9 +21,6 @@ class MainShellDrawer extends StatelessWidget {
     final String name = currentUser?.name.trim().isNotEmpty == true
         ? currentUser!.name
         : 'Signed out';
-    final String username = currentUser?.username.trim().isNotEmpty == true
-        ? '@${currentUser!.username}'
-        : 'Sign in required';
     final String avatarUrl = currentUser?.avatar ?? '';
 
     return Drawer(
@@ -36,7 +33,7 @@ class MainShellDrawer extends StatelessWidget {
                 radius: 28,
               ),
               accountName: Text(name),
-              accountEmail: Text(username),
+              accountEmail: null,
               margin: EdgeInsets.zero,
               onDetailsPressed: profileId.isEmpty
                   ? null

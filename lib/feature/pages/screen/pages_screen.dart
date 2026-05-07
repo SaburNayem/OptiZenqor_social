@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/enums/user_role.dart';
 import '../../../core/navigation/app_get.dart';
+import '../../auth/repository/auth_repository.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../controller/pages_controller.dart';
 import '../model/page_model.dart';
@@ -16,17 +18,29 @@ class PagesScreen extends StatefulWidget {
 
 class _PagesScreenState extends State<PagesScreen> {
   late final PagesController _controller;
+  bool _canCreatePage = false;
 
   @override
   void initState() {
     super.initState();
     _controller = PagesController()..load();
+    _loadPermissions();
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPermissions() async {
+    final user = await AuthRepository().currentUser();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _canCreatePage = user?.role == UserRole.creator;
+    });
   }
 
   @override
@@ -37,15 +51,20 @@ class _PagesScreenState extends State<PagesScreen> {
         final visiblePages = _controller.visiblePages;
         return Scaffold(
           appBar: AppBar(title: const Text('Pages')),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: _showCreatePageSheet,
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Create page'),
-          ),
+          floatingActionButton: _canCreatePage
+              ? FloatingActionButton.extended(
+                  onPressed: _showCreatePageSheet,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Create page'),
+                )
+              : null,
           body: ListView(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
             children: [
-              _PagesHeroCard(onCreateTap: _showCreatePageSheet),
+              _PagesHeroCard(
+                canCreatePage: _canCreatePage,
+                onCreateTap: _showCreatePageSheet,
+              ),
               const SizedBox(height: 16),
               TextField(
                 onChanged: _controller.updateQuery,
@@ -163,10 +182,11 @@ class _PagesScreenState extends State<PagesScreen> {
                       : 'Try a different search or switch filters to browse more pages.',
                   actionLabel:
                       _controller.selectedFilter == PagesViewFilter.managed
-                      ? 'Create page'
+                      ? (_canCreatePage ? 'Create page' : null)
                       : null,
                   onAction:
-                      _controller.selectedFilter == PagesViewFilter.managed
+                      _controller.selectedFilter == PagesViewFilter.managed &&
+                          _canCreatePage
                       ? _showCreatePageSheet
                       : null,
                 )
@@ -241,8 +261,9 @@ class _PagesScreenState extends State<PagesScreen> {
 }
 
 class _PagesHeroCard extends StatelessWidget {
-  const _PagesHeroCard({required this.onCreateTap});
+  const _PagesHeroCard({required this.canCreatePage, required this.onCreateTap});
 
+  final bool canCreatePage;
   final VoidCallback onCreateTap;
 
   @override
@@ -276,15 +297,16 @@ class _PagesHeroCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: onCreateTap,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.white,
-              foregroundColor: AppColors.hexFF0F172A,
+          if (canCreatePage)
+            FilledButton.icon(
+              onPressed: onCreateTap,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.white,
+                foregroundColor: AppColors.hexFF0F172A,
+              ),
+              icon: const Icon(Icons.add_business_outlined),
+              label: const Text('Create your page'),
             ),
-            icon: const Icon(Icons.add_business_outlined),
-            label: const Text('Create your page'),
-          ),
         ],
       ),
     );

@@ -202,20 +202,6 @@ class _SignupRoleStep extends StatelessWidget {
           subtitle: 'Partner with creators and reach your audience',
           icon: Icons.business_outlined,
         ),
-        _SignupRoleCard(
-          state: state,
-          role: UserRole.seller,
-          title: 'Seller',
-          subtitle: 'Showcase products and grow your customer community',
-          icon: Icons.storefront_outlined,
-        ),
-        _SignupRoleCard(
-          state: state,
-          role: UserRole.recruiter,
-          title: 'Recruiter',
-          subtitle: 'Find talent, build teams, and manage hiring outreach',
-          icon: Icons.badge_outlined,
-        ),
       ],
     );
   }

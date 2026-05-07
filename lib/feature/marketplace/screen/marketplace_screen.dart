@@ -52,6 +52,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
+        final UserRole currentRole =
+            context.read<MainShellController>().currentUser?.role ??
+            UserRole.guest;
+        final bool canCreateMarketplace = currentRole == UserRole.business;
         if (_controller.isLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -100,19 +104,20 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ),
               title: const Text('Marketplace'),
               actions: [
-                IconButton(
-                  tooltip: 'Add product',
-                  onPressed: _isCheckingCreateAccess
-                      ? null
-                      : _handleCreateListingTap,
-                  icon: _isCheckingCreateAccess
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.add_rounded),
-                ),
+                if (canCreateMarketplace)
+                  IconButton(
+                    tooltip: 'Add product',
+                    onPressed: _isCheckingCreateAccess
+                        ? null
+                        : _handleCreateListingTap,
+                    icon: _isCheckingCreateAccess
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.add_rounded),
+                  ),
               ],
             ),
             body: Column(
@@ -258,9 +263,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     UserModel activeUser,
     VerificationRequestModel request,
   ) {
-    return activeUser.verified ||
-        activeUser.verificationStatus.toLowerCase() == 'verified' ||
-        request.status == VerificationStatus.approved;
+    return activeUser.role == UserRole.business;
   }
 }
 

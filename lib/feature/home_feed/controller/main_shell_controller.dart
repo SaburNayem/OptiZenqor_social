@@ -174,10 +174,7 @@ class MainShellController extends Cubit<int> {
           ),
         ],
       ),
-      if (role == UserRole.creator ||
-          role == UserRole.business ||
-          role == UserRole.seller ||
-          role == UserRole.recruiter)
+      if (role == UserRole.creator || role == UserRole.business)
         MainShellDrawerSectionModel(
           title: 'Professional',
           subtitle: 'Role-aware tools for growth and monetization.',

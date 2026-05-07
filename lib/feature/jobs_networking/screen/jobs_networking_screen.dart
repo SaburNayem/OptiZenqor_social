@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/app_route/route_names.dart';
 
+import '../../../core/enums/user_role.dart';
 import '../../../core/navigation/app_get.dart';
+import '../../home_feed/controller/main_shell_controller.dart';
 import '../controller/jobs_networking_controller.dart';
 import '../model/job_filter_model.dart';
 import '../model/job_model.dart';
@@ -51,10 +54,17 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
+        final bool canCreateJobs =
+            context.read<MainShellController>().currentUser?.role ==
+            UserRole.business;
+        if (!canCreateJobs &&
+            _controller.selectedRole == JobsUserRole.provider) {
+          _controller.selectRole(JobsUserRole.seeker);
+        }
         final role = _controller.selectedRole;
         return Scaffold(
           body: role == null ? _roleSelectionView() : _jobsScaffold(role),
-          floatingActionButton: role == JobsUserRole.provider
+          floatingActionButton: canCreateJobs && role == JobsUserRole.provider
               ? FloatingActionButton.extended(
                   onPressed: _openCreateJob,
                   icon: const Icon(Icons.add_business_rounded),
@@ -67,6 +77,9 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   }
 
   Widget _roleSelectionView() {
+    final bool canCreateJobs =
+        context.read<MainShellController>().currentUser?.role ==
+        UserRole.business;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -102,13 +115,14 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
               onTap: () => _controller.selectRole(JobsUserRole.seeker),
             ),
             const SizedBox(height: 14),
-            _roleCard(
-              title: 'Job provider',
-              subtitle:
-                  'Create jobs, manage applicants, track hiring activity, and maintain your hiring profile.',
-              icon: Icons.business_center_rounded,
-              onTap: () => _controller.selectRole(JobsUserRole.provider),
-            ),
+            if (canCreateJobs)
+              _roleCard(
+                title: 'Job provider',
+                subtitle:
+                    'Create jobs, manage applicants, track hiring activity, and maintain your hiring profile.',
+                icon: Icons.business_center_rounded,
+                onTap: () => _controller.selectRole(JobsUserRole.provider),
+              ),
           ],
         ),
       ),

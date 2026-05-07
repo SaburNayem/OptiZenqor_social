@@ -153,6 +153,53 @@ class PostCard extends StatelessWidget {
                   },
                 ),
               const SizedBox(height: 12),
+              // Caption and stats
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (post.caption.trim().isNotEmpty) ...[
+                      Text(
+                        post.caption.trim(),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    Text(
+                      '${FormatHelper.formatCompactNumber(likeCount ?? post.likes)} likes',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    if (post.comments > 0)
+                      InkWell(
+                        onTap: onCommentTap,
+                        child: Text(
+                          'View all ${post.comments} comments',
+                          style: TextStyle(
+                            color: AppColors.grey600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    if (post.shareCount > 0 || post.viewCount > 0) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        [
+                          if (post.shareCount > 0)
+                            '${FormatHelper.formatCompactNumber(post.shareCount)} shares',
+                          if (post.viewCount > 0)
+                            '${FormatHelper.formatCompactNumber(post.viewCount)} views',
+                        ].join(' | '),
+                        style: TextStyle(
+                          color: AppColors.grey600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
               // Actions
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -183,59 +230,6 @@ class PostCard extends StatelessWidget {
                         color: isBookmarked ? AppColors.black87 : null,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              // Likes and Caption
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${FormatHelper.formatCompactNumber(likeCount ?? post.likes)} likes',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    RichText(
-                      text: TextSpan(
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        children: [
-                          TextSpan(
-                            text: '@${author.username} ',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          TextSpan(text: post.caption),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (post.comments > 0)
-                      InkWell(
-                        onTap: onCommentTap,
-                        child: Text(
-                          'View all ${post.comments} comments',
-                          style: TextStyle(
-                            color: AppColors.grey600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    if (post.shareCount > 0 || post.viewCount > 0) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        [
-                          if (post.shareCount > 0)
-                            '${FormatHelper.formatCompactNumber(post.shareCount)} shares',
-                          if (post.viewCount > 0)
-                            '${FormatHelper.formatCompactNumber(post.viewCount)} views',
-                        ].join(' | '),
-                        style: TextStyle(
-                          color: AppColors.grey600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
