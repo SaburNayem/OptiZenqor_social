@@ -19,29 +19,35 @@ class DraftsAndSchedulingController extends ChangeNotifier {
   }
 
   Future<void> scheduleDraft(String id, DateTime when) async {
-    drafts = drafts
-        .map(
-          (item) => item.id == id
-              ? item.copyWith(
-                  scheduledAt: when,
-                  editHistory: <String>[
-                    ...item.editHistory,
-                    'Scheduled for ${when.toLocal()}',
-                  ],
-                )
-              : item,
-        )
-        .toList();
-    await _repository.write(drafts);
+    DraftItemModel? updatedDraft;
+    for (final DraftItemModel item in drafts) {
+      if (item.id == id) {
+        updatedDraft = item.copyWith(
+          scheduledAt: when,
+          editHistory: <String>[
+            ...item.editHistory,
+            'Scheduled for ${when.toLocal()}',
+          ],
+        );
+        break;
+      }
+    }
+    if (updatedDraft == null) {
+      return;
+    }
+    final DraftItemModel persisted = await _repository.upsertDraft(
+      updatedDraft,
+    );
+    drafts = drafts.map((item) => item.id == id ? persisted : item).toList();
     notifyListeners();
   }
 
   Future<void> saveDraft(DraftItemModel draft) async {
+    final DraftItemModel persisted = await _repository.upsertDraft(draft);
     drafts = <DraftItemModel>[
-      draft,
-      ...drafts.where((item) => item.id != draft.id),
+      persisted,
+      ...drafts.where((item) => item.id != persisted.id),
     ];
-    await _repository.write(drafts);
     notifyListeners();
   }
 }

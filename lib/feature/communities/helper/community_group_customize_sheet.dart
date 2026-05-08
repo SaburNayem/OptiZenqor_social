@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/functions/app_feedback.dart';
 import '../model/community_group_model.dart';
 import '../bloc/community_group_cubit.dart';
 import 'community_group_formatters.dart';
@@ -23,12 +24,7 @@ Future<void> showCommunityGroupCustomizeSheet(
   var allowMarketplace = controller.group.allowMarketplace;
   var allowChatRoom = controller.group.allowChatRoom;
   var notifyLevel = controller.group.notificationLevel;
-  var paidMembership = false;
-  var donations = true;
-  var subscriptions = false;
-  var contentRestrictions = true;
-  var ageRestriction = false;
-  var regionRestriction = 'Global';
+  var isSaving = false;
 
   await showModalBottomSheet<void>(
     context: context,
@@ -116,20 +112,6 @@ Future<void> showCommunityGroupCustomizeSheet(
                     onChanged: (value) =>
                         setModalState(() => approvalRequired = value),
                   ),
-                  const _SheetHeader('Posting permissions'),
-                  ...[
-                    'Who can post',
-                    'Who can comment',
-                    'Post approval toggle',
-                    'Allow anonymous posts',
-                  ].map(_placeholderTile),
-                  const _SheetHeader('Moderation'),
-                  ...[
-                    'Keyword filter',
-                    'Reported posts list',
-                    'Blocked users',
-                    'Muted users',
-                  ].map(_placeholderTile),
                   const _SheetHeader('Notifications'),
                   Wrap(
                     spacing: 8,
@@ -180,82 +162,76 @@ Future<void> showCommunityGroupCustomizeSheet(
                     onChanged: (value) =>
                         setModalState(() => allowChatRoom = value),
                   ),
-                  const _SheetHeader('Monetization'),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Paid membership'),
-                    value: paidMembership,
-                    onChanged: (value) =>
-                        setModalState(() => paidMembership = value),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Donations'),
-                    value: donations,
-                    onChanged: (value) =>
-                        setModalState(() => donations = value),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Subscriptions'),
-                    value: subscriptions,
-                    onChanged: (value) =>
-                        setModalState(() => subscriptions = value),
-                  ),
-                  const _SheetHeader('Safety'),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Content restrictions'),
-                    value: contentRestrictions,
-                    onChanged: (value) =>
-                        setModalState(() => contentRestrictions = value),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Age restriction'),
-                    value: ageRestriction,
-                    onChanged: (value) =>
-                        setModalState(() => ageRestriction = value),
-                  ),
-                  DropdownButtonFormField<String>(
-                    initialValue: regionRestriction,
-                    items: const [
-                      DropdownMenuItem(value: 'Global', child: Text('Global')),
-                      DropdownMenuItem(value: 'Asia', child: Text('Asia')),
-                      DropdownMenuItem(value: 'Europe', child: Text('Europe')),
-                    ],
-                    onChanged: (value) => setModalState(
-                      () => regionRestriction = value ?? 'Global',
+                  const _SheetHeader('Backend-managed scope'),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'Region restriction',
+                    child: const Text(
+                      'Only settings backed by the live backend are editable here. Advanced moderation, monetization, and region restrictions are managed from the admin dashboard until mobile APIs for those controls are available.',
                     ),
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: () {
-                        controller.updateGeneral(
-                          name: nameController.text,
-                          description: descriptionController.text,
-                          category: categoryController.text,
-                        );
-                        controller.updatePrivacy(
-                          privacy: privacy,
-                          approvalRequired: approvalRequired,
-                        );
-                        controller.updateFeatures(
-                          events: allowEvents,
-                          live: allowLive,
-                          polls: allowPolls,
-                          marketplace: allowMarketplace,
-                          chatRoom: allowChatRoom,
-                        );
-                        controller.setNotificationLevel(notifyLevel);
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Save settings'),
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              setModalState(() => isSaving = true);
+                              final bool generalSaved = await controller
+                                  .updateGeneral(
+                                    name: nameController.text,
+                                    description: descriptionController.text,
+                                    category: categoryController.text,
+                                  );
+                              final bool privacySaved = await controller
+                                  .updatePrivacy(
+                                    privacy: privacy,
+                                    approvalRequired: approvalRequired,
+                                  );
+                              final bool featuresSaved = await controller
+                                  .updateFeatures(
+                                    events: allowEvents,
+                                    live: allowLive,
+                                    polls: allowPolls,
+                                    marketplace: allowMarketplace,
+                                    chatRoom: allowChatRoom,
+                                  );
+                              final bool notificationSaved = await controller
+                                  .updateNotificationLevel(notifyLevel);
+                              if (!context.mounted) {
+                                return;
+                              }
+                              setModalState(() => isSaving = false);
+                              if (generalSaved &&
+                                  privacySaved &&
+                                  featuresSaved &&
+                                  notificationSaved) {
+                                AppFeedback.showSnackbar(
+                                  title: 'Community settings',
+                                  message:
+                                      'Group settings saved from the backend.',
+                                );
+                                Navigator.of(context).pop();
+                                return;
+                              }
+                              AppFeedback.showSnackbar(
+                                title: 'Community settings',
+                                message:
+                                    'Some changes could not be saved to the backend.',
+                              );
+                            },
+                      child: isSaving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Save settings'),
                     ),
                   ),
                 ],
@@ -265,14 +241,6 @@ Future<void> showCommunityGroupCustomizeSheet(
         },
       );
     },
-  );
-}
-
-ListTile _placeholderTile(String title) {
-  return ListTile(
-    contentPadding: EdgeInsets.zero,
-    title: Text(title),
-    trailing: const Icon(Icons.chevron_right_rounded),
   );
 }
 

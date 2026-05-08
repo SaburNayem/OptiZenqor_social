@@ -1,98 +1,114 @@
-import '../../../core/constants/storage_keys.dart';
-import '../../../core/data/shared_preference/app_shared_preferences.dart';
+import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/service_model/service_response_model.dart';
 import '../model/draft_item_model.dart';
+import '../service/drafts_and_scheduling_service.dart';
 
 class DraftsAndSchedulingRepository {
-  DraftsAndSchedulingRepository({AppSharedPreferences? storage})
-    : _storage = storage ?? AppSharedPreferences();
+  DraftsAndSchedulingRepository({DraftsAndSchedulingService? service})
+    : _service = service ?? DraftsAndSchedulingService();
 
-  final AppSharedPreferences _storage;
+  final DraftsAndSchedulingService _service;
 
   Future<List<DraftItemModel>> read() async {
-    final items = await _storage.readJsonList(StorageKeys.draftPosts);
-    if (items.isEmpty) {
-      return <DraftItemModel>[
-        const DraftItemModel(
-          id: 'd1',
-          title: 'Weekend photo dump draft',
-          type: PublishType.post,
-          audience: 'Followers',
-          location: 'Dhaka, Bangladesh',
-          taggedPeople: <String>['@nexa.studio'],
-          altText: 'Incomplete carousel draft from creator meetup',
-          versionHistory: <String>['v1 moodboard', 'v2 caption polish'],
-          editHistory: <String>[
-            'Audience changed to Followers',
-            'Still incomplete',
-          ],
-        ),
-        DraftItemModel(
-          id: 's1',
-          title: 'Creator tip reel scheduled upload',
-          type: PublishType.reel,
-          scheduledAt: DateTime(2026, 3, 25, 18, 30),
-          audience: 'Everyone',
-          location: 'Creator Studio',
-          coAuthors: <String>['@mayaquinn'],
-          altText: 'Scheduled creator tips reel for tomorrow evening',
-          versionHistory: <String>['Hook rewrite', 'Cover updated'],
-          editHistory: <String>['Scheduled for creator upload window'],
-        ),
-      ];
-    }
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(_service.endpoints['drafts']!);
+    _throwIfFailed(
+      response,
+      fallbackMessage: 'Unable to load drafts and scheduling data.',
+    );
+    final Map<String, dynamic> payload =
+        ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      payload,
+      preferredKeys: const <String>['drafts', 'items'],
+    );
     return items
-        .map(
-          (item) => DraftItemModel(
-            id: item['id'] as String? ?? '',
-            title: item['title'] as String? ?? '',
-            type: PublishType.values.firstWhere(
-              (value) => value.name == item['type'],
-              orElse: () => PublishType.post,
-            ),
-            scheduledAt: item['scheduledAt'] == null
-                ? null
-                : DateTime.tryParse(item['scheduledAt'] as String),
-            audience: item['audience'] as String? ?? 'Everyone',
-            location: item['location'] as String?,
-            taggedPeople: List<String>.from(
-              item['taggedPeople'] as List<dynamic>? ?? const <dynamic>[],
-            ),
-            coAuthors: List<String>.from(
-              item['coAuthors'] as List<dynamic>? ?? const <dynamic>[],
-            ),
-            altText: item['altText'] as String?,
-            versionHistory: List<String>.from(
-              item['versionHistory'] as List<dynamic>? ?? const <dynamic>[],
-            ),
-            editHistory: List<String>.from(
-              item['editHistory'] as List<dynamic>? ?? const <dynamic>[],
-            ),
-          ),
-        )
-        .where((item) => item.id.isNotEmpty)
-        .toList();
+        .map(_fromApiJson)
+        .where((DraftItemModel item) => item.id.isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<void> write(List<DraftItemModel> drafts) {
-    return _storage.writeJsonList(
-      StorageKeys.draftPosts,
-      drafts
-          .map(
-            (item) => <String, dynamic>{
-              'id': item.id,
-              'title': item.title,
-              'type': item.type.name,
-              'scheduledAt': item.scheduledAt?.toIso8601String(),
-              'audience': item.audience,
-              'location': item.location,
-              'taggedPeople': item.taggedPeople,
-              'coAuthors': item.coAuthors,
-              'altText': item.altText,
-              'versionHistory': item.versionHistory,
-              'editHistory': item.editHistory,
-            },
-          )
-          .toList(),
+    return Future.wait<void>(
+      drafts.map((DraftItemModel item) => upsertDraft(item)),
+    );
+  }
+
+  Future<DraftItemModel> upsertDraft(DraftItemModel draft) async {
+    final Map<String, dynamic> payload = <String, dynamic>{
+      'title': draft.title,
+      'type': draft.type.name,
+      'payload': <String, dynamic>{
+        'audience': draft.audience,
+        if (draft.location != null) 'location': draft.location,
+        if (draft.taggedPeople.isNotEmpty) 'taggedPeople': draft.taggedPeople,
+        if (draft.coAuthors.isNotEmpty) 'coAuthors': draft.coAuthors,
+        if (draft.altText != null) 'altText': draft.altText,
+        if (draft.versionHistory.isNotEmpty)
+          'versionHistory': draft.versionHistory,
+        if (draft.editHistory.isNotEmpty) 'editHistory': draft.editHistory,
+      },
+      'scheduledAt': draft.scheduledAt?.toIso8601String(),
+    };
+
+    final ServiceResponseModel<Map<String, dynamic>> response = draft.id.isEmpty
+        ? await _service.apiClient.post(_service.endpoints['drafts']!, payload)
+        : await _service.apiClient.patch('/drafts/${draft.id}', payload);
+    _throwIfFailed(response, fallbackMessage: 'Unable to save this draft.');
+    final Map<String, dynamic>? resolved = ApiPayloadReader.readMap(
+      response.data['data'],
+    );
+    if (resolved == null || resolved.isEmpty) {
+      throw StateError('Draft save response was empty.');
+    }
+    return _fromApiJson(resolved);
+  }
+
+  DraftItemModel _fromApiJson(Map<String, dynamic> item) {
+    final Map<String, dynamic>? nestedPayload = ApiPayloadReader.readMap(
+      item['payload'],
+    );
+    return DraftItemModel(
+      id: ApiPayloadReader.readString(item['id']),
+      title: ApiPayloadReader.readString(item['title']),
+      type: PublishType.values.firstWhere(
+        (PublishType value) =>
+            value.name ==
+            ApiPayloadReader.readString(item['type'], fallback: 'post'),
+        orElse: () => PublishType.post,
+      ),
+      scheduledAt: ApiPayloadReader.readDateTime(item['scheduledAt']),
+      audience: ApiPayloadReader.readString(
+        nestedPayload?['audience'],
+        fallback: 'Everyone',
+      ),
+      location: ApiPayloadReader.readString(nestedPayload?['location']),
+      taggedPeople: ApiPayloadReader.readStringList(
+        nestedPayload?['taggedPeople'],
+      ),
+      coAuthors: ApiPayloadReader.readStringList(nestedPayload?['coAuthors']),
+      altText: ApiPayloadReader.readString(nestedPayload?['altText']),
+      versionHistory: ApiPayloadReader.readStringList(
+        nestedPayload?['versionHistory'],
+      ),
+      editHistory: ApiPayloadReader.readStringList(
+        nestedPayload?['editHistory'],
+      ),
+    );
+  }
+
+  void _throwIfFailed(
+    ServiceResponseModel<Map<String, dynamic>> response, {
+    required String fallbackMessage,
+  }) {
+    if (response.isSuccess && response.data['success'] != false) {
+      return;
+    }
+    throw StateError(
+      response.data['message']?.toString().trim().isNotEmpty == true
+          ? response.data['message'].toString()
+          : fallbackMessage,
     );
   }
 }

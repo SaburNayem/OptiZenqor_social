@@ -66,8 +66,17 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
     emit(state.copyWith(notificationsEnabled: !state.notificationsEnabled));
   }
 
-  void setNotificationLevel(CommunityNotificationLevel value) {
-    emit(state.copyWith(group: state.group.copyWith(notificationLevel: value)));
+  Future<bool> updateNotificationLevel(CommunityNotificationLevel value) async {
+    final CommunityGroupModel previous = state.group;
+    final CommunityGroupModel optimistic = state.group.copyWith(
+      notificationLevel: value,
+    );
+    emit(state.copyWith(group: optimistic));
+    final CommunityGroupModel? remote = await _repository.updateCommunity(
+      optimistic,
+    );
+    emit(state.copyWith(group: remote ?? previous));
+    return remote != null;
   }
 
   void toggleSavePost(String id) {
@@ -123,7 +132,7 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
     );
   }
 
-  Future<void> updateGeneral({
+  Future<bool> updateGeneral({
     required String name,
     required String description,
     required String category,
@@ -143,9 +152,10 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
       optimistic,
     );
     emit(state.copyWith(group: remote ?? previous));
+    return remote != null;
   }
 
-  Future<void> updatePrivacy({
+  Future<bool> updatePrivacy({
     required CommunityPrivacy privacy,
     required bool approvalRequired,
   }) async {
@@ -159,9 +169,10 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
       optimistic,
     );
     emit(state.copyWith(group: remote ?? previous));
+    return remote != null;
   }
 
-  Future<void> updateFeatures({
+  Future<bool> updateFeatures({
     bool? events,
     bool? live,
     bool? polls,
@@ -181,6 +192,7 @@ class CommunityGroupCubit extends Cubit<CommunityGroupState> {
       optimistic,
     );
     emit(state.copyWith(group: remote ?? previous));
+    return remote != null;
   }
 
   void loadMorePosts() {

@@ -458,7 +458,7 @@ class HomeFeedController extends Cubit<int> {
 
     stories = _sortStories(<StoryModel>[...resolvedStories, ...stories]);
     await _analytics.logEvent(
-      'story_created_local',
+      'story_created',
       params: <String, dynamic>{
         'count': newStories.length,
         'hasMedia': resolvedStories.any((story) => story.hasMedia),
@@ -609,9 +609,7 @@ class HomeFeedController extends Cubit<int> {
       return;
     }
 
-    if (!normalizedId.startsWith('local_story_')) {
-      await _storiesRepository.deleteStory(normalizedId);
-    }
+    await _storiesRepository.deleteStory(normalizedId);
 
     stories = stories
         .where((StoryModel story) => story.id != normalizedId)

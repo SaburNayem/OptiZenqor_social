@@ -525,7 +525,7 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   bool _canLoadStoryInsights(StoryModel story) {
     final String storyId = story.id.trim();
-    return storyId.isNotEmpty && !storyId.startsWith('local_story_');
+    return storyId.isNotEmpty;
   }
 
   Future<void> _showViewersSheet() async {

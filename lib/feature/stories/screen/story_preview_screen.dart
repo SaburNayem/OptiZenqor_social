@@ -13,6 +13,7 @@ import '../../../core/functions/app_feedback.dart';
 import '../../../core/navigation/app_get.dart';
 import '../controller/story_preview_controller.dart';
 import '../model/story_preview_model.dart';
+import '../repository/stories_repository.dart';
 
 class StoryPreviewScreen extends StatefulWidget {
   const StoryPreviewScreen({
@@ -36,6 +37,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
   late final StoryPreviewController _controller;
   late final List<StoryMediaTransform> _mediaTransforms;
+  final StoriesRepository _storiesRepository = StoriesRepository();
 
   bool _isSharing = false;
   Offset _textOffset = Offset.zero;
@@ -1410,53 +1412,62 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
   Future<void> _sharePreview() async {
     setState(() => _isSharing = true);
-
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() => _isSharing = false);
-
-    final List<String> mediaItems = List<String>.from(
-      _mediaPaths,
-      growable: false,
-    );
-
-    final StoryModel story = StoryModel(
-      id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
-      userId: widget.userId,
-      createdAt: DateTime.now(),
-      media: mediaItems.isEmpty ? '' : mediaItems.first,
-      mediaItems: mediaItems,
-      isLocalFile: widget.preview.isLocalFile,
-      text: _controller.hasText ? _controller.currentText : null,
-      music: _controller.selectedMusic,
-      backgroundColors: _previewBackgroundColors
-          .map((Color color) => color.toARGB32())
-          .toList(growable: false),
-      textColorValue: _controller.selectedTextColor.toARGB32(),
-      sticker: _controller.hasSticker ? _controller.selectedSticker : null,
-      effectName: _controller.selectedEffect,
-      mentionUsername: _controller.hasMention
-          ? _controller.mentionUsername
-          : null,
-      linkLabel: _controller.hasLink ? _controller.linkLabel : null,
-      linkUrl: _controller.hasLink ? _controller.linkUrl : null,
-      privacy: _controller.selectedPrivacy,
-      collageLayout: _controller.selectedCollageLayout,
-      textOffsetDx: _textOffset.dx,
-      textOffsetDy: _textOffset.dy,
-      textScale: _textScale,
-      mediaTransforms: List<StoryMediaTransform>.generate(
-        _mediaTransforms.length,
-        (int index) => _mediaTransforms[index],
+    try {
+      final List<String> mediaItems = List<String>.from(
+        _mediaPaths,
         growable: false,
-      ),
-    );
+      );
 
-    Navigator.of(context).pop(story);
+      final StoryModel story = await _storiesRepository.createStory(
+        StoryModel(
+          id: 'draft_story_submission',
+          userId: widget.userId,
+          createdAt: DateTime.now(),
+          media: mediaItems.isEmpty ? '' : mediaItems.first,
+          mediaItems: mediaItems,
+          isLocalFile: widget.preview.isLocalFile,
+          text: _controller.hasText ? _controller.currentText : null,
+          music: _controller.selectedMusic,
+          backgroundColors: _previewBackgroundColors
+              .map((Color color) => color.toARGB32())
+              .toList(growable: false),
+          textColorValue: _controller.selectedTextColor.toARGB32(),
+          sticker: _controller.hasSticker ? _controller.selectedSticker : null,
+          effectName: _controller.selectedEffect,
+          mentionUsername: _controller.hasMention
+              ? _controller.mentionUsername
+              : null,
+          linkLabel: _controller.hasLink ? _controller.linkLabel : null,
+          linkUrl: _controller.hasLink ? _controller.linkUrl : null,
+          privacy: _controller.selectedPrivacy,
+          collageLayout: _controller.selectedCollageLayout,
+          textOffsetDx: _textOffset.dx,
+          textOffsetDy: _textOffset.dy,
+          textScale: _textScale,
+          mediaTransforms: List<StoryMediaTransform>.generate(
+            _mediaTransforms.length,
+            (int index) => _mediaTransforms[index],
+            growable: false,
+          ),
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _isSharing = false);
+      Navigator.of(context).pop(story);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSharing = false);
+      AppFeedback.showSnackbar(
+        title: 'Story share failed',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
   }
 
   Future<void> _shareStoryLink() async {

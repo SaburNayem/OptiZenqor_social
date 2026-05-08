@@ -5,6 +5,7 @@ import '../../../core/data/models/story_model.dart';
 import '../../../core/functions/app_feedback.dart';
 import '../controller/story_text_composer_controller.dart';
 import '../model/story_text_composer_model.dart';
+import '../repository/stories_repository.dart';
 
 class StoryTextComposerScreen extends StatefulWidget {
   const StoryTextComposerScreen({
@@ -23,6 +24,7 @@ class StoryTextComposerScreen extends StatefulWidget {
 
 class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
   late final StoryTextComposerController _controller;
+  final StoriesRepository _storiesRepository = StoriesRepository();
   bool _isSharing = false;
 
   @override
@@ -639,26 +641,38 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
     }
 
     setState(() => _isSharing = true);
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (!mounted) {
-      return;
+    try {
+      final List<int> gradient =
+          StoryTextComposerController.gradients[_controller.gradientIndex];
+      final StoryModel story = await _storiesRepository.createStory(
+        StoryModel(
+          id: 'draft_story_submission',
+          userId: widget.userId,
+          createdAt: DateTime.now(),
+          text: _controller.currentText,
+          music: _controller.showMusic ? _controller.selectedMusic : null,
+          backgroundColors: gradient,
+          textColorValue: _controller.selectedTextColor.toARGB32(),
+          mentionUsername: _controller.hasMention
+              ? _controller.mentionUsername
+              : null,
+          privacy: _controller.selectedPrivacy,
+        ),
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSharing = false);
+      Navigator.of(context).pop(story);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isSharing = false);
+      AppFeedback.showSnackbar(
+        title: 'Story share failed',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
     }
-    setState(() => _isSharing = false);
-    final List<int> gradient =
-        StoryTextComposerController.gradients[_controller.gradientIndex];
-    final StoryModel story = StoryModel(
-      id: 'local_story_${DateTime.now().microsecondsSinceEpoch}',
-      userId: widget.userId,
-      createdAt: DateTime.now(),
-      text: _controller.currentText,
-      music: _controller.showMusic ? _controller.selectedMusic : null,
-      backgroundColors: gradient,
-      textColorValue: _controller.selectedTextColor.toARGB32(),
-      mentionUsername: _controller.hasMention
-          ? _controller.mentionUsername
-          : null,
-      privacy: _controller.selectedPrivacy,
-    );
-    Navigator.of(context).pop(story);
   }
 }
