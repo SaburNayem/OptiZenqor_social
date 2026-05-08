@@ -261,7 +261,10 @@ class _PagesScreenState extends State<PagesScreen> {
 }
 
 class _PagesHeroCard extends StatelessWidget {
-  const _PagesHeroCard({required this.canCreatePage, required this.onCreateTap});
+  const _PagesHeroCard({
+    required this.canCreatePage,
+    required this.onCreateTap,
+  });
 
   final bool canCreatePage;
   final VoidCallback onCreateTap;

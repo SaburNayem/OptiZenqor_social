@@ -446,7 +446,8 @@ class ApiClientService {
           validateStatus: (_) => true,
         ),
       );
-      if ((response.statusCode ?? 0) < 200 || (response.statusCode ?? 0) >= 300) {
+      if ((response.statusCode ?? 0) < 200 ||
+          (response.statusCode ?? 0) >= 300) {
         await _clearExpiredSession();
         return false;
       }
@@ -489,7 +490,9 @@ class ApiClientService {
       return true;
     } on Object catch (error) {
       if (kDebugMode) {
-        debugPrint('[ApiClientService] refresh failed endpoint=$endpoint $error');
+        debugPrint(
+          '[ApiClientService] refresh failed endpoint=$endpoint $error',
+        );
       }
       await _clearExpiredSession();
       return false;

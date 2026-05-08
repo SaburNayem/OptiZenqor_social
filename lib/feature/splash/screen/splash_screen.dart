@@ -32,10 +32,7 @@ class SplashScreen extends StatelessWidget {
               child: SizedBox(
                 width: logoWidth.clamp(200.0, 360.0),
                 height: logoHeight.clamp(84.0, 160.0),
-                child: SvgPicture.asset(
-                  'assets/logo.svg',
-                  fit: BoxFit.contain,
-                ),
+                child: SvgPicture.asset('assets/logo.svg', fit: BoxFit.contain),
               ),
             ),
           );

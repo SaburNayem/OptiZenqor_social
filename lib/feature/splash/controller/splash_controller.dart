@@ -34,10 +34,9 @@ class SplashController {
       fallback: false,
       label: 'hasSession',
     );
-    final List<Object?> bootstrapResults = await Future.wait<Object?>(<Future<Object?>>[
-      onboardingFuture,
-      sessionFuture,
-    ]);
+    final List<Object?> bootstrapResults = await Future.wait<Object?>(
+      <Future<Object?>>[onboardingFuture, sessionFuture],
+    );
     final bool hasCompletedOnboarding = bootstrapResults[0] as bool;
     final bool hasSession = bootstrapResults[1] as bool;
     bool canShowOnboarding = true;
@@ -73,10 +72,9 @@ class SplashController {
         return RouteNames.login;
       },
     );
-    final List<Object?> bootstrapResults = await Future.wait<Object?>(<Future<Object?>>[
-      routeFuture,
-      splashDelay,
-    ]);
+    final List<Object?> bootstrapResults = await Future.wait<Object?>(
+      <Future<Object?>>[routeFuture, splashDelay],
+    );
     if (!context.mounted) {
       return;
     }

@@ -28,10 +28,7 @@ class MainShellDrawer extends StatelessWidget {
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              currentAccountPicture: AppAvatar(
-                imageUrl: avatarUrl,
-                radius: 28,
-              ),
+              currentAccountPicture: AppAvatar(imageUrl: avatarUrl, radius: 28),
               accountName: Text(name),
               accountEmail: null,
               margin: EdgeInsets.zero,

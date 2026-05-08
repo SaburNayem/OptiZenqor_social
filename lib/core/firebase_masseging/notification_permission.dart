@@ -128,9 +128,9 @@ Future<void> deleteFcmTokenFromBackend([String? currentToken]) async {
     return;
   }
 
-  final uri = Uri.parse(AppConfig.currentApiBaseUrl).resolve(
-    ApiEndPoints.notificationDeviceByToken(Uri.encodeComponent(token)),
-  );
+  final uri = Uri.parse(
+    AppConfig.currentApiBaseUrl,
+  ).resolve(ApiEndPoints.notificationDeviceByToken(Uri.encodeComponent(token)));
   final headers = {
     'Authorization': 'Bearer $userToken',
     'Content-Type': 'application/json',
