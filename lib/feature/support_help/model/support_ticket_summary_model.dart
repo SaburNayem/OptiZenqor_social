@@ -19,6 +19,26 @@ class SupportTicketSummaryModel {
   final String latestMessage;
   final String updatedAt;
 
+  SupportTicketSummaryModel copyWith({
+    String? id,
+    String? subject,
+    String? category,
+    String? status,
+    String? priority,
+    String? latestMessage,
+    String? updatedAt,
+  }) {
+    return SupportTicketSummaryModel(
+      id: id ?? this.id,
+      subject: subject ?? this.subject,
+      category: category ?? this.category,
+      status: status ?? this.status,
+      priority: priority ?? this.priority,
+      latestMessage: latestMessage ?? this.latestMessage,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
   factory SupportTicketSummaryModel.fromApiJson(Map<String, dynamic> json) {
     return SupportTicketSummaryModel(
       id: ApiPayloadReader.readString(json['id']),

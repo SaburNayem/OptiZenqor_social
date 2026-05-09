@@ -47,6 +47,11 @@ class ApiEndPoints {
   static const notificationPreferences = '/notification-preferences';
   static const safetyConfig = '/safety/config';
   static const supportChat = '/support/chat';
+  static const supportTickets = '/support/tickets';
+  static String supportTicketById(String ticketId) =>
+      '/support/tickets/$ticketId';
+  static String supportTicketMessages(String ticketId) =>
+      '/support/tickets/$ticketId/messages';
   static const walletLedger = '/wallet/ledger';
   static const masterData = '/master-data';
   static const legalConsents = '/legal/consents';
@@ -387,7 +392,6 @@ class ApiEndPoints {
 
   // SupportController
   static const supportFaqs = '/support/faqs';
-  static const supportTickets = '/support/tickets';
   static const supportHelp = '/support-help';
   static const supportHelpFaq = '/support-help/faq';
   static const supportHelpChat = '/support-help/chat';

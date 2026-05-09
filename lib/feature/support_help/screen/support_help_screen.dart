@@ -5,6 +5,9 @@ import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
 import '../controller/support_help_controller.dart';
 import '../model/faq_item_model.dart';
+import '../model/support_ticket_detail_model.dart';
+import '../model/support_ticket_message_model.dart';
+import '../model/support_ticket_summary_model.dart';
 
 class SupportHelpScreen extends StatefulWidget {
   const SupportHelpScreen({super.key});
@@ -14,6 +17,27 @@ class SupportHelpScreen extends StatefulWidget {
 }
 
 class _SupportHelpScreenState extends State<SupportHelpScreen> {
+  static const List<String> _ticketCategories = <String>[
+    'Account',
+    'Payments',
+    'Safety',
+    'Content',
+    'Technical',
+    'Other',
+  ];
+  static const List<String> _ticketPriorities = <String>[
+    'low',
+    'normal',
+    'high',
+    'urgent',
+  ];
+  static const List<String> _ticketStatuses = <String>[
+    'open',
+    'reviewing',
+    'resolved',
+    'closed',
+  ];
+
   late final SupportHelpController _controller;
 
   @override
@@ -87,9 +111,7 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
             padding: EdgeInsets.only(right: 16.0, left: 8),
             child: CircleAvatar(
               radius: 16,
-              backgroundImage: NetworkImage(
-                'https://i.pravatar.cc/150?u=myprofile',
-              ),
+              child: Icon(Icons.support_agent_outlined),
             ),
           ),
         ],
@@ -135,15 +157,16 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
               padding: const EdgeInsets.all(16),
               children: <Widget>[
                 Container(
-                  height: 50,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.hexFFF5F5F5,
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  alignment: Alignment.centerLeft,
                   child: const Text(
-                    'Support content is synced from the backend.',
+                    'Support content, tickets, and replies are synced from the backend.',
                     style: TextStyle(color: AppColors.grey, fontSize: 14),
                   ),
                 ),
@@ -155,11 +178,25 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                 const SizedBox(height: 16),
                 _buildSummaryCard(),
                 const SizedBox(height: 32),
-                const Text(
-                  'Your Tickets',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Row(
+                  children: <Widget>[
+                    const Expanded(
+                      child: Text(
+                        'Your Tickets',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _showCreateTicketSheet,
+                      icon: const Icon(Icons.add_circle_outline),
+                      label: const Text('New Ticket'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 if (_controller.tickets.isEmpty)
                   Container(
                     padding: const EdgeInsets.all(20),
@@ -168,9 +205,19 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppColors.hexFFF0F0F0),
                     ),
-                    child: const Text(
-                      'No synced support tickets are available for this account yet.',
-                      style: TextStyle(color: AppColors.grey),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Text(
+                          'No synced support tickets are available for this account yet.',
+                          style: TextStyle(color: AppColors.grey),
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: _showCreateTicketSheet,
+                          child: const Text('Create your first ticket'),
+                        ),
+                      ],
                     ),
                   )
                 else
@@ -296,14 +343,16 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
             children: <Widget>[
               _buildBadge(
                 label: _controller.hasChatThread
-                    ? 'Chat ready'
-                    : 'No chat thread yet',
+                    ? 'Ticket chat available'
+                    : 'No ticket chat yet',
               ),
               _buildBadge(
                 label: _controller.responseTime.isNotEmpty
                     ? _controller.responseTime
                     : 'Response time unavailable',
               ),
+              if (_controller.contactEmail.isNotEmpty)
+                _buildBadge(label: _controller.contactEmail),
             ],
           ),
         ],
@@ -312,34 +361,65 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
   }
 
   List<Widget> _buildTicketTiles() {
-    final int visibleCount = _controller.tickets.length < 3
+    final int visibleCount = _controller.tickets.length < 4
         ? _controller.tickets.length
-        : 3;
+        : 4;
     final List<Widget> widgets = <Widget>[];
     for (int index = 0; index < visibleCount; index++) {
-      final ticket = _controller.tickets[index];
+      final SupportTicketSummaryModel ticket = _controller.tickets[index];
       widgets.add(
         ListTile(
+          onTap: () => _showTicketDetailSheet(ticket.id),
           title: Text(ticket.subject),
-          subtitle: Text(
-            ticket.latestMessage.isNotEmpty
-                ? ticket.latestMessage
-                : ticket.category,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Text(
-            ticket.status,
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  ticket.latestMessage.isNotEmpty
+                      ? ticket.latestMessage
+                      : ticket.category,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: <Widget>[
+                    _buildStatusChip(ticket.status),
+                    _buildMetaChip(ticket.priority.toUpperCase()),
+                    _buildMetaChip(ticket.category),
+                  ],
+                ),
+              ],
             ),
+          ),
+          trailing: const Icon(
+            Icons.arrow_forward_ios,
+            size: 14,
+            color: AppColors.grey,
           ),
         ),
       );
       if (index < visibleCount - 1) {
         widgets.add(const Divider(height: 1, color: AppColors.hexFFF0F0F0));
       }
+    }
+    if (_controller.tickets.length > visibleCount) {
+      widgets.add(const Divider(height: 1, color: AppColors.hexFFF0F0F0));
+      widgets.add(
+        ListTile(
+          onTap: () => _showTicketDetailSheet(_controller.tickets.first.id),
+          title: Text(
+            'Showing $visibleCount of ${_controller.tickets.length} tickets',
+          ),
+          subtitle: const Text('Open any ticket to continue the conversation.'),
+          trailing: const Icon(Icons.forum_outlined),
+        ),
+      );
     }
     return widgets;
   }
@@ -369,18 +449,23 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                 ),
               ),
               const SizedBox(width: 16),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    'Need more help?',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'Support options are now coming from the backend',
-                    style: TextStyle(fontSize: 12, color: AppColors.grey),
-                  ),
-                ],
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Need more help?',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Open a backend-backed ticket and continue the conversation in-app.',
+                      style: TextStyle(fontSize: 12, color: AppColors.grey),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -389,12 +474,7 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
             width: double.infinity,
             height: 50,
             child: FilledButton(
-              onPressed: () {
-                final String label = _controller.hasChatThread
-                    ? 'Support chat is available in your synced account state.'
-                    : 'Open a support ticket first to start a chat thread.';
-                AppGet.snackbar('Support Chat', label);
-              },
+              onPressed: _showCreateTicketSheet,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
@@ -402,7 +482,7 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                 ),
               ),
               child: const Text(
-                'Chat with Us',
+                'Create Support Ticket',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -413,6 +493,10 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
             height: 50,
             child: OutlinedButton(
               onPressed: () {
+                if (_controller.tickets.isNotEmpty) {
+                  _showTicketDetailSheet(_controller.tickets.first.id);
+                  return;
+                }
                 final String email = _controller.contactEmail.isNotEmpty
                     ? _controller.contactEmail
                     : _controller.escalationEmail;
@@ -428,9 +512,11 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
-              child: const Text(
-                'Email Support',
-                style: TextStyle(
+              child: Text(
+                _controller.tickets.isNotEmpty
+                    ? 'Open Latest Ticket'
+                    : 'Email Support',
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                 ),
@@ -497,6 +583,553 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
         color: AppColors.grey,
       ),
     );
+  }
+
+  Future<void> _showCreateTicketSheet() async {
+    final TextEditingController subjectController = TextEditingController();
+    final TextEditingController messageController = TextEditingController();
+    String selectedCategory = _ticketCategories.first;
+    String selectedPriority = 'normal';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setSheetState) {
+            return AnimatedBuilder(
+              animation: _controller,
+              builder: (BuildContext context, _) {
+                final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20,
+                    20,
+                    viewInsets.bottom + 20,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Center(
+                          child: SizedBox(
+                            width: 42,
+                            child: Divider(thickness: 4),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Create Support Ticket',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Share the issue once and keep the conversation synced here.',
+                          style: TextStyle(color: AppColors.grey),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: subjectController,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Subject',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        DropdownButtonFormField<String>(
+                          initialValue: selectedCategory,
+                          decoration: const InputDecoration(
+                            labelText: 'Category',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _ticketCategories
+                              .map(
+                                (String item) => DropdownMenuItem<String>(
+                                  value: item,
+                                  child: Text(item),
+                                ),
+                              )
+                              .toList(growable: false),
+                          onChanged: (String? value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setSheetState(() {
+                              selectedCategory = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        DropdownButtonFormField<String>(
+                          initialValue: selectedPriority,
+                          decoration: const InputDecoration(
+                            labelText: 'Priority',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _ticketPriorities
+                              .map(
+                                (String item) => DropdownMenuItem<String>(
+                                  value: item,
+                                  child: Text(item.toUpperCase()),
+                                ),
+                              )
+                              .toList(growable: false),
+                          onChanged: (String? value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setSheetState(() {
+                              selectedPriority = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        TextField(
+                          controller: messageController,
+                          minLines: 4,
+                          maxLines: 6,
+                          decoration: const InputDecoration(
+                            labelText: 'Describe the issue',
+                            alignLabelWithHint: true,
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        if (_controller.actionMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              _controller.actionMessage!,
+                              style: TextStyle(
+                                color:
+                                    _controller.actionMessage!
+                                        .toLowerCase()
+                                        .contains('success')
+                                    ? AppColors.primary
+                                    : AppColors.red,
+                              ),
+                            ),
+                          ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: _controller.isSubmitting
+                                ? null
+                                : () async {
+                                    final String subject = subjectController
+                                        .text
+                                        .trim();
+                                    final String message = messageController
+                                        .text
+                                        .trim();
+                                    if (subject.isEmpty || message.isEmpty) {
+                                      AppGet.snackbar(
+                                        'Missing details',
+                                        'Add both a subject and a message before sending.',
+                                      );
+                                      return;
+                                    }
+                                    final NavigatorState navigator =
+                                        Navigator.of(context);
+                                    final bool created = await _controller
+                                        .createTicket(
+                                          subject: subject,
+                                          category: selectedCategory,
+                                          message: message,
+                                          priority: selectedPriority,
+                                        );
+                                    if (!mounted) {
+                                      return;
+                                    }
+                                    if (created) {
+                                      navigator.pop();
+                                      _flushActionMessage('Support');
+                                      await _showTicketDetailSheet(
+                                        _controller.selectedTicketId ??
+                                            _controller.tickets.first.id,
+                                      );
+                                    } else {
+                                      _flushActionMessage('Support');
+                                    }
+                                  },
+                            child: _controller.isSubmitting
+                                ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.white,
+                                    ),
+                                  )
+                                : const Text('Submit ticket'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+
+    subjectController.dispose();
+    messageController.dispose();
+  }
+
+  Future<void> _showTicketDetailSheet(String ticketId) async {
+    _controller.openTicket(ticketId);
+    final TextEditingController replyController = TextEditingController();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (BuildContext context) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (BuildContext context, _) {
+            final EdgeInsets viewInsets = MediaQuery.of(context).viewInsets;
+            return Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, viewInsets.bottom + 20),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.82,
+                child: _controller.isDetailLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _controller.selectedTicket == null
+                    ? _buildDetailErrorState()
+                    : _buildTicketDetailContent(
+                        detail: _controller.selectedTicket!,
+                        replyController: replyController,
+                      ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    replyController.dispose();
+    _controller.clearSelectedTicket();
+  }
+
+  Widget _buildDetailErrorState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Icon(
+            Icons.mark_email_read_outlined,
+            size: 36,
+            color: AppColors.grey,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _controller.actionMessage ?? 'Unable to load ticket details.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.grey),
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () {
+              final String ticketId = _controller.selectedTicketId ?? '';
+              if (ticketId.isNotEmpty) {
+                _controller.openTicket(ticketId);
+              }
+            },
+            child: const Text('Try again'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTicketDetailContent({
+    required SupportTicketDetailModel detail,
+    required TextEditingController replyController,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const Center(child: SizedBox(width: 42, child: Divider(thickness: 4))),
+        const SizedBox(height: 12),
+        Text(
+          detail.summary.subject,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: <Widget>[
+            _buildStatusChip(detail.summary.status),
+            _buildMetaChip(detail.summary.priority.toUpperCase()),
+            _buildMetaChip(detail.summary.category),
+            if (detail.channel.isNotEmpty) _buildMetaChip(detail.channel),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (detail.userLabel.isNotEmpty ||
+            detail.slaDueAt.isNotEmpty ||
+            detail.adminNotes.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.hexFFF5F5F5,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (detail.userLabel.isNotEmpty)
+                  Text('Requester: ${detail.userLabel}'),
+                if (detail.slaDueAt.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 6),
+                  Text('SLA due: ${detail.slaDueAt}'),
+                ],
+                if (detail.adminNotes.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Internal notes: ${detail.adminNotes.join(' | ')}',
+                    style: const TextStyle(color: AppColors.grey),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: _ticketStatuses
+                .map((String status) {
+                  final bool active =
+                      detail.summary.status.trim().toLowerCase() ==
+                      status.toLowerCase();
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(status),
+                      selected: active,
+                      onSelected: _controller.isSubmitting
+                          ? null
+                          : (_) async {
+                              final bool updated = await _controller
+                                  .updateSelectedTicket(status: status);
+                              if (updated) {
+                                _flushActionMessage('Support');
+                              } else {
+                                _flushActionMessage('Support');
+                              }
+                            },
+                    ),
+                  );
+                })
+                .toList(growable: false),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Conversation',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: detail.messages.isEmpty
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.hexFFF5F5F5,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Text(
+                    'No replies yet. Send a message below to continue the ticket.',
+                    style: TextStyle(color: AppColors.grey),
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: detail.messages.length,
+                  separatorBuilder: (BuildContext _, int index) =>
+                      const SizedBox(height: 10),
+                  itemBuilder: (BuildContext context, int index) {
+                    final SupportTicketMessageModel message =
+                        detail.messages[index];
+                    return Align(
+                      alignment: message.isFromSupport
+                          ? Alignment.centerLeft
+                          : Alignment.centerRight,
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: message.isFromSupport
+                              ? AppColors.hexFFF5F5F5
+                              : AppColors.hexFFE0F2F1,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              message.senderLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(message.body),
+                            if (message.attachments.isNotEmpty) ...<Widget>[
+                              const SizedBox(height: 8),
+                              Text(
+                                'Attachments: ${message.attachments.join(', ')}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.grey,
+                                ),
+                              ),
+                            ],
+                            if (message.createdAt.isNotEmpty) ...<Widget>[
+                              const SizedBox(height: 8),
+                              Text(
+                                message.createdAt,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.grey,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: replyController,
+          minLines: 2,
+          maxLines: 4,
+          decoration: const InputDecoration(
+            hintText: 'Write a reply to support',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (_controller.actionMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              _controller.actionMessage!,
+              style: TextStyle(
+                color:
+                    _controller.actionMessage!.toLowerCase().contains('success')
+                    ? AppColors.primary
+                    : AppColors.red,
+              ),
+            ),
+          ),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _controller.isSubmitting
+                ? null
+                : () async {
+                    final String reply = replyController.text.trim();
+                    if (reply.isEmpty) {
+                      AppGet.snackbar(
+                        'Reply required',
+                        'Write a message before sending your reply.',
+                      );
+                      return;
+                    }
+                    final bool sent = await _controller.sendReply(reply);
+                    if (sent) {
+                      replyController.clear();
+                    }
+                    _flushActionMessage('Support');
+                  },
+            icon: _controller.isSubmitting
+                ? const SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.white,
+                    ),
+                  )
+                : const Icon(Icons.send_outlined),
+            label: Text(_controller.isSubmitting ? 'Sending...' : 'Send Reply'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusChip(String status) {
+    final String normalized = status.trim().toLowerCase();
+    final Color color = switch (normalized) {
+      'resolved' => AppColors.primary,
+      'closed' => AppColors.grey,
+      'reviewing' => AppColors.hexFFFFC107,
+      _ => AppColors.hexFF42A5F5,
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetaChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.hexFFF5F5F5,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 12, color: AppColors.grey),
+      ),
+    );
+  }
+
+  void _flushActionMessage(String title) {
+    final String? message = _controller.actionMessage;
+    if (message == null || message.isEmpty) {
+      return;
+    }
+    AppGet.snackbar(title, message);
+    _controller.consumeActionMessage();
   }
 
   void _handleBottomNavTap(int index) {
