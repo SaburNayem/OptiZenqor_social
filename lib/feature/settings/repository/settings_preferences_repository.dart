@@ -16,9 +16,10 @@ class SettingsPreferencesRepository {
       throw Exception(response.message ?? 'Unable to load account settings.');
     }
 
-    return ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data) ??
-        <String, dynamic>{};
+    return ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Account settings response did not include a data payload.',
+    );
   }
 
   Future<void> writeAll(Map<String, dynamic> value) async {

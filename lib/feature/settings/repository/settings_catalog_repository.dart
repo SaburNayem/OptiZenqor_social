@@ -18,9 +18,12 @@ class SettingsCatalogRepository {
       throw Exception(response.message ?? 'Unable to load settings.');
     }
 
-    final List<Map<String, dynamic>> sections = ApiPayloadReader.readMapList(
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
       response.data,
-      preferredKeys: const <String>['data'],
+      fallbackMessage: 'Settings catalog response did not include a data payload.',
+    );
+    final List<Map<String, dynamic>> sections = ApiPayloadReader.readMapList(
+      data,
     );
     return sections.map(_mapSection).toList(growable: false);
   }

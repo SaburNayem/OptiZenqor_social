@@ -32,13 +32,16 @@ class OfflineSyncController extends ChangeNotifier {
           response.message ?? 'Unable to load offline sync state.',
         );
       }
-      final Map<String, dynamic> payload =
-          ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+      final Map<String, dynamic> payload = ApiPayloadReader.requireDataMap(
+        response.data,
+        fallbackMessage:
+            'Offline sync response did not include a data payload.',
+      );
       isOffline = ApiPayloadReader.readBool(payload['isOffline']) ?? false;
       queue =
           ApiPayloadReader.readMapList(
                 payload,
-                preferredKeys: const <String>['queue', 'items'],
+                preferredKeys: const <String>['queue'],
               )
               .map((item) {
                 return OfflineActionModel(

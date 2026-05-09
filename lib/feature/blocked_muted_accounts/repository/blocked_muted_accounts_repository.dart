@@ -62,33 +62,19 @@ class BlockedMutedAccountsRepository {
         response.message ?? 'Unable to load restricted accounts right now.',
       );
     }
-    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
       response.data,
+      fallbackMessage:
+          'Restricted accounts response did not include a data payload.',
+    );
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      data,
       preferredKeys: preferredKeys,
     );
     if (items.isEmpty) {
-      final Map<String, dynamic>? payload = ApiPayloadReader.readMap(
-        response.data['data'],
+      throw StateError(
+        'Restricted accounts response did not include ${preferredKeys.first}.',
       );
-      final List<Map<String, dynamic>> fallbackItems =
-          ApiPayloadReader.readMapList(
-            payload ?? const <String, dynamic>{},
-            preferredKeys: preferredKeys,
-          );
-      if (fallbackItems.isEmpty) {
-        throw StateError(
-          'Restricted accounts response did not include ${preferredKeys.first}.',
-        );
-      }
-      return fallbackItems
-          .map(
-            (Map<String, dynamic> item) => RestrictedAccountModel.fromApiJson(
-              ApiPayloadReader.readMap(item['user']) ?? item,
-              status: status,
-            ),
-          )
-          .where((RestrictedAccountModel item) => item.id.isNotEmpty)
-          .toList(growable: false);
     }
     return items
         .map(

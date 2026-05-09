@@ -1,4 +1,5 @@
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/api_client_service.dart';
@@ -118,40 +119,14 @@ class FollowRepository {
   }
 
   List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    for (final Object? raw in <Object?>[
-      payload['data'],
-      payload['items'],
-      payload['results'],
-      payload['followers'],
-      payload['following'],
-      payload['mutuals'],
-      _readMap(payload['data'])?['followers'],
-      _readMap(payload['data'])?['following'],
-      _readMap(payload['data'])?['mutuals'],
-    ]) {
-      if (raw is! List) {
-        continue;
-      }
-      return raw
-          .whereType<Object>()
-          .map(
-            (Object item) => item is Map<String, dynamic>
-                ? item
-                : Map<String, dynamic>.from(item as Map),
-          )
-          .toList(growable: false);
-    }
-    return const <Map<String, dynamic>>[];
-  }
-
-  Map<String, dynamic>? _readMap(Object? value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-    if (value is Map) {
-      return Map<String, dynamic>.from(value);
-    }
-    return null;
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      payload,
+      fallbackMessage: 'Follow response did not include a data payload.',
+    );
+    return ApiPayloadReader.readMapList(
+      data,
+      preferredKeys: const <String>['followers', 'following', 'mutuals'],
+    );
   }
 
   bool? _extractBoolean(Map<String, dynamic> payload, List<String> keys) {
@@ -170,7 +145,7 @@ class FollowRepository {
         }
       }
     }
-    final Map<String, dynamic>? nestedData = _readMap(payload['data']);
+    final Map<String, dynamic>? nestedData = ApiPayloadReader.readDataMap(payload);
     if (nestedData != null) {
       return _extractBoolean(nestedData, keys);
     }

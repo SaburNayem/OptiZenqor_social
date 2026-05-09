@@ -32,12 +32,15 @@ class LocalizationSupportController extends ChangeNotifier {
           response.message ?? 'Unable to load localization support.',
         );
       }
-      final Map<String, dynamic> payload =
-          ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+      final Map<String, dynamic> payload = ApiPayloadReader.requireDataMap(
+        response.data,
+        fallbackMessage:
+            'Localization support response did not include a data payload.',
+      );
       locales =
           ApiPayloadReader.readMapList(
                 payload,
-                preferredKeys: const <String>['locales', 'items'],
+                preferredKeys: const <String>['locales'],
               )
               .map((item) {
                 return LocalizationOptionModel(
@@ -80,8 +83,11 @@ class LocalizationSupportController extends ChangeNotifier {
       if (!response.isSuccess || response.data['success'] == false) {
         throw Exception(response.message ?? 'Unable to update locale.');
       }
-      final Map<String, dynamic> payload =
-          ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+      final Map<String, dynamic> payload = ApiPayloadReader.requireDataMap(
+        response.data,
+        fallbackMessage:
+            'Localization support update did not include a data payload.',
+      );
       selected = ApiPayloadReader.readString(
         payload['selected'],
         fallback: code,

@@ -1,4 +1,5 @@
 import '../../../core/constants/storage_keys.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/reel_model.dart';
@@ -505,16 +506,18 @@ class UserProfileRepository {
   }
 
   UserModel? _extractUserFromPayload(Map<String, dynamic> payload) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
+    final Map<String, dynamic>? result = _readMap(payload['result']);
     final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
       payload,
       _readMap(payload['user']),
       _readMap(payload['profile']),
-      _readMap(payload['data']),
-      _readMap(payload['result']),
-      _readMap(_readMap(payload['data'])?['user']),
-      _readMap(_readMap(payload['data'])?['profile']),
-      _readMap(_readMap(payload['result'])?['user']),
-      _readMap(_readMap(payload['result'])?['profile']),
+      data,
+      result,
+      _readMap(data?['user']),
+      _readMap(data?['profile']),
+      _readMap(result?['user']),
+      _readMap(result?['profile']),
     ];
 
     for (final Map<String, dynamic>? candidate in candidates) {
@@ -535,56 +538,23 @@ class UserProfileRepository {
   }
 
   List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    for (final Object? raw in <Object?>[
-      payload['data'],
-      payload['items'],
-      payload['results'],
-      payload['value'],
-      payload['users'],
-      payload['followers'],
-      payload['following'],
-      payload['mutuals'],
-      _readMap(payload['data'])?['items'],
-      _readMap(payload['data'])?['results'],
-      _readMap(payload['data'])?['users'],
-      _readMap(payload['data'])?['followers'],
-      _readMap(payload['data'])?['following'],
-      _readMap(payload['data'])?['mutuals'],
-    ]) {
-      if (raw is! List) {
-        continue;
-      }
-      return raw
-          .whereType<Object>()
-          .map(
-            (Object item) => item is Map<String, dynamic>
-                ? item
-                : Map<String, dynamic>.from(item as Map),
-          )
-          .toList(growable: false);
-    }
-    return const <Map<String, dynamic>>[];
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
+    return ApiPayloadReader.readMapList(
+      data ?? payload,
+      preferredKeys: const <String>[
+        'users',
+        'followers',
+        'following',
+        'mutuals',
+      ],
+    );
   }
 
   List<String> _readStringList(Map<String, dynamic> payload) {
-    for (final Object? raw in <Object?>[
-      payload['data'],
-      payload['items'],
-      payload['results'],
-      payload['value'],
-      _readMap(payload['data'])?['items'],
-      _readMap(payload['data'])?['results'],
-      _readMap(payload['data'])?['value'],
-    ]) {
-      if (raw is! List) {
-        continue;
-      }
-      return raw
-          .map((Object? item) => item?.toString() ?? '')
-          .where((String item) => item.isNotEmpty)
-          .toList(growable: false);
-    }
-    return const <String>[];
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
+    return ApiPayloadReader.readStringList(
+      data?['value'] ?? data?['items'] ?? data?['results'],
+    );
   }
 
   Map<String, dynamic>? _readMap(Object? value) {
@@ -614,7 +584,7 @@ class UserProfileRepository {
       }
     }
 
-    final Map<String, dynamic>? nestedData = _readMap(payload['data']);
+    final Map<String, dynamic>? nestedData = ApiPayloadReader.readDataMap(payload);
     if (nestedData != null) {
       return _extractBoolean(nestedData, keys);
     }

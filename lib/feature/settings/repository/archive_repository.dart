@@ -1,4 +1,5 @@
 import '../../../core/data/api/api_end_points.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/story_model.dart';
@@ -38,35 +39,10 @@ class ArchiveRepository {
   }
 
   List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    for (final Object? raw in <Object?>[
-      payload['data'],
-      payload['items'],
-      payload['results'],
-      _readMap(payload['data'])?['items'],
-      _readMap(payload['data'])?['results'],
-    ]) {
-      if (raw is! List) {
-        continue;
-      }
-      return raw
-          .whereType<Object>()
-          .map(
-            (Object item) => item is Map<String, dynamic>
-                ? item
-                : Map<String, dynamic>.from(item as Map),
-          )
-          .toList(growable: false);
-    }
-    return const <Map<String, dynamic>>[];
-  }
-
-  Map<String, dynamic>? _readMap(Object? value) {
-    if (value is Map<String, dynamic>) {
-      return value;
-    }
-    if (value is Map) {
-      return Map<String, dynamic>.from(value);
-    }
-    return null;
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      payload,
+      fallbackMessage: 'Archive response did not include a data payload.',
+    );
+    return ApiPayloadReader.readMapList(data);
   }
 }
