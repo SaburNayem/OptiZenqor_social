@@ -70,12 +70,15 @@ class SavedCollectionsRepository {
   List<SavedCollectionModel> _readCollectionsFromPayload(
     Map<String, dynamic> response,
   ) {
-    final Map<String, dynamic> payload =
-        ApiPayloadReader.readMap(response['data']) ?? response;
+    final Map<String, dynamic> payload = ApiPayloadReader.requireDataMap(
+      response,
+      fallbackMessage:
+          'Saved collections response did not include a data payload.',
+    );
 
     final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
       payload,
-      preferredKeys: const <String>['collections', 'items'],
+      preferredKeys: const <String>['collections'],
     );
     if (items.isNotEmpty) {
       return items
@@ -83,9 +86,7 @@ class SavedCollectionsRepository {
             (Map<String, dynamic> item) => SavedCollectionModel(
               id: ApiPayloadReader.readString(item['id']),
               name: ApiPayloadReader.readString(item['name']),
-              itemIds: ApiPayloadReader.readStringList(
-                item['itemIds'] ?? item['items'],
-              ),
+              itemIds: ApiPayloadReader.readStringList(item['itemIds']),
             ),
           )
           .where(
@@ -102,9 +103,7 @@ class SavedCollectionsRepository {
       final SavedCollectionModel item = SavedCollectionModel(
         id: ApiPayloadReader.readString(singleItem['id']),
         name: ApiPayloadReader.readString(singleItem['name']),
-        itemIds: ApiPayloadReader.readStringList(
-          singleItem['itemIds'] ?? singleItem['items'],
-        ),
+        itemIds: ApiPayloadReader.readStringList(singleItem['itemIds']),
       );
       if (item.id.isNotEmpty && item.name.isNotEmpty) {
         return <SavedCollectionModel>[item];
@@ -114,10 +113,9 @@ class SavedCollectionsRepository {
   }
 
   SavedCollectionModel? _readSingleCollection(Map<String, dynamic> response) {
-    final Map<String, dynamic> payload =
-        ApiPayloadReader.readMap(response['data']) ?? response;
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(response);
     final Map<String, dynamic>? item = ApiPayloadReader.readMap(
-      payload['collection'] ?? payload['item'] ?? payload['data'],
+      data?['collection'] ?? data?['item'] ?? data,
     );
     if (item == null || item.isEmpty) {
       return null;
@@ -125,9 +123,7 @@ class SavedCollectionsRepository {
     final SavedCollectionModel collection = SavedCollectionModel(
       id: ApiPayloadReader.readString(item['id']),
       name: ApiPayloadReader.readString(item['name']),
-      itemIds: ApiPayloadReader.readStringList(
-        item['itemIds'] ?? item['items'],
-      ),
+      itemIds: ApiPayloadReader.readStringList(item['itemIds']),
     );
     return collection.id.isNotEmpty ? collection : null;
   }

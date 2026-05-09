@@ -1420,7 +1420,7 @@ class _StoryPreviewScreenState extends State<StoryPreviewScreen> {
 
       final StoryModel story = await _storiesRepository.createStory(
         StoryModel(
-          id: 'draft_story_submission',
+          id: '',
           userId: widget.userId,
           createdAt: DateTime.now(),
           media: mediaItems.isEmpty ? '' : mediaItems.first,

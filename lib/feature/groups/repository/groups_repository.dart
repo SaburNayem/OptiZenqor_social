@@ -16,9 +16,13 @@ class GroupsRepository {
       throw Exception(response.message ?? 'Unable to load groups.');
     }
 
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Groups response did not include a data payload.',
+    );
     return ApiPayloadReader.readMapList(
-          response.data,
-          preferredKeys: const <String>['groups', 'items', 'results', 'data'],
+          data,
+          preferredKeys: const <String>['groups'],
         )
         .map(_groupFromApiJson)
         .where((GroupModel item) => item.id.isNotEmpty)
@@ -35,11 +39,7 @@ class GroupsRepository {
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['community']) ??
-        ApiPayloadReader.readMap(response.data['group']) ??
-        ApiPayloadReader.readMap(response.data);
+    final Map<String, dynamic>? payload = _readGroupPayload(response.data);
     return payload == null ? null : _groupFromApiJson(payload);
   }
 
@@ -56,12 +56,17 @@ class GroupsRepository {
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['community']) ??
-        ApiPayloadReader.readMap(response.data['group']) ??
-        ApiPayloadReader.readMap(response.data);
+    final Map<String, dynamic>? payload = _readGroupPayload(response.data);
     return payload == null ? null : _groupFromApiJson(payload);
+  }
+
+  Map<String, dynamic>? _readGroupPayload(Map<String, dynamic> response) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(response);
+    return ApiPayloadReader.readMap(data?['group']) ??
+        ApiPayloadReader.readMap(data?['community']) ??
+        ApiPayloadReader.readMap(data) ??
+        ApiPayloadReader.readMap(response['group']) ??
+        ApiPayloadReader.readMap(response['community']);
   }
 
   GroupModel _groupFromApiJson(Map<String, dynamic> json) {

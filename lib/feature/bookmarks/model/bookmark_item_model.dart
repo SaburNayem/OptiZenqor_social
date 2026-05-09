@@ -83,7 +83,6 @@ class BookmarkItemModel {
     final Map<String, dynamic>? post = ApiPayloadReader.readMap(json['post']);
     final String title = ApiPayloadReader.readString(
       json['title'] ?? json['caption'] ?? post?['caption'],
-      fallback: 'Saved item',
     );
     final String thumbnail = ApiPayloadReader.readString(
       json['thumbnail'] ??
@@ -95,7 +94,6 @@ class BookmarkItemModel {
     );
     final String typeValue = ApiPayloadReader.readString(
       json['type'] ?? json['entityType'],
-      fallback: 'post',
     );
 
     return BookmarkItemModel(
@@ -112,15 +110,11 @@ class BookmarkItemModel {
       ),
       authorName: ApiPayloadReader.readString(
         json['authorName'] ?? author?['name'],
-        fallback: 'Unknown creator',
       ),
       authorAvatar: ApiPayloadReader.readString(
         json['authorAvatar'] ?? author?['avatar'] ?? author?['avatarUrl'],
       ),
-      caption: ApiPayloadReader.readString(
-        json['caption'] ?? post?['caption'],
-        fallback: title,
-      ),
+      caption: ApiPayloadReader.readString(json['caption'] ?? post?['caption']),
       thumbnail: thumbnail,
       savedAt:
           ApiPayloadReader.readDateTime(json['savedAt'] ?? json['createdAt']) ??

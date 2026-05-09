@@ -23,5 +23,23 @@ void main() {
       expect(map?['status'], 'ok');
       expect(map?['count'], 3);
     });
+
+    test('reads normalized data maps', () {
+      final map = ApiPayloadReader.readDataMap(<String, Object?>{
+        'success': true,
+        'data': <String, Object?>{'status': 'ok'},
+      });
+
+      expect(map?['status'], 'ok');
+    });
+
+    test('throws when normalized data map is missing', () {
+      expect(
+        () => ApiPayloadReader.requireDataMap(<String, Object?>{
+          'success': true,
+        }, fallbackMessage: 'missing data'),
+        throwsA(isA<StateError>()),
+      );
+    });
   });
 }

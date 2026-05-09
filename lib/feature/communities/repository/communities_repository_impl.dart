@@ -18,9 +18,14 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
           .apiClient
           .get(ApiEndPoints.communities);
       if (response.isSuccess) {
-        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
           response.data,
-          preferredKeys: const <String>['communities', 'data', 'items'],
+          fallbackMessage:
+              'Communities response did not include a data payload.',
+        );
+        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+          data,
+          preferredKeys: const <String>['communities'],
         );
         if (items.isNotEmpty) {
           final List<CommunityGroupModel> groups = items
@@ -159,18 +164,13 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
   }
 
   Map<String, dynamic>? _extractGroupPayload(Map<String, dynamic> payload) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
     final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
-      payload.containsKey('id') ? payload : null,
+      ApiPayloadReader.readMap(data?['community']),
+      ApiPayloadReader.readMap(data?['group']),
+      ApiPayloadReader.readMap(data),
       ApiPayloadReader.readMap(payload['community']),
       ApiPayloadReader.readMap(payload['group']),
-      ApiPayloadReader.readMap(payload['data']),
-      ApiPayloadReader.readMap(payload['result']),
-      ApiPayloadReader.readMap(
-        ApiPayloadReader.readMap(payload['data'])?['community'],
-      ),
-      ApiPayloadReader.readMap(
-        ApiPayloadReader.readMap(payload['data'])?['group'],
-      ),
     ];
     for (final Map<String, dynamic>? candidate in candidates) {
       if (candidate == null) {

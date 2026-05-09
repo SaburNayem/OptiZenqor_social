@@ -1,4 +1,5 @@
 import '../../../core/data/api/api_end_points.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/upload_service.dart';
@@ -132,7 +133,7 @@ class StoriesRepository {
       return const <UserModel>[];
     }
 
-    return _readMapList(response.data)
+    return _readViewerItems(response.data)
         .map(UserModel.fromApiJson)
         .where((UserModel user) => user.id.isNotEmpty)
         .toList(growable: false);
@@ -229,10 +230,12 @@ class StoriesRepository {
   }
 
   Map<String, dynamic>? _extractStoryPayload(Map<String, dynamic> payload) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
     final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
       _looksLikeStory(payload) ? payload : null,
+      _readMap(data?['story']),
       _readMap(payload['story']),
-      _readMap(payload['data']),
+      data,
       _readMap(payload['result']),
     ];
 
@@ -251,6 +254,17 @@ class StoriesRepository {
     return null;
   }
 
+  List<Map<String, dynamic>> _readViewerItems(Map<String, dynamic> payload) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
+    if (data == null || data.isEmpty) {
+      return const <Map<String, dynamic>>[];
+    }
+    return ApiPayloadReader.readMapList(
+      data,
+      preferredKeys: const <String>['viewers', 'items'],
+    );
+  }
+
   bool _looksLikeStory(Map<String, dynamic> payload) {
     return (payload.containsKey('id') || payload.containsKey('_id')) &&
         (payload.containsKey('media') ||
@@ -258,27 +272,6 @@ class StoriesRepository {
             payload.containsKey('text') ||
             payload.containsKey('userId') ||
             payload.containsKey('author'));
-  }
-
-  List<Map<String, dynamic>> _readMapList(Map<String, dynamic> payload) {
-    for (final Object? raw in <Object?>[
-      payload['data'],
-      payload['items'],
-      payload['results'],
-      _readMap(payload['data'])?['items'],
-      _readMap(payload['data'])?['results'],
-      _readMap(payload['data'])?['viewers'],
-    ]) {
-      if (raw is! List) {
-        continue;
-      }
-      return raw
-          .whereType<Object>()
-          .map((Object item) => _readMap(item) ?? const <String, dynamic>{})
-          .where((Map<String, dynamic> item) => item.isNotEmpty)
-          .toList(growable: false);
-    }
-    return const <Map<String, dynamic>>[];
   }
 
   Map<String, dynamic>? _readMap(Object? value) {

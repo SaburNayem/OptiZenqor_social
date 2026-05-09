@@ -28,9 +28,14 @@ class PremiumMembershipRepository {
         if (!response.isSuccess || response.data['success'] == false) {
           continue;
         }
-        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
           response.data,
-          preferredKeys: const <String>['plans', 'items', 'results', 'data'],
+          fallbackMessage:
+              'Premium plans response did not include a data payload.',
+        );
+        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+          data,
+          preferredKeys: const <String>['plans'],
         );
         if (items.isNotEmpty) {
           return items

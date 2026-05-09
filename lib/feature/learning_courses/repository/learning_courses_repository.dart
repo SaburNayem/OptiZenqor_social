@@ -16,11 +16,14 @@ class LearningCoursesRepository {
       throw Exception(response.message ?? 'Unable to load learning courses.');
     }
 
-    final Map<String, dynamic> payload =
-        ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+    final Map<String, dynamic> payload = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage:
+          'Learning courses response did not include a data payload.',
+    );
     return ApiPayloadReader.readMapList(
           payload,
-          preferredKeys: const <String>['courses', 'items', 'results'],
+          preferredKeys: const <String>['courses', 'items'],
         )
         .map(_courseFromApiJson)
         .where((item) => item.id.isNotEmpty)

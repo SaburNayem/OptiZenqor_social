@@ -19,9 +19,13 @@ class CallsRepository {
       throw Exception(response.message ?? 'Unable to load calls.');
     }
 
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Calls response did not include a data payload.',
+    );
     return ApiPayloadReader.readMapList(
-          response.data,
-          preferredKeys: const <String>['calls', 'items', 'results', 'data'],
+          data,
+          preferredKeys: const <String>['calls'],
         )
         .map(_callFromApiJson)
         .where((CallItemModel item) => item.id.isNotEmpty)

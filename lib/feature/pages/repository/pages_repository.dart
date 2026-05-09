@@ -33,11 +33,7 @@ class PagesRepository {
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['page']) ??
-        ApiPayloadReader.readMap(response.data['item']) ??
-        ApiPayloadReader.readMap(response.data);
+    final Map<String, dynamic>? payload = _readPagePayload(response.data);
     if (payload == null || payload.isEmpty) {
       return null;
     }
@@ -52,11 +48,7 @@ class PagesRepository {
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['page']) ??
-        ApiPayloadReader.readMap(response.data['item']) ??
-        ApiPayloadReader.readMap(response.data);
+    final Map<String, dynamic>? payload = _readPagePayload(response.data);
     if (payload == null || payload.isEmpty) {
       return null;
     }
@@ -73,9 +65,8 @@ class PagesRepository {
         return '';
       }
       final Map<String, dynamic>? payload =
-          ApiPayloadReader.readMap(response.data['data']) ??
-          ApiPayloadReader.readMap(response.data['user']) ??
-          ApiPayloadReader.readMap(response.data);
+          ApiPayloadReader.readDataMap(response.data) ??
+          ApiPayloadReader.readMap(response.data['user']);
       if (payload != null && payload.isNotEmpty) {
         return ApiPayloadReader.readString(payload['id']);
       }
@@ -92,11 +83,13 @@ class PagesRepository {
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
-      final Map<String, dynamic> payload =
-          ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+      final Map<String, dynamic> payload = ApiPayloadReader.requireDataMap(
+        response.data,
+        fallbackMessage: 'Pages response did not include a data payload.',
+      );
       final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
         payload,
-        preferredKeys: const <String>['pages', 'items'],
+        preferredKeys: const <String>['pages'],
       );
       if (items.isNotEmpty) {
         return items
@@ -115,5 +108,14 @@ class PagesRepository {
       }
     } catch (_) {}
     return null;
+  }
+
+  Map<String, dynamic>? _readPagePayload(Map<String, dynamic> response) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(response);
+    return ApiPayloadReader.readMap(data?['page']) ??
+        ApiPayloadReader.readMap(data?['item']) ??
+        ApiPayloadReader.readMap(data) ??
+        ApiPayloadReader.readMap(response['page']) ??
+        ApiPayloadReader.readMap(response['item']);
   }
 }

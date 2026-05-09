@@ -86,11 +86,15 @@ class BookmarksRepository {
       if (!response.isSuccess || response.data['success'] == false) {
         return null;
       }
-      final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
         response.data,
-        preferredKeys: const <String>['bookmarks', 'items'],
+        fallbackMessage: 'Bookmarks response did not include a data payload.',
       );
-      if (items.isNotEmpty || response.data.isNotEmpty) {
+      final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        data,
+        preferredKeys: const <String>['bookmarks'],
+      );
+      if (items.isNotEmpty || data.isNotEmpty) {
         return items
             .map(BookmarkItemModel.fromApiJson)
             .where((BookmarkItemModel item) => item.id.isNotEmpty)

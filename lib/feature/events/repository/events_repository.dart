@@ -17,7 +17,10 @@ class EventsRepository {
     }
 
     final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
-      response.data,
+      ApiPayloadReader.requireDataMap(
+        response.data,
+        fallbackMessage: 'Events response did not include a data payload.',
+      ),
       preferredKeys: const <String>['events', 'items', 'data'],
     );
     return items
@@ -42,11 +45,13 @@ class EventsRepository {
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['event']) ??
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data);
-    if (payload == null || payload.isEmpty) {
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Event creation response did not include data.',
+    );
+    final Map<String, dynamic> payload =
+        ApiPayloadReader.readMap(data['event']) ?? data;
+    if (payload.isEmpty) {
       return null;
     }
     return _eventFromApiJson(payload);
@@ -81,11 +86,13 @@ class EventsRepository {
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to load event details.');
     }
-    final Map<String, dynamic>? payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['event']) ??
-        ApiPayloadReader.readMap(response.data);
-    if (payload == null || payload.isEmpty) {
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'The backend returned no event payload.',
+    );
+    final Map<String, dynamic> payload =
+        ApiPayloadReader.readMap(data['event']) ?? data;
+    if (payload.isEmpty) {
       throw Exception('The backend returned no event payload.');
     }
     return _eventFromApiJson(payload);
@@ -99,7 +106,7 @@ class EventsRepository {
         DateTime.now();
     return EventItemModel(
       id: ApiPayloadReader.readString(json['id']),
-      title: ApiPayloadReader.readString(json['title'], fallback: 'Event'),
+      title: ApiPayloadReader.readString(json['title']),
       date: date,
       rsvped: ApiPayloadReader.readBool(json['rsvped']) ?? false,
       saved: ApiPayloadReader.readBool(json['saved']) ?? false,

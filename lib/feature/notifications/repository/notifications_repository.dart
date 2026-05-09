@@ -18,9 +18,14 @@ class NotificationsRepository {
         if (!response.isSuccess || response.data['success'] == false) {
           continue;
         }
-        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+        final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
           response.data,
-          preferredKeys: const <String>['notifications', 'items'],
+          fallbackMessage:
+              'Notifications response did not include a data payload.',
+        );
+        final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+          data,
+          preferredKeys: const <String>['notifications'],
         );
         if (items.isNotEmpty) {
           return items

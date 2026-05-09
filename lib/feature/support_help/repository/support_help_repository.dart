@@ -21,8 +21,10 @@ class SupportHelpRepository {
       );
     }
 
-    final Map<String, dynamic> payload =
-        ApiPayloadReader.readMap(response.data['data']) ?? response.data;
+    final Map<String, dynamic> payload = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Support help response did not include a data payload.',
+    );
     final List<FaqItemModel> faqs = ApiPayloadReader.readMapList(
       payload,
       preferredKeys: const <String>['faqs'],
@@ -153,8 +155,10 @@ class SupportHelpRepository {
   }
 
   Map<String, dynamic>? _readPayloadMap(Map<String, dynamic> payload) {
-    return ApiPayloadReader.readMap(payload['data']) ??
-        ApiPayloadReader.readMap(payload['ticket']) ??
-        ApiPayloadReader.readMap(payload);
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
+    return ApiPayloadReader.readMap(data?['ticket']) ??
+        ApiPayloadReader.readMap(data?['supportTicket']) ??
+        ApiPayloadReader.readMap(data) ??
+        ApiPayloadReader.readMap(payload['ticket']);
   }
 }

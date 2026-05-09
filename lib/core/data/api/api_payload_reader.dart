@@ -39,6 +39,21 @@ class ApiPayloadReader {
     return null;
   }
 
+  static Map<String, dynamic>? readDataMap(Map<String, dynamic> payload) {
+    return readMap(payload['data']);
+  }
+
+  static Map<String, dynamic> requireDataMap(
+    Map<String, dynamic> payload, {
+    required String fallbackMessage,
+  }) {
+    final Map<String, dynamic>? data = readDataMap(payload);
+    if (data == null || data.isEmpty) {
+      throw StateError(fallbackMessage);
+    }
+    return data;
+  }
+
   static List<Map<String, dynamic>> readMapList(
     Map<String, dynamic> payload, {
     List<String> preferredKeys = const <String>[],

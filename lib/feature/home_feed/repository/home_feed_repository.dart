@@ -1,4 +1,5 @@
 import '../../../core/data/api/api_end_points.dart';
+import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
@@ -34,8 +35,14 @@ class HomeFeedRepository {
 
     try {
       final response = await _service.apiClient.get(_feedEndpointFor(segment));
-      final List<Map<String, dynamic>> items = _readMapList(response.data);
-      if (response.isSuccess && items.isNotEmpty) {
+      if (!response.isSuccess || response.data['success'] == false) {
+        return const <PostModel>[];
+      }
+      final List<Map<String, dynamic>> items = _readResponseList(
+        response.data,
+        preferredKeys: const <String>['items'],
+      );
+      if (items.isNotEmpty) {
         final List<PostModel> parsedPosts = items
             .map(PostModel.fromApiJson)
             .toList(growable: false);
@@ -153,9 +160,9 @@ class HomeFeedRepository {
       throw Exception(response.message ?? 'Unable to load hidden posts.');
     }
 
-    final List<Map<String, dynamic>> items = _readMapList(
+    final List<Map<String, dynamic>> items = _readResponseList(
       response.data,
-      preferredKeys: const <String>['hiddenPosts', 'items', 'data', 'results'],
+      preferredKeys: const <String>['hiddenPosts', 'items'],
     );
     final List<PostModel> posts = items
         .map((Map<String, dynamic> item) {
@@ -234,9 +241,9 @@ class HomeFeedRepository {
       if (!response.isSuccess || response.data['success'] == false) {
         return const <StoryModel>[];
       }
-      final List<Map<String, dynamic>> items = _readMapList(
+      final List<Map<String, dynamic>> items = _readResponseList(
         response.data,
-        preferredKeys: const <String>['stories', 'data', 'items', 'results'],
+        preferredKeys: const <String>['stories', 'items'],
       );
       final List<StoryModel> remoteStories = await _hydrateStoryAuthors(
         items
@@ -315,27 +322,15 @@ class HomeFeedRepository {
     }
   }
 
-  List<Map<String, dynamic>> _readMapList(
-    Map<String, dynamic> payload, {
+  List<Map<String, dynamic>> _readResponseList(
+    Map<String, dynamic> response, {
     List<String> preferredKeys = const <String>[],
   }) {
-    for (final Object? raw in <Object?>[
-      ...preferredKeys.map((String key) => payload[key]),
-      payload['data'],
-      payload['items'],
-      payload['results'],
-      payload['value'],
-    ]) {
-      if (raw is! List) {
-        continue;
-      }
-      return raw
-          .whereType<Object>()
-          .map((Object item) => _readMap(item) ?? const <String, dynamic>{})
-          .where((Map<String, dynamic> item) => item.isNotEmpty)
-          .toList(growable: false);
-    }
-    return const <Map<String, dynamic>>[];
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response,
+      fallbackMessage: 'Feed response did not include a data payload.',
+    );
+    return ApiPayloadReader.readMapList(data, preferredKeys: preferredKeys);
   }
 
   Future<String> _currentUserId() async {
@@ -486,10 +481,12 @@ class HomeFeedRepository {
   }
 
   Map<String, dynamic>? _extractUserPayload(Map<String, dynamic> payload) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
     final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
       payload,
       _readMap(payload['user']),
-      _readMap(payload['data']),
+      _readMap(data?['user']),
+      data,
       _readMap(payload['profile']),
       _readMap(payload['result']),
     ];
@@ -507,10 +504,12 @@ class HomeFeedRepository {
   }
 
   Map<String, dynamic>? _extractPostPayload(Map<String, dynamic> payload) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(payload);
     final List<Map<String, dynamic>?> candidates = <Map<String, dynamic>?>[
       _looksLikePost(payload) ? payload : null,
+      _readMap(data?['post']),
       _readMap(payload['post']),
-      _readMap(payload['data']),
+      data,
       _readMap(payload['result']),
     ];
     for (final Map<String, dynamic>? candidate in candidates) {

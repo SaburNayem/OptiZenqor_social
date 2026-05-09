@@ -64,24 +64,14 @@ class SessionItemModel {
 
     return SessionItemModel(
       id: ApiPayloadReader.readString(json['id']),
-      device: ApiPayloadReader.readString(
-        json['device'] ?? json['deviceName'],
-        fallback: 'Unknown device',
-      ),
+      device: ApiPayloadReader.readString(json['device'] ?? json['deviceName']),
       location: ApiPayloadReader.readString(
         json['location'] ?? json['ipLocation'],
-        fallback: 'Unknown location',
       ),
-      platform: ApiPayloadReader.readString(
-        json['platform'] ?? json['client'],
-        fallback: 'Unknown',
-      ),
+      platform: ApiPayloadReader.readString(json['platform'] ?? json['client']),
       lastActive:
           lastActiveAt?.toLocal().toString() ??
-          ApiPayloadReader.readString(
-            json['lastActive'] ?? json['lastSeen'],
-            fallback: 'Unknown',
-          ),
+          ApiPayloadReader.readString(json['lastActive'] ?? json['lastSeen']),
       active:
           ApiPayloadReader.readBool(json['active'] ?? json['isActive']) ??
           false,

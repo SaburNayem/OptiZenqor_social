@@ -646,7 +646,7 @@ class _StoryTextComposerScreenState extends State<StoryTextComposerScreen> {
           StoryTextComposerController.gradients[_controller.gradientIndex];
       final StoryModel story = await _storiesRepository.createStory(
         StoryModel(
-          id: 'draft_story_submission',
+          id: '',
           userId: widget.userId,
           createdAt: DateTime.now(),
           text: _controller.currentText,

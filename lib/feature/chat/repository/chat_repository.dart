@@ -24,9 +24,13 @@ class ChatRepository {
       throw Exception(response.message ?? 'Unable to load conversations.');
     }
 
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Chat threads response did not include a data payload.',
+    );
     return ApiPayloadReader.readMapList(
-          response.data,
-          preferredKeys: const <String>['data', 'threads', 'items'],
+          data,
+          preferredKeys: const <String>['threads'],
         )
         .map(
           (Map<String, dynamic> item) =>
@@ -47,10 +51,14 @@ class ChatRepository {
       throw Exception(response.message ?? 'Unable to open chat.');
     }
 
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Chat thread response did not include a data payload.',
+    );
     final Map<String, dynamic>? thread =
-        ApiPayloadReader.readMap(response.data['thread']) ??
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data);
+        ApiPayloadReader.readMap(data['thread']) ??
+        ApiPayloadReader.readMap(data['conversation']) ??
+        ApiPayloadReader.readMap(data);
     if (thread == null) {
       throw Exception('Chat thread response was empty.');
     }
@@ -68,9 +76,13 @@ class ChatRepository {
       throw Exception(response.message ?? 'Unable to load messages.');
     }
 
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Chat messages response did not include a data payload.',
+    );
     return ApiPayloadReader.readMapList(
-          response.data,
-          preferredKeys: const <String>['data', 'messages', 'items'],
+          data,
+          preferredKeys: const <String>['messages'],
         )
         .map(MessageModel.fromApiJson)
         .map((MessageModel item) {
@@ -109,10 +121,14 @@ class ChatRepository {
       throw Exception(response.message ?? 'Unable to send message');
     }
 
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Chat message response did not include a data payload.',
+    );
     final Map<String, dynamic> payload =
-        ApiPayloadReader.readMap(response.data['data']) ??
-        ApiPayloadReader.readMap(response.data['message']) ??
-        response.data;
+        ApiPayloadReader.readMap(data['message']) ??
+        ApiPayloadReader.readMap(data) ??
+        const <String, dynamic>{};
     final MessageModel message = MessageModel.fromApiJson(payload);
     if (message.id.isEmpty) {
       throw Exception('Unable to send message');

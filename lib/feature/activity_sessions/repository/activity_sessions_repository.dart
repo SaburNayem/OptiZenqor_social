@@ -35,10 +35,13 @@ class ActivitySessionsRepository {
         continue;
       }
       final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
-        response.data,
+        ApiPayloadReader.requireDataMap(
+          response.data,
+          fallbackMessage: 'Activity sessions response did not include data.',
+        ),
         preferredKeys: const <String>['sessions', 'items'],
       );
-      if (items.isNotEmpty || response.data.isNotEmpty) {
+      if (items.isNotEmpty) {
         return items
             .map(SessionItemModel.fromApiJson)
             .where((SessionItemModel item) => item.id.isNotEmpty)
@@ -55,10 +58,11 @@ class ActivitySessionsRepository {
       return const <String>[];
     }
 
-    final Object? raw =
-        response.data['history'] ??
-        response.data['data'] ??
-        response.data['items'];
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Activity history response did not include data.',
+    );
+    final Object? raw = data['history'] ?? data['items'];
     if (raw is List) {
       final List<String> history = raw
           .map<String>((Object? item) {
