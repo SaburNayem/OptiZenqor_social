@@ -28,14 +28,18 @@ class LearningCoursesRepository {
   }
 
   CourseModel _courseFromApiJson(Map<String, dynamic> json) {
+    final Map<String, dynamic>? instructorPayload = ApiPayloadReader.readMap(
+      json['instructor'] ?? json['author'],
+    );
     return CourseModel(
       id: ApiPayloadReader.readString(json['id']),
-      title: ApiPayloadReader.readString(json['title'], fallback: 'Course'),
+      title: ApiPayloadReader.readString(json['title']),
       lessons: ApiPayloadReader.readStringList(json['lessons']),
       progress: ApiPayloadReader.readDouble(json['progress']),
       instructor: ApiPayloadReader.readString(
-        json['instructor'],
-        fallback: 'Instructor profile',
+        json['instructorName'] ??
+            instructorPayload?['name'] ??
+            json['instructor'],
       ),
       saved: ApiPayloadReader.readBool(json['saved']) ?? false,
       certificateSummary: ApiPayloadReader.readString(

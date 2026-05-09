@@ -7,19 +7,20 @@ class PageModel {
     required this.about,
     required this.posts,
     this.following = false,
-    this.category = 'General',
-    this.actionButtonLabel = 'Follow',
-    this.reviewSummary = 'Audience reviews are available for page visitors.',
-    this.visitorPostsSummary = 'Visitor posts are enabled for followers.',
-    this.followersInsight = 'Page engagement is trending upward this week.',
+    this.category = '',
+    this.actionButtonLabel = '',
+    this.reviewSummary = '',
+    this.visitorPostsSummary = '',
+    this.followersInsight = '',
     this.avatarUrl = '',
     this.coverUrl = '',
     this.followersCount = 0,
     this.likesCount = 0,
     this.verified = false,
     this.ownerId = '',
-    this.location = 'Global',
-    this.contactLabel = 'Message',
+    this.location = '',
+    this.contactLabel = '',
+    this.shareUrl = '',
     this.highlights = const <String>[],
   });
   final String id;
@@ -40,15 +41,13 @@ class PageModel {
   final String ownerId;
   final String location;
   final String contactLabel;
+  final String shareUrl;
   final List<String> highlights;
 
   factory PageModel.fromApiJson(Map<String, dynamic> json) {
     return PageModel(
       id: ApiPayloadReader.readString(json['id']),
-      name: ApiPayloadReader.readString(
-        json['name'],
-        fallback: 'Untitled page',
-      ),
+      name: ApiPayloadReader.readString(json['name']),
       about: ApiPayloadReader.readString(json['about'] ?? json['description']),
       posts: ApiPayloadReader.readStringList(
         json['posts'] ?? json['postTitles'],
@@ -56,26 +55,13 @@ class PageModel {
       following:
           ApiPayloadReader.readBool(json['following'] ?? json['isFollowing']) ??
           false,
-      category: ApiPayloadReader.readString(
-        json['category'],
-        fallback: 'General',
-      ),
-      actionButtonLabel: ApiPayloadReader.readString(
-        json['actionButtonLabel'],
-        fallback: 'Follow',
-      ),
-      reviewSummary: ApiPayloadReader.readString(
-        json['reviewSummary'],
-        fallback: 'Audience reviews are available for page visitors.',
-      ),
+      category: ApiPayloadReader.readString(json['category']),
+      actionButtonLabel: ApiPayloadReader.readString(json['actionButtonLabel']),
+      reviewSummary: ApiPayloadReader.readString(json['reviewSummary']),
       visitorPostsSummary: ApiPayloadReader.readString(
         json['visitorPostsSummary'],
-        fallback: 'Visitor posts are enabled for followers.',
       ),
-      followersInsight: ApiPayloadReader.readString(
-        json['followersInsight'],
-        fallback: 'Page engagement is trending upward this week.',
-      ),
+      followersInsight: ApiPayloadReader.readString(json['followersInsight']),
       avatarUrl: ApiPayloadReader.readString(
         json['avatarUrl'] ?? json['avatar'],
       ),
@@ -88,13 +74,12 @@ class PageModel {
           ApiPayloadReader.readBool(json['verified'] ?? json['isVerified']) ??
           false,
       ownerId: ApiPayloadReader.readString(json['ownerId'] ?? json['userId']),
-      location: ApiPayloadReader.readString(
-        json['location'],
-        fallback: 'Global',
-      ),
+      location: ApiPayloadReader.readString(json['location']),
       contactLabel: ApiPayloadReader.readString(
-        json['contactLabel'],
-        fallback: 'Message',
+        json['contactLabel'] ?? json['primaryActionLabel'],
+      ),
+      shareUrl: ApiPayloadReader.readString(
+        json['shareUrl'] ?? json['shareLink'] ?? json['url'],
       ),
       highlights: ApiPayloadReader.readStringList(json['highlights']),
     );
@@ -123,6 +108,7 @@ class PageModel {
     ownerId: ownerId,
     location: location,
     contactLabel: contactLabel,
+    shareUrl: shareUrl,
     highlights: highlights,
   );
 }

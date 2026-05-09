@@ -261,6 +261,7 @@ class ApiEndPoints {
   static const pagesDetail = '/pages/detail';
   static String pageDetailById(String pageId) => '/pages/detail/$pageId';
   static String pageById(String pageId) => '/pages/$pageId';
+  static String pageFollow(String pageId) => '/pages/$pageId/follow';
   static const groups = '/groups';
   static String groupById(String groupId) => '/groups/$groupId';
   static String groupPosts(String groupId) => '/groups/$groupId/posts';

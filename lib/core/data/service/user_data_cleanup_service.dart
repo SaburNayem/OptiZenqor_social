@@ -1,7 +1,6 @@
 import 'package:flutter/painting.dart';
 
 import '../../constants/storage_keys.dart';
-import '../../database/app_database.dart';
 import '../shared_preference/app_shared_preferences.dart';
 
 class UserDataCleanupService {
@@ -18,8 +17,6 @@ class UserDataCleanupService {
     StorageKeys.searchHistory,
     StorageKeys.draftPosts,
     StorageKeys.cachedFeed,
-    StorageKeys.localCreatedPosts,
-    StorageKeys.localStories,
     StorageKeys.seenStoryIds,
     StorageKeys.cachedProfile,
     StorageKeys.offlineQueue,
@@ -54,9 +51,6 @@ class UserDataCleanupService {
       userScopedStorageKeys.map(_storage.remove),
       eagerError: false,
     );
-    try {
-      await AppDatabase.instance.clearTable('communities_cache');
-    } catch (_) {}
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();

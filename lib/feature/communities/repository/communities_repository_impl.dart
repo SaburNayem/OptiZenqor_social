@@ -3,18 +3,13 @@ import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/community_group_model.dart';
 import '../repository/communities_repository.dart';
-import '../service/community_local_data_source.dart';
 import '../service/communities_service.dart';
 
 class CommunitiesRepositoryImpl implements CommunitiesRepository {
-  CommunitiesRepositoryImpl({
-    CommunitiesService? service,
-    CommunityLocalDataSource? localDataSource,
-  }) : _service = service ?? CommunitiesService(),
-       _localDataSource = localDataSource ?? CommunityLocalDataSource();
+  CommunitiesRepositoryImpl({CommunitiesService? service})
+    : _service = service ?? CommunitiesService();
 
   final CommunitiesService _service;
-  final CommunityLocalDataSource _localDataSource;
 
   @override
   Future<List<CommunityGroupModel>> loadGroups() async {
@@ -33,7 +28,6 @@ class CommunitiesRepositoryImpl implements CommunitiesRepository {
               .where((CommunityGroupModel item) => item.id.isNotEmpty)
               .toList(growable: false);
           if (groups.isNotEmpty) {
-            await _localDataSource.saveGroups(groups);
             return groups;
           }
         }

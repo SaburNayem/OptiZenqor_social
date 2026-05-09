@@ -48,34 +48,6 @@ class HomeFeedRepository {
     return const <PostModel>[];
   }
 
-  Future<List<PostModel>> readCachedFeed() async {
-    final cached = await _storage.readJsonList(StorageKeys.cachedFeed);
-    if (cached.isEmpty) {
-      return <PostModel>[];
-    }
-    return cached.map(PostModel.fromApiJson).toList(growable: false);
-  }
-
-  Future<List<PostModel>> readLocalCreatedPosts() async {
-    final List<Map<String, dynamic>> cached = await _storage.readJsonList(
-      StorageKeys.localCreatedPosts,
-    );
-    if (cached.isEmpty) {
-      return <PostModel>[];
-    }
-    return cached
-        .map(PostModel.fromApiJson)
-        .where((PostModel post) => post.id.isNotEmpty)
-        .toList(growable: false);
-  }
-
-  Future<void> saveLocalCreatedPosts(List<PostModel> posts) {
-    return _storage.writeJsonList(
-      StorageKeys.localCreatedPosts,
-      posts.map((PostModel post) => post.toCacheJson()).toList(),
-    );
-  }
-
   Future<PostModel> createPost({
     required String caption,
     List<String> mediaPaths = const <String>[],

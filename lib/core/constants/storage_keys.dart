@@ -11,8 +11,6 @@ class StorageKeys {
   static const searchHistory = 'search_history';
   static const draftPosts = 'draft_posts';
   static const cachedFeed = 'cached_feed';
-  static const localCreatedPosts = 'local_created_posts';
-  static const localStories = 'local_stories';
   static const seenStoryIds = 'seen_story_ids';
   static const cachedProfile = 'cached_profile';
   static const offlineQueue = 'offline_queue';

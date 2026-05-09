@@ -1,3 +1,4 @@
+import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/api/api_payload_reader.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../model/page_model.dart';
@@ -24,7 +25,7 @@ class PagesRepository {
   }) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
-        .post('/pages/create', <String, dynamic>{
+        .post(ApiEndPoints.pages, <String, dynamic>{
           'name': name.trim(),
           'about': about.trim(),
           'category': category.trim(),
@@ -47,7 +48,7 @@ class PagesRepository {
   Future<PageModel?> toggleFollow(String pageId) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
-        .patch('/pages/$pageId/follow', const <String, dynamic>{});
+        .patch(ApiEndPoints.pageFollow(pageId), const <String, dynamic>{});
     if (!response.isSuccess || response.data['success'] == false) {
       return null;
     }
@@ -67,7 +68,7 @@ class PagesRepository {
     try {
       final ServiceResponseModel<Map<String, dynamic>> response = await _service
           .apiClient
-          .get('/auth/me');
+          .get(ApiEndPoints.authMe);
       if (!response.isSuccess || response.data['success'] == false) {
         return '';
       }

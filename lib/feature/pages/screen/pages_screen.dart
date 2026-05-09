@@ -245,7 +245,14 @@ class _PagesScreenState extends State<PagesScreen> {
   }
 
   Future<void> _copyPageLink(PageModel page) async {
-    final link = 'https://optizenqor.app/pages/${page.id}';
+    final link = page.shareUrl.trim();
+    if (link.isEmpty) {
+      AppGet.snackbar(
+        'Pages',
+        'This page does not have a backend share link yet.',
+      );
+      return;
+    }
     await Clipboard.setData(ClipboardData(text: link));
     AppGet.snackbar('Pages', 'Page link copied');
   }
@@ -517,11 +524,10 @@ class _FeaturedPageCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
-              child: Image.network(
-                page.coverUrl,
+              child: _PageCoverImage(
+                imageUrl: page.coverUrl,
+                title: page.name,
                 height: 108,
-                width: double.infinity,
-                fit: BoxFit.cover,
               ),
             ),
             Padding(
@@ -531,10 +537,7 @@ class _FeaturedPageCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(page.avatarUrl),
-                        radius: 22,
-                      ),
+                      _PageAvatar(page: page, radius: 22),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
@@ -563,22 +566,25 @@ class _FeaturedPageCard extends StatelessWidget {
                                 ],
                               ],
                             ),
-                            Text(
-                              page.category,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
+                            if (page.category.trim().isNotEmpty)
+                              Text(
+                                page.category,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    page.about,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  if (page.about.trim().isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      page.about,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -594,11 +600,7 @@ class _FeaturedPageCard extends StatelessWidget {
                     child: FilledButton.tonal(
                       onPressed: isManaged ? onTap : onFollowTap,
                       child: Text(
-                        isManaged
-                            ? 'Manage page'
-                            : page.following
-                            ? 'Following'
-                            : 'Follow page',
+                        isManaged ? 'Manage page' : _pageFollowLabel(page),
                       ),
                     ),
                   ),
@@ -647,11 +649,10 @@ class _PageListCard extends StatelessWidget {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
-              child: Image.network(
-                page.coverUrl,
+              child: _PageCoverImage(
+                imageUrl: page.coverUrl,
+                title: page.name,
                 height: 140,
-                width: double.infinity,
-                fit: BoxFit.cover,
               ),
             ),
             Padding(
@@ -661,10 +662,7 @@ class _PageListCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(page.avatarUrl),
-                        radius: 24,
-                      ),
+                      _PageAvatar(page: page, radius: 24),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -693,10 +691,11 @@ class _PageListCard extends StatelessWidget {
                                 ],
                               ],
                             ),
-                            Text(
-                              '${page.category} • ${page.location}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
+                            if (_pageMetaLine(page).isNotEmpty)
+                              Text(
+                                _pageMetaLine(page),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                           ],
                         ),
                       ),
@@ -791,11 +790,10 @@ class _PageDetailScreen extends StatelessWidget {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Image.network(
-                    page.coverUrl,
+                  _PageCoverImage(
+                    imageUrl: page.coverUrl,
+                    title: page.name,
                     height: 220,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
                   ),
                   Positioned(
                     left: 20,
@@ -803,10 +801,7 @@ class _PageDetailScreen extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 38,
                       backgroundColor: AppColors.white,
-                      child: CircleAvatar(
-                        radius: 34,
-                        backgroundImage: NetworkImage(page.avatarUrl),
-                      ),
+                      child: _PageAvatar(page: page, radius: 34),
                     ),
                   ),
                 ],
@@ -834,10 +829,11 @@ class _PageDetailScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      '${page.category} • ${page.location}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    if (_pageMetaLine(page).isNotEmpty)
+                      Text(
+                        _pageMetaLine(page),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     const SizedBox(height: 14),
                     Text(
                       page.about,
@@ -954,9 +950,11 @@ class _PageDetailScreen extends StatelessWidget {
                       'Pages',
                       isManaged
                           ? 'Insights opened'
-                          : '${page.contactLabel} action opened',
+                          : '${_pageContactLabel(page)} action opened',
                     ),
-                    child: Text(isManaged ? 'Insights' : page.contactLabel),
+                    child: Text(
+                      isManaged ? 'Insights' : _pageContactLabel(page),
+                    ),
                   ),
                 ),
               ],
@@ -968,9 +966,96 @@ class _PageDetailScreen extends StatelessWidget {
   }
 
   Future<void> _copyPageLink(PageModel page) async {
-    final link = 'https://optizenqor.app/pages/${page.id}';
+    final link = page.shareUrl.trim();
+    if (link.isEmpty) {
+      AppGet.snackbar(
+        'Pages',
+        'This page does not have a backend share link yet.',
+      );
+      return;
+    }
     await Clipboard.setData(ClipboardData(text: link));
     AppGet.snackbar('Pages', 'Page link copied');
+  }
+}
+
+class _PageCoverImage extends StatelessWidget {
+  const _PageCoverImage({
+    required this.imageUrl,
+    required this.title,
+    required this.height,
+  });
+
+  final String imageUrl;
+  final String title;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl.trim().isEmpty) {
+      return Container(
+        height: height,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: <Color>[AppColors.hexFF0F172A, AppColors.hexFF2563EB],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        alignment: Alignment.bottomLeft,
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          title.trim().isEmpty ? 'Page' : title.trim(),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      height: height,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) =>
+          _PageCoverImage(imageUrl: '', title: title, height: height),
+    );
+  }
+}
+
+class _PageAvatar extends StatelessWidget {
+  const _PageAvatar({required this.page, required this.radius});
+
+  final PageModel page;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final String initials = _pageInitials(page.name);
+    if (page.avatarUrl.trim().isEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: AppColors.hexFF2563EB.withValues(alpha: 0.14),
+        child: Text(
+          initials,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppColors.hexFF2563EB,
+          ),
+        ),
+      );
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundImage: NetworkImage(page.avatarUrl),
+      onBackgroundImageError: (error, stackTrace) {},
+    );
   }
 }
 
@@ -1031,4 +1116,40 @@ String _formatCount(int value) {
     return '${(value / 1000).toStringAsFixed(1)}K';
   }
   return '$value';
+}
+
+String _pageFollowLabel(PageModel page) {
+  if (page.actionButtonLabel.trim().isNotEmpty) {
+    return page.actionButtonLabel.trim();
+  }
+  return page.following ? 'Following' : 'Follow page';
+}
+
+String _pageMetaLine(PageModel page) {
+  final List<String> parts = <String>[
+    if (page.category.trim().isNotEmpty) page.category.trim(),
+    if (page.location.trim().isNotEmpty) page.location.trim(),
+  ];
+  return parts.join(' • ');
+}
+
+String _pageContactLabel(PageModel page) {
+  return page.contactLabel.trim().isEmpty
+      ? 'Contact'
+      : page.contactLabel.trim();
+}
+
+String _pageInitials(String name) {
+  final List<String> parts = name
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
+  if (parts.isEmpty) {
+    return 'P';
+  }
+  if (parts.length == 1) {
+    return parts.first.substring(0, 1).toUpperCase();
+  }
+  return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
 }

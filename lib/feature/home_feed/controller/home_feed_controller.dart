@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/data/models/load_state_model.dart';
 import '../../../core/data/models/pagination_state_model.dart';
 import '../../../core/data/models/post_model.dart';
@@ -406,13 +405,6 @@ class HomeFeedController extends Cubit<int> {
         post,
         ...posts.where((PostModel item) => item.id != post.id),
       ];
-      final List<PostModel> localPosts = await _repository
-          .readLocalCreatedPosts();
-      if (localPosts.any((PostModel item) => item.id == post.id)) {
-        await _repository.saveLocalCreatedPosts(
-          localPosts.where((PostModel item) => item.id != post.id).toList(),
-        );
-      }
       loadState = loadState.copyWith(
         isLoading: false,
         hasError: false,
@@ -486,11 +478,7 @@ class HomeFeedController extends Cubit<int> {
           '[StorySync] Created story but GET /stories returned empty.',
         );
       }
-      stories = AppConfig.useRemoteOnly
-          ? remoteStories
-          : remoteStories.isEmpty
-          ? _sortStories(<StoryModel>[...created, ...stories])
-          : remoteStories;
+      stories = remoteStories;
       loadState = loadState.copyWith(
         hasError: false,
         errorMessage: null,
@@ -562,11 +550,6 @@ class HomeFeedController extends Cubit<int> {
     _notify();
     try {
       await _repository.deletePost(postId);
-      final List<PostModel> localPosts = await _repository
-          .readLocalCreatedPosts();
-      await _repository.saveLocalCreatedPosts(
-        localPosts.where((PostModel post) => post.id != postId).toList(),
-      );
     } catch (_) {
       posts.insert(index, removed);
       _notify();
