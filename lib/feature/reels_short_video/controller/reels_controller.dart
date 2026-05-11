@@ -13,12 +13,43 @@ class ReelsController extends ChangeNotifier {
   final ReelsShortVideoService _service;
   List<ReelModel> reels = <ReelModel>[];
   ReelFilterModel filter = const ReelFilterModel(filter: ReelFeedFilter.forYou);
+  Future<void>? _loadFuture;
+  bool _hasLoaded = false;
+  bool _isLoading = false;
+  bool _hasError = false;
   final Set<String> _likedReelIds = <String>{};
   final Set<String> _savedDraftIds = <String>{};
   final Map<String, int> _extraCommentCount = <String, int>{};
   final Map<String, int> _extraShareCount = <String, int>{};
 
-  Future<void> load() async {
+  bool get isLoading => _isLoading;
+  bool get hasLoaded => _hasLoaded;
+  bool get hasError => _hasError;
+
+  Future<void> load({bool force = false}) {
+    if (!force) {
+      final Future<void>? inFlight = _loadFuture;
+      if (inFlight != null) {
+        return inFlight;
+      }
+      if (_hasLoaded) {
+        return Future<void>.value();
+      }
+    }
+
+    final Future<void> future = _performLoad();
+    _loadFuture = future;
+    return future.whenComplete(() {
+      if (identical(_loadFuture, future)) {
+        _loadFuture = null;
+      }
+    });
+  }
+
+  Future<void> _performLoad() async {
+    _isLoading = true;
+    _hasError = false;
+    notifyListeners();
     try {
       final ServiceResponseModel<Map<String, dynamic>> response = await _service
           .getEndpoint('reels');
@@ -27,17 +58,21 @@ class ReelsController extends ChangeNotifier {
           response.data,
           preferredKeys: const <String>['reels', 'items'],
         );
-        if (items.isNotEmpty) {
-          reels = items
-              .map(ReelModel.fromApiJson)
-              .where((ReelModel item) => item.id.isNotEmpty)
-              .toList(growable: false);
-          notifyListeners();
-          return;
-        }
+        reels = items
+            .map(ReelModel.fromApiJson)
+            .where((ReelModel item) => item.id.isNotEmpty)
+            .toList(growable: false);
+        _hasLoaded = true;
+        _isLoading = false;
+        _hasError = false;
+        notifyListeners();
+        return;
       }
     } catch (_) {}
     reels = const <ReelModel>[];
+    _hasLoaded = true;
+    _isLoading = false;
+    _hasError = true;
     notifyListeners();
   }
 

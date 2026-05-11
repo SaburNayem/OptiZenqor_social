@@ -46,6 +46,13 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  Future<void> _refreshScreen() async {
+    await Future.wait<void>(<Future<void>>[
+      _controller.loadChats(),
+      _loadStories(),
+    ]);
+  }
+
   Future<void> _loadStories() async {
     setState(() => _isLoadingStories = true);
     final List<StoryModel> stories = await _homeFeedRepository.fetchStories(
@@ -101,10 +108,22 @@ class _ChatScreenState extends State<ChatScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (_controller.hasError) {
-            return ErrorStateView(
-              message:
-                  _controller.state.errorMessage ?? 'Unable to load messages',
-              onRetry: _controller.loadChats,
+            return RefreshIndicator(
+              onRefresh: _refreshScreen,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: <Widget>[
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: ErrorStateView(
+                      message:
+                          _controller.state.errorMessage ??
+                          'Unable to load messages',
+                      onRetry: _controller.loadChats,
+                    ),
+                  ),
+                ],
+              ),
             );
           }
 
@@ -118,11 +137,23 @@ class _ChatScreenState extends State<ChatScreen> {
             conversationUsers: conversationUsers,
           );
           if (inbox.isEmpty && _stories.isEmpty && !_isLoadingStories) {
-            return const Center(child: Text('No chats available'));
+            return RefreshIndicator(
+              onRefresh: _refreshScreen,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const <Widget>[
+                  SizedBox(height: 240),
+                  Center(child: Text('No chats available')),
+                ],
+              ),
+            );
           }
 
-          return CustomScrollView(
-            slivers: <Widget>[
+          return RefreshIndicator(
+            onRefresh: _refreshScreen,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: <Widget>[
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
@@ -459,7 +490,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   );
                 }, childCount: inbox.length),
               ),
-            ],
+              ],
+            ),
           );
         },
       ),

@@ -25,6 +25,7 @@ class ChatController extends ChangeNotifier {
   final AnalyticsService _analytics;
   final SocketService _socketService;
   StreamSubscription<SocketEnvelope>? _chatSubscription;
+  bool _isDisposed = false;
 
   LoadStateModel state = const LoadStateModel();
   List<ChatThreadModel> threads = <ChatThreadModel>[];
@@ -43,7 +44,7 @@ class ChatController extends ChangeNotifier {
 
   void setFilter(ChatInboxFilter next) {
     filter = ChatInboxFilterModel(filter: next);
-    notifyListeners();
+    _notifySafely();
   }
 
   List<ChatThreadModel> get inboxThreads {
@@ -74,23 +75,33 @@ class ChatController extends ChangeNotifier {
 
   Future<void> loadChats() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    notifyListeners();
+    _notifySafely();
     try {
-      threads = await _repository.fetchThreads();
+      final List<ChatThreadModel> nextThreads = await _repository.fetchThreads();
+      if (_isDisposed) {
+        return;
+      }
+      threads = nextThreads;
       await _ensureSocketSubscription();
+      if (_isDisposed) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         isSuccess: true,
         isEmpty: threads.isEmpty,
       );
-      notifyListeners();
+      _notifySafely();
     } catch (_) {
+      if (_isDisposed) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         hasError: true,
         errorMessage: 'Unable to load conversations',
       );
-      notifyListeners();
+      _notifySafely();
     }
   }
 
@@ -103,6 +114,9 @@ class ChatController extends ChangeNotifier {
   }
 
   void _handleSocketEvent(SocketEnvelope envelope) {
+    if (_isDisposed) {
+      return;
+    }
     switch (envelope.event) {
       case SocketEvent.chatMessage:
         _applyIncomingMessage(envelope.data);
@@ -136,7 +150,7 @@ class ChatController extends ChangeNotifier {
       lastMessageModel: message,
       unreadCount: current.unreadCount + (message.read ? 0 : 1),
     );
-    notifyListeners();
+    _notifySafely();
   }
 
   void _applyThreadUpdate(Map<String, dynamic> payload) {
@@ -155,7 +169,7 @@ class ChatController extends ChangeNotifier {
     } else {
       threads[index] = thread;
     }
-    notifyListeners();
+    _notifySafely();
   }
 
   void togglePinned(String chatId) {
@@ -171,7 +185,7 @@ class ChatController extends ChangeNotifier {
         'pinned': _pinnedChatIds.contains(chatId),
       },
     );
-    notifyListeners();
+    _notifySafely();
   }
 
   void toggleArchived(String chatId) {
@@ -187,17 +201,17 @@ class ChatController extends ChangeNotifier {
         'archived': _archivedChatIds.contains(chatId),
       },
     );
-    notifyListeners();
+    _notifySafely();
   }
 
   Future<void> simulateSendFailure(String chatId) async {
     _retryChatIds.add(chatId);
-    notifyListeners();
+    _notifySafely();
   }
 
   void retry(String chatId) {
     _retryChatIds.remove(chatId);
-    notifyListeners();
+    _notifySafely();
   }
 
   void deleteConversation(String chatId) {
@@ -205,11 +219,19 @@ class ChatController extends ChangeNotifier {
     _pinnedChatIds.remove(chatId);
     _archivedChatIds.remove(chatId);
     _retryChatIds.remove(chatId);
+    _notifySafely();
+  }
+
+  void _notifySafely() {
+    if (_isDisposed) {
+      return;
+    }
     notifyListeners();
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
     _chatSubscription?.cancel();
     _chatSubscription = null;
     super.dispose();

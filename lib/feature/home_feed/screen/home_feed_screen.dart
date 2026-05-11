@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/enums/user_role.dart';
 import '../../../core/common_widget/empty_state_view.dart';
 import '../../../core/common_widget/error_state_view.dart';
 import '../../../core/common_widget/post_card.dart';
@@ -146,10 +147,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     )
                   else
                     ...visiblePosts.map((post) {
-                      final UserModel? user = post.author;
-                      if (user == null) {
-                        return const SizedBox.shrink();
-                      }
+                      final UserModel user = _resolveDisplayAuthor(post);
                       return PostCard(
                         post: post,
                         author: user,
@@ -184,6 +182,27 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           },
         );
       },
+    );
+  }
+
+  UserModel _resolveDisplayAuthor(PostModel post) {
+    final UserModel? author = post.author;
+    if (author != null) {
+      return author;
+    }
+
+    final String fallbackId = post.authorId.trim().isEmpty
+        ? 'unknown-author'
+        : post.authorId.trim();
+    return UserModel(
+      id: fallbackId,
+      name: 'Unknown user',
+      username: fallbackId,
+      avatar: '',
+      bio: '',
+      role: UserRole.guest,
+      followers: 0,
+      following: 0,
     );
   }
 

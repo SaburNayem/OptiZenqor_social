@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +8,7 @@ import 'app.dart';
 import 'app_route/app_router.dart';
 import 'core/bloc/app_bloc_observer.dart';
 import 'core/config/app_config.dart';
+import 'core/data/service/network_status_service.dart';
 import 'core/data/service/theme_service.dart';
 import 'core/firebase_masseging/notification_permission.dart';
 import 'core/firebase_masseging/notification_receive.dart';
@@ -57,4 +60,5 @@ Future<void> main() async {
   }
 
   runApp(OptiZenqorApp(initialRoute: initialRoute));
+  unawaited(NetworkStatusService.instance.start());
 }

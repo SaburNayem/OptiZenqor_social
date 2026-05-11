@@ -15,10 +15,10 @@ class SettingsController {
   bool get isAuthenticated => currentUser?.id.trim().isNotEmpty == true;
 
   String get roleLabel => switch (currentUser?.role) {
+    UserRole.superadmin => 'Superadmin controls enabled',
+    UserRole.admin => 'Admin controls enabled',
     UserRole.creator => 'Creator tools enabled',
     UserRole.business => 'Business controls enabled',
-    UserRole.seller => 'Seller controls enabled',
-    UserRole.recruiter => 'Recruiter controls enabled',
     UserRole.user => 'Personal account controls',
     _ => 'Sign in to manage account settings',
   };
@@ -26,8 +26,8 @@ class SettingsController {
   bool get hasProfessionalControls => switch (currentUser?.role) {
     UserRole.creator ||
     UserRole.business ||
-    UserRole.seller ||
-    UserRole.recruiter => true,
+    UserRole.admin ||
+    UserRole.superadmin => true,
     _ => false,
   };
 

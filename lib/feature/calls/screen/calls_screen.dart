@@ -38,9 +38,12 @@ class _CallsScreenState extends State<CallsScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: <Widget>[
+          return RefreshIndicator(
+            onRefresh: _controller.load,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: <Widget>[
               Row(
                 children: <Widget>[
                   Expanded(
@@ -125,7 +128,8 @@ class _CallsScreenState extends State<CallsScreen> {
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           );
         },
       ),

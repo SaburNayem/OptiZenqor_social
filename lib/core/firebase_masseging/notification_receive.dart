@@ -41,6 +41,7 @@ class FirebaseNotificationReceive {
         importance: Importance.max,
       );
   static bool _interactionHandlersRegistered = false;
+  static bool _backgroundHandlerRegistered = false;
 
   static Future<void> initializeLocalNotifications() async {
     const AndroidInitializationSettings androidSettings =
@@ -74,6 +75,10 @@ class FirebaseNotificationReceive {
   }
 
   static void setupBackgroundMessageHandler() {
+    if (_backgroundHandlerRegistered) {
+      return;
+    }
+    _backgroundHandlerRegistered = true;
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
 

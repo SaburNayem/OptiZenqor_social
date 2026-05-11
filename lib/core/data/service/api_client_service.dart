@@ -9,6 +9,7 @@ import '../../config/app_config.dart';
 import '../api/api_end_points.dart';
 import '../shared_preference/app_shared_preferences.dart';
 import '../service_model/service_response_model.dart';
+import 'app_session_event_service.dart';
 import 'auth_session_service.dart';
 
 class ApiClientService {
@@ -501,6 +502,7 @@ class ApiClientService {
 
   Future<void> _clearExpiredSession() async {
     await _sessionService.clear();
+    AppSessionEventService.instance.notifySessionExpired();
   }
 
   Map<String, dynamic> _decodeResponseBody(dynamic body) {

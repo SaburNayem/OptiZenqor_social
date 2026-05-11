@@ -7,17 +7,22 @@ import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/analytics_service.dart';
 import '../../../core/enums/user_role.dart';
+import '../../stories/model/buddy_relationship_model.dart';
+import '../../stories/repository/buddy_repository.dart';
 import '../repository/user_profile_repository.dart';
 
 class UserProfileController extends ChangeNotifier {
   UserProfileController({
     UserProfileRepository? repository,
     AnalyticsService? analytics,
+    BuddyRepository? buddyRepository,
   }) : _repository = repository ?? UserProfileRepository(),
-       _analytics = analytics ?? AnalyticsService();
+       _analytics = analytics ?? AnalyticsService(),
+       _buddyRepository = buddyRepository ?? BuddyRepository();
 
   final UserProfileRepository _repository;
   final AnalyticsService _analytics;
+  final BuddyRepository _buddyRepository;
 
   LoadStateModel state = const LoadStateModel();
   UserModel? user;
@@ -26,6 +31,10 @@ class UserProfileController extends ChangeNotifier {
   int selectedTabIndex = 0;
   bool isFollowing = false;
   bool followRequestPending = false;
+  bool isBuddy = false;
+  bool buddyRequestSent = false;
+  bool buddyActionInProgress = false;
+  String? buddyRequestId;
   String accountExportMessage = 'No export requested yet';
 
   List<PostModel> _posts = <PostModel>[];
@@ -87,14 +96,14 @@ class UserProfileController extends ChangeNotifier {
       return <String>['Share Profile'];
     }
     switch (current.role) {
+      case UserRole.superadmin:
+        return <String>['Admin Staff', 'Audit Logs', 'Platform Control'];
+      case UserRole.admin:
+        return <String>['Moderation', 'Reports', 'Platform Control'];
       case UserRole.creator:
         return <String>['Insights', 'Brand Deals', 'Draft Studio'];
       case UserRole.business:
-        return <String>['Promotions', 'Campaigns', 'Lead Inbox'];
-      case UserRole.seller:
-        return <String>['Products', 'Orders', 'Store Insights'];
-      case UserRole.recruiter:
-        return <String>['Open Roles', 'Candidates', 'Hiring Pipeline'];
+        return <String>['Promotions', 'Catalog', 'Lead Inbox'];
       case UserRole.user:
         return <String>['Saved', 'Activity', 'Friends'];
       case UserRole.guest:
@@ -151,6 +160,9 @@ class UserProfileController extends ChangeNotifier {
         _mentionHistory = <String>[];
         isFollowing = false;
         followRequestPending = false;
+        isBuddy = false;
+        buddyRequestSent = false;
+        buddyRequestId = null;
         state = state.copyWith(
           isLoading: false,
           isSuccess: false,
@@ -174,6 +186,16 @@ class UserProfileController extends ChangeNotifier {
         isOwnProfile
             ? Future<FollowRemoteState>.value(const FollowRemoteState())
             : _repository.getFollowState(user!.id),
+        isOwnProfile
+            ? Future<List<BuddyRelationshipModel>>.value(
+                const <BuddyRelationshipModel>[],
+              )
+            : _buddyRepository.fetchBuddies(),
+        isOwnProfile
+            ? Future<List<BuddyRelationshipModel>>.value(
+                const <BuddyRelationshipModel>[],
+              )
+            : _buddyRepository.fetchSentRequests(),
       ]);
 
       _posts = resources[0] as List<PostModel>;
@@ -185,11 +207,28 @@ class UserProfileController extends ChangeNotifier {
       _mentionHistory = resources[6] as List<String>;
       _mutualConnections = resources[7] as List<UserModel>;
       final FollowRemoteState followState = resources[8] as FollowRemoteState;
+      final List<BuddyRelationshipModel> buddies =
+          resources[9] as List<BuddyRelationshipModel>;
+      final List<BuddyRelationshipModel> sentRequests =
+          resources[10] as List<BuddyRelationshipModel>;
 
       isFollowing = isOwnProfile ? false : followState.isFollowing;
       followRequestPending = isOwnProfile
           ? false
           : followState.hasPendingRequest;
+      isBuddy = !isOwnProfile &&
+          buddies.any((BuddyRelationshipModel item) => item.user.id == user!.id);
+      BuddyRelationshipModel? sentRequest;
+      if (!isOwnProfile) {
+        for (final BuddyRelationshipModel item in sentRequests) {
+          if (item.user.id == user!.id) {
+            sentRequest = item;
+            break;
+          }
+        }
+      }
+      buddyRequestSent = sentRequest != null;
+      buddyRequestId = sentRequest?.id;
 
       state = state.copyWith(isLoading: false, isSuccess: true, isEmpty: false);
       await _analytics.profileViewed();
@@ -245,6 +284,47 @@ class UserProfileController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> toggleBuddyRequest() async {
+    final UserModel? current = user;
+    if (current == null || isOwnProfile || buddyActionInProgress) {
+      return '';
+    }
+
+    buddyActionInProgress = true;
+    notifyListeners();
+    try {
+      if (buddyRequestSent && buddyRequestId != null) {
+        await _buddyRepository.cancelRequest(buddyRequestId!);
+        buddyRequestSent = false;
+        buddyRequestId = null;
+        return 'Buddy request cancelled';
+      }
+
+      if (isBuddy) {
+        await _buddyRepository.removeBuddy(current.id);
+        isBuddy = false;
+        return 'Buddy removed';
+      }
+
+      final BuddyRelationshipModel request = await _buddyRepository.createRequest(
+        current.id,
+      );
+      if (request.status.toLowerCase() == 'accepted') {
+        isBuddy = true;
+        buddyRequestSent = false;
+        buddyRequestId = null;
+        return 'Buddy added';
+      }
+
+      buddyRequestSent = true;
+      buddyRequestId = request.id;
+      return 'Buddy request sent';
+    } finally {
+      buddyActionInProgress = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> requestDataExport() async {
     final UserModel? current = user;
     if (current == null) {
@@ -286,11 +366,7 @@ class UserProfileController extends ChangeNotifier {
       case 'creator':
         return AppColors.hexFFEAB308;
       case 'business':
-        return AppColors.hexFF2563EB;
-      case 'seller':
         return AppColors.hexFF059669;
-      case 'recruiter':
-        return AppColors.hexFF7C3AED;
       default:
         return AppColors.hexFF6B7280;
     }
@@ -304,14 +380,13 @@ class UserProfileController extends ChangeNotifier {
     switch (current.role) {
       case UserRole.user:
         return <String>['Posts', 'Reels', 'Saved', 'Tagged', 'About'];
+      case UserRole.superadmin:
+      case UserRole.admin:
+        return <String>['Posts', 'Reports', 'Insights', 'About'];
       case UserRole.creator:
         return <String>['Posts', 'Reels', 'Collaborations', 'Insights'];
       case UserRole.business:
         return <String>['Catalog', 'Posts', 'Campaigns', 'Insights'];
-      case UserRole.seller:
-        return <String>['Catalog', 'Posts', 'Orders', 'Reviews'];
-      case UserRole.recruiter:
-        return <String>['Open Roles', 'Company Posts', 'Talent Pipeline'];
       case UserRole.guest:
         return <String>['Posts', 'Reels', 'About'];
     }

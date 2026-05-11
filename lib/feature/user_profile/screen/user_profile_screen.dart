@@ -175,38 +175,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.only(right: 16, left: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (!_controller.isOwnProfile) ...[
-                        Expanded(child: _buildFollowActionButton()),
-                        const SizedBox(width: 8),
-                        Expanded(child: _buildMessageButton(user)),
-                      ],
-                      if (_controller.isOwnProfile) ...[
+                const SizedBox(height: 58),
+                if (_controller.isOwnProfile)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16, left: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
                         _buildEditProfileButton(),
                         const SizedBox(width: 8),
-                      ] else
-                        const SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.grey200),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          onPressed: () => _showShareProfileSheet(user),
-                          icon: const Icon(
-                            Icons.share_outlined,
-                            color: AppColors.grey,
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.grey200),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            onPressed: () => _showShareProfileSheet(user),
+                            icon: const Icon(
+                              Icons.share_outlined,
+                              color: AppColors.grey,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
                 const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -252,6 +245,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             user.location.trim(),
                           ),
                         ),
+                      if (!_controller.isOwnProfile) ...[
+                        const SizedBox(height: 16),
+                        _buildOtherProfileActions(user),
+                      ],
                     ],
                   ),
                 ),
@@ -363,7 +360,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          onPressed: () => AppGet.back(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+        ),
         title: const Text('Profile'),
       ),
       body: profileContent,
@@ -440,10 +440,68 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       label: const Text('Msg'),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(0, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         side: const BorderSide(color: AppColors.hexFF26C6DA),
         foregroundColor: AppColors.hexFF26C6DA,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildOtherProfileActions(UserModel user) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 11,
+          child: _buildFollowActionButton(),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 9,
+          child: _buildMessageButton(user),
+        ),
+        const SizedBox(width: 8),
+        _buildMoreActionsButton(user),
+      ],
+    );
+  }
+
+  Widget _buildMoreActionsButton(UserModel user) {
+    final String buddyActionLabel = _controller.isBuddy
+        ? 'Remove Buddy'
+        : _controller.buddyRequestSent
+        ? 'Cancel Buddy Request'
+        : 'Add Buddy';
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.grey200),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: PopupMenuButton<String>(
+        onSelected: (String value) => _handleProfileMenuAction(value, user),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        enabled: !_controller.buddyActionInProgress,
+        icon: Icon(
+          _controller.buddyActionInProgress
+              ? Icons.hourglass_top_rounded
+              : Icons.more_horiz_rounded,
+          color: AppColors.grey,
+        ),
+        itemBuilder: (BuildContext context) => [
+          PopupMenuItem<String>(
+            value: 'toggle_buddy',
+            child: Text(buddyActionLabel),
+          ),
+          const PopupMenuItem<String>(
+            value: 'copy_link',
+            child: Text('Copy Profile Link'),
+          ),
+          const PopupMenuItem<String>(
+            value: 'copy_username',
+            child: Text('Copy Username'),
+          ),
+        ],
       ),
     );
   }
@@ -787,6 +845,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         );
       },
     );
+  }
+
+  Future<void> _handleProfileMenuAction(String value, UserModel user) async {
+    final String profileUrl = user.publicProfileUrl.isNotEmpty
+        ? user.publicProfileUrl
+        : 'https://optizenqor.app/@${user.username}';
+
+    switch (value) {
+      case 'toggle_buddy':
+        final String message = await _controller.toggleBuddyRequest();
+        if (message.trim().isNotEmpty) {
+          AppGet.snackbar('Buddy', message);
+        }
+        return;
+      case 'copy_link':
+        await Clipboard.setData(ClipboardData(text: profileUrl));
+        AppGet.snackbar('Profile', 'Profile link copied');
+        return;
+      case 'copy_username':
+        await Clipboard.setData(ClipboardData(text: '@${user.username}'));
+        AppGet.snackbar('Profile', 'Username copied');
+        return;
+    }
   }
 
   Widget _buildUtilityIcon(

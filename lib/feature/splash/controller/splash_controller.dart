@@ -16,13 +16,31 @@ class SplashController {
   final AuthRepository _authRepository;
   final OnboardingRepository _onboardingRepository;
   SplashStateModel state = const SplashStateModel();
+  static Future<String>? _routeResolutionFuture;
   static const Duration _debugBootstrapTimeout = Duration(seconds: 2);
   static const Duration _releaseBootstrapTimeout = Duration(seconds: 5);
 
   Duration get _bootstrapTimeout =>
       kDebugMode ? _debugBootstrapTimeout : _releaseBootstrapTimeout;
 
-  Future<String> resolveInitialRoute() async {
+  Future<String> resolveInitialRoute({bool force = false}) {
+    if (!force) {
+      final Future<String>? inFlight = _routeResolutionFuture;
+      if (inFlight != null) {
+        return inFlight;
+      }
+    }
+
+    final Future<String> future = _performResolveInitialRoute();
+    _routeResolutionFuture = future;
+    return future.whenComplete(() {
+      if (identical(_routeResolutionFuture, future)) {
+        _routeResolutionFuture = null;
+      }
+    });
+  }
+
+  Future<String> _performResolveInitialRoute() async {
     state = state.copyWith(status: SplashStatus.bootstrapping);
     final Future<bool> onboardingFuture = _safeBool(
       () => _onboardingRepository.isCompleted(),
@@ -39,16 +57,8 @@ class SplashController {
     );
     final bool hasCompletedOnboarding = bootstrapResults[0] as bool;
     final bool hasSession = bootstrapResults[1] as bool;
-    bool canShowOnboarding = true;
-    if (!hasCompletedOnboarding) {
-      canShowOnboarding = await _safeBool(
-        () => _onboardingRepository.hasUsableContent(),
-        fallback: false,
-        label: 'onboardingContent',
-      );
-    }
     state = state.copyWith(status: SplashStatus.ready);
-    return !hasCompletedOnboarding && canShowOnboarding
+    return !hasCompletedOnboarding
         ? RouteNames.onboarding
         : hasSession
         ? RouteNames.shell

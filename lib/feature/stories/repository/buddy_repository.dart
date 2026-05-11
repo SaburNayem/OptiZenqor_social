@@ -21,6 +21,14 @@ class BuddyRepository {
     return _fetchList('/buddies/requests/received');
   }
 
+  Future<BuddyRelationshipModel> createRequest(String targetUserId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
+        .post('/buddies/requests', <String, dynamic>{
+          'targetUserId': targetUserId.trim(),
+        });
+    return _readSingle(response, fallbackMessage: 'Unable to send buddy request.');
+  }
+
   Future<BuddyRelationshipModel> acceptRequest(String requestId) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _apiClient
         .post('/buddies/requests/$requestId/accept', const <String, dynamic>{});

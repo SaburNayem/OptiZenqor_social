@@ -55,6 +55,7 @@ dependencies:
   firebase_auth: ^6.4.0
   flutter_local_notifications: ^21.0.0
   flutter_svg: ^2.2.0
+  connectivity_plus: ^7.1.1
 
 
 dev_dependencies:
@@ -111,5 +112,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/logo.png
+  image_path: assets/optizenqor_society_app_icon.png
   remove_alpha_ios: true

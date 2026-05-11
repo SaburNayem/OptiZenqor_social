@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1800" height="620" viewBox="0 0 1800 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Optizenqor Society Logo</title>
+  <desc>Transparent SVG logo for Optizenqor Society in teal and white.</desc>
+
+  <defs>
+    <linearGradient id="tealGrad" x1="90" y1="120" x2="1700" y2="505" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18D4CC"/>
+      <stop offset="0.52" stop-color="#07999B"/>
+      <stop offset="1" stop-color="#045F69"/>
+    </linearGradient>
+
+    <linearGradient id="darkTeal" x1="390" y1="210" x2="1510" y2="415" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#053B43"/>
+      <stop offset="1" stop-color="#012E35"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-8%" y="-18%" width="116%" height="136%">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#002D33" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <!-- Society Icon -->
+  <g filter="url(#shadow)">
+    <path d="M270 150C167 150 84 233 84 336C84 439 167 522 270 522C358 522 432 462 452 380"
+          stroke="url(#tealGrad)" stroke-width="38" stroke-linecap="round"/>
+
+    <path d="M98 384C225 316 306 221 423 190C456 181 494 179 538 181"
+          stroke="url(#tealGrad)" stroke-width="24" stroke-linecap="round"/>
+
+    <!-- People circle -->
+    <circle cx="210" cy="305" r="26" fill="url(#tealGrad)"/>
+    <circle cx="292" cy="305" r="26" fill="url(#tealGrad)"/>
+    <circle cx="250" cy="250" r="28" fill="#FFFFFF"/>
+
+    <path d="M176 382C190 346 226 330 250 330C274 330 310 346 324 382"
+          stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+
+    <path d="M206 382C220 354 236 344 250 344C264 344 280 354 294 382"
+          stroke="url(#tealGrad)" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <!-- Connected top line -->
+  <path d="M420 268C458 226 487 218 544 218H700M772 218H1585C1647 218 1698 269 1698 331C1698 393 1647 444 1585 444H1365"
+        stroke="url(#tealGrad)" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- Dot over i -->
+  <circle cx="736" cy="218" r="30" fill="url(#tealGrad)"/>
+
+  <!-- Bottom line -->
+  <path d="M865 381C890 430 921 444 980 444H1328"
+        stroke="url(#tealGrad)" stroke-width="20" stroke-linecap="round"/>
+
+  <!-- Main word -->
+  <g font-family="Arial, Helvetica, sans-serif"
+     font-style="italic"
+     font-weight="800"
+     font-size="178"
+     letter-spacing="-7">
+
+    <text x="412" y="407" fill="url(#darkTeal)">opti</text>
+    <text x="792" y="407" fill="url(#tealGrad)">z</text>
+    <text x="898" y="407" fill="url(#darkTeal)">enqor</text>
+  </g>
+
+  <!-- Society -->
+  <g font-family="Arial, Helvetica, sans-serif"
+     font-weight="800"
+     font-size="88"
+     letter-spacing="10">
+
+    <text x="535" y="548" fill="url(#tealGrad)">SOCIETY</text>
+  </g>
+
+  <!-- Community connection icon -->
+  <g stroke="url(#tealGrad)" stroke-width="14" stroke-linecap="round">
+    <circle cx="1130" cy="525" r="18" fill="none"/>
+    <circle cx="1210" cy="565" r="18" fill="none"/>
+    <circle cx="1290" cy="525" r="18" fill="none"/>
+    <path d="M1148 535L1192 555"/>
+    <path d="M1228 555L1272 535"/>
+  </g>
+
+</svg>

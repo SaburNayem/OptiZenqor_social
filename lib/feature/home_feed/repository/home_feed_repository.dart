@@ -1,5 +1,6 @@
 import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/api/api_payload_reader.dart';
+import 'package:flutter/foundation.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
@@ -40,11 +41,12 @@ class HomeFeedRepository {
       }
       final List<Map<String, dynamic>> items = _readResponseList(
         response.data,
-        preferredKeys: const <String>['items'],
+        preferredKeys: const <String>['items', 'data', 'posts', 'feed'],
       );
       if (items.isNotEmpty) {
         final List<PostModel> parsedPosts = items
-            .map(PostModel.fromApiJson)
+            .map(_safeParsePost)
+            .whereType<PostModel>()
             .toList(growable: false);
         return _hydratePostAuthors(parsedPosts);
       }
@@ -162,17 +164,33 @@ class HomeFeedRepository {
 
     final List<Map<String, dynamic>> items = _readResponseList(
       response.data,
-      preferredKeys: const <String>['hiddenPosts', 'items'],
+      preferredKeys: const <String>['hiddenPosts', 'items', 'data'],
     );
     final List<PostModel> posts = items
         .map((Map<String, dynamic> item) {
-          final Map<String, dynamic>? entity = _readMap(item['entity']);
-          return entity == null ? null : PostModel.fromApiJson(entity);
+          final Map<String, dynamic>? entity =
+              _readMap(item['entity']) ??
+              _readMap(item['post']) ??
+              _readMap(item['target']) ??
+              (_looksLikePost(item) ? item : null);
+          return entity == null ? null : _safeParsePost(entity);
         })
         .whereType<PostModel>()
         .where((PostModel post) => post.id.isNotEmpty)
         .toList(growable: false);
     return _hydratePostAuthors(posts);
+  }
+
+  PostModel? _safeParsePost(Map<String, dynamic> payload) {
+    try {
+      return PostModel.fromApiJson(payload);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('[HomeFeedRepository] Failed to parse post payload: $error');
+        debugPrint('[HomeFeedRepository] Post payload: $payload');
+      }
+      return null;
+    }
   }
 
   Future<void> hidePost(String postId) async {
@@ -326,11 +344,10 @@ class HomeFeedRepository {
     Map<String, dynamic> response, {
     List<String> preferredKeys = const <String>[],
   }) {
-    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+    return ApiPayloadReader.readMapList(
       response,
-      fallbackMessage: 'Feed response did not include a data payload.',
+      preferredKeys: preferredKeys,
     );
-    return ApiPayloadReader.readMapList(data, preferredKeys: preferredKeys);
   }
 
   Future<String> _currentUserId() async {

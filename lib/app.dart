@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/data/service/theme_service.dart';
 import 'core/navigation/app_navigator.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/app_state_guard.dart';
 import 'feature/bookmarks/controller/bookmarks_controller.dart';
 import 'feature/home_feed/controller/home_feed_controller.dart';
 import 'feature/home_feed/controller/main_shell_controller.dart';
@@ -33,12 +34,15 @@ class OptiZenqorApp extends StatelessWidget {
         builder: (_, mode, _) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'OptiZenqor Socity',
+            title: 'OptiZenqor Social',
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: mode,
             navigatorKey: AppNavigator.navigatorKey,
             scaffoldMessengerKey: AppNavigator.scaffoldMessengerKey,
+            builder: (BuildContext context, Widget? child) {
+              return AppStateGuard(child: child ?? const SizedBox.shrink());
+            },
             onGenerateRoute: AppRouter.onGenerateRoute,
             initialRoute: initialRoute,
           );

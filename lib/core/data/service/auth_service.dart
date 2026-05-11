@@ -65,13 +65,16 @@ class AuthService {
     String? bio,
     List<String>? interests,
   }) async {
+    final String normalizedProfileType = _formatProfileType(role);
+    final String normalizedRole = _formatSignupRole(role);
     final Map<String, dynamic> payload = <String, dynamic>{
       'name': name,
       'username': username,
       'email': email,
       'password': password,
       'confirmPassword': confirmPassword,
-      'role': _formatSignupRole(role),
+      'role': normalizedRole,
+      'profileType': normalizedProfileType,
       if (avatarUrl != null && avatarUrl.trim().isNotEmpty)
         'avatarUrl': avatarUrl.trim(),
       if (bio != null && bio.trim().isNotEmpty) 'bio': bio.trim(),
@@ -341,11 +344,14 @@ class AuthService {
       case 'creator':
         return UserRole.creator;
       case 'business':
-        return UserRole.business;
       case 'seller':
-        return UserRole.seller;
       case 'recruiter':
-        return UserRole.recruiter;
+        return UserRole.business;
+      case 'admin':
+        return UserRole.admin;
+      case 'superadmin':
+      case 'super admin':
+        return UserRole.superadmin;
       case 'user':
         return UserRole.user;
       default:
@@ -353,20 +359,34 @@ class AuthService {
     }
   }
 
-  String _formatSignupRole(UserRole role) {
+  String _formatProfileType(UserRole role) {
     switch (role) {
       case UserRole.user:
-        return 'User';
+        return 'user';
+      case UserRole.creator:
+        return 'creator';
+      case UserRole.business:
+      case UserRole.admin:
+      case UserRole.superadmin:
+        return 'business';
+      case UserRole.guest:
+        return 'user';
+    }
+  }
+
+  String _formatSignupRole(UserRole role) {
+    switch (role) {
       case UserRole.creator:
         return 'Creator';
       case UserRole.business:
         return 'Business';
-      case UserRole.seller:
-        return 'Seller';
-      case UserRole.recruiter:
-        return 'Recruiter';
+      case UserRole.admin:
+        return 'Admin';
+      case UserRole.superadmin:
+        return 'SuperAdmin';
+      case UserRole.user:
       case UserRole.guest:
-        return 'Guest';
+        return 'User';
     }
   }
 }

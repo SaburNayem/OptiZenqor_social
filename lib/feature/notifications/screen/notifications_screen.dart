@@ -25,6 +25,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: widget.showAppBar
@@ -53,221 +59,228 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
           final items = _controller.visibleNotifications;
           if (items.isEmpty) {
-            return const Center(child: Text('No notifications available'));
+            return RefreshIndicator(
+              onRefresh: _controller.load,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const <Widget>[
+                  SizedBox(height: 240),
+                  Center(child: Text('No notifications available')),
+                ],
+              ),
+            );
           }
 
-          return Column(
-            children: [
-              const SizedBox(height: 10),
-              _NotificationFilterBar(
-                activeFilter: _controller.activeFilter,
-                onChanged: _controller.setFilter,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Text(
-                      'Unread: ${_controller.unreadCount}',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
+          return RefreshIndicator(
+            onRefresh: _controller.load,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 16),
+              children: [
+                const SizedBox(height: 10),
+                _NotificationFilterBar(
+                  activeFilter: _controller.activeFilter,
+                  onChanged: _controller.setFilter,
                 ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    final unread = _controller.isUnread(item);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Dismissible(
-                        key: ValueKey(item.id),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: AppColors.red400,
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.delete_outline,
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Unread: ${_controller.unreadCount}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                ...items.map((item) {
+                  final unread = _controller.isUnread(item);
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                    child: Dismissible(
+                      key: ValueKey(item.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: AppColors.red400,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.delete_outline,
+                              color: AppColors.white,
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Delete',
+                              style: TextStyle(
                                 color: AppColors.white,
+                                fontWeight: FontWeight.w600,
                               ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Delete',
-                                style: TextStyle(
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.w600,
+                            ),
+                          ],
+                        ),
+                      ),
+                      confirmDismiss: (_) =>
+                          _confirmNotificationDelete(context, item),
+                      onDismissed: (_) {
+                        _controller.removeNotification(item.id);
+                        AppGet.snackbar(
+                          'Notification Deleted',
+                          '${item.title} was removed',
+                          snackPosition: SnackPosition.bottom,
+                        );
+                      },
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () async {
+                          await _controller.handleTap(item);
+                        },
+                        onLongPress: () {
+                          AppGet.bottomSheet(
+                            _NotificationActionSheet(
+                              onMute: () {
+                                AppGet.back();
+                                AppGet.snackbar(
+                                  'Notification',
+                                  'User muted from notifications',
+                                );
+                              },
+                              onTurnOff: () {
+                                AppGet.back();
+                                AppGet.snackbar(
+                                  'Notification',
+                                  'Similar notifications turned off',
+                                );
+                              },
+                            ),
+                            backgroundColor: AppColors.white,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(24),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: unread
+                                ? AppColors.hexFFF2F7FF
+                                : AppColors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: AppColors.hexFFE9EEF5),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: unread
+                                    ? AppColors.hexFFDCEBFF
+                                    : AppColors.hexFFF1F3F5,
+                                child: Icon(
+                                  _iconFor(item),
+                                  color: unread
+                                      ? AppColors.hexFF1877F2
+                                      : AppColors.grey700,
                                 ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    RichText(
+                                      text: TextSpan(
+                                        style: const TextStyle(
+                                          color: AppColors.black87,
+                                          fontSize: 14,
+                                          height: 1.4,
+                                        ),
+                                        children: [
+                                          TextSpan(
+                                            text: '${item.title} ',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          TextSpan(text: item.body),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          _timeLabel(item),
+                                          style: TextStyle(
+                                            color: unread
+                                                ? AppColors.hexFF1877F2
+                                                : AppColors.grey600,
+                                            fontSize: 12,
+                                            fontWeight: unread
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        if (unread)
+                                          Container(
+                                            width: 10,
+                                            height: 10,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.hexFF1877F2,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  AppGet.bottomSheet(
+                                    _NotificationActionSheet(
+                                      onMute: () {
+                                        AppGet.back();
+                                        AppGet.snackbar(
+                                          'Notification',
+                                          'User muted from notifications',
+                                        );
+                                      },
+                                      onTurnOff: () {
+                                        AppGet.back();
+                                        AppGet.snackbar(
+                                          'Notification',
+                                          'Similar notifications turned off',
+                                        );
+                                      },
+                                    ),
+                                    backgroundColor: AppColors.white,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(24),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.more_horiz),
                               ),
                             ],
                           ),
                         ),
-                        confirmDismiss: (_) =>
-                            _confirmNotificationDelete(context, item),
-                        onDismissed: (_) {
-                          _controller.removeNotification(item.id);
-                          AppGet.snackbar(
-                            'Notification Deleted',
-                            '${item.title} was removed',
-                            snackPosition: SnackPosition.bottom,
-                          );
-                        },
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(18),
-                          onTap: () async {
-                            await _controller.handleTap(item);
-                          },
-                          onLongPress: () {
-                            AppGet.bottomSheet(
-                              _NotificationActionSheet(
-                                onMute: () {
-                                  AppGet.back();
-                                  AppGet.snackbar(
-                                    'Notification',
-                                    'User muted from notifications',
-                                  );
-                                },
-                                onTurnOff: () {
-                                  AppGet.back();
-                                  AppGet.snackbar(
-                                    'Notification',
-                                    'Similar notifications turned off',
-                                  );
-                                },
-                              ),
-                              backgroundColor: AppColors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(24),
-                                ),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: unread
-                                  ? AppColors.hexFFF2F7FF
-                                  : AppColors.white,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(color: AppColors.hexFFE9EEF5),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: unread
-                                      ? AppColors.hexFFDCEBFF
-                                      : AppColors.hexFFF1F3F5,
-                                  child: Icon(
-                                    _iconFor(item),
-                                    color: unread
-                                        ? AppColors.hexFF1877F2
-                                        : AppColors.grey700,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      RichText(
-                                        text: TextSpan(
-                                          style: const TextStyle(
-                                            color: AppColors.black87,
-                                            fontSize: 14,
-                                            height: 1.4,
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                              text: '${item.title} ',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            TextSpan(text: item.body),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            _timeLabel(item),
-                                            style: TextStyle(
-                                              color: unread
-                                                  ? AppColors.hexFF1877F2
-                                                  : AppColors.grey600,
-                                              fontSize: 12,
-                                              fontWeight: unread
-                                                  ? FontWeight.w700
-                                                  : FontWeight.w500,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          if (unread)
-                                            Container(
-                                              width: 10,
-                                              height: 10,
-                                              decoration: const BoxDecoration(
-                                                color: AppColors.hexFF1877F2,
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    AppGet.bottomSheet(
-                                      _NotificationActionSheet(
-                                        onMute: () {
-                                          AppGet.back();
-                                          AppGet.snackbar(
-                                            'Notification',
-                                            'User muted from notifications',
-                                          );
-                                        },
-                                        onTurnOff: () {
-                                          AppGet.back();
-                                          AppGet.snackbar(
-                                            'Notification',
-                                            'Similar notifications turned off',
-                                          );
-                                        },
-                                      ),
-                                      backgroundColor: AppColors.white,
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.vertical(
-                                          top: Radius.circular(24),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.more_horiz),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                    ),
+                  );
+                }),
+              ],
+            ),
           );
         },
       ),

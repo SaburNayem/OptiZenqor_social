@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/common_widget/inline_video_player.dart';
 import '../controller/reels_controller.dart';
 import '../../../core/constants/app_colors.dart';
 
-class ReelsScreen extends StatelessWidget {
-  ReelsScreen({super.key}) {
+class ReelsScreen extends StatefulWidget {
+  const ReelsScreen({super.key});
+
+  @override
+  State<ReelsScreen> createState() => _ReelsScreenState();
+}
+
+class _ReelsScreenState extends State<ReelsScreen> {
+  late final ReelsController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ReelsController();
     _controller.load();
   }
 
-  final ReelsController _controller = ReelsController();
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +90,21 @@ class ReelsScreen extends StatelessWidget {
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          if (_controller.reels.isEmpty) {
+          if (_controller.isLoading && !_controller.hasLoaded) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (_controller.reels.isEmpty) {
+            return EmptyStateView(
+              title: _controller.hasError
+                  ? 'Unable to load reels'
+                  : 'No reels yet',
+              message: _controller.hasError
+                  ? 'Please try again in a moment.'
+                  : 'Reels will appear here when content is available.',
+              actionLabel: 'Retry',
+              onAction: () => _controller.load(force: true),
+            );
           }
 
           return PageView.builder(

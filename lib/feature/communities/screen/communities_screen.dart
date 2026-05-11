@@ -49,11 +49,14 @@ class _CommunitiesView extends StatelessWidget {
             icon: const Icon(Icons.add_rounded),
             label: const Text('Create'),
           ),
-          body: state.isLoading
+          body: state.isLoading && state.groups.isEmpty
               ? const Center(child: CircularProgressIndicator())
-              : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
-                  children: [
+              : RefreshIndicator(
+                  onRefresh: () => context.read<CommunitiesCubit>().load(),
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+                    children: [
                     TextField(
                       onChanged: context.read<CommunitiesCubit>().updateQuery,
                       decoration: InputDecoration(
@@ -127,7 +130,8 @@ class _CommunitiesView extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
         );
       },

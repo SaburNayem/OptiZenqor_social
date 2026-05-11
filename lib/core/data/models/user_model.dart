@@ -208,11 +208,14 @@ class UserModel {
       case 'creator':
         return UserRole.creator;
       case 'business':
-        return UserRole.business;
       case 'seller':
-        return UserRole.seller;
       case 'recruiter':
-        return UserRole.recruiter;
+        return UserRole.business;
+      case 'admin':
+        return UserRole.admin;
+      case 'superadmin':
+      case 'super admin':
+        return UserRole.superadmin;
       default:
         return UserRole.guest;
     }

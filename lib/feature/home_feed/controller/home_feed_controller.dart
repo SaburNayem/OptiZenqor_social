@@ -25,6 +25,8 @@ class HomeFeedController extends Cubit<int> {
   final HomeFeedRepository _repository;
   final AnalyticsService _analytics;
   final StoriesRepository _storiesRepository;
+  Future<void>? _initialLoadFuture;
+  bool _hasLoadedInitialData = false;
 
   LoadStateModel loadState = const LoadStateModel();
   PaginationStateModel pagination = const PaginationStateModel();
@@ -68,7 +70,27 @@ class HomeFeedController extends Cubit<int> {
   bool isOwnPost(PostModel post) =>
       _currentUserId.isNotEmpty && post.authorId == _currentUserId;
 
-  Future<void> loadInitial() async {
+  Future<void> loadInitial({bool force = false}) {
+    if (!force) {
+      final Future<void>? inFlight = _initialLoadFuture;
+      if (inFlight != null) {
+        return inFlight;
+      }
+      if (_hasLoadedInitialData) {
+        return Future<void>.value();
+      }
+    }
+
+    final Future<void> future = _performInitialLoad();
+    _initialLoadFuture = future;
+    return future.whenComplete(() {
+      if (identical(_initialLoadFuture, future)) {
+        _initialLoadFuture = null;
+      }
+    });
+  }
+
+  Future<void> _performInitialLoad() async {
     loadState = loadState.copyWith(
       isLoading: true,
       hasError: false,
@@ -93,7 +115,7 @@ class HomeFeedController extends Cubit<int> {
       final FeedSegment segment = _segmentForTab(activeTab);
       final results = await Future.wait<Object>(<Future<Object>>[
         _repository.fetchFeed(segment: segment, page: 1),
-        _repository.fetchHiddenPosts(),
+        _safeHiddenPostsLoad(),
       ]);
       posts = results[0] as List<PostModel>;
       hiddenPostRecords = results[1] as List<PostModel>;
@@ -115,8 +137,10 @@ class HomeFeedController extends Cubit<int> {
         isSuccess: posts.isNotEmpty || stories.isNotEmpty,
         errorMessage: null,
       );
+      _hasLoadedInitialData = true;
       _notify();
     } catch (_) {
+      _hasLoadedInitialData = false;
       loadState = loadState.copyWith(
         isLoading: false,
         hasError: true,
@@ -126,12 +150,20 @@ class HomeFeedController extends Cubit<int> {
     }
   }
 
+  Future<List<PostModel>> _safeHiddenPostsLoad() async {
+    try {
+      return await _repository.fetchHiddenPosts();
+    } catch (_) {
+      return const <PostModel>[];
+    }
+  }
+
   Future<void> refreshFeed() async {
     await _analytics.logEvent(
       'feed_refresh',
       params: <String, dynamic>{'tab': activeTab.name},
     );
-    await loadInitial();
+    await loadInitial(force: true);
   }
 
   Future<void> loadNextPage() async {
@@ -185,7 +217,7 @@ class HomeFeedController extends Cubit<int> {
       'feed_tab_switched',
       params: <String, dynamic>{'tab': tab.name},
     );
-    await loadInitial();
+    await loadInitial(force: true);
   }
 
   Future<void> likePost(String postId) async {
@@ -612,12 +644,14 @@ class HomeFeedController extends Cubit<int> {
   }
 
   Future<void> restore() async {
-    if (posts.isEmpty && !loadState.isLoading) {
+    if (!_hasLoadedInitialData && !loadState.isLoading) {
       await loadInitial();
     }
   }
 
   void clearLocalState() {
+    _initialLoadFuture = null;
+    _hasLoadedInitialData = false;
     loadState = const LoadStateModel();
     pagination = const PaginationStateModel();
     posts = <PostModel>[];
