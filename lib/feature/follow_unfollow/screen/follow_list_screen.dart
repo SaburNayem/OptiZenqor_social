@@ -283,9 +283,6 @@ class _ConnectionPersonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final String preview = user.profilePreview.isNotEmpty
-        ? user.profilePreview
-        : user.bio;
 
     return Material(
       color: colorScheme.surfaceContainerLowest,
@@ -356,35 +353,29 @@ class _ConnectionPersonCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text(
-                preview,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(height: 1.35),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _ConnectionMetaChip(
-                    icon: Icons.group_outlined,
-                    label:
-                        '${FormatHelper.formatCompactNumber(user.followers)} followers',
-                  ),
-                  _ConnectionMetaChip(
-                    icon: Icons.person_add_alt_1_rounded,
-                    label:
-                        '${FormatHelper.formatCompactNumber(user.following)} following',
-                  ),
-                  _ConnectionMetaChip(
-                    icon: Icons.verified_user_outlined,
-                    label: _capitalize(user.role.name),
-                  ),
-                ],
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _ConnectionMetaChip(
+                      icon: Icons.group_outlined,
+                      label:
+                          '${FormatHelper.formatCompactNumber(user.followers)} followers',
+                    ),
+                    const SizedBox(width: 8),
+                    _ConnectionMetaChip(
+                      icon: Icons.person_add_alt_1_rounded,
+                      label:
+                          '${FormatHelper.formatCompactNumber(user.following)} following',
+                    ),
+                    const SizedBox(width: 8),
+                    _ConnectionMetaChip(
+                      icon: Icons.verified_user_outlined,
+                      label: _capitalize(user.role.name),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -418,6 +409,13 @@ class _FollowActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle compactButtonStyle = ButtonStyle(
+      minimumSize: WidgetStateProperty.all<Size>(const Size(96, 40)),
+      maximumSize: WidgetStateProperty.all<Size>(const Size(140, 40)),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+    );
+
     if (isCurrentUser) {
       return const Chip(label: Text('You'));
     }
@@ -425,12 +423,29 @@ class _FollowActionButton extends StatelessWidget {
       return const Chip(label: Text('Requested'));
     }
     if (isFollowing) {
-      return OutlinedButton(
-        onPressed: onPressed,
-        child: const Text('Following'),
+      return ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 96, maxWidth: 140),
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: compactButtonStyle,
+          child: const Text(
+            'Following',
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       );
     }
-    return FilledButton.tonal(onPressed: onPressed, child: Text(actionLabel));
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 96, maxWidth: 140),
+      child: FilledButton.tonal(
+        onPressed: onPressed,
+        style: compactButtonStyle,
+        child: Text(
+          actionLabel,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
   }
 }
 

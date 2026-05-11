@@ -324,31 +324,37 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              CategoryChip(
-                label: controller.selectedLocation,
-                selected: true,
-                leading: const Icon(Icons.place_outlined, size: 18),
-                onTap: () => _showLocations(context, controller),
-              ),
-              CategoryChip(
-                label: controller.selectedCategory == 'All'
-                    ? 'Categories'
-                    : controller.selectedCategory,
-                selected: false,
-                leading: const Icon(Icons.grid_view_rounded, size: 18),
-                onTap: () => _showCategoryPicker(context, controller),
-              ),
-              CategoryChip(
-                label: 'Filters',
-                selected: false,
-                leading: const Icon(Icons.tune_rounded, size: 18),
-                onTap: onFilterTap,
-              ),
-            ],
+          SizedBox(
+            height: 48,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                CategoryChip(
+                  label: controller.selectedLocation,
+                  selected: true,
+                  leading: const Icon(Icons.place_outlined, size: 18),
+                  onTap: () => _showLocations(context, controller),
+                ),
+                const SizedBox(width: 10),
+                CategoryChip(
+                  label: controller.selectedCategory == 'All'
+                      ? 'Categories'
+                      : controller.selectedCategory,
+                  selected: controller.selectedCategory != 'All',
+                  leading: const Icon(Icons.grid_view_rounded, size: 18),
+                  onTap: () => _showCategoryPicker(context, controller),
+                ),
+                const SizedBox(width: 10),
+                CategoryChip(
+                  label: 'Filters',
+                  selected:
+                      controller.selectedQuickFilter != 'Nearby' ||
+                      controller.filter != const MarketplaceFilterModel(),
+                  leading: const Icon(Icons.tune_rounded, size: 18),
+                  onTap: onFilterTap,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -425,6 +431,15 @@ class _BrowseTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool hasActiveBrowseFilters =
+        controller.selectedCategory != 'All' ||
+        controller.searchQuery.trim().isNotEmpty ||
+        controller.selectedQuickFilter != 'Nearby' ||
+        controller.filter != const MarketplaceFilterModel();
+    final List<ProductModel> browseResults = controller.filteredBrowseResults;
+    final List<ProductModel> visibleResults = controller.filteredProducts;
+    final bool showEmptyState = browseResults.isEmpty;
+
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification.metrics.extentAfter < 300) {
@@ -437,76 +452,17 @@ class _BrowseTab extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: _quickFilters(),
-            ),
-          ),
-          _SectionTitle(
-            title: 'Featured items',
-            action: 'View all',
-            onActionTap: () => _openFeaturedItems(context),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 280,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: controller.featuredItems.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 14),
-                itemBuilder: (context, index) {
-                  final item = controller.featuredItems[index];
-                  return SizedBox(
-                    width: 240,
-                    child: ProductCard(
-                      product: item,
-                      controller: controller,
-                      onTap: () => _openDetails(context, item),
-                    ),
-                  );
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _quickFilters(),
+                  const SizedBox(height: 12),
+                  _BrowseShortcutRow(controller: controller),
+                ],
               ),
             ),
           ),
-          _SectionTitle(
-            title: 'Recommended items',
-            action: controller.isGridMode ? 'List view' : 'Grid view',
-            onActionTap: controller.toggleGridMode,
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: controller.isGridMode
-                ? SliverGrid(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final item = controller.recommendedItems[index];
-                      return ProductCard(
-                        product: item,
-                        controller: controller,
-                        onTap: () => _openDetails(context, item),
-                      );
-                    }, childCount: controller.recommendedItems.length),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.72,
-                        ),
-                  )
-                : SliverList.separated(
-                    itemCount: controller.recommendedItems.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final item = controller.recommendedItems[index];
-                      return ProductCard(
-                        product: item,
-                        compact: true,
-                        controller: controller,
-                        onTap: () => _openDetails(context, item),
-                      );
-                    },
-                  ),
-          ),
-          _SectionTitle(title: 'Trending categories'),
+          _SectionTitle(title: 'Browse categories'),
           SliverToBoxAdapter(
             child: SizedBox(
               height: 54,
@@ -527,61 +483,173 @@ class _BrowseTab extends StatelessWidget {
               ),
             ),
           ),
-          _SectionTitle(title: 'Recently viewed items'),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 160,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: controller.recentlyViewedItems.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final item = controller.recentlyViewedItems[index];
-                  return SizedBox(
-                    width: 260,
-                    child: ProductCard(
-                      product: item,
-                      compact: true,
-                      controller: controller,
-                      onTap: () => _openDetails(context, item),
+          _SectionTitle(
+            title: showEmptyState ? 'No posts found' : 'Marketplace listings',
+            action: showEmptyState
+                ? null
+                : (controller.isGridMode ? 'List view' : 'Grid view'),
+            onActionTap: showEmptyState ? null : controller.toggleGridMode,
+          ),
+          if (showEmptyState)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                child: _MarketplaceEmptyState(
+                  hasActiveFilters: hasActiveBrowseFilters,
+                  onBrowseCategoriesTap: () =>
+                      DefaultTabController.of(context).animateTo(1),
+                  onMyListingsTap: () =>
+                      DefaultTabController.of(context).animateTo(2),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              sliver: controller.isGridMode
+                  ? SliverGrid(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final item = visibleResults[index];
+                        return ProductCard(
+                          product: item,
+                          controller: controller,
+                          onTap: () => _openDetails(context, item),
+                        );
+                      }, childCount: visibleResults.length),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.72,
+                          ),
+                    )
+                  : SliverList.separated(
+                      itemCount: visibleResults.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = visibleResults[index];
+                        return ProductCard(
+                          product: item,
+                          compact: true,
+                          controller: controller,
+                          onTap: () => _openDetails(context, item),
+                        );
+                      },
                     ),
-                  );
-                },
+            ),
+          if (!showEmptyState && controller.hasMoreFilteredProducts)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: const Center(child: Text('Pulling more listings...')),
+                ),
               ),
             ),
-          ),
-          _SectionTitle(title: 'Main product feed'),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            sliver: SliverList.separated(
-              itemCount: controller.filteredProducts.length + 1,
-              separatorBuilder: (_, _) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                if (index == controller.filteredProducts.length) {
-                  return Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerLowest,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Center(
-                      child: Text('Pulling more listings...'),
-                    ),
-                  );
-                }
-                final item = controller.filteredProducts[index];
-                return ProductCard(
-                  product: item,
-                  compact: true,
-                  controller: controller,
-                  onTap: () => _openDetails(context, item),
-                );
-              },
+          if (!hasActiveBrowseFilters && controller.featuredItems.isNotEmpty) ...[
+            _SectionTitle(
+              title: 'Featured items',
+              action: 'View all',
+              onActionTap: () => _openFeaturedItems(context),
             ),
-          ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 280,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: controller.featuredItems.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
+                  itemBuilder: (context, index) {
+                    final item = controller.featuredItems[index];
+                    return SizedBox(
+                      width: 240,
+                      child: ProductCard(
+                        product: item,
+                        controller: controller,
+                        onTap: () => _openDetails(context, item),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+          if (!hasActiveBrowseFilters &&
+              controller.recentlyViewedItems.isNotEmpty) ...[
+            _SectionTitle(title: 'Recently viewed items'),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 160,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: controller.recentlyViewedItems.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final item = controller.recentlyViewedItems[index];
+                    return SizedBox(
+                      width: 260,
+                      child: ProductCard(
+                        product: item,
+                        compact: true,
+                        controller: controller,
+                        onTap: () => _openDetails(context, item),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+          if (!hasActiveBrowseFilters &&
+              controller.recommendedItems.isNotEmpty) ...[
+            _SectionTitle(
+              title: 'Recommended items',
+              action: controller.isGridMode ? 'List view' : 'Grid view',
+              onActionTap: controller.toggleGridMode,
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              sliver: controller.isGridMode
+                  ? SliverGrid(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final item = controller.recommendedItems[index];
+                        return ProductCard(
+                          product: item,
+                          controller: controller,
+                          onTap: () => _openDetails(context, item),
+                        );
+                      }, childCount: controller.recommendedItems.length),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 0.72,
+                          ),
+                    )
+                  : SliverList.separated(
+                      itemCount: controller.recommendedItems.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = controller.recommendedItems[index];
+                        return ProductCard(
+                          product: item,
+                          compact: true,
+                          controller: controller,
+                          onTap: () => _openDetails(context, item),
+                        );
+                      },
+                    ),
+            ),
+          ],
         ],
       ),
     );
@@ -627,6 +695,106 @@ class _BrowseTab extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => MarketplaceFeaturedItemsScreen(controller: controller),
+      ),
+    );
+  }
+}
+
+class _BrowseShortcutRow extends StatelessWidget {
+  const _BrowseShortcutRow({required this.controller});
+
+  final MarketplaceController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          FilledButton.tonalIcon(
+            onPressed: () => DefaultTabController.of(context).animateTo(1),
+            icon: const Icon(Icons.grid_view_rounded),
+            label: const Text('Browse categories'),
+          ),
+          const SizedBox(width: 10),
+          FilledButton.tonalIcon(
+            onPressed: () => DefaultTabController.of(context).animateTo(2),
+            icon: const Icon(Icons.storefront_outlined),
+            label: const Text('My listings'),
+          ),
+          const SizedBox(width: 10),
+          Chip(
+            avatar: const Icon(Icons.place_outlined, size: 18),
+            label: Text(controller.selectedLocation),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MarketplaceEmptyState extends StatelessWidget {
+  const _MarketplaceEmptyState({
+    required this.hasActiveFilters,
+    required this.onBrowseCategoriesTap,
+    required this.onMyListingsTap,
+  });
+
+  final bool hasActiveFilters;
+  final VoidCallback onBrowseCategoriesTap;
+  final VoidCallback onMyListingsTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 30,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            hasActiveFilters
+                ? 'No posts found for this filter.'
+                : 'No posts found right now.',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasActiveFilters
+                ? 'Try another category, quick filter, or search term.'
+                : 'Browse categories or open your listings while we wait for new products.',
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: onBrowseCategoriesTap,
+                icon: const Icon(Icons.grid_view_rounded),
+                label: const Text('Browse categories'),
+              ),
+              FilledButton.tonalIcon(
+                onPressed: onMyListingsTap,
+                icon: const Icon(Icons.storefront_outlined),
+                label: const Text('My listings'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

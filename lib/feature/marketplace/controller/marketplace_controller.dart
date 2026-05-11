@@ -77,7 +77,7 @@ class MarketplaceController extends ChangeNotifier {
   List<ProductModel> get allProducts =>
       List<ProductModel>.unmodifiable(_products);
 
-  List<ProductModel> get filteredProducts {
+  List<ProductModel> get filteredBrowseResults {
     var items = _products.where(
       (item) => item.listingStatus != ListingStatus.draft,
     );
@@ -144,8 +144,14 @@ class MarketplaceController extends ChangeNotifier {
           (a, b) => (b.watchers + b.views).compareTo(a.watchers + a.views),
         );
     }
-    return result.take(browseVisibleCount).toList();
+    return result;
   }
+
+  List<ProductModel> get filteredProducts =>
+      filteredBrowseResults.take(browseVisibleCount).toList();
+
+  bool get hasMoreFilteredProducts =>
+      filteredBrowseResults.length > browseVisibleCount;
 
   List<ProductModel> get featuredItems =>
       _products.where((item) => item.isFeatured).take(5).toList();
