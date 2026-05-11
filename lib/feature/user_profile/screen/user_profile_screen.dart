@@ -8,6 +8,7 @@ import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
+import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/app_shimmer.dart';
 import '../../chat/screen/chat_detail_screen.dart';
 import '../../media_viewer/model/media_viewer_item_model.dart';
@@ -126,15 +127,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       left: 16,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(54),
-                        onTap: () => AppGet.toNamed(
-                          RouteNames.mediaViewer,
-                          arguments: MediaViewerRouteArguments(
-                            items: <MediaViewerItemModel>[
-                              MediaViewerItemModel.fromSource(user.avatar),
-                            ],
-                            title: '${user.name} profile photo',
-                          ),
-                        ),
+                        onTap: _hasUsableNetworkImage(user.avatar)
+                            ? () => AppGet.toNamed(
+                                RouteNames.mediaViewer,
+                                arguments: MediaViewerRouteArguments(
+                                  items: <MediaViewerItemModel>[
+                                    MediaViewerItemModel.fromSource(
+                                      user.avatar,
+                                    ),
+                                  ],
+                                  title: '${user.name} profile photo',
+                                ),
+                              )
+                            : null,
                         child: Stack(
                           children: [
                             Container(
@@ -143,10 +148,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 color: AppColors.white,
                                 shape: BoxShape.circle,
                               ),
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundImage: NetworkImage(user.avatar),
-                              ),
+                              child: _buildProfileAvatar(user),
                             ),
                             Positioned(
                               right: 4,
@@ -162,8 +164,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                     width: 3,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.open_in_full_rounded,
+                                child: Icon(
+                                  _hasUsableNetworkImage(user.avatar)
+                                      ? Icons.open_in_full_rounded
+                                      : Icons.person_rounded,
                                   size: 11,
                                   color: AppColors.white,
                                 ),
@@ -360,10 +364,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => AppGet.back(),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-        ),
+        automaticallyImplyLeading: ! _controller.isOwnProfile,
+        leading: _controller.isOwnProfile
+            ? null
+            : IconButton(
+                onPressed: () => AppGet.back(),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              ),
         title: const Text('Profile'),
       ),
       body: profileContent,
@@ -371,7 +378,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildCover(UserModel user) {
-    if (user.coverImageUrl.trim().isEmpty) {
+    final String coverImageUrl = user.coverImageUrl.trim();
+    if (!_hasUsableNetworkImage(coverImageUrl)) {
       return Container(
         height: 140,
         width: double.infinity,
@@ -386,8 +394,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return SizedBox(
       height: 140,
       width: double.infinity,
-      child: Image.network(user.coverImageUrl.trim(), fit: BoxFit.cover),
+      child: Image.network(coverImageUrl, fit: BoxFit.cover),
     );
+  }
+
+  Widget _buildProfileAvatar(UserModel user) {
+    return CircleAvatar(
+      radius: 50,
+      backgroundColor: AppColors.hexFFF2F4F7,
+      child: AppAvatar(
+        imageUrl: user.avatar,
+        radius: 46,
+        verified: false,
+      ),
+    );
+  }
+
+  bool _hasUsableNetworkImage(String value) {
+    final String trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      return false;
+    }
+    final Uri? uri = Uri.tryParse(trimmed);
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
   }
 
   Widget _buildFollowActionButton() {

@@ -94,8 +94,15 @@ class AccountSwitchingScreen extends StatelessWidget {
                           ),
                         ),
                         title: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Flexible(child: Text(account.name)),
+                            Flexible(
+                              child: Text(
+                                account.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                             if (account.isVerified) ...[
                               const SizedBox(width: 6),
                               const Icon(Icons.verified_rounded, size: 18),

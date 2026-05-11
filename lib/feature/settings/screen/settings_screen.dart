@@ -167,6 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           border: Border.all(color: AppColors.hexFFECECF1),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             user.avatar.trim().isEmpty
                 ? const CircleAvatar(
@@ -181,9 +182,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     controller.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),

@@ -217,37 +217,44 @@ class UserProfileRepository {
   }) async {
     final bool wantsPendingRequest =
         user.isPrivate && !isCurrentlyFollowing && !hasPendingRequest;
-    final String endpoint = isCurrentlyFollowing
-        ? ApiEndPoints.userUnfollow(user.id)
-        : ApiEndPoints.userFollow(user.id);
+    final List<String> endpoints = isCurrentlyFollowing
+        ? <String>[
+            ApiEndPoints.followUnfollowUnfollow(user.id),
+            ApiEndPoints.userUnfollow(user.id),
+          ]
+        : <String>[
+            ApiEndPoints.followUnfollowFollow(user.id),
+            ApiEndPoints.userFollow(user.id),
+          ];
 
-    try {
-      final ServiceResponseModel<Map<String, dynamic>> response = await _service
-          .apiClient
-          .post(endpoint, const <String, dynamic>{});
-      if (response.isSuccess && response.data['success'] != false) {
-        final bool resolvedIsFollowing =
-            _extractBoolean(response.data, const <String>[
-              'isFollowing',
-              'following',
-              'followed',
-            ]) ??
-            (wantsPendingRequest ? false : !isCurrentlyFollowing);
-        final bool resolvedPending =
-            _extractBoolean(response.data, const <String>[
-              'hasPendingRequest',
-              'pending',
-              'requested',
-              'requestPending',
-            ]) ??
-            (wantsPendingRequest && !resolvedIsFollowing);
-        return FollowToggleResult(
-          isFollowing: resolvedIsFollowing,
-          hasPendingRequest: resolvedPending,
-          syncedRemotely: true,
-        );
-      }
-    } catch (_) {}
+    for (final String endpoint in endpoints) {
+      try {
+        final ServiceResponseModel<Map<String, dynamic>> response =
+            await _service.apiClient.post(endpoint, const <String, dynamic>{});
+        if (response.isSuccess && response.data['success'] != false) {
+          final bool resolvedIsFollowing =
+              _extractBoolean(response.data, const <String>[
+                'isFollowing',
+                'following',
+                'followed',
+              ]) ??
+              (wantsPendingRequest ? false : !isCurrentlyFollowing);
+          final bool resolvedPending =
+              _extractBoolean(response.data, const <String>[
+                'hasPendingRequest',
+                'pending',
+                'requested',
+                'requestPending',
+              ]) ??
+              (wantsPendingRequest && !resolvedIsFollowing);
+          return FollowToggleResult(
+            isFollowing: resolvedIsFollowing,
+            hasPendingRequest: resolvedPending,
+            syncedRemotely: true,
+          );
+        }
+      } catch (_) {}
+    }
 
     return FollowToggleResult(
       isFollowing: isCurrentlyFollowing,

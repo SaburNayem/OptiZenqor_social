@@ -11,6 +11,6 @@ class FollowUnfollowService extends FeatureServiceBase {
   Map<String, String> get endpoints => <String, String>{
     'users': ApiEndPoints.users,
     'user': ApiEndPoints.userById(':id'),
-    'follow': ApiEndPoints.userFollow(':id'),
+    'follow': ApiEndPoints.followUnfollowFollow(':id'),
   };
 }
