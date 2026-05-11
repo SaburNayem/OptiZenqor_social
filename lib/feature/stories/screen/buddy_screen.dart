@@ -156,7 +156,7 @@ class _BuddyScreenState extends State<BuddyScreen>
         return _BuddyCard(
           item: item,
           onAccept: () => _acceptRequest(item),
-          onCancel: () => _cancelRequest(item),
+          onCancel: () => _handleSecondaryAction(item),
           onRemoveBuddy: () => _removeBuddy(item),
           onMessage: () => _messageBuddy(item),
         );
@@ -225,6 +225,35 @@ class _BuddyScreenState extends State<BuddyScreen>
         title: 'Buddy',
         message: error.toString().replaceFirst('Exception: ', ''),
       );
+    }
+  }
+
+  Future<void> _rejectRequest(_BuddyCardModel item) async {
+    try {
+      await _repository.rejectRequest(item.id);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _receivedRequests.removeWhere((entry) => entry.id == item.id);
+      });
+      AppFeedback.showSnackbar(title: 'Buddy', message: 'Request rejected');
+    } catch (error) {
+      AppFeedback.showSnackbar(
+        title: 'Buddy',
+        message: error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
+  Future<void> _handleSecondaryAction(_BuddyCardModel item) {
+    switch (item.type) {
+      case _BuddyCardType.received:
+        return _rejectRequest(item);
+      case _BuddyCardType.sent:
+        return _cancelRequest(item);
+      case _BuddyCardType.buddy:
+        return _removeBuddy(item);
     }
   }
 
@@ -382,7 +411,7 @@ class _BuddyCard extends StatelessWidget {
           Expanded(
             child: OutlinedButton(
               onPressed: onCancel,
-              child: const Text('Cancel'),
+              child: const Text('Reject'),
             ),
           ),
         ];

@@ -219,18 +219,18 @@ class UserProfileRepository {
         user.isPrivate && !isCurrentlyFollowing && !hasPendingRequest;
     final List<String> endpoints = isCurrentlyFollowing
         ? <String>[
-            ApiEndPoints.followUnfollowUnfollow(user.id),
             ApiEndPoints.userUnfollow(user.id),
+            ApiEndPoints.followUnfollowUnfollow(user.id),
           ]
         : <String>[
-            ApiEndPoints.followUnfollowFollow(user.id),
             ApiEndPoints.userFollow(user.id),
+            ApiEndPoints.followUnfollowFollow(user.id),
           ];
 
     for (final String endpoint in endpoints) {
       try {
         final ServiceResponseModel<Map<String, dynamic>> response =
-            await _service.apiClient.post(endpoint, const <String, dynamic>{});
+            await _service.apiClient.patch(endpoint, const <String, dynamic>{});
         if (response.isSuccess && response.data['success'] != false) {
           final bool resolvedIsFollowing =
               _extractBoolean(response.data, const <String>[
@@ -247,6 +247,10 @@ class UserProfileRepository {
                 'requestPending',
               ]) ??
               (wantsPendingRequest && !resolvedIsFollowing);
+          await _setFeedVisibilityForAuthor(
+            user.id,
+            hidden: !resolvedIsFollowing && !resolvedPending,
+          );
           return FollowToggleResult(
             isFollowing: resolvedIsFollowing,
             hasPendingRequest: resolvedPending,
@@ -256,6 +260,10 @@ class UserProfileRepository {
       } catch (_) {}
     }
 
+    await _setFeedVisibilityForAuthor(
+      user.id,
+      hidden: !isCurrentlyFollowing && !hasPendingRequest,
+    );
     return FollowToggleResult(
       isFollowing: isCurrentlyFollowing,
       hasPendingRequest: hasPendingRequest,
@@ -611,6 +619,40 @@ class UserProfileRepository {
 
   Future<void> _cacheProfile(UserModel user) async {
     await _storage.writeJson(StorageKeys.cachedProfile, user.toJson());
+  }
+
+  Future<void> _setFeedVisibilityForAuthor(
+    String authorId, {
+    required bool hidden,
+  }) async {
+    final String normalizedAuthorId = authorId.trim();
+    if (normalizedAuthorId.isEmpty) {
+      return;
+    }
+
+    final Map<String, dynamic> preferences =
+        await _storage.readJson(StorageKeys.recommendationPreferences) ??
+        <String, dynamic>{};
+    final Set<String> hiddenCreators = ((preferences['hiddenCreators'] as List?)
+                ?.map((Object? item) => item.toString().trim())
+                .where((String item) => item.isNotEmpty) ??
+            const Iterable<String>.empty())
+        .toSet();
+
+    if (hidden) {
+      hiddenCreators.add(normalizedAuthorId);
+    } else {
+      hiddenCreators.remove(normalizedAuthorId);
+    }
+
+    preferences['lessLikeThis'] = List<String>.from(
+      (preferences['lessLikeThis'] as List?) ?? const <String>[],
+    );
+    preferences['hiddenTopics'] = List<String>.from(
+      (preferences['hiddenTopics'] as List?) ?? const <String>[],
+    );
+    preferences['hiddenCreators'] = hiddenCreators.toList(growable: false);
+    await _storage.writeJson(StorageKeys.recommendationPreferences, preferences);
   }
 
   Future<void> _persistUserInSession(UserModel user) async {

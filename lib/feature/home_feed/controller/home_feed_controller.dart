@@ -52,7 +52,13 @@ class HomeFeedController extends Cubit<int> {
   bool get isLoading => loadState.isLoading;
   bool get isLoadingMore => loadState.isLoadingMore;
   List<PostModel> get visiblePosts => posts
-      .where((PostModel post) => !_hiddenPostIds.contains(post.id))
+      .where(
+        (PostModel post) =>
+            !_hiddenPostIds.contains(post.id) &&
+            !_hiddenCreatorIds.contains(post.authorId) &&
+            !_lessLikeThisPostIds.contains(post.id) &&
+            !_postContainsHiddenTopic(post),
+      )
       .toList();
   List<PostModel> get hiddenPosts => hiddenPostRecords;
   bool isPostActionFailed(String postId) =>
@@ -378,6 +384,17 @@ class HomeFeedController extends Cubit<int> {
     );
     await _persistRecommendationPreferences();
     _notify();
+  }
+
+  bool _postContainsHiddenTopic(PostModel post) {
+    for (final String tag in post.tags) {
+      for (final String hiddenTopic in _hiddenTopics) {
+        if (tag.toLowerCase() == hiddenTopic.toLowerCase()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   Future<void> createLocalPost({

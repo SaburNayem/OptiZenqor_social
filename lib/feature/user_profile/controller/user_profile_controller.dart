@@ -33,8 +33,10 @@ class UserProfileController extends ChangeNotifier {
   bool followRequestPending = false;
   bool isBuddy = false;
   bool buddyRequestSent = false;
+  bool buddyRequestReceived = false;
   bool buddyActionInProgress = false;
   String? buddyRequestId;
+  String? buddyReceivedRequestId;
   String accountExportMessage = 'No export requested yet';
 
   List<PostModel> _posts = <PostModel>[];
@@ -162,7 +164,9 @@ class UserProfileController extends ChangeNotifier {
         followRequestPending = false;
         isBuddy = false;
         buddyRequestSent = false;
+        buddyRequestReceived = false;
         buddyRequestId = null;
+        buddyReceivedRequestId = null;
         state = state.copyWith(
           isLoading: false,
           isSuccess: false,
@@ -196,6 +200,11 @@ class UserProfileController extends ChangeNotifier {
                 const <BuddyRelationshipModel>[],
               )
             : _buddyRepository.fetchSentRequests(),
+        isOwnProfile
+            ? Future<List<BuddyRelationshipModel>>.value(
+                const <BuddyRelationshipModel>[],
+              )
+            : _buddyRepository.fetchReceivedRequests(),
       ]);
 
       _posts = resources[0] as List<PostModel>;
@@ -211,6 +220,8 @@ class UserProfileController extends ChangeNotifier {
           resources[9] as List<BuddyRelationshipModel>;
       final List<BuddyRelationshipModel> sentRequests =
           resources[10] as List<BuddyRelationshipModel>;
+      final List<BuddyRelationshipModel> receivedRequests =
+          resources[11] as List<BuddyRelationshipModel>;
 
       isFollowing = isOwnProfile ? false : followState.isFollowing;
       followRequestPending = isOwnProfile
@@ -229,6 +240,17 @@ class UserProfileController extends ChangeNotifier {
       }
       buddyRequestSent = sentRequest != null;
       buddyRequestId = sentRequest?.id;
+      BuddyRelationshipModel? receivedRequest;
+      if (!isOwnProfile) {
+        for (final BuddyRelationshipModel item in receivedRequests) {
+          if (item.user.id == user!.id) {
+            receivedRequest = item;
+            break;
+          }
+        }
+      }
+      buddyRequestReceived = receivedRequest != null;
+      buddyReceivedRequestId = receivedRequest?.id;
 
       state = state.copyWith(isLoading: false, isSuccess: true, isEmpty: false);
       await _analytics.profileViewed();
@@ -303,6 +325,10 @@ class UserProfileController extends ChangeNotifier {
       if (isBuddy) {
         await _buddyRepository.removeBuddy(current.id);
         isBuddy = false;
+        buddyRequestSent = false;
+        buddyRequestReceived = false;
+        buddyRequestId = null;
+        buddyReceivedRequestId = null;
         return 'Buddy removed';
       }
 
@@ -312,13 +338,81 @@ class UserProfileController extends ChangeNotifier {
       if (request.status.toLowerCase() == 'accepted') {
         isBuddy = true;
         buddyRequestSent = false;
+        buddyRequestReceived = false;
         buddyRequestId = null;
+        buddyReceivedRequestId = null;
         return 'Buddy added';
       }
 
       buddyRequestSent = true;
+      buddyRequestReceived = false;
       buddyRequestId = request.id;
+      buddyReceivedRequestId = null;
       return 'Buddy request sent';
+    } finally {
+      buddyActionInProgress = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String> acceptBuddyRequest() async {
+    final String requestId = buddyReceivedRequestId?.trim() ?? '';
+    if (requestId.isEmpty || buddyActionInProgress) {
+      return '';
+    }
+
+    buddyActionInProgress = true;
+    notifyListeners();
+    try {
+      await _buddyRepository.acceptRequest(requestId);
+      isBuddy = true;
+      buddyRequestReceived = false;
+      buddyRequestSent = false;
+      buddyReceivedRequestId = null;
+      buddyRequestId = null;
+      return 'Buddy request accepted';
+    } finally {
+      buddyActionInProgress = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String> rejectBuddyRequest() async {
+    final String requestId = buddyReceivedRequestId?.trim() ?? '';
+    if (requestId.isEmpty || buddyActionInProgress) {
+      return '';
+    }
+
+    buddyActionInProgress = true;
+    notifyListeners();
+    try {
+      await _buddyRepository.rejectRequest(requestId);
+      isBuddy = false;
+      buddyRequestReceived = false;
+      buddyReceivedRequestId = null;
+      return 'Buddy request rejected';
+    } finally {
+      buddyActionInProgress = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String> removeBuddy() async {
+    final UserModel? current = user;
+    if (current == null || !isBuddy || buddyActionInProgress) {
+      return '';
+    }
+
+    buddyActionInProgress = true;
+    notifyListeners();
+    try {
+      await _buddyRepository.removeBuddy(current.id);
+      isBuddy = false;
+      buddyRequestSent = false;
+      buddyRequestReceived = false;
+      buddyRequestId = null;
+      buddyReceivedRequestId = null;
+      return 'Buddy removed';
     } finally {
       buddyActionInProgress = false;
       notifyListeners();

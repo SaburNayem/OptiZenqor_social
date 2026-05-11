@@ -498,12 +498,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildMoreActionsButton(UserModel user) {
-    final String buddyActionLabel = _controller.isBuddy
-        ? 'Remove Buddy'
-        : _controller.buddyRequestSent
-        ? 'Cancel Buddy Request'
-        : 'Add Buddy';
-
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.grey200),
@@ -519,22 +513,69 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               : Icons.more_horiz_rounded,
           color: AppColors.grey,
         ),
-        itemBuilder: (BuildContext context) => [
-          PopupMenuItem<String>(
-            value: 'toggle_buddy',
-            child: Text(buddyActionLabel),
-          ),
-          const PopupMenuItem<String>(
-            value: 'copy_link',
-            child: Text('Copy Profile Link'),
-          ),
-          const PopupMenuItem<String>(
-            value: 'copy_username',
-            child: Text('Copy Username'),
-          ),
-        ],
+        itemBuilder: (BuildContext context) => _buildProfileMenuItems(),
       ),
     );
+  }
+
+  List<PopupMenuEntry<String>> _buildProfileMenuItems() {
+    final List<PopupMenuEntry<String>> items = <PopupMenuEntry<String>>[];
+    if (_controller.buddyRequestReceived) {
+      items.add(
+        const PopupMenuItem<String>(
+          value: 'accept_buddy',
+          child: Text('Accept Buddy'),
+        ),
+      );
+      items.add(
+        const PopupMenuItem<String>(
+          value: 'reject_buddy',
+          child: Text('Reject Buddy'),
+        ),
+      );
+    } else if (_controller.isBuddy) {
+      items.add(
+        const PopupMenuItem<String>(
+          value: 'buddy_status',
+          enabled: false,
+          child: Text('Buddy'),
+        ),
+      );
+      items.add(
+        const PopupMenuItem<String>(
+          value: 'unfollow_profile',
+          child: Text('Unfollow'),
+        ),
+      );
+      items.add(
+        const PopupMenuItem<String>(
+          value: 'remove_buddy',
+          child: Text('Remove Buddy'),
+        ),
+      );
+    } else {
+      items.add(
+        PopupMenuItem<String>(
+          value: 'toggle_buddy',
+          child: Text(
+            _controller.buddyRequestSent ? 'Cancel Buddy Request' : 'Add Buddy',
+          ),
+        ),
+      );
+    }
+    items.add(
+      const PopupMenuItem<String>(
+        value: 'copy_link',
+        child: Text('Copy Profile Link'),
+      ),
+    );
+    items.add(
+      const PopupMenuItem<String>(
+        value: 'copy_username',
+        child: Text('Copy Username'),
+      ),
+    );
+    return items;
   }
 
   Widget _buildProfileTypeChip(UserModel user) {
@@ -884,11 +925,37 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         : 'https://optizenqor.app/@${user.username}';
 
     switch (value) {
+      case 'accept_buddy':
+        final String acceptMessage = await _controller.acceptBuddyRequest();
+        if (acceptMessage.trim().isNotEmpty) {
+          AppGet.snackbar('Buddy', acceptMessage);
+        }
+        return;
+      case 'reject_buddy':
+        final String rejectMessage = await _controller.rejectBuddyRequest();
+        if (rejectMessage.trim().isNotEmpty) {
+          AppGet.snackbar('Buddy', rejectMessage);
+        }
+        return;
+      case 'remove_buddy':
+        final String removeMessage = await _controller.removeBuddy();
+        if (removeMessage.trim().isNotEmpty) {
+          AppGet.snackbar('Buddy', removeMessage);
+        }
+        return;
+      case 'unfollow_profile':
+        if (_controller.isFollowing || _controller.followRequestPending) {
+          await _controller.toggleFollow();
+          AppGet.snackbar('Profile', 'Unfollowed successfully');
+        }
+        return;
       case 'toggle_buddy':
         final String message = await _controller.toggleBuddyRequest();
         if (message.trim().isNotEmpty) {
           AppGet.snackbar('Buddy', message);
         }
+        return;
+      case 'buddy_status':
         return;
       case 'copy_link':
         await Clipboard.setData(ClipboardData(text: profileUrl));
