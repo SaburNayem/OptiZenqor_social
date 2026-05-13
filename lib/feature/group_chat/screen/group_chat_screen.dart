@@ -2,13 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../controller/group_chat_controller.dart';
 
-class GroupChatScreen extends StatelessWidget {
-  GroupChatScreen({super.key}) {
+class GroupChatScreen extends StatefulWidget {
+  const GroupChatScreen({super.key});
+
+  @override
+  State<GroupChatScreen> createState() => _GroupChatScreenState();
+}
+
+class _GroupChatScreenState extends State<GroupChatScreen> {
+  final GroupChatController _controller = GroupChatController();
+  final TextEditingController _groupController = TextEditingController();
+  final TextEditingController _dialogController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
     _controller.load();
   }
 
-  final GroupChatController _controller = GroupChatController();
-  final TextEditingController _groupController = TextEditingController();
+  @override
+  void dispose() {
+    _groupController.dispose();
+    _dialogController.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +41,8 @@ class GroupChatScreen extends StatelessWidget {
 
           return ListView(
             padding: const EdgeInsets.all(16),
-            children: [
-              if ((_controller.errorMessage ?? '').isNotEmpty) ...[
+            children: <Widget>[
+              if ((_controller.errorMessage ?? '').isNotEmpty) ...<Widget>[
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -34,7 +52,7 @@ class GroupChatScreen extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
               Row(
-                children: [
+                children: <Widget>[
                   Expanded(
                     child: TextField(
                       controller: _groupController,
@@ -59,42 +77,78 @@ class GroupChatScreen extends StatelessWidget {
                     title: Text(group.name),
                     subtitle: Text(
                       'Members: ${group.members.join(', ')}\n'
-                      'Media: ${group.media.join(', ')}',
+                      '${group.summary.isEmpty ? 'No summary yet' : group.summary}\n'
+                      'Unread: ${group.unreadCount}',
                     ),
                     trailing: PopupMenuButton<String>(
-                      onSelected: (value) async {
+                      onSelected: (String value) async {
                         if (value == 'add') {
-                          await _controller.addMember(
-                            group.id,
-                            'member${group.members.length + 1}',
+                          final String username = await _prompt(
+                            context,
+                            title: 'Add member',
+                            hint: 'Username or user id',
                           );
-                        } else if (value == 'rename') {
-                          await _controller.renameGroup(
-                            group.id,
-                            '${group.name} Updated',
+                          if (username.isEmpty) {
+                            return;
+                          }
+                          await _controller.addMember(group.id, username);
+                          return;
+                        }
+                        if (value == 'rename') {
+                          final String nextName = await _prompt(
+                            context,
+                            title: 'Rename group',
+                            hint: 'Group name',
+                            initialValue: group.name,
                           );
-                        } else if (value == 'delete') {
+                          if (nextName.isEmpty) {
+                            return;
+                          }
+                          await _controller.renameGroup(group.id, nextName);
+                          return;
+                        }
+                        if (value == 'delete') {
                           await _controller.deleteGroup(group.id);
-                        } else if (value == 'role' &&
-                            group.members.isNotEmpty) {
+                          return;
+                        }
+                        if (value == 'role') {
+                          final String username = await _prompt(
+                            context,
+                            title: 'Promote member',
+                            hint: 'Username',
+                            initialValue: group.members.isEmpty
+                                ? ''
+                                : group.members.first,
+                          );
+                          if (username.isEmpty) {
+                            return;
+                          }
                           await _controller.updateMemberRole(
                             group.id,
-                            group.members.first,
+                            username,
                             'moderator',
                           );
-                        } else if (group.members.isNotEmpty) {
-                          await _controller.removeMember(
-                            group.id,
-                            group.members.last,
-                          );
+                          return;
                         }
+                        final String username = await _prompt(
+                          context,
+                          title: 'Remove member',
+                          hint: 'Username',
+                          initialValue: group.members.isEmpty
+                              ? ''
+                              : group.members.last,
+                        );
+                        if (username.isEmpty) {
+                          return;
+                        }
+                        await _controller.removeMember(group.id, username);
                       },
-                      itemBuilder: (_) => const [
+                      itemBuilder: (_) => const <PopupMenuEntry<String>>[
                         PopupMenuItem(value: 'add', child: Text('Add member')),
                         PopupMenuItem(value: 'rename', child: Text('Rename')),
                         PopupMenuItem(
                           value: 'role',
-                          child: Text('Make first member moderator'),
+                          child: Text('Make member moderator'),
                         ),
                         PopupMenuItem(
                           value: 'remove',
@@ -114,5 +168,43 @@ class GroupChatScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<String> _prompt(
+    BuildContext context, {
+    required String title,
+    required String hint,
+    String initialValue = '',
+  }) async {
+    _dialogController.text = initialValue;
+    final String? value = await showDialog<String>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(title),
+          content: TextField(
+            controller: _dialogController,
+            decoration: InputDecoration(hintText: hint),
+            autofocus: true,
+            onSubmitted: (_) {
+              Navigator.of(dialogContext).pop(_dialogController.text.trim());
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(
+                dialogContext,
+              ).pop(_dialogController.text.trim()),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    return (value ?? '').trim();
   }
 }

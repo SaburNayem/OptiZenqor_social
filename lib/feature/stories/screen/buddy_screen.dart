@@ -25,6 +25,7 @@ class _BuddyScreenState extends State<BuddyScreen>
   late final TabController _tabController;
   final BuddyRepository _repository = BuddyRepository();
   final ChatRepository _chatRepository = ChatRepository();
+  final Set<String> _busyActionIds = <String>{};
   List<_BuddyCardModel> _sentRequests = <_BuddyCardModel>[];
   List<_BuddyCardModel> _receivedRequests = <_BuddyCardModel>[];
   List<_BuddyCardModel> _buddies = <_BuddyCardModel>[];
@@ -155,6 +156,8 @@ class _BuddyScreenState extends State<BuddyScreen>
         final _BuddyCardModel item = items[index];
         return _BuddyCard(
           item: item,
+          isBusy: _busyActionIds.contains(item.id) ||
+              _busyActionIds.contains(item.user.id),
           onAccept: () => _acceptRequest(item),
           onCancel: () => _handleSecondaryAction(item),
           onRemoveBuddy: () => _removeBuddy(item),
@@ -165,6 +168,9 @@ class _BuddyScreenState extends State<BuddyScreen>
   }
 
   Future<void> _acceptRequest(_BuddyCardModel item) async {
+    if (!_startBusy(item.id)) {
+      return;
+    }
     try {
       final BuddyRelationshipModel accepted = await _repository.acceptRequest(
         item.id,
@@ -185,10 +191,15 @@ class _BuddyScreenState extends State<BuddyScreen>
         title: 'Buddy',
         message: error.toString().replaceFirst('Exception: ', ''),
       );
+    } finally {
+      _stopBusy(item.id);
     }
   }
 
   Future<void> _cancelRequest(_BuddyCardModel item) async {
+    if (!_startBusy(item.id)) {
+      return;
+    }
     try {
       await _repository.cancelRequest(item.id);
       if (!mounted) {
@@ -204,10 +215,19 @@ class _BuddyScreenState extends State<BuddyScreen>
         title: 'Buddy',
         message: error.toString().replaceFirst('Exception: ', ''),
       );
+    } finally {
+      _stopBusy(item.id);
     }
   }
 
   Future<void> _removeBuddy(_BuddyCardModel item) async {
+    final bool shouldRemove = await _confirmRemoveBuddy(item);
+    if (!shouldRemove) {
+      return;
+    }
+    if (!_startBusy(item.user.id)) {
+      return;
+    }
     try {
       await _repository.removeBuddy(item.user.id);
       if (!mounted) {
@@ -225,10 +245,15 @@ class _BuddyScreenState extends State<BuddyScreen>
         title: 'Buddy',
         message: error.toString().replaceFirst('Exception: ', ''),
       );
+    } finally {
+      _stopBusy(item.user.id);
     }
   }
 
   Future<void> _rejectRequest(_BuddyCardModel item) async {
+    if (!_startBusy(item.id)) {
+      return;
+    }
     try {
       await _repository.rejectRequest(item.id);
       if (!mounted) {
@@ -243,6 +268,8 @@ class _BuddyScreenState extends State<BuddyScreen>
         title: 'Buddy',
         message: error.toString().replaceFirst('Exception: ', ''),
       );
+    } finally {
+      _stopBusy(item.id);
     }
   }
 
@@ -288,6 +315,52 @@ class _BuddyScreenState extends State<BuddyScreen>
     }
   }
 
+  Future<bool> _confirmRemoveBuddy(_BuddyCardModel item) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Remove buddy?'),
+          content: Text(
+            'Remove ${item.user.name} from your buddy list?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
+    return confirmed ?? false;
+  }
+
+  bool _startBusy(String key) {
+    if (_busyActionIds.contains(key)) {
+      return false;
+    }
+    if (mounted) {
+      setState(() {
+        _busyActionIds.add(key);
+      });
+    }
+    return true;
+  }
+
+  void _stopBusy(String key) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _busyActionIds.remove(key);
+    });
+  }
+
   _BuddyCardModel _mapItem(BuddyRelationshipModel item, _BuddyCardType type) {
     return _BuddyCardModel(
       id: item.id,
@@ -307,6 +380,7 @@ class _BuddyScreenState extends State<BuddyScreen>
 class _BuddyCard extends StatelessWidget {
   const _BuddyCard({
     required this.item,
+    required this.isBusy,
     required this.onAccept,
     required this.onCancel,
     required this.onRemoveBuddy,
@@ -314,6 +388,7 @@ class _BuddyCard extends StatelessWidget {
   });
 
   final _BuddyCardModel item;
+  final bool isBusy;
   final VoidCallback onAccept;
   final VoidCallback onCancel;
   final VoidCallback onRemoveBuddy;
@@ -322,6 +397,7 @@ class _BuddyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isBuddyCard = item.type == _BuddyCardType.buddy;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -333,54 +409,100 @@ class _BuddyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Row(
+          if (isBuddyCard)
+            _buildBuddyRow(context, colorScheme)
+          else
+            _buildStandardCard(context, colorScheme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBuddyRow(BuildContext context, ColorScheme colorScheme) {
+    return Row(
+      children: <Widget>[
+        AppAvatar(
+          imageUrl: item.user.avatar,
+          radius: 28,
+          verified: item.user.verified,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              AppAvatar(
-                imageUrl: item.user.avatar,
-                radius: 28,
-                verified: item.user.verified,
+              Text(
+                item.user.name,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      item.user.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '@${item.user.username}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 4),
+              Text(
+                item.mutualBuddyText,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            item.responseText,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: _buildActions(),
           ),
-          const SizedBox(height: 4),
-          Text(
-            item.mutualBuddyText,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStandardCard(BuildContext context, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            AppAvatar(
+              imageUrl: item.user.avatar,
+              radius: 28,
+              verified: item.user.verified,
             ),
-          ),
-          const SizedBox(height: 14),
-          Row(children: _buildActions()),
-        ],
-      ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    item.user.name,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.mutualBuddyText,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          item.responseText,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 14),
+        Row(children: _buildActions()),
+      ],
     );
   }
 
@@ -388,14 +510,25 @@ class _BuddyCard extends StatelessWidget {
     switch (item.type) {
       case _BuddyCardType.buddy:
         return <Widget>[
-          Expanded(
-            child: FilledButton(onPressed: onMessage, child: const Text('Msg')),
+          SizedBox(
+            width: 84,
+            child: FilledButton(
+              onPressed: isBusy ? null : onMessage,
+              child: const Text('Msg'),
+            ),
           ),
           const SizedBox(width: 10),
-          Expanded(
+          SizedBox(
+            width: 132,
             child: OutlinedButton(
-              onPressed: onRemoveBuddy,
-              child: const Text('Remove Buddy'),
+              onPressed: isBusy ? null : onRemoveBuddy,
+              child: isBusy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Remove Buddy'),
             ),
           ),
         ];
@@ -403,14 +536,23 @@ class _BuddyCard extends StatelessWidget {
         return <Widget>[
           Expanded(
             child: FilledButton(
-              onPressed: onAccept,
-              child: const Text('Accept'),
+              onPressed: isBusy ? null : onAccept,
+              child: isBusy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Accept'),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: OutlinedButton(
-              onPressed: onCancel,
+              onPressed: isBusy ? null : onCancel,
               child: const Text('Reject'),
             ),
           ),
@@ -419,8 +561,14 @@ class _BuddyCard extends StatelessWidget {
         return <Widget>[
           Expanded(
             child: OutlinedButton(
-              onPressed: onCancel,
-              child: const Text('Cancel'),
+              onPressed: isBusy ? null : onCancel,
+              child: isBusy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Cancel'),
             ),
           ),
         ];

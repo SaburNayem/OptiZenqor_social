@@ -16,6 +16,18 @@ class OnboardingRepository {
   final OnboardingService _service;
 
   Future<bool> isCompleted() async {
+    final bool cached = await readCachedCompletion();
+    if (cached) {
+      return true;
+    }
+    return refreshCompletionState(fallback: cached);
+  }
+
+  Future<bool> readCachedCompletion() async {
+    return await _storage.read<bool>(StorageKeys.onboardingDone) ?? false;
+  }
+
+  Future<bool> refreshCompletionState({bool fallback = false}) async {
     try {
       final ServiceResponseModel<Map<String, dynamic>> response = await _service
           .apiClient
@@ -27,11 +39,10 @@ class OnboardingRepository {
         if (completed) {
           await _storage.write(StorageKeys.onboardingDone, true);
         }
-        return completed ||
-            (await _storage.read<bool>(StorageKeys.onboardingDone) ?? false);
+        return completed || await readCachedCompletion();
       }
     } catch (_) {}
-    return await _storage.read<bool>(StorageKeys.onboardingDone) ?? false;
+    return fallback;
   }
 
   Future<bool> hasUsableContent() async {

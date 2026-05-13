@@ -139,6 +139,12 @@ class ApiEndPoints {
   static String chatThreadById(String threadId) => '/chat/threads/$threadId';
   static String chatThreadMessages(String threadId) =>
       '/chat/threads/$threadId/messages';
+  static String chatThreadMessageById(String threadId, String messageId) =>
+      '/chat/threads/$threadId/messages/$messageId';
+  static String chatThreadMessagePin(String threadId, String messageId) =>
+      '/chat/threads/$threadId/messages/$messageId/pin';
+  static String chatThreadMessageForward(String threadId, String messageId) =>
+      '/chat/threads/$threadId/messages/$messageId/forward';
   static String chatThreadRead(String threadId) =>
       '/chat/threads/$threadId/read';
   static String chatThreadArchive(String threadId) =>

@@ -64,7 +64,7 @@ class ChatThreadModel {
           lastMessageModel?.text ??
           ApiPayloadReader.readString(
             json['summary'] ?? json['lastMessageText'],
-            fallback: 'Start chatting',
+            fallback: '',
           ),
       user: threadUser,
       lastMessageModel: lastMessageModel,

@@ -4,8 +4,11 @@ import 'package:flutter/services.dart';
 
 import '../../../core/data/service/connectivity_service.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../bookmarks/controller/bookmarks_controller.dart';
+import '../../chat/controller/chat_controller.dart';
 import '../../chat/screen/chat_screen.dart';
 import '../../reels_short_video/screen/reels_screen.dart';
+import '../../settings/controller/settings_state_controller.dart';
 import '../../user_profile/screen/user_profile_screen.dart';
 import '../controller/home_feed_controller.dart';
 import '../controller/main_shell_controller.dart';
@@ -16,29 +19,54 @@ import '../widget/main_shell_home_app_bar.dart';
 import 'create_post_screen.dart';
 import 'home_feed_screen.dart';
 
-class MainShellScreen extends StatelessWidget {
-  MainShellScreen({super.key, this.arguments}) {
-    _connectivity = ConnectivityService();
-  }
+class MainShellScreen extends StatefulWidget {
+  const MainShellScreen({super.key, this.arguments});
 
   final Object? arguments;
+
+  @override
+  State<MainShellScreen> createState() => _MainShellScreenState();
+}
+
+class _MainShellScreenState extends State<MainShellScreen> {
   late final ConnectivityService _connectivity;
+  late final ChatController _chatController;
+  late final List<Widget> _tabs;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectivity = ConnectivityService();
+    _chatController = ChatController()..loadChats();
+    _tabs = <Widget>[
+      HomeFeedScreen(),
+      ReelsScreen(),
+      const SizedBox.shrink(),
+      ChatScreen(controller: _chatController),
+      const UserProfileScreen(),
+    ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<BookmarksController>().load();
+      context.read<SettingsStateController>().load();
+    });
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final MainShellController controller = context.read<MainShellController>();
-    controller.syncArguments(arguments);
+    controller.syncArguments(widget.arguments);
 
     return BlocBuilder<MainShellController, int>(
       builder: (context, _) {
-        final tabs = <Widget>[
-          HomeFeedScreen(),
-          ReelsScreen(),
-          const SizedBox.shrink(), // Placeholder for center FAB action
-          ChatScreen(),
-          const UserProfileScreen(),
-        ];
-
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (bool didPop, Object? result) async {
@@ -79,9 +107,9 @@ class MainShellScreen extends StatelessWidget {
                   },
                 ),
                 Expanded(
-                  child: KeyedSubtree(
-                    key: ValueKey<int>(controller.index),
-                    child: tabs[controller.index],
+                  child: IndexedStack(
+                    index: controller.index,
+                    children: _tabs,
                   ),
                 ),
               ],
@@ -95,9 +123,15 @@ class MainShellScreen extends StatelessWidget {
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
-            bottomNavigationBar: MainShellBottomNavBar(
-              selectedIndex: controller.index,
-              onChanged: controller.onTabChanged,
+            bottomNavigationBar: AnimatedBuilder(
+              animation: _chatController,
+              builder: (BuildContext context, _) {
+                return MainShellBottomNavBar(
+                  selectedIndex: controller.index,
+                  onChanged: controller.onTabChanged,
+                  showChatUnreadDot: _chatController.hasUnreadMessages,
+                );
+              },
             ),
           ),
         );

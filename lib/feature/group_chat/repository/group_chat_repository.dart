@@ -17,13 +17,9 @@ class GroupChatRepository {
       throw Exception(response.message ?? 'Unable to load group chat.');
     }
 
-    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
-      response.data,
-      fallbackMessage: 'Group chat response did not include a data payload.',
-    );
     return ApiPayloadReader.readMapList(
-          data,
-          preferredKeys: const <String>['groups'],
+          response.data,
+          preferredKeys: const <String>['groups', 'data', 'items', 'results'],
         )
         .map(_groupFromApiJson)
         .where((GroupChatModel item) => item.id.isNotEmpty)
@@ -132,6 +128,8 @@ class GroupChatRepository {
                   MapEntry(key, value?.toString() ?? ''),
             ),
       media: ApiPayloadReader.readStringList(json['media']),
+      summary: ApiPayloadReader.readString(json['summary']),
+      unreadCount: ApiPayloadReader.readInt(json['unreadCount']),
     );
   }
 }

@@ -57,9 +57,14 @@ class BookmarksController extends Cubit<BookmarksState> {
 
   Future<void> load() async {
     emit(state.copyWith(isLoading: true));
-    final List<BookmarkItemModel> items = await _repository.read();
-    final List<SavedCollectionModel> collections = await _collectionsRepository
-        .read();
+    List<BookmarkItemModel> items = state.items;
+    List<SavedCollectionModel> collections = state.collections;
+    try {
+      items = await _repository.read();
+    } catch (_) {}
+    try {
+      collections = await _collectionsRepository.read();
+    } catch (_) {}
     emit(
       state.copyWith(
         items: _sortedItems(items),

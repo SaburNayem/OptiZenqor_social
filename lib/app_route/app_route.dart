@@ -5,7 +5,6 @@ class AppRoute {
   AppRoute._();
 
   static const String splash = RouteNames.splash;
-  static const String onboarding = RouteNames.onboarding;
   static const String login = RouteNames.login;
   static const String signup = RouteNames.signup;
   static const String emailVerification = RouteNames.emailVerification;

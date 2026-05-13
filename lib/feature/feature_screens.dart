@@ -35,7 +35,6 @@ export 'marketplace/screen/marketplace_screen.dart';
 export 'media_viewer/screen/media_viewer_screen.dart';
 export 'notifications/screen/notifications_screen.dart';
 export 'offline_sync/screen/offline_sync_screen.dart';
-export 'onboarding/screen/onboarding_screen.dart';
 export 'pages/screen/pages_screen.dart';
 export 'personalization_onboarding/screen/personalization_onboarding_screen.dart';
 export 'polls_surveys/screen/polls_surveys_screen.dart';

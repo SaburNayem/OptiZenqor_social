@@ -5,7 +5,6 @@ class AppRoutes {
 
   static const public = {
     RouteNames.splash,
-    RouteNames.onboarding,
     RouteNames.login,
     RouteNames.signup,
     RouteNames.emailVerification,

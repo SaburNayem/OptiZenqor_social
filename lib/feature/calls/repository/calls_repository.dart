@@ -12,6 +12,19 @@ class CallsRepository {
   final CallsService _service;
   final AuthRepository _authRepository;
 
+  Future<Map<String, dynamic>> fetchRtcConfig() async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(_service.endpoints['rtc_config']!);
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load RTC config.');
+    }
+    return ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'RTC config response did not include a data payload.',
+    );
+  }
+
   Future<List<CallItemModel>> load() async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .getEndpoint('calls');
@@ -33,16 +46,106 @@ class CallsRepository {
   }
 
   Future<void> startCall({required String user, required CallType type}) async {
+    await startCallSession(recipientId: user, type: type);
+  }
+
+  Future<({String sessionId, DateTime? startedAt, String state})>
+  startCallSession({
+    required String recipientId,
+    required CallType type,
+  }) async {
     final currentUser = await _authRepository.currentUser();
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
         .post(_service.endpoints['sessions']!, <String, dynamic>{
           'initiatorId': currentUser?.id ?? '',
-          'recipientIds': <String>[user],
+          'recipientIds': <String>[recipientId],
           'mode': type == CallType.video ? 'video' : 'voice',
         });
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to start call.');
+    }
+    final Map<String, dynamic> payload = _readPayload(
+      response.data,
+      fallbackMessage: 'Call session response was empty.',
+    );
+    return (
+      sessionId: ApiPayloadReader.readString(
+        payload['id'] ?? payload['sessionId'] ?? payload['_id'],
+      ),
+      startedAt: ApiPayloadReader.readDateTime(
+        payload['startedAt'] ?? payload['createdAt'] ?? payload['time'],
+      ),
+      state: ApiPayloadReader.readString(
+        payload['state'] ?? payload['status'],
+        fallback: 'calling',
+      ),
+    );
+  }
+
+  Future<({String sessionId, DateTime? startedAt, String state})> getSession(
+    String sessionId,
+  ) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .get(_service.endpoints['session']!.replaceFirst(':id', sessionId));
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load call session.');
+    }
+    final Map<String, dynamic> payload = _readPayload(
+      response.data,
+      fallbackMessage: 'Call session details were empty.',
+    );
+    return (
+      sessionId: ApiPayloadReader.readString(
+        payload['id'] ?? payload['sessionId'] ?? payload['_id'],
+        fallback: sessionId,
+      ),
+      startedAt: ApiPayloadReader.readDateTime(
+        payload['startedAt'] ?? payload['createdAt'] ?? payload['time'],
+      ),
+      state: ApiPayloadReader.readString(
+        payload['state'] ?? payload['status'],
+        fallback: 'calling',
+      ),
+    );
+  }
+
+  Future<void> endCallSession(String sessionId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(
+          _service.endpoints['end_session']!.replaceFirst(':id', sessionId),
+          const <String, dynamic>{},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to end call.');
+    }
+  }
+
+  Future<void> joinCallSession(String sessionId) async {
+    final currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(
+          '${_service.endpoints['sessions']!}/$sessionId/join',
+          <String, dynamic>{'userId': currentUser?.id ?? ''},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to join call.');
+    }
+  }
+
+  Future<void> leaveCallSession(String sessionId) async {
+    final currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(
+          '${_service.endpoints['sessions']!}/$sessionId/leave',
+          <String, dynamic>{'userId': currentUser?.id ?? ''},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to leave call.');
     }
   }
 
@@ -83,5 +186,25 @@ class CallsRepository {
       default:
         return CallState.completed;
     }
+  }
+
+  Map<String, dynamic> _readPayload(
+    Map<String, dynamic> responseData, {
+    required String fallbackMessage,
+  }) {
+    final Map<String, dynamic>? data = ApiPayloadReader.readDataMap(
+      responseData,
+    );
+    final Map<String, dynamic> payload =
+        ApiPayloadReader.readMap(data?['session']) ??
+        ApiPayloadReader.readMap(data?['call']) ??
+        ApiPayloadReader.readMap(data) ??
+        ApiPayloadReader.readMap(responseData['session']) ??
+        ApiPayloadReader.readMap(responseData['data']) ??
+        responseData;
+    if (payload.isEmpty) {
+      throw StateError(fallbackMessage);
+    }
+    return payload;
   }
 }

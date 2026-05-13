@@ -33,7 +33,7 @@ class AppConfig {
   );
   static const socketPath = String.fromEnvironment(
     'SOCKET_PATH',
-    defaultValue: '/socket',
+    defaultValue: '/socket.io',
   );
   static const socketContractPath = String.fromEnvironment(
     'SOCKET_CONTRACT_PATH',

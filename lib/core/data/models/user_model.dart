@@ -24,71 +24,78 @@ class UserModel {
     this.note,
     this.notePrivacy = 'followers',
     this.supporterBadge = false,
+    this.isOnline,
+    this.lastSeen,
   });
 
   factory UserModel.fromApiJson(Map<String, dynamic> json) {
     final String username =
-        (json['username'] as String? ??
-                json['handle'] as String? ??
-                json['userName'] as String? ??
-                '')
-            .trim()
-            .replaceFirst('@', '');
+        _readString(json['username']) ??
+        _readString(json['handle']) ??
+        _readString(json['userName']) ??
+        '';
     final String verificationStatus =
-        ((json['verificationStatus'] ?? json['verification']) as String? ??
+        (_readString(json['verificationStatus']) ??
+                _readString(json['verification']) ??
                 'not_requested')
-            .trim()
             .toLowerCase()
             .replaceAll(' ', '_');
 
     return UserModel(
       id: (json['id'] as Object? ?? json['_id'] as Object? ?? '').toString(),
-      name:
-          (json['name'] as String? ??
-                  json['displayName'] as String? ??
-                  json['fullName'] as String? ??
-                  json['authorName'] as String? ??
-                  json['username'] as String? ??
-                  'Unknown user')
-              .trim()
-              .replaceFirst('@', ''),
+      name: (_readString(json['name']) ??
+              _readString(json['displayName']) ??
+              _readString(json['fullName']) ??
+              _readString(json['authorName']) ??
+              _readString(json['username']) ??
+              'Unknown user')
+          .replaceFirst('@', ''),
       username: username,
       avatar: MediaUrlResolver.resolve(
-        (json['avatar'] as String? ??
-                json['avatarUrl'] as String? ??
-                json['profileImage'] as String? ??
-                json['profileImageUrl'] as String? ??
-                json['photoUrl'] as String? ??
-                '')
-            .trim(),
+        _readString(json['avatar']) ??
+            _readString(json['avatarUrl']) ??
+            _readString(json['profileImage']) ??
+            _readString(json['profileImageUrl']) ??
+            _readString(json['photoUrl']) ??
+            '',
       ),
-      bio: (json['bio'] as String? ?? '').trim(),
+      bio: _readString(json['bio']) ?? '',
       role: _parseRole(json['role']),
       followers: _readInt(json['followers']),
       following: _readInt(json['following']),
-      website: (json['website'] as String? ?? '').trim(),
-      location: (json['location'] as String? ?? '').trim(),
+      website: _readString(json['website']) ?? '',
+      location: _readString(json['location']) ?? '',
       coverImageUrl: MediaUrlResolver.resolve(
-        (json['coverImageUrl'] as String? ??
-                json['coverUrl'] as String? ??
-                json['coverPhotoUrl'] as String? ??
-                '')
-            .trim(),
+        _readString(json['coverImageUrl']) ??
+            _readString(json['coverUrl']) ??
+            _readString(json['coverPhotoUrl']) ??
+            '',
       ),
       isPrivate: json['isPrivate'] as bool? ?? false,
       verified:
           json['verified'] as bool? ?? verificationStatus.contains('verified'),
       verificationStatus: verificationStatus,
-      verificationReason: json['verificationReason'] as String?,
-      badgeStyle: (json['badgeStyle'] as String? ?? 'standard').trim(),
-      publicProfileUrl:
-          (json['publicProfileUrl'] as String? ??
-                  (username.isEmpty ? '' : 'https://optizenqor.app/@$username'))
-              .trim(),
-      profilePreview: (json['profilePreview'] as String? ?? '').trim(),
-      note: json['note'] as String?,
-      notePrivacy: (json['notePrivacy'] as String? ?? 'followers').trim(),
+      verificationReason: _readString(json['verificationReason']),
+      badgeStyle: _readString(json['badgeStyle']) ?? 'standard',
+      publicProfileUrl: _readString(json['publicProfileUrl']) ??
+          (username.isEmpty ? '' : 'https://optizenqor.app/@$username'),
+      profilePreview: _readString(json['profilePreview']) ?? '',
+      note: _readString(json['note']),
+      notePrivacy: _readString(json['notePrivacy']) ?? 'followers',
       supporterBadge: json['supporterBadge'] as bool? ?? false,
+      isOnline: _readBool(
+        json['isOnline'] ??
+            json['online'] ??
+            json['isActive'] ??
+            json['active'] ??
+            json['presence'],
+      ),
+      lastSeen: _readDateTime(
+        json['lastSeen'] ??
+            json['lastActiveAt'] ??
+            json['lastSeenAt'] ??
+            json['lastOnlineAt'],
+      ),
     );
   }
 
@@ -113,6 +120,8 @@ class UserModel {
   final String? note;
   final String notePrivacy;
   final bool supporterBadge;
+  final bool? isOnline;
+  final DateTime? lastSeen;
 
   UserModel copyWith({
     String? id,
@@ -136,6 +145,8 @@ class UserModel {
     String? note,
     String? notePrivacy,
     bool? supporterBadge,
+    bool? isOnline,
+    DateTime? lastSeen,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -159,6 +170,8 @@ class UserModel {
       note: note ?? this.note,
       notePrivacy: notePrivacy ?? this.notePrivacy,
       supporterBadge: supporterBadge ?? this.supporterBadge,
+      isOnline: isOnline ?? this.isOnline,
+      lastSeen: lastSeen ?? this.lastSeen,
     );
   }
 
@@ -185,6 +198,8 @@ class UserModel {
       'note': note,
       'notePrivacy': notePrivacy,
       'supporterBadge': supporterBadge,
+      'isOnline': isOnline,
+      'lastSeen': lastSeen?.toIso8601String(),
     };
   }
 
@@ -219,5 +234,57 @@ class UserModel {
       default:
         return UserRole.guest;
     }
+  }
+
+  static bool? _readBool(Object? value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    final String normalized = (value?.toString() ?? '').trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    if (<String>{
+      'true',
+      '1',
+      'yes',
+      'online',
+      'active',
+      'available',
+    }.contains(normalized)) {
+      return true;
+    }
+    if (<String>{
+      'false',
+      '0',
+      'no',
+      'offline',
+      'inactive',
+      'away',
+    }.contains(normalized)) {
+      return false;
+    }
+    return null;
+  }
+
+  static DateTime? _readDateTime(Object? value) {
+    if (value is DateTime) {
+      return value;
+    }
+    if (value is String) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
+  static String? _readString(Object? value) {
+    if (value == null) {
+      return null;
+    }
+    final String normalized = value.toString().trim();
+    return normalized.isEmpty ? null : normalized;
   }
 }

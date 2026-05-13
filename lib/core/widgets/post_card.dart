@@ -41,199 +41,210 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: AppColors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    AppAvatar(
-                      imageUrl: author.avatar,
-                      verified: author.verified,
-                      radius: 18,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: InkWell(
-                        onTap: onAuthorTap,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              author.name,
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              FormatHelper.timeAgo(post.createdAt),
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: AppColors.grey),
-                            ),
-                          ],
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final double maxCardWidth = screenWidth >= 1200
+        ? 760
+        : screenWidth >= 900
+        ? 700
+        : double.infinity;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxCardWidth),
+        child: Card(
+          elevation: 0,
+          color: AppColors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        AppAvatar(
+                          imageUrl: author.avatar,
+                          verified: author.verified,
+                          radius: 18,
                         ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: onMoreTap,
-                      icon: const Icon(Icons.more_horiz, color: AppColors.grey),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Media
-              if (post.media.isNotEmpty)
-                Builder(
-                  builder: (context) {
-                    final media = post.media.first;
-                    final lower = media.toLowerCase();
-                    final isVideo =
-                        lower.endsWith('.mp4') ||
-                        lower.endsWith('.mov') ||
-                        lower.endsWith('.webm') ||
-                        lower.endsWith('.m4v');
-                    final isNetworkMedia =
-                        media.startsWith('http://') ||
-                        media.startsWith('https://');
-                    final Widget mediaPreview = isVideo
-                        ? AspectRatio(
-                            aspectRatio: 1,
-                            child: InlineVideoPlayer(
-                              networkUrl: isNetworkMedia ? media : null,
-                              filePath: isNetworkMedia ? null : media,
-                              autoPlay: true,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: InkWell(
+                            onTap: onAuthorTap,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  author.name,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  FormatHelper.timeAgo(post.createdAt),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: AppColors.grey),
+                                ),
+                              ],
                             ),
-                          )
-                        : _PostPhotoPreview(
-                            source: media,
-                            isNetworkSource: isNetworkMedia,
-                          );
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Stack(
-                        children: [
-                          mediaPreview,
-                          if (post.media.length > 1)
-                            Positioned(
-                              top: 12,
-                              right: 12,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.black.withValues(
-                                    alpha: 0.55,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  '${post.media.length} items',
-                                  style: const TextStyle(
-                                    color: AppColors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              const SizedBox(height: 12),
-              // Caption and stats
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (post.caption.trim().isNotEmpty) ...[
-                      Text(
-                        post.caption.trim(),
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    Text(
-                      '${FormatHelper.formatCompactNumber(likeCount ?? post.likes)} likes',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    if (post.comments > 0)
-                      InkWell(
-                        onTap: onCommentTap,
-                        child: Text(
-                          'View all ${post.comments} comments',
-                          style: TextStyle(
-                            color: AppColors.grey600,
-                            fontSize: 13,
                           ),
                         ),
-                      ),
-                    if (post.shareCount > 0 || post.viewCount > 0) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        [
-                          if (post.shareCount > 0)
-                            '${FormatHelper.formatCompactNumber(post.shareCount)} shares',
-                          if (post.viewCount > 0)
-                            '${FormatHelper.formatCompactNumber(post.viewCount)} views',
-                        ].join(' | '),
-                        style: TextStyle(
-                          color: AppColors.grey600,
-                          fontSize: 12,
+                        IconButton(
+                          onPressed: onMoreTap,
+                          icon: const Icon(
+                            Icons.more_horiz,
+                            color: AppColors.grey,
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (post.media.isNotEmpty)
+                    Builder(
+                      builder: (context) {
+                        final media = post.media.first;
+                        final lower = media.toLowerCase();
+                        final isVideo =
+                            lower.endsWith('.mp4') ||
+                            lower.endsWith('.mov') ||
+                            lower.endsWith('.webm') ||
+                            lower.endsWith('.m4v');
+                        final isNetworkMedia =
+                            media.startsWith('http://') ||
+                            media.startsWith('https://');
+                        final Widget mediaPreview = isVideo
+                            ? AspectRatio(
+                                aspectRatio: screenWidth >= 900 ? 1.25 : 1,
+                                child: InlineVideoPlayer(
+                                  networkUrl: isNetworkMedia ? media : null,
+                                  filePath: isNetworkMedia ? null : media,
+                                  autoPlay: true,
+                                ),
+                              )
+                            : _PostPhotoPreview(
+                                source: media,
+                                isNetworkSource: isNetworkMedia,
+                              );
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Stack(
+                            children: [
+                              mediaPreview,
+                              if (post.media.length > 1)
+                                Positioned(
+                                  top: 12,
+                                  right: 12,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.black.withValues(
+                                        alpha: 0.55,
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Text(
+                                      '${post.media.length} items',
+                                      style: const TextStyle(
+                                        color: AppColors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (post.caption.trim().isNotEmpty) ...[
+                          Text(
+                            post.caption.trim(),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        Text(
+                          '${FormatHelper.formatCompactNumber(likeCount ?? post.likes)} likes',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        if (post.comments > 0)
+                          InkWell(
+                            onTap: onCommentTap,
+                            child: Text(
+                              'View all ${post.comments} comments',
+                              style: TextStyle(
+                                color: AppColors.grey600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        if (post.shareCount > 0 || post.viewCount > 0) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            [
+                              if (post.shareCount > 0)
+                                '${FormatHelper.formatCompactNumber(post.shareCount)} shares',
+                              if (post.viewCount > 0)
+                                '${FormatHelper.formatCompactNumber(post.viewCount)} views',
+                            ].join(' | '),
+                            style: TextStyle(
+                              color: AppColors.grey600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: onLikeTap,
+                          icon: Icon(
+                            isLiked ? Icons.favorite : Icons.favorite_border,
+                            color: isLiked ? AppColors.red : null,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: onCommentTap,
+                          icon: const Icon(Icons.chat_bubble_outline),
+                        ),
+                        IconButton(
+                          onPressed: onShareTap,
+                          icon: const Icon(Icons.share_outlined),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: onBookmarkTap,
+                          icon: Icon(
+                            isBookmarked
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_border_rounded,
+                            color: isBookmarked ? AppColors.black87 : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              // Actions
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: onLikeTap,
-                      icon: Icon(
-                        isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked ? AppColors.red : null,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: onCommentTap,
-                      icon: const Icon(Icons.chat_bubble_outline),
-                    ),
-                    IconButton(
-                      onPressed: onShareTap,
-                      icon: const Icon(Icons.share_outlined),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: onBookmarkTap,
-                      icon: Icon(
-                        isBookmarked
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_border_rounded,
-                        color: isBookmarked ? AppColors.black87 : null,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -330,36 +341,46 @@ class _PostPhotoPreviewState extends State<_PostPhotoPreview> {
   Widget build(BuildContext context) {
     final Size screenSize = MediaQuery.sizeOf(context);
     final double devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final double aspectRatio = _aspectRatio ?? 1;
-    final double maxMediaHeight = screenSize.height * 0.62;
-    final double mediaHeight = (screenSize.width / aspectRatio).clamp(
-      1,
-      maxMediaHeight,
-    );
-    final int cacheWidth = (screenSize.width * devicePixelRatio).round();
-    final int cacheHeight = (mediaHeight * devicePixelRatio).round();
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
-      height: mediaHeight,
-      width: double.infinity,
-      color: const Color(0xFFF2F5F7),
-      child: widget.isNetworkSource
-          ? Image.network(
-              widget.source,
-              width: double.infinity,
-              fit: BoxFit.contain,
-              cacheWidth: cacheWidth,
-              cacheHeight: cacheHeight,
-            )
-          : Image.file(
-              File(widget.source),
-              width: double.infinity,
-              fit: BoxFit.contain,
-              cacheWidth: cacheWidth,
-              cacheHeight: cacheHeight,
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double aspectRatio = _aspectRatio ?? 1;
+        final double availableWidth = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : screenSize.width;
+        final double maxMediaHeight = screenSize.width >= 900
+            ? screenSize.height * 0.7
+            : screenSize.height * 0.62;
+        final double mediaHeight = (availableWidth / aspectRatio).clamp(
+          1,
+          maxMediaHeight,
+        );
+        final int cacheWidth = (availableWidth * devicePixelRatio).round();
+        final int cacheHeight = (mediaHeight * devicePixelRatio).round();
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          height: mediaHeight,
+          width: double.infinity,
+          color: const Color(0xFFF2F5F7),
+          child: widget.isNetworkSource
+              ? Image.network(
+                  widget.source,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                  cacheWidth: cacheWidth,
+                  cacheHeight: cacheHeight,
+                )
+              : Image.file(
+                  File(widget.source),
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                  cacheWidth: cacheWidth,
+                  cacheHeight: cacheHeight,
+                ),
+        );
+      },
     );
   }
 }

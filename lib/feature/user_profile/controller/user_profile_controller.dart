@@ -23,6 +23,7 @@ class UserProfileController extends ChangeNotifier {
   final UserProfileRepository _repository;
   final AnalyticsService _analytics;
   final BuddyRepository _buddyRepository;
+  bool _isDisposed = false;
 
   LoadStateModel state = const LoadStateModel();
   UserModel? user;
@@ -115,7 +116,7 @@ class UserProfileController extends ChangeNotifier {
 
   void selectTab(int index) {
     selectedTabIndex = index;
-    notifyListeners();
+    _notifySafely();
   }
 
   Future<void> load({String? userId}) async {
@@ -126,10 +127,13 @@ class UserProfileController extends ChangeNotifier {
       hasError: false,
       errorMessage: null,
     );
-    notifyListeners();
+    _notifySafely();
 
     try {
       _currentUserId = await _repository.getCurrentUserId();
+      if (_isDisposed) {
+        return;
+      }
       final String trimmedUserId = userId?.trim() ?? '';
       final bool viewingCurrentUser =
           trimmedUserId.isEmpty || trimmedUserId == _currentUserId;
@@ -147,6 +151,9 @@ class UserProfileController extends ChangeNotifier {
         viewedProfileFuture,
         currentViewerFuture,
       ]);
+      if (_isDisposed) {
+        return;
+      }
 
       user = basics[0] as UserModel?;
       _currentViewer = basics[1] as UserModel?;
@@ -172,7 +179,7 @@ class UserProfileController extends ChangeNotifier {
           isSuccess: false,
           isEmpty: true,
         );
-        notifyListeners();
+        _notifySafely();
         return;
       }
 
@@ -206,6 +213,9 @@ class UserProfileController extends ChangeNotifier {
               )
             : _buddyRepository.fetchReceivedRequests(),
       ]);
+      if (_isDisposed) {
+        return;
+      }
 
       _posts = resources[0] as List<PostModel>;
       _reels = resources[1] as List<ReelModel>;
@@ -254,8 +264,11 @@ class UserProfileController extends ChangeNotifier {
 
       state = state.copyWith(isLoading: false, isSuccess: true, isEmpty: false);
       await _analytics.profileViewed();
-      notifyListeners();
+      _notifySafely();
     } catch (_) {
+      if (_isDisposed) {
+        return;
+      }
       state = state.copyWith(
         isLoading: false,
         isSuccess: false,
@@ -263,7 +276,7 @@ class UserProfileController extends ChangeNotifier {
         hasError: true,
         errorMessage: 'Unable to load profile',
       );
-      notifyListeners();
+      _notifySafely();
     }
   }
 
@@ -303,7 +316,7 @@ class UserProfileController extends ChangeNotifier {
     if (user != null) {
       user = user!.copyWith(followers: _followers.length);
     }
-    notifyListeners();
+    _notifySafely();
   }
 
   Future<String> toggleBuddyRequest() async {
@@ -313,7 +326,7 @@ class UserProfileController extends ChangeNotifier {
     }
 
     buddyActionInProgress = true;
-    notifyListeners();
+    _notifySafely();
     try {
       if (buddyRequestSent && buddyRequestId != null) {
         await _buddyRepository.cancelRequest(buddyRequestId!);
@@ -351,7 +364,7 @@ class UserProfileController extends ChangeNotifier {
       return 'Buddy request sent';
     } finally {
       buddyActionInProgress = false;
-      notifyListeners();
+      _notifySafely();
     }
   }
 
@@ -362,7 +375,7 @@ class UserProfileController extends ChangeNotifier {
     }
 
     buddyActionInProgress = true;
-    notifyListeners();
+    _notifySafely();
     try {
       await _buddyRepository.acceptRequest(requestId);
       isBuddy = true;
@@ -373,7 +386,7 @@ class UserProfileController extends ChangeNotifier {
       return 'Buddy request accepted';
     } finally {
       buddyActionInProgress = false;
-      notifyListeners();
+      _notifySafely();
     }
   }
 
@@ -384,7 +397,7 @@ class UserProfileController extends ChangeNotifier {
     }
 
     buddyActionInProgress = true;
-    notifyListeners();
+    _notifySafely();
     try {
       await _buddyRepository.rejectRequest(requestId);
       isBuddy = false;
@@ -393,7 +406,7 @@ class UserProfileController extends ChangeNotifier {
       return 'Buddy request rejected';
     } finally {
       buddyActionInProgress = false;
-      notifyListeners();
+      _notifySafely();
     }
   }
 
@@ -404,7 +417,7 @@ class UserProfileController extends ChangeNotifier {
     }
 
     buddyActionInProgress = true;
-    notifyListeners();
+    _notifySafely();
     try {
       await _buddyRepository.removeBuddy(current.id);
       isBuddy = false;
@@ -415,7 +428,7 @@ class UserProfileController extends ChangeNotifier {
       return 'Buddy removed';
     } finally {
       buddyActionInProgress = false;
-      notifyListeners();
+      _notifySafely();
     }
   }
 
@@ -429,7 +442,7 @@ class UserProfileController extends ChangeNotifier {
     );
     accountExportMessage =
         'Export requested at ${export['requestedAt']} for @${current.username}';
-    notifyListeners();
+    _notifySafely();
   }
 
   List<UserModel> suggestedContacts() =>
@@ -440,7 +453,7 @@ class UserProfileController extends ChangeNotifier {
       return;
     }
     user = updatedUser;
-    notifyListeners();
+    _notifySafely();
   }
 
   String verificationLabel() {
@@ -484,5 +497,18 @@ class UserProfileController extends ChangeNotifier {
       case UserRole.guest:
         return <String>['Posts', 'Reels', 'About'];
     }
+  }
+
+  void _notifySafely() {
+    if (_isDisposed) {
+      return;
+    }
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

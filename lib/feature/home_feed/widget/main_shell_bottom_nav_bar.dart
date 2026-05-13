@@ -7,10 +7,12 @@ class MainShellBottomNavBar extends StatelessWidget {
     super.key,
     required this.selectedIndex,
     required this.onChanged,
+    this.showChatUnreadDot = false,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onChanged;
+  final bool showChatUnreadDot;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +45,7 @@ class MainShellBottomNavBar extends StatelessWidget {
             activeIcon: Icons.chat_bubble_rounded,
             label: 'Chat',
             isSelected: selectedIndex == 3,
+            showDot: showChatUnreadDot,
             onTap: () => onChanged(3),
           ),
           _NavBarItem(
@@ -65,6 +68,7 @@ class _NavBarItem extends StatelessWidget {
     required this.label,
     required this.isSelected,
     required this.onTap,
+    this.showDot = false,
   });
 
   final IconData icon;
@@ -72,6 +76,7 @@ class _NavBarItem extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
+  final bool showDot;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +88,29 @@ class _NavBarItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(isSelected ? activeIcon : icon, color: color, size: 26),
+            Stack(
+              clipBehavior: Clip.none,
+              children: <Widget>[
+                Icon(isSelected ? activeIcon : icon, color: color, size: 26),
+                if (showDot)
+                  Positioned(
+                    right: -1,
+                    top: -1,
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        color: AppColors.hexFF26C6DA,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.white,
+                          width: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: 4),
             Text(
               label,

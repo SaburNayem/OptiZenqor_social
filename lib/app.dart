@@ -22,11 +22,9 @@ class OptiZenqorApp extends StatelessWidget {
       providers: [
         BlocProvider<MainShellController>(create: (_) => MainShellController()),
         BlocProvider<HomeFeedController>(create: (_) => HomeFeedController()),
-        BlocProvider<BookmarksController>(
-          create: (_) => BookmarksController()..load(),
-        ),
+        BlocProvider<BookmarksController>(create: (_) => BookmarksController()),
         BlocProvider<SettingsStateController>(
-          create: (_) => SettingsStateController()..load(),
+          create: (_) => SettingsStateController(),
         ),
       ],
       child: ValueListenableBuilder<ThemeMode>(

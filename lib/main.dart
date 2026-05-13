@@ -12,16 +12,9 @@ import 'core/data/service/network_status_service.dart';
 import 'core/data/service/theme_service.dart';
 import 'core/firebase_masseging/notification_permission.dart';
 import 'core/firebase_masseging/notification_receive.dart';
-import 'feature/splash/controller/splash_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await ensureFirebaseInitialized();
-  await FirebaseNotificationReceive.initializeLocalNotifications();
-  FirebaseNotificationReceive.setupBackgroundMessageHandler();
-  await FirebaseNotificationReceive.registerInteractionHandlers();
-  await initializePushNotifications();
-  await ThemeService.instance.init();
   Bloc.observer = AppBlocObserver();
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
@@ -49,16 +42,23 @@ Future<void> main() async {
     }
   }
 
-  String initialRoute = AppRouter.initialRoute;
+  runApp(const OptiZenqorApp(initialRoute: AppRouter.initialRoute));
+  unawaited(_initializeStartupServices());
+  unawaited(NetworkStatusService.instance.start());
+}
+
+Future<void> _initializeStartupServices() async {
   try {
-    initialRoute = await SplashController().resolveInitialRoute();
+    await ThemeService.instance.init();
+    await ensureFirebaseInitialized();
+    await FirebaseNotificationReceive.initializeLocalNotifications();
+    FirebaseNotificationReceive.setupBackgroundMessageHandler();
+    await FirebaseNotificationReceive.registerInteractionHandlers();
+    await initializePushNotifications(requestPermissionOnInit: false);
   } catch (error, stackTrace) {
     if (kDebugMode) {
-      debugPrint('[StartupRoute] Falling back to default route: $error');
+      debugPrint('[StartupServices] Initialization failed: $error');
       debugPrint('$stackTrace');
     }
   }
-
-  runApp(OptiZenqorApp(initialRoute: initialRoute));
-  unawaited(NetworkStatusService.instance.start());
 }

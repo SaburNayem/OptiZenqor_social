@@ -12,6 +12,7 @@ class ChatService extends FeatureServiceBase {
     'threads': ApiEndPoints.chatThreads,
     'thread': ApiEndPoints.chatThreadById(':id'),
     'messages': ApiEndPoints.chatThreadMessages(':id'),
+    'read': ApiEndPoints.chatThreadRead(':id'),
     'archive': ApiEndPoints.chatThreadArchive(':id'),
     'mute': ApiEndPoints.chatThreadMute(':id'),
     'pin': ApiEndPoints.chatThreadPin(':id'),

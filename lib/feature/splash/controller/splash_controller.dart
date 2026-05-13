@@ -2,19 +2,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/repository/auth_repository.dart';
-import '../../onboarding/repository/onboarding_repository.dart';
 import '../../../app_route/route_names.dart';
 import '../model/splash_state_model.dart';
 
 class SplashController {
   SplashController({
     AuthRepository? authRepository,
-    OnboardingRepository? onboardingRepository,
-  }) : _authRepository = authRepository ?? AuthRepository(),
-       _onboardingRepository = onboardingRepository ?? OnboardingRepository();
+  }) : _authRepository = authRepository ?? AuthRepository();
 
   final AuthRepository _authRepository;
-  final OnboardingRepository _onboardingRepository;
   SplashStateModel state = const SplashStateModel();
   static Future<String>? _routeResolutionFuture;
   static const Duration _debugBootstrapTimeout = Duration(seconds: 2);
@@ -42,35 +38,21 @@ class SplashController {
 
   Future<String> _performResolveInitialRoute() async {
     state = state.copyWith(status: SplashStatus.bootstrapping);
-    final Future<bool> onboardingFuture = _safeBool(
-      () => _onboardingRepository.isCompleted(),
-      fallback: false,
-      label: 'onboardingState',
-    );
     final Future<bool> sessionFuture = _safeBool(
       () => _authRepository.hasSession(),
       fallback: false,
       label: 'hasSession',
     );
     final List<Object?> bootstrapResults = await Future.wait<Object?>(
-      <Future<Object?>>[onboardingFuture, sessionFuture],
+      <Future<Object?>>[sessionFuture],
     );
-    final bool hasCompletedOnboarding = bootstrapResults[0] as bool;
-    final bool hasSession = bootstrapResults[1] as bool;
+    final bool hasSession = bootstrapResults[0] as bool;
+
     state = state.copyWith(status: SplashStatus.ready);
-    return !hasCompletedOnboarding
-        ? RouteNames.onboarding
-        : hasSession
-        ? RouteNames.shell
-        : RouteNames.login;
+    return hasSession ? RouteNames.shell : RouteNames.login;
   }
 
   Future<void> bootstrap(BuildContext context) async {
-    final Future<void> splashDelay = Future<void>.delayed(
-      kDebugMode
-          ? const Duration(milliseconds: 150)
-          : const Duration(milliseconds: 450),
-    );
     final Future<String> routeFuture = resolveInitialRoute().timeout(
       _bootstrapTimeout,
       onTimeout: () {
@@ -82,13 +64,13 @@ class SplashController {
         return RouteNames.login;
       },
     );
-    final List<Object?> bootstrapResults = await Future.wait<Object?>(
-      <Future<Object?>>[routeFuture, splashDelay],
-    );
     if (!context.mounted) {
       return;
     }
-    final String nextRoute = bootstrapResults[0] as String;
+    final String nextRoute = await routeFuture;
+    if (!context.mounted) {
+      return;
+    }
     Navigator.of(context).pushReplacementNamed(nextRoute);
   }
 

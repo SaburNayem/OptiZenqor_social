@@ -5,6 +5,8 @@ class GroupChatModel {
     required this.members,
     required this.roles,
     this.media = const <String>[],
+    this.summary = '',
+    this.unreadCount = 0,
   });
 
   final String id;
@@ -12,4 +14,6 @@ class GroupChatModel {
   final List<String> members;
   final Map<String, String> roles;
   final List<String> media;
+  final String summary;
+  final int unreadCount;
 }

@@ -1,14 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../config/app_config.dart';
-import '../data/service/auth_session_service.dart';
 import '../data/service/api_client_service.dart';
+import '../data/service/auth_session_service.dart';
 import 'socket_event.dart';
 import 'socket_handler.dart';
-import 'socket_property.dart';
-import 'socket_transport.dart';
 
 enum SocketConnectionState {
   disconnected,
@@ -34,12 +32,10 @@ class SocketService {
   final ApiClientService _apiClient;
   final SocketHandler _handler;
 
-  PlatformSocketTransport? _transport;
-  StreamSubscription<dynamic>? _messageSubscription;
-  Timer? _reconnectTimer;
-  Uri? _connectedUri;
+  io.Socket? _socket;
   bool _manualDisconnect = false;
   int _reconnectAttempts = 0;
+  String _socketPath = AppConfig.socketPath;
 
   final StreamController<SocketConnectionState> _stateController =
       StreamController<SocketConnectionState>.broadcast();
@@ -57,6 +53,14 @@ class SocketService {
         item.event == SocketEvent.chatMessage ||
         item.event == SocketEvent.chatThreadUpdated ||
         item.event == SocketEvent.chatPresence,
+  );
+  Stream<SocketEnvelope> get callEvents => events.where(
+    (SocketEnvelope item) =>
+        item.event == 'call.session.created' ||
+        item.event == 'call.participant.joined' ||
+        item.event == 'call.participant.left' ||
+        item.event == 'call.signal' ||
+        item.event == 'call.ended',
   );
   Stream<SocketEnvelope> get notificationEvents => events.where(
     (SocketEnvelope item) =>
@@ -76,28 +80,99 @@ class SocketService {
           : SocketConnectionState.connecting,
     );
 
-    final Uri uri = await _resolveSocketUri();
-    final Map<String, String> headers = await _buildSocketHeaders();
+    final ({Uri uri, String path, String namespace}) target =
+        await _resolveSocketTarget();
+    final session = await _sessionService.readSession();
+    final String accessToken = session?.accessToken ?? '';
+    final String currentUserId = session?.user?.id ?? '';
+
     try {
       await _closeTransport();
-      _transport = await openPlatformSocket(uri, headers: headers);
-      _connectedUri = uri;
-      _messageSubscription = _transport!.messages.listen(
-        _handleIncomingMessage,
-        onError: _handleTransportError,
-        onDone: _handleTransportDone,
-        cancelOnError: false,
+
+      final io.OptionBuilder options = io.OptionBuilder()
+          .setTransports(<String>['websocket'])
+          .disableAutoConnect()
+          .setPath(target.path)
+          .setAuth(<String, dynamic>{
+            if (accessToken.isNotEmpty) 'token': accessToken,
+            if (currentUserId.isNotEmpty) 'userId': currentUserId,
+          })
+          .setExtraHeaders(<String, dynamic>{
+            if (accessToken.isNotEmpty) 'Authorization': 'Bearer $accessToken',
+          });
+
+      final io.Socket socket = io.io(
+        '${target.uri.toString()}${target.namespace}',
+        options.build(),
       );
-      _reconnectAttempts = 0;
-      _setState(SocketConnectionState.connected);
-      _eventsController.add(
-        SocketEnvelope(
-          event: SocketEvent.connected,
-          data: <String, dynamic>{'uri': uri.toString()},
-          receivedAt: DateTime.now(),
-        ),
-      );
-      return true;
+      _socket = socket;
+      _socketPath = target.path;
+      socket.onConnect((_) {
+        _reconnectAttempts = 0;
+        _setState(SocketConnectionState.connected);
+        _eventsController.add(
+          SocketEnvelope(
+            event: SocketEvent.connected,
+            data: <String, dynamic>{
+              'uri': '${target.uri}${target.namespace}',
+              'path': _socketPath,
+            },
+            receivedAt: DateTime.now(),
+          ),
+        );
+      });
+
+      socket.onDisconnect((dynamic reason) {
+        _eventsController.add(
+          SocketEnvelope(
+            event: SocketEvent.disconnect,
+            data: <String, dynamic>{'reason': reason?.toString() ?? ''},
+            receivedAt: DateTime.now(),
+          ),
+        );
+        if (_manualDisconnect) {
+          _setState(SocketConnectionState.disconnected);
+          return;
+        }
+        _setState(SocketConnectionState.disconnected);
+      });
+
+      socket.onConnectError((dynamic error) {
+        _setState(SocketConnectionState.error);
+        _eventsController.add(
+          SocketEnvelope(
+            event: SocketEvent.error,
+            data: <String, dynamic>{'message': error.toString()},
+            receivedAt: DateTime.now(),
+          ),
+        );
+      });
+
+      socket.onError((dynamic error) {
+        _setState(SocketConnectionState.error);
+        _eventsController.add(
+          SocketEnvelope(
+            event: SocketEvent.error,
+            data: <String, dynamic>{'message': error.toString()},
+            receivedAt: DateTime.now(),
+          ),
+        );
+      });
+
+      socket.onAny((String event, dynamic payload) {
+        final Map<String, dynamic> eventPayload = _toEventPayload(
+          event,
+          payload,
+        );
+        final SocketEnvelope? envelope = _handler.parse(eventPayload);
+        if (envelope != null) {
+          _eventsController.add(envelope);
+        }
+      });
+
+      socket.connect();
+      await _waitForConnection(socket);
+      return isConnected;
     } on Object catch (error) {
       _setState(SocketConnectionState.error);
       _eventsController.add(
@@ -107,150 +182,116 @@ class SocketService {
           receivedAt: DateTime.now(),
         ),
       );
-      _scheduleReconnect();
       return false;
     }
   }
 
   Future<void> disconnect({bool manual = true}) async {
     _manualDisconnect = manual;
-    _reconnectTimer?.cancel();
-    _reconnectTimer = null;
     _reconnectAttempts = 0;
     await _closeTransport();
     _setState(SocketConnectionState.disconnected);
-    _eventsController.add(
-      SocketEnvelope(
-        event: SocketEvent.disconnect,
-        data: const <String, dynamic>{},
-        receivedAt: DateTime.now(),
-      ),
-    );
   }
 
   Future<void> send(String event, {Map<String, dynamic>? data}) async {
-    final PlatformSocketTransport? transport = _transport;
-    if (transport == null || !isConnected) {
+    final io.Socket? socket = _socket;
+    if (socket == null || !isConnected) {
       throw StateError('Socket is not connected.');
     }
-    await transport.send(<String, dynamic>{
-      'event': SocketEvent.normalize(event),
-      'data': data ?? const <String, dynamic>{},
-    });
+    socket.emit(event, data ?? const <String, dynamic>{});
   }
 
-  Future<Uri> _resolveSocketUri() async {
+  Future<void> _closeTransport() async {
+    final io.Socket? socket = _socket;
+    _socket = null;
+    if (socket == null) {
+      return;
+    }
+    socket.dispose();
+    socket.disconnect();
+  }
+
+  Future<void> _waitForConnection(io.Socket socket) async {
+    if (socket.connected) {
+      return;
+    }
+    final Completer<void> completer = Completer<void>();
+    late void Function(dynamic) onConnect;
+    late void Function(dynamic) onError;
+    onConnect = (_) {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    };
+    onError = (dynamic error) {
+      if (!completer.isCompleted) {
+        completer.completeError(StateError(error.toString()));
+      }
+    };
+    socket.once('connect', onConnect);
+    socket.once('connect_error', onError);
+    await completer.future.timeout(
+      Duration(milliseconds: AppConfig.socketConnectTimeoutMs),
+    );
+  }
+
+  Future<({Uri uri, String path, String namespace})> _resolveSocketTarget() async {
     final session = await _sessionService.readSession();
     final String accessToken = session?.accessToken ?? '';
+    String namespace = '/realtime';
+    String path = AppConfig.socketPath;
+    Uri baseUri = Uri.parse(AppConfig.currentApiBaseUrl);
+
     try {
       final response = await _apiClient.get(AppConfig.socketContractPath);
       final Map<String, dynamic> payload =
           _readMap(response.data['data']) ??
           _readMap(response.data['result']) ??
           response.data;
-      final String? url = _firstString(payload, const <String>[
-        'url',
-        'socketUrl',
-        'endpoint',
-        'socketEndpoint',
+      final String contractNamespace = _firstString(payload, <String>[
+        'namespace',
       ]);
-      final String? path = _firstString(payload, const <String>[
+      if (contractNamespace.isNotEmpty) {
+        namespace = contractNamespace;
+      }
+      final String contractPath = _firstString(payload, <String>[
         'path',
         'socketPath',
       ]);
-      if (url != null && url.isNotEmpty) {
-        final Uri base = Uri.parse(url);
-        return _appendAuthQuery(base, accessToken: accessToken);
+      if (contractPath.isNotEmpty) {
+        path = contractPath;
       }
-      return _appendAuthQuery(
-        AppConfig.defaultSocketUri(path: path ?? AppConfig.socketPath),
-        accessToken: accessToken,
-      );
+      final String contractUrl = _firstString(payload, <String>[
+        'url',
+        'socketUrl',
+        'endpoint',
+      ]);
+      if (contractUrl.isNotEmpty) {
+        baseUri = Uri.parse(contractUrl);
+      }
     } catch (_) {
-      return _appendAuthQuery(
-        AppConfig.defaultSocketUri(),
-        accessToken: accessToken,
-      );
+      // Fall back to app config defaults.
     }
-  }
 
-  Future<Map<String, String>> _buildSocketHeaders() async {
-    final session = await _sessionService.readSession();
-    final String accessToken = session?.accessToken ?? '';
-    final String tokenType = session?.tokenType.isNotEmpty == true
-        ? session!.tokenType
-        : 'Bearer';
-    return <String, String>{
-      if (accessToken.isNotEmpty) 'Authorization': '$tokenType $accessToken',
-    };
-  }
-
-  Future<void> _closeTransport() async {
-    await _messageSubscription?.cancel();
-    _messageSubscription = null;
-    await _transport?.close();
-    _transport = null;
-  }
-
-  void _handleIncomingMessage(dynamic raw) {
-    final SocketEnvelope? envelope = _handler.parse(raw);
-    if (envelope == null) {
-      return;
-    }
-    _eventsController.add(envelope);
-  }
-
-  void _handleTransportError(Object error, StackTrace stackTrace) {
-    if (kDebugMode) {
-      debugPrint('[SocketService] error uri=${_connectedUri ?? ''} $error');
-      debugPrint('$stackTrace');
-    }
-    _setState(SocketConnectionState.error);
-    _scheduleReconnect();
-  }
-
-  void _handleTransportDone() {
-    if (_manualDisconnect) {
-      _setState(SocketConnectionState.disconnected);
-      return;
-    }
-    _setState(SocketConnectionState.disconnected);
-    _scheduleReconnect();
-  }
-
-  void _scheduleReconnect() {
-    if (_manualDisconnect ||
-        _reconnectAttempts >= SocketProperty.maxReconnectAttempts) {
-      return;
-    }
-    _reconnectTimer?.cancel();
-    _reconnectAttempts += 1;
-    _reconnectTimer = Timer(
-      Duration(milliseconds: SocketProperty.reconnectDelayMs),
-      () {
-        connect();
+    final Uri uri = baseUri.replace(
+      scheme: baseUri.scheme == 'https' ? 'https' : 'http',
+      path: '',
+      queryParameters: <String, String>{
+        if (accessToken.isNotEmpty) 'token': accessToken,
       },
     );
+    return (uri: uri, path: path, namespace: namespace);
   }
 
-  void _setState(SocketConnectionState next) {
-    if (_state == next) {
-      return;
+  Map<String, dynamic> _toEventPayload(String event, dynamic payload) {
+    final Map<String, dynamic>? data = _readMap(payload);
+    if (data != null) {
+      return <String, dynamic>{'event': event, 'data': data};
     }
-    _state = next;
-    _stateController.add(next);
-  }
-
-  Uri _appendAuthQuery(Uri uri, {required String accessToken}) {
-    final Map<String, String> mergedQuery = <String, String>{
-      ...uri.queryParameters,
+    return <String, dynamic>{
+      'event': event,
+      'data': <String, dynamic>{'value': payload},
     };
-    if (accessToken.isNotEmpty) {
-      for (final String key in SocketProperty.endpointQueryKeys) {
-        mergedQuery.putIfAbsent(key, () => accessToken);
-      }
-    }
-    return uri.replace(queryParameters: mergedQuery);
   }
 
   Map<String, dynamic>? _readMap(Object? value) {
@@ -263,13 +304,21 @@ class SocketService {
     return null;
   }
 
-  String? _firstString(Map<String, dynamic> payload, List<String> keys) {
+  String _firstString(Map<String, dynamic> payload, List<String> keys) {
     for (final String key in keys) {
       final String value = (payload[key] as String? ?? '').trim();
       if (value.isNotEmpty) {
         return value;
       }
     }
-    return null;
+    return '';
+  }
+
+  void _setState(SocketConnectionState next) {
+    if (_state == next) {
+      return;
+    }
+    _state = next;
+    _stateController.add(next);
   }
 }

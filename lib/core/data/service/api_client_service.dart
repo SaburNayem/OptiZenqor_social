@@ -270,7 +270,10 @@ class ApiClientService {
             headers: requestHeaders,
             connectTimeout: Duration(milliseconds: AppConfig.connectTimeoutMs),
             receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
-            sendTimeout: Duration(milliseconds: AppConfig.receiveTimeoutMs),
+            sendTimeout:
+                !kIsWeb && payload != null && payload.isNotEmpty
+                ? Duration(milliseconds: AppConfig.receiveTimeoutMs)
+                : null,
             validateStatus: (_) => true,
           ),
         );

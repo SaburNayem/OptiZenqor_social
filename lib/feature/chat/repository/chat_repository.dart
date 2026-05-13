@@ -1,4 +1,5 @@
 import '../../../core/data/api/api_payload_reader.dart';
+import '../../../core/data/api/api_end_points.dart';
 import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service_model/service_response_model.dart';
@@ -24,14 +25,15 @@ class ChatRepository {
       throw Exception(response.message ?? 'Unable to load conversations.');
     }
 
-    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+    final List<Map<String, dynamic>> threadItems = ApiPayloadReader.readMapList(
       response.data,
-      fallbackMessage: 'Chat threads response did not include a data payload.',
+      preferredKeys: const <String>['threads', 'data', 'items', 'results'],
     );
-    return ApiPayloadReader.readMapList(
-          data,
-          preferredKeys: const <String>['threads'],
-        )
+    if (threadItems.isEmpty) {
+      throw StateError('Chat threads response did not include a data payload.');
+    }
+
+    return threadItems
         .map(
           (Map<String, dynamic> item) =>
               ChatThreadModel.fromApiJson(item, currentUserId: currentUserId),
@@ -76,14 +78,11 @@ class ChatRepository {
       throw Exception(response.message ?? 'Unable to load messages.');
     }
 
-    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
       response.data,
-      fallbackMessage: 'Chat messages response did not include a data payload.',
+      preferredKeys: const <String>['messages'],
     );
-    return ApiPayloadReader.readMapList(
-          data,
-          preferredKeys: const <String>['messages'],
-        )
+    return items
         .map(MessageModel.fromApiJson)
         .map((MessageModel item) {
           if (item.chatId.isNotEmpty) {
@@ -110,12 +109,46 @@ class ChatRepository {
     required String chatId,
     required String senderId,
     required String text,
+    String kind = 'text',
+    String? mediaUrl,
+    String? attachmentName,
+    String? mimeType,
+    String? replyToMessageId,
   }) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final String normalizedKind = _normalizeKind(kind);
+    final String normalizedMediaUrl = (mediaUrl ?? '').trim();
+    final String normalizedSenderId = senderId.trim().isNotEmpty
+        ? senderId.trim()
+        : (currentUser?.id ?? '').trim();
+    final String normalizedText = text.trim();
+    final Map<String, dynamic> payload = <String, dynamic>{
+      'text': normalizedText,
+      if (normalizedMediaUrl.isNotEmpty) 'message': normalizedText,
+      'senderId': normalizedSenderId,
+      if ((replyToMessageId ?? '').trim().isNotEmpty)
+        'replyToMessageId': replyToMessageId!.trim(),
+      if (normalizedKind != 'text') 'kind': normalizedKind,
+      if (normalizedKind != 'text') 'type': normalizedKind,
+      if (normalizedMediaUrl.isNotEmpty)
+        'attachments': <String>[normalizedMediaUrl],
+      if (normalizedMediaUrl.isNotEmpty) 'mediaUrl': normalizedMediaUrl,
+      if (normalizedMediaUrl.isNotEmpty) 'mediaPath': normalizedMediaUrl,
+      if (normalizedMediaUrl.isNotEmpty) 'attachmentUrl': normalizedMediaUrl,
+      if (normalizedMediaUrl.isNotEmpty && normalizedKind == 'image')
+        'imageUrl': normalizedMediaUrl,
+      if (normalizedMediaUrl.isNotEmpty && normalizedKind == 'audio')
+        'audioUrl': normalizedMediaUrl,
+      if (normalizedMediaUrl.isNotEmpty && normalizedKind == 'video')
+        'videoUrl': normalizedMediaUrl,
+      if (normalizedMediaUrl.isNotEmpty && normalizedKind == 'file')
+        'fileUrl': normalizedMediaUrl,
+    };
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
         .post(
           _service.endpoints['messages']!.replaceFirst(':id', chatId),
-          <String, dynamic>{'text': text},
+          payload,
         );
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to send message');
@@ -125,14 +158,244 @@ class ChatRepository {
       response.data,
       fallbackMessage: 'Chat message response did not include a data payload.',
     );
-    final Map<String, dynamic> payload =
+    final Map<String, dynamic> messagePayload =
         ApiPayloadReader.readMap(data['message']) ??
         ApiPayloadReader.readMap(data) ??
         const <String, dynamic>{};
-    final MessageModel message = MessageModel.fromApiJson(payload);
+    final MessageModel message = MessageModel.fromApiJson(messagePayload);
     if (message.id.isEmpty) {
       throw Exception('Unable to send message');
     }
-    return message;
+    return MessageModel(
+      id: message.id,
+      chatId: message.chatId.isEmpty ? chatId : message.chatId,
+      senderId: message.senderId.isEmpty ? senderId : message.senderId,
+      text: message.text.isEmpty ? text : message.text,
+      timestamp: message.timestamp,
+      read: message.read,
+      starred: message.starred,
+      replyToMessageId: message.replyToMessageId,
+      deliveryState: message.deliveryState,
+      kind: message.kind.isEmpty ? normalizedKind : message.kind,
+      mediaPath: (message.mediaPath ?? '').trim().isNotEmpty
+          ? message.mediaPath
+          : mediaUrl,
+    );
+  }
+
+  Future<MessageModel> editMessage({
+    required String chatId,
+    required String messageId,
+    required String text,
+  }) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(
+          ApiEndPoints.chatThreadMessageById(chatId, messageId),
+          <String, dynamic>{
+            'userId': currentUser?.id ?? '',
+            'text': text.trim(),
+          },
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to edit message.');
+    }
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Edit message response did not include data.',
+    );
+    return MessageModel.fromApiJson(
+      ApiPayloadReader.readMap(data['message']) ?? data,
+    );
+  }
+
+  Future<void> deleteMessage({
+    required String chatId,
+    required String messageId,
+  }) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .delete(
+          ApiEndPoints.chatThreadMessageById(chatId, messageId),
+          payload: <String, dynamic>{'userId': currentUser?.id ?? ''},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to delete message.');
+    }
+  }
+
+  Future<MessageModel> toggleMessagePin({
+    required String chatId,
+    required String messageId,
+    required bool value,
+  }) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(
+          ApiEndPoints.chatThreadMessagePin(chatId, messageId),
+          <String, dynamic>{
+            'userId': currentUser?.id ?? '',
+            'value': value,
+          },
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to pin message.');
+    }
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Pin message response did not include data.',
+    );
+    return MessageModel.fromApiJson(
+      ApiPayloadReader.readMap(data['message']) ?? data,
+    );
+  }
+
+  Future<MessageModel> forwardMessage({
+    required String sourceChatId,
+    required String messageId,
+    required String targetChatId,
+  }) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(
+          ApiEndPoints.chatThreadMessageForward(sourceChatId, messageId),
+          <String, dynamic>{
+            'userId': currentUser?.id ?? '',
+            'targetThreadId': targetChatId,
+          },
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to forward message.');
+    }
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Forward message response did not include data.',
+    );
+    return MessageModel.fromApiJson(
+      ApiPayloadReader.readMap(data['message']) ?? data,
+    );
+  }
+
+  Future<Map<String, Map<String, dynamic>>> fetchThreadPreferences() async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('preferences');
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load chat preferences.');
+    }
+
+    final Map<String, dynamic> data = ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage:
+          'Chat preferences response did not include a data payload.',
+    );
+    final List<Map<String, dynamic>> items = ApiPayloadReader.readMapList(
+      data,
+      preferredKeys: const <String>['conversationPreferences'],
+    );
+    return <String, Map<String, dynamic>>{
+      for (final Map<String, dynamic> item in items)
+        ApiPayloadReader.readString(item['threadId']): item,
+    }..remove('');
+  }
+
+  Future<Map<String, dynamic>> fetchPresenceSnapshot() async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .getEndpoint('presence');
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to load presence.');
+    }
+    return ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage: 'Chat presence response did not include a data payload.',
+    );
+  }
+
+  Future<Map<String, dynamic>> updateTypingPresence({
+    required String threadId,
+    required bool isTyping,
+  }) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(_service.endpoints['presence']!, <String, dynamic>{
+          'userId': currentUser?.id ?? '',
+          'online': isTyping,
+          'typingInThreadId': threadId,
+        });
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to update typing state.');
+    }
+    return ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage:
+          'Chat presence update response did not include a data payload.',
+    );
+  }
+
+  Future<void> markThreadRead(String threadId) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .patch(
+          _service.endpoints['read']!.replaceFirst(':id', threadId),
+          <String, dynamic>{'userId': currentUser?.id ?? ''},
+        );
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to mark thread as read.');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateThreadPreference({
+    required String threadId,
+    required String action,
+    required bool value,
+  }) async {
+    final UserModel? currentUser = await _authRepository.currentUser();
+    final String? endpoint = _service.endpoints[action];
+    if (endpoint == null) {
+      throw ArgumentError.value(action, 'action', 'Unsupported chat action.');
+    }
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .post(endpoint.replaceFirst(':id', threadId), <String, dynamic>{
+          'userId': currentUser?.id ?? '',
+          'value': value,
+        });
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to update chat preference.');
+    }
+    return ApiPayloadReader.requireDataMap(
+      response.data,
+      fallbackMessage:
+          'Chat preference response did not include a data payload.',
+    );
+  }
+
+  String _normalizeKind(String kind) {
+    switch (kind.trim().toLowerCase()) {
+      case 'gallery':
+      case 'camera':
+      case 'image':
+      case 'photo':
+        return 'image';
+      case 'voice':
+      case 'audio':
+        return 'audio';
+      case 'document':
+      case 'file':
+        return 'file';
+      case 'video':
+        return 'video';
+      case 'location':
+        return 'location';
+      case 'contact':
+        return 'contact';
+      default:
+        return 'text';
+    }
   }
 }

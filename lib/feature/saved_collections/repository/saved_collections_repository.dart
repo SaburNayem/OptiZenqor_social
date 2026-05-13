@@ -10,7 +10,11 @@ class SavedCollectionsRepository {
   final SavedCollectionsService _service;
 
   Future<List<SavedCollectionModel>> read() async {
-    return _readFromApi();
+    try {
+      return await _readFromApi();
+    } catch (_) {
+      return const <SavedCollectionModel>[];
+    }
   }
 
   Future<List<SavedCollectionModel>> create(String name) async {

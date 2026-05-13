@@ -41,8 +41,6 @@ class AppRouter {
     switch (routeName) {
       case RouteNames.splash:
         return SplashScreen();
-      case RouteNames.onboarding:
-        return OnboardingScreen();
       case RouteNames.login:
         return LoginScreen();
       case RouteNames.signup:

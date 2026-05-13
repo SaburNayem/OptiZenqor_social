@@ -10,6 +10,9 @@ import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/app_shimmer.dart';
+import '../../calls/screen/audio_call_screen.dart';
+import '../../calls/screen/video_call_screen.dart';
+import '../../chat/repository/chat_repository.dart';
 import '../../chat/screen/chat_detail_screen.dart';
 import '../../media_viewer/model/media_viewer_item_model.dart';
 import '../../media_viewer/model/media_viewer_route_arguments.dart';
@@ -30,6 +33,8 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   late final UserProfileController _controller;
+  final ChatRepository _chatRepository = ChatRepository();
+  bool _isOpeningMessage = false;
 
   @override
   void initState() {
@@ -364,7 +369,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        automaticallyImplyLeading: ! _controller.isOwnProfile,
+        automaticallyImplyLeading: !_controller.isOwnProfile,
         leading: _controller.isOwnProfile
             ? null
             : IconButton(
@@ -402,11 +407,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return CircleAvatar(
       radius: 50,
       backgroundColor: AppColors.hexFFF2F4F7,
-      child: AppAvatar(
-        imageUrl: user.avatar,
-        radius: 46,
-        verified: false,
-      ),
+      child: AppAvatar(imageUrl: user.avatar, radius: 46, verified: false),
     );
   }
 
@@ -466,9 +467,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildMessageButton(UserModel user) {
     return OutlinedButton.icon(
-      onPressed: () => _openMessage(user),
+      onPressed: _isOpeningMessage ? null : () => _openMessage(user),
       icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-      label: const Text('Msg'),
+      label: Text(_isOpeningMessage ? 'Opening...' : 'Msg'),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -482,15 +483,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildOtherProfileActions(UserModel user) {
     return Row(
       children: [
-        Expanded(
-          flex: 11,
-          child: _buildFollowActionButton(),
-        ),
+        Expanded(flex: 11, child: _buildFollowActionButton()),
         const SizedBox(width: 8),
-        Expanded(
-          flex: 9,
-          child: _buildMessageButton(user),
-        ),
+        Expanded(flex: 9, child: _buildMessageButton(user)),
         const SizedBox(width: 8),
         _buildMoreActionsButton(user),
       ],
@@ -551,6 +546,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         const PopupMenuItem<String>(
           value: 'remove_buddy',
           child: Text('Remove Buddy'),
+        ),
+      );
+      items.add(
+        const PopupMenuItem<String>(
+          value: 'audio_call',
+          child: Text('Audio Call'),
+        ),
+      );
+      items.add(
+        const PopupMenuItem<String>(
+          value: 'video_call',
+          child: Text('Video Call'),
         ),
       );
     } else {
@@ -817,19 +824,70 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-  void _openMessage(UserModel user) {
+  Future<void> _openMessage(UserModel user) async {
+    if (_isOpeningMessage) {
+      return;
+    }
+    setState(() {
+      _isOpeningMessage = true;
+    });
+    try {
+      final thread = await _chatRepository.createThread(user.id);
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ChatDetailScreen(
+            user: thread.user.id.isNotEmpty ? thread.user : user,
+            initialMessage:
+                thread.lastMessageModel ??
+                MessageModel(
+                  id: 'profile_msg_${DateTime.now().microsecondsSinceEpoch}',
+                  chatId: thread.chatId,
+                  senderId: user.id,
+                  text: 'Start a conversation',
+                  timestamp: DateTime.now(),
+                  read: true,
+                ),
+          ),
+        ),
+      );
+    } catch (error) {
+      if (mounted) {
+        AppGet.snackbar(
+          'Chat',
+          error.toString().replaceFirst('Exception: ', ''),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isOpeningMessage = false;
+        });
+      }
+    }
+  }
+
+  void _openAudioCall(UserModel user) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => ChatDetailScreen(
-          user: user,
-          initialMessage: MessageModel(
-            id: 'profile_msg_${DateTime.now().microsecondsSinceEpoch}',
-            chatId: 'chat_${user.id}',
-            senderId: user.id,
-            text: 'Start a conversation',
-            timestamp: DateTime.now(),
-            read: true,
-          ),
+        builder: (_) => AudioCallScreen(
+          name: user.name,
+          avatarUrl: user.avatar,
+          recipientId: user.id,
+        ),
+      ),
+    );
+  }
+
+  void _openVideoCall(UserModel user) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => VideoCallScreen(
+          name: user.name,
+          avatarUrl: user.avatar,
+          recipientId: user.id,
         ),
       ),
     );
@@ -954,6 +1012,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         if (message.trim().isNotEmpty) {
           AppGet.snackbar('Buddy', message);
         }
+        return;
+      case 'audio_call':
+        _openAudioCall(user);
+        return;
+      case 'video_call':
+        _openVideoCall(user);
         return;
       case 'buddy_status':
         return;

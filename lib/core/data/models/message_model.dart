@@ -1,4 +1,5 @@
 import '../api/api_payload_reader.dart';
+import '../../helpers/media_url_resolver.dart';
 
 class MessageModel {
   const MessageModel({
@@ -66,9 +67,45 @@ class MessageModel {
         source['kind'] ?? source['type'],
         fallback: 'text',
       ),
-      mediaPath: ApiPayloadReader.readString(
-        source['mediaPath'] ?? source['mediaUrl'],
+      mediaPath: MediaUrlResolver.resolve(
+        ApiPayloadReader.readString(
+          source['mediaPath'] ??
+              source['mediaUrl'] ??
+              source['attachmentUrl'] ??
+              source['imageUrl'] ??
+              source['audioUrl'] ??
+              source['videoUrl'] ??
+              source['fileUrl'],
+        ),
       ),
+    );
+  }
+
+  MessageModel copyWith({
+    String? id,
+    String? chatId,
+    String? senderId,
+    String? text,
+    DateTime? timestamp,
+    bool? read,
+    bool? starred,
+    String? replyToMessageId,
+    String? deliveryState,
+    String? kind,
+    String? mediaPath,
+  }) {
+    return MessageModel(
+      id: id ?? this.id,
+      chatId: chatId ?? this.chatId,
+      senderId: senderId ?? this.senderId,
+      text: text ?? this.text,
+      timestamp: timestamp ?? this.timestamp,
+      read: read ?? this.read,
+      starred: starred ?? this.starred,
+      replyToMessageId: replyToMessageId ?? this.replyToMessageId,
+      deliveryState: deliveryState ?? this.deliveryState,
+      kind: kind ?? this.kind,
+      mediaPath: mediaPath ?? this.mediaPath,
     );
   }
 }
