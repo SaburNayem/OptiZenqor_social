@@ -12,6 +12,7 @@ class RouteNames {
   static const forgotPassword = '/auth/forgot-password';
   static const otpVerification = '/auth/otp-verification';
   static const resetPassword = '/auth/reset-password';
+  static const accountSuspended = '/auth/account-suspended';
   static const loginEmail = '/auth/login/email';
   static const loginPhone = '/auth/login/phone';
   static const shell = '/shell';

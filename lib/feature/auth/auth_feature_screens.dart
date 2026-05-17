@@ -1,3 +1,4 @@
+export 'account_suspended/screen/account_suspended_screen.dart';
 export 'email_verification/screen/email_verification_screen.dart';
 export 'forgot_password/screen/forgot_password_screen.dart';
 export 'forgot_password/screen/otp_verification_screen.dart';

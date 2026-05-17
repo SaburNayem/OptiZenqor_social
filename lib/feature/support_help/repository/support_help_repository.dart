@@ -53,6 +53,9 @@ class SupportHelpRepository {
           ApiPayloadReader.readString(chat['threadId']).isNotEmpty ||
           ApiPayloadReader.readString(chat['conversationId']).isNotEmpty,
       tickets: ticketModels,
+      loginHelpConfig: LoginHelpConfigModel.fromApiJson(
+        ApiPayloadReader.readMap(payload['loginHelp']),
+      ),
     );
   }
 
@@ -70,6 +73,10 @@ class SupportHelpRepository {
     required String category,
     required String message,
     String priority = 'normal',
+    List<String> attachments = const <String>[],
+    String? contactEmail,
+    String? contactName,
+    String? source,
   }) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .createTicket(<String, dynamic>{
@@ -77,6 +84,12 @@ class SupportHelpRepository {
           'category': category,
           'message': message,
           'priority': priority,
+          if (attachments.isNotEmpty) 'attachments': attachments,
+          if (contactEmail != null && contactEmail.trim().isNotEmpty)
+            'contactEmail': contactEmail.trim(),
+          if (contactName != null && contactName.trim().isNotEmpty)
+            'contactName': contactName.trim(),
+          if (source != null && source.trim().isNotEmpty) 'source': source.trim(),
         });
     return _readTicketSummary(
       response,
@@ -87,9 +100,13 @@ class SupportHelpRepository {
   Future<SupportTicketDetailModel> sendTicketMessage({
     required String ticketId,
     required String message,
+    List<String> attachments = const <String>[],
   }) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
-        .sendTicketMessage(ticketId, <String, dynamic>{'message': message});
+        .sendTicketMessage(ticketId, <String, dynamic>{
+          'message': message,
+          if (attachments.isNotEmpty) 'attachments': attachments,
+        });
     return _readTicketDetail(
       response,
       fallbackMessage: 'Failed to send support message.',

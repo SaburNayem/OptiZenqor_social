@@ -33,6 +33,7 @@ class VideoCallScreen extends StatefulWidget {
 class _VideoCallScreenState extends State<VideoCallScreen> {
   late final CallSessionController _controller;
   late final bool _ownsController;
+  bool _controllerTransferred = false;
 
   @override
   void initState() {
@@ -57,7 +58,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   @override
   void dispose() {
-    if (_ownsController) {
+    if (_ownsController && !_controllerTransferred) {
       _controller.dispose();
     }
     super.dispose();
@@ -80,10 +81,11 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
           body: Stack(
             children: <Widget>[
               Positioned.fill(
-                child: _controller.remoteRenderer.srcObject != null
+                child: _controller.hasRemoteVideo
                     ? RTCVideoView(
                         _controller.remoteRenderer,
-                        objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                        objectFit:
+                            RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                       )
                     : Container(
                         color: AppColors.hexFF0E1A24,
@@ -121,32 +123,44 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          IconButton(
-                            onPressed: _endCall,
-                            icon: const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: AppColors.white,
+                          SizedBox(
+                            width: 48,
+                            child: IconButton(
+                              onPressed: _endCall,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: AppColors.white,
+                              ),
                             ),
                           ),
-                          const Spacer(),
-                          Column(
-                            children: <Widget>[
-                              Text(
-                                widget.name,
-                                style: const TextStyle(
-                                  color: AppColors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text(
+                                  widget.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_controller.statusLabel} • ${_controller.durationLabel}',
-                                style: const TextStyle(color: AppColors.white70),
-                              ),
-                            ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${_controller.statusLabel} - ${_controller.durationLabel}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: AppColors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const Spacer(),
                           const SizedBox(width: 48),
                         ],
                       ),
@@ -168,7 +182,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                                   : AppColors.hexFF26C6DA,
                             ),
                           ),
-                          child: _controller.isCameraOff ||
+                          child:
+                              _controller.isCameraOff ||
                                   _controller.localRenderer.srcObject == null
                               ? const Center(
                                   child: Icon(
@@ -180,7 +195,8 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                               : RTCVideoView(
                                   _controller.localRenderer,
                                   mirror: _controller.isFrontCamera,
-                                  objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+                                  objectFit: RTCVideoViewObjectFit
+                                      .RTCVideoViewObjectFitCover,
                                 ),
                         ),
                       ),
@@ -205,8 +221,10 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                           color: AppColors.black.withValues(alpha: 0.28),
                           borderRadius: BorderRadius.circular(28),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceEvenly,
+                          spacing: 10,
+                          runSpacing: 10,
                           children: <Widget>[
                             _VideoAction(
                               icon: _controller.isMuted
@@ -234,31 +252,29 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                               onTap: _controller.switchCamera,
                             ),
                             _VideoAction(
-                              icon: _controller.isSpeakerOn
-                                  ? Icons.volume_up_outlined
-                                  : Icons.hearing_outlined,
-                              backgroundColor: _controller.isSpeakerOn
-                                  ? AppColors.hexFF26C6DA
-                                  : AppColors.white.withValues(alpha: 0.12),
-                              onTap: _controller.toggleSpeaker,
-                            ),
-                            _VideoAction(
                               icon: Icons.call_rounded,
                               backgroundColor: AppColors.white.withValues(
                                 alpha: 0.12,
                               ),
-                              onTap: () => Navigator.of(context).pushReplacement(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => AudioCallScreen(
-                                    name: widget.name,
-                                    avatarUrl: widget.avatarUrl,
-                                    recipientId: widget.recipientId,
-                                    sessionId: _controller.sessionId,
-                                    connectedAt: _controller.connectedAt,
-                                    controller: _controller,
+                              onTap: () async {
+                                await _controller.disableVideo();
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                _controllerTransferred = true;
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => AudioCallScreen(
+                                      name: widget.name,
+                                      avatarUrl: widget.avatarUrl,
+                                      recipientId: widget.recipientId,
+                                      sessionId: _controller.sessionId,
+                                      connectedAt: _controller.connectedAt,
+                                      controller: _controller,
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                             _VideoAction(
                               icon: Icons.call_end_rounded,

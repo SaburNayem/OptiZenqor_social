@@ -74,6 +74,14 @@ class LoginController extends Cubit<FormStateModel> {
       emit(
         state.copyWith(isSubmitting: false, successMessage: 'Login successful'),
       );
+      final user = await _authRepository.currentUser();
+      if (user?.isAccountSuspended == true) {
+        AppGet.offAllNamed(
+          RouteNames.accountSuspended,
+          arguments: <String, dynamic>{'user': user},
+        );
+        return;
+      }
       AppGet.offAllNamed(
         RouteNames.shell,
         arguments: <String, dynamic>{'refreshUser': true},

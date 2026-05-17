@@ -11,6 +11,7 @@ class AppRoute {
   static const String forgotPassword = RouteNames.forgotPassword;
   static const String otpVerification = RouteNames.otpVerification;
   static const String resetPassword = RouteNames.resetPassword;
+  static const String accountSuspended = RouteNames.accountSuspended;
   static const String shell = RouteNames.shell;
 
   static const String searchDiscovery = RouteNames.searchDiscovery;

@@ -100,6 +100,10 @@ class ChatRepository {
             deliveryState: item.deliveryState,
             kind: item.kind,
             mediaPath: item.mediaPath,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            locationUrl: item.locationUrl,
+            locationName: item.locationName,
           );
         })
         .toList(growable: false);
@@ -114,6 +118,10 @@ class ChatRepository {
     String? attachmentName,
     String? mimeType,
     String? replyToMessageId,
+    double? latitude,
+    double? longitude,
+    String? locationUrl,
+    String? locationName,
   }) async {
     final UserModel? currentUser = await _authRepository.currentUser();
     final String normalizedKind = _normalizeKind(kind);
@@ -122,6 +130,9 @@ class ChatRepository {
         ? senderId.trim()
         : (currentUser?.id ?? '').trim();
     final String normalizedText = text.trim();
+    final String normalizedLocationUrl = (locationUrl ?? '').trim();
+    final String normalizedLocationName = (locationName ?? '').trim();
+    final bool hasLocationCoordinates = latitude != null && longitude != null;
     final Map<String, dynamic> payload = <String, dynamic>{
       'text': normalizedText,
       if (normalizedMediaUrl.isNotEmpty) 'message': normalizedText,
@@ -143,6 +154,32 @@ class ChatRepository {
         'videoUrl': normalizedMediaUrl,
       if (normalizedMediaUrl.isNotEmpty && normalizedKind == 'file')
         'fileUrl': normalizedMediaUrl,
+      if (normalizedKind == 'location' && hasLocationCoordinates)
+        'latitude': latitude,
+      if (normalizedKind == 'location' && hasLocationCoordinates)
+        'longitude': longitude,
+      if (normalizedKind == 'location' && hasLocationCoordinates)
+        'lat': latitude,
+      if (normalizedKind == 'location' && hasLocationCoordinates)
+        'lng': longitude,
+      if (normalizedKind == 'location' && normalizedLocationUrl.isNotEmpty)
+        'locationUrl': normalizedLocationUrl,
+      if (normalizedKind == 'location' && normalizedLocationUrl.isNotEmpty)
+        'mapUrl': normalizedLocationUrl,
+      if (normalizedKind == 'location' && normalizedLocationName.isNotEmpty)
+        'locationName': normalizedLocationName,
+      if (normalizedKind == 'location' &&
+          (hasLocationCoordinates ||
+              normalizedLocationUrl.isNotEmpty ||
+              normalizedLocationName.isNotEmpty))
+        'location': <String, dynamic>{
+          if (hasLocationCoordinates) 'latitude': latitude,
+          if (hasLocationCoordinates) 'longitude': longitude,
+          if (hasLocationCoordinates)
+            'coordinates': <double>[longitude, latitude],
+          if (normalizedLocationUrl.isNotEmpty) 'url': normalizedLocationUrl,
+          if (normalizedLocationName.isNotEmpty) 'name': normalizedLocationName,
+        },
     };
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
@@ -180,6 +217,14 @@ class ChatRepository {
       mediaPath: (message.mediaPath ?? '').trim().isNotEmpty
           ? message.mediaPath
           : mediaUrl,
+      latitude: message.latitude ?? latitude,
+      longitude: message.longitude ?? longitude,
+      locationUrl: (message.locationUrl ?? '').trim().isNotEmpty
+          ? message.locationUrl
+          : locationUrl,
+      locationName: (message.locationName ?? '').trim().isNotEmpty
+          ? message.locationName
+          : locationName,
     );
   }
 
@@ -236,10 +281,7 @@ class ChatRepository {
         .apiClient
         .patch(
           ApiEndPoints.chatThreadMessagePin(chatId, messageId),
-          <String, dynamic>{
-            'userId': currentUser?.id ?? '',
-            'value': value,
-          },
+          <String, dynamic>{'userId': currentUser?.id ?? '', 'value': value},
         );
     if (!response.isSuccess || response.data['success'] == false) {
       throw Exception(response.message ?? 'Unable to pin message.');

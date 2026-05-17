@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:record/record.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/data/models/message_model.dart';
 import '../../../core/data/models/user_model.dart';
@@ -191,9 +194,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ..dispose();
     _messages.dispose();
     unawaited(
-      _socketService.send('thread.leave', data: <String, dynamic>{
-        'threadId': widget.initialMessage.chatId,
-      }).catchError((_) {}),
+      _socketService
+          .send(
+            'thread.leave',
+            data: <String, dynamic>{'threadId': widget.initialMessage.chatId},
+          )
+          .catchError((_) {}),
     );
     unawaited(_audioPlayer.dispose());
     unawaited(_audioRecorder.dispose());
@@ -206,9 +212,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     _currentUserId = currentUser?.id ?? '';
     await _socketService.connect().catchError((_) => false);
     unawaited(
-      _socketService.send('thread.join', data: <String, dynamic>{
-        'threadId': widget.initialMessage.chatId,
-      }).catchError((_) {}),
+      _socketService
+          .send(
+            'thread.join',
+            data: <String, dynamic>{'threadId': widget.initialMessage.chatId},
+          )
+          .catchError((_) {}),
     );
     await _loadMessages();
     await _syncPresence();
@@ -311,7 +320,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           _headerStatusText!,
                           style: TextStyle(
                             fontSize: 12,
-                            color: _otherUserTyping || _chatUser.isOnline == true
+                            color:
+                                _otherUserTyping || _chatUser.isOnline == true
                                 ? AppColors.hexFF00ACC1
                                 : AppColors.grey,
                             fontWeight: FontWeight.w500,
@@ -369,16 +379,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               );
             },
-            itemBuilder: (BuildContext context) => const <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
-                value: 'search',
-                child: Text('Search messages'),
-              ),
-              PopupMenuItem<String>(
-                value: 'settings',
-                child: Text('Chat settings'),
-              ),
-            ],
+            itemBuilder: (BuildContext context) =>
+                const <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(
+                    value: 'search',
+                    child: Text('Search messages'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'settings',
+                    child: Text('Chat settings'),
+                  ),
+                ],
             icon: const Icon(Icons.more_vert, color: AppColors.grey),
           ),
         ],
@@ -408,14 +419,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   if (index == 0) {
                                     return Center(
                                       child: Container(
-                                        margin: const EdgeInsets.only(bottom: 24),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 24,
+                                        ),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 6,
                                         ),
                                         decoration: BoxDecoration(
                                           color: AppColors.grey100,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: Text(
                                           'Today',
@@ -431,106 +446,111 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
                                   final MessageModel message =
                                       visibleMessages[index - 1];
-                              final bool isMe = _currentUserId.isNotEmpty
-                                  ? message.senderId == _currentUserId
-                                  : message.senderId == 'me';
-                              final bool showAvatar =
-                                  !isMe &&
-                                  (index == 1 ||
-                                      (_currentUserId.isNotEmpty
-                                          ? visibleMessages[index - 2].senderId ==
-                                                _currentUserId
-                                          : visibleMessages[index - 2].senderId ==
-                                                'me'));
+                                  final bool isMe = _currentUserId.isNotEmpty
+                                      ? message.senderId == _currentUserId
+                                      : message.senderId == 'me';
+                                  final bool showAvatar =
+                                      !isMe &&
+                                      (index == 1 ||
+                                          (_currentUserId.isNotEmpty
+                                              ? visibleMessages[index - 2]
+                                                        .senderId ==
+                                                    _currentUserId
+                                              : visibleMessages[index - 2]
+                                                        .senderId ==
+                                                    'me'));
 
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: Column(
-                                  crossAxisAlignment: isMe
-                                      ? CrossAxisAlignment.end
-                                      : CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: isMe
-                                          ? MainAxisAlignment.end
-                                          : MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: Column(
+                                      crossAxisAlignment: isMe
+                                          ? CrossAxisAlignment.end
+                                          : CrossAxisAlignment.start,
                                       children: [
-                                        if (!isMe)
-                                          SizedBox(
-                                            width: 40,
-                                            child: showAvatar
-                                                ? AppAvatar(
-                                                    imageUrl:
-                                                        widget.user.avatar,
-                                                    radius: 16,
-                                                  )
-                                                : const SizedBox.shrink(),
+                                        Row(
+                                          mainAxisAlignment: isMe
+                                              ? MainAxisAlignment.end
+                                              : MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            if (!isMe)
+                                              SizedBox(
+                                                width: 40,
+                                                child: showAvatar
+                                                    ? AppAvatar(
+                                                        imageUrl:
+                                                            widget.user.avatar,
+                                                        radius: 16,
+                                                      )
+                                                    : const SizedBox.shrink(),
+                                              ),
+                                            if (!isMe) const SizedBox(width: 8),
+                                            ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth:
+                                                    MediaQuery.of(
+                                                      context,
+                                                    ).size.width *
+                                                    0.7,
+                                              ),
+                                              child:
+                                                  _buildInteractiveMessageBubble(
+                                                    message,
+                                                    isMe,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            left: isMe ? 0 : 48,
+                                            right: isMe ? 4 : 0,
                                           ),
-                                        if (!isMe) const SizedBox(width: 8),
-                                        ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            maxWidth:
-                                                MediaQuery.of(
-                                                  context,
-                                                ).size.width *
-                                                0.7,
-                                          ),
-                                          child: _buildInteractiveMessageBubble(
-                                            message,
-                                            isMe,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: <Widget>[
+                                              if (message.starred) ...<Widget>[
+                                                const Icon(
+                                                  Icons.push_pin,
+                                                  size: 12,
+                                                  color: AppColors.grey400,
+                                                ),
+                                                const SizedBox(width: 4),
+                                              ],
+                                              Text(
+                                                DateFormat(
+                                                  'h:mm a',
+                                                ).format(message.timestamp),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: AppColors.grey400,
+                                                ),
+                                              ),
+                                              if (isMe &&
+                                                  _messageStatusLabel(
+                                                        message,
+                                                      ) !=
+                                                      null) ...<Widget>[
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  _messageStatusLabel(message)!,
+                                                  style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: message.read
+                                                        ? AppColors.hexFF00ACC1
+                                                        : AppColors.grey400,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    Padding(
-                                      padding: EdgeInsets.only(
-                                        left: isMe ? 0 : 48,
-                                        right: isMe ? 4 : 0,
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          if (message.starred) ...<Widget>[
-                                            const Icon(
-                                              Icons.push_pin,
-                                              size: 12,
-                                              color: AppColors.grey400,
-                                            ),
-                                            const SizedBox(width: 4),
-                                          ],
-                                          Text(
-                                            DateFormat(
-                                              'h:mm a',
-                                            ).format(message.timestamp),
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: AppColors.grey400,
-                                            ),
-                                          ),
-                                          if (isMe &&
-                                              _messageStatusLabel(message) !=
-                                                  null) ...<Widget>[
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              _messageStatusLabel(message)!,
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: message.read
-                                                    ? AppColors.hexFF00ACC1
-                                                    : AppColors.grey400,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
+                                  );
                                 },
                               ),
                               if (_shouldShowJumpToBottomButton)
@@ -664,7 +684,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_replyingToMessage != null || _editingMessage != null) ...<Widget>[
+          if (_replyingToMessage != null ||
+              _editingMessage != null) ...<Widget>[
             _buildComposerActionBanner(),
             const SizedBox(height: 10),
           ],
@@ -759,12 +780,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: isImage
-                ? Image.file(
-                    File(path),
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                  )
+                ? _buildImagePreview(path, width: 56, height: 56)
                 : Container(
                     width: 56,
                     height: 56,
@@ -852,10 +868,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   _messagePreviewText(activeMessage),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.grey,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: AppColors.grey, fontSize: 12),
                 ),
               ],
             ),
@@ -880,10 +893,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       background: Container(
         alignment: Alignment.centerLeft,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: const Icon(
-          Icons.reply_rounded,
-          color: AppColors.hexFF26C6DA,
-        ),
+        child: const Icon(Icons.reply_rounded, color: AppColors.hexFF26C6DA),
       ),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -960,6 +970,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     switch (message.kind) {
       case 'voice':
+      case 'audio':
         return _buildVoiceBubble(message, isMe, decoration);
       case 'gallery':
       case 'image':
@@ -972,11 +983,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       case 'document':
       case 'file':
       case 'video':
-      case 'location':
       case 'contact':
-      case 'audio':
         return _buildAttachmentBubble(message, isMe, decoration);
+      case 'location':
+        return _buildLocationBubble(message, isMe, decoration);
       default:
+        if (_isLocationMessage(message)) {
+          return _buildLocationBubble(message, isMe, decoration);
+        }
         if ((message.mediaPath ?? '').trim().isNotEmpty) {
           return _isImagePath(message.mediaPath)
               ? _buildImageBubble(message, isMe, decoration)
@@ -989,7 +1003,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              if (_buildReplySnippet(message, isMe) case final Widget replySnippet)
+              if (_buildReplySnippet(message, isMe)
+                  case final Widget replySnippet)
                 replySnippet,
               Text(
                 message.text,
@@ -1010,9 +1025,11 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (query.isEmpty) {
       return source;
     }
-    return source.where((MessageModel message) {
-      return _messagePreviewText(message).toLowerCase().contains(query);
-    }).toList(growable: false);
+    return source
+        .where((MessageModel message) {
+          return _messagePreviewText(message).toLowerCase().contains(query);
+        })
+        .toList(growable: false);
   }
 
   Widget _buildAttachmentBubble(
@@ -1030,7 +1047,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            if (_buildReplySnippet(message, isMe) case final Widget replySnippet)
+            if (_buildReplySnippet(message, isMe)
+                case final Widget replySnippet)
               replySnippet,
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -1059,6 +1077,211 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
+  Widget _buildLocationBubble(
+    MessageModel message,
+    bool isMe,
+    BoxDecoration decoration,
+  ) {
+    final _ChatLatLng? location = _extractMessageLatLng(message);
+    final String title = _locationTitle(message);
+    final String subtitle = location?.formatted ?? 'Open in Google Maps';
+
+    return InkWell(
+      onTap: () => _handleAttachmentTap(message),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: decoration,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (_buildReplySnippet(message, isMe)
+                case final Widget replySnippet)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+                child: replySnippet,
+              ),
+            SizedBox(
+              width: 260,
+              height: 136,
+              child: Stack(
+                alignment: Alignment.center,
+                children: <Widget>[
+                  Positioned.fill(child: _buildLocationPreviewMap(isMe)),
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: AppColors.black.withValues(alpha: 0.18),
+                          blurRadius: 12,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.location_on_rounded,
+                      color: AppColors.hexFF26C6DA,
+                      size: 28,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.map_outlined,
+                    color: isMe ? AppColors.white : AppColors.hexFF26C6DA,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isMe ? AppColors.white : AppColors.black87,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isMe
+                                ? AppColors.white.withValues(alpha: 0.82)
+                                : AppColors.grey600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.open_in_new_rounded,
+                    color: isMe
+                        ? AppColors.white.withValues(alpha: 0.9)
+                        : AppColors.grey500,
+                    size: 16,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationPreviewMap(bool isMe) {
+    final Color waterColor = isMe
+        ? AppColors.white.withValues(alpha: 0.3)
+        : const Color(0xFFD9F2F6);
+    final Color landColor = isMe
+        ? AppColors.white.withValues(alpha: 0.18)
+        : const Color(0xFFEAF7E9);
+    final Color roadColor = isMe
+        ? AppColors.white.withValues(alpha: 0.58)
+        : AppColors.white;
+    final Color routeColor = isMe
+        ? AppColors.white.withValues(alpha: 0.82)
+        : AppColors.hexFF26C6DA;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(color: landColor),
+      child: Stack(
+        children: <Widget>[
+          Positioned(
+            left: -28,
+            top: -18,
+            child: Container(
+              width: 150,
+              height: 92,
+              decoration: BoxDecoration(
+                color: waterColor,
+                borderRadius: BorderRadius.circular(46),
+              ),
+            ),
+          ),
+          Positioned(
+            right: -18,
+            bottom: -20,
+            child: Container(
+              width: 142,
+              height: 88,
+              decoration: BoxDecoration(
+                color: waterColor.withValues(alpha: 0.72),
+                borderRadius: BorderRadius.circular(44),
+              ),
+            ),
+          ),
+          Positioned(
+            left: -10,
+            right: -10,
+            top: 38,
+            child: Transform.rotate(
+              angle: -0.22,
+              child: Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: roadColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 34,
+            right: -24,
+            bottom: 42,
+            child: Transform.rotate(
+              angle: 0.42,
+              child: Container(
+                height: 10,
+                decoration: BoxDecoration(
+                  color: roadColor.withValues(alpha: 0.86),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 74,
+            right: 22,
+            top: 78,
+            child: Transform.rotate(
+              angle: -0.08,
+              child: Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  color: routeColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildImageBubble(
     MessageModel message,
     bool isMe,
@@ -1077,7 +1300,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            if (_buildReplySnippet(message, isMe) case final Widget replySnippet)
+            if (_buildReplySnippet(message, isMe)
+                case final Widget replySnippet)
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
                 child: replySnippet,
@@ -1115,20 +1339,30 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  Widget _buildImagePreview(String path) {
-    final bool localFile = File(path).existsSync();
+  Widget _buildImagePreview(
+    String path, {
+    double width = 220,
+    double height = 180,
+  }) {
+    final String normalizedPath = path.trim();
+    final bool localFile = _hasLocalFile(normalizedPath);
     if (localFile) {
-      return Image.file(File(path), width: 220, height: 180, fit: BoxFit.cover);
+      return Image.file(
+        File(normalizedPath),
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+      );
     }
     return Image.network(
-      path,
-      width: 220,
-      height: 180,
+      normalizedPath,
+      width: width,
+      height: height,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
         return Container(
-          width: 220,
-          height: 180,
+          width: width,
+          height: height,
           color: AppColors.grey100,
           alignment: Alignment.center,
           child: const Icon(Icons.broken_image_outlined, color: AppColors.grey),
@@ -1139,8 +1373,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           return child;
         }
         return Container(
-          width: 220,
-          height: 180,
+          width: width,
+          height: height,
           color: AppColors.grey50,
           alignment: Alignment.center,
           child: const CircularProgressIndicator(strokeWidth: 2),
@@ -1154,14 +1388,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     bool isMe,
     BoxDecoration decoration,
   ) {
-    final bool isPlaying = _playingMessageId == message.id;
+    final bool isActive = _playingMessageId == message.id;
+    final bool isPlaying = isActive && _audioPlayer.playing;
     final Duration total = _voiceDurationForMessage(message);
-    final Duration current = isPlaying ? _playbackProgress : Duration.zero;
+    final Duration current = isActive ? _playbackProgress : Duration.zero;
     final double progress = total.inMilliseconds == 0
         ? 0
         : current.inMilliseconds / total.inMilliseconds;
-    final bool hasVoiceFile =
-        message.mediaPath != null && File(message.mediaPath!).existsSync();
+    final double clampedProgress = progress.clamp(0.0, 1.0).toDouble();
+    final String? voicePath = message.mediaPath?.trim();
+    final bool hasVoiceFile = _canOpenMediaPath(voicePath);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1176,7 +1412,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               InkWell(
-                onTap: hasVoiceFile ? () => _toggleVoicePlayback(message) : null,
+                onTap: hasVoiceFile
+                    ? () => _toggleVoicePlayback(message)
+                    : null,
                 borderRadius: BorderRadius.circular(999),
                 child: Container(
                   width: 32,
@@ -1197,35 +1435,60 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Row(
-                  children: List<Widget>.generate(_voiceWaveHeights.length, (
-                    int index,
-                  ) {
-                    final bool active =
-                        index / _voiceWaveHeights.length <= progress.clamp(0, 1) &&
-                        isPlaying;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 2),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 120),
-                        width: 3,
-                        height: _voiceWaveHeights[index],
-                        decoration: BoxDecoration(
-                          color: active
-                              ? (isMe ? AppColors.white : AppColors.hexFF26C6DA)
-                              : (isMe
-                                    ? AppColors.white.withValues(alpha: 0.45)
-                                    : AppColors.grey400),
-                          borderRadius: BorderRadius.circular(999),
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: hasVoiceFile
+                          ? (TapDownDetails details) {
+                              final double width = constraints.maxWidth <= 0
+                                  ? 1
+                                  : constraints.maxWidth;
+                              final double fraction =
+                                  (details.localPosition.dx / width)
+                                      .clamp(0.0, 1.0)
+                                      .toDouble();
+                              unawaited(_seekVoicePlayback(message, fraction));
+                            }
+                          : null,
+                      child: Row(
+                        children: List<Widget>.generate(
+                          _voiceWaveHeights.length,
+                          (int index) {
+                            final bool active =
+                                ((index + 1) / _voiceWaveHeights.length) <=
+                                    clampedProgress &&
+                                isActive;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 2),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 120),
+                                width: 3,
+                                height: _voiceWaveHeights[index],
+                                decoration: BoxDecoration(
+                                  color: active
+                                      ? (isMe
+                                            ? AppColors.white
+                                            : AppColors.hexFF26C6DA)
+                                      : (isMe
+                                            ? AppColors.white.withValues(
+                                                alpha: 0.45,
+                                              )
+                                            : AppColors.grey400),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );
-                  }),
+                  },
                 ),
               ),
               const SizedBox(width: 10),
               Text(
-                _formatRecordDuration(isPlaying ? current : total),
+                _formatRecordDuration(isActive ? current : total),
                 style: TextStyle(
                   color: isMe ? AppColors.white : AppColors.black87,
                   fontWeight: FontWeight.w600,
@@ -1498,6 +1761,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     String text, {
     String kind = 'text',
     String? mediaPath,
+    double? latitude,
+    double? longitude,
+    String? locationUrl,
+    String? locationName,
   }) {
     final MessageModel message = MessageModel(
       id: 'm_${DateTime.now().microsecondsSinceEpoch}',
@@ -1508,6 +1775,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       read: true,
       kind: kind,
       mediaPath: mediaPath,
+      latitude: latitude,
+      longitude: longitude,
+      locationUrl: locationUrl,
+      locationName: locationName,
       deliveryState: 'sending',
     );
     _messages.value = <MessageModel>[..._messages.value, message];
@@ -1531,10 +1802,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final String normalizedKind = kind.trim().toLowerCase();
     final String persistedText = normalizedText;
     final String optimisticText = normalizedText;
+    final _ChatLatLng? sharedLocation = normalizedKind == 'location'
+        ? _extractLatLng(normalizedText)
+        : null;
+    final String? sharedLocationUrl = normalizedKind == 'location'
+        ? (_extractMapsUrlFromText(normalizedText) ??
+              (sharedLocation == null
+                  ? null
+                  : _buildGoogleMapsSearchUrl(sharedLocation)))
+        : null;
+    final String? sharedLocationName = normalizedKind == 'location'
+        ? _locationNameFromText(normalizedText)
+        : null;
     final MessageModel optimistic = _appendLocalMessage(
       optimisticText,
       kind: kind,
       mediaPath: localMediaPath,
+      latitude: sharedLocation?.latitude,
+      longitude: sharedLocation?.longitude,
+      locationUrl: sharedLocationUrl,
+      locationName: sharedLocationName,
     );
     setState(() {
       _isSendingMessage = true;
@@ -1557,6 +1844,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         attachmentName: uploadedAttachment?.name ?? fallbackLabel,
         mimeType: uploadedAttachment?.mimeType,
         replyToMessageId: replyToMessageId,
+        latitude: sharedLocation?.latitude,
+        longitude: sharedLocation?.longitude,
+        locationUrl: sharedLocationUrl,
+        locationName: sharedLocationName,
       );
       if (!mounted) {
         return;
@@ -1572,6 +1863,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               : (uploadedAttachment?.remotePath ?? localMediaPath),
           kind: sent.kind.isEmpty ? kind : sent.kind,
           text: sent.text.trim().isNotEmpty ? sent.text : optimisticText,
+          latitude: sent.latitude ?? sharedLocation?.latitude,
+          longitude: sent.longitude ?? sharedLocation?.longitude,
+          locationUrl: (sent.locationUrl ?? '').trim().isNotEmpty
+              ? sent.locationUrl
+              : sharedLocationUrl,
+          locationName: (sent.locationName ?? '').trim().isNotEmpty
+              ? sent.locationName
+              : sharedLocationName,
         ),
       );
       _clearPendingAttachment();
@@ -1587,9 +1886,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         optimistic.id,
         optimistic.copyWith(deliveryState: 'failed'),
       );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_chatErrorMessage(error.toString()))),
       );
     } finally {
@@ -1641,32 +1938,27 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       context: context,
       showDragHandle: true,
       builder: (BuildContext context) {
-        final List<({String value, IconData icon, String label})> actions =
-            <({String value, IconData icon, String label})>[
-              (value: 'reply', icon: Icons.reply_rounded, label: 'Reply'),
-              (
-                value: 'pin',
-                icon: message.starred
-                    ? Icons.push_pin
-                    : Icons.push_pin_outlined,
-                label: message.starred ? 'Unpin' : 'Pin',
-              ),
-              (value: 'forward', icon: Icons.forward_rounded, label: 'Forward'),
-              if (isMe)
-                (value: 'edit', icon: Icons.edit_outlined, label: 'Edit'),
-              if (isMe)
-                (
-                  value: 'delete',
-                  icon: Icons.delete_outline,
-                  label: 'Delete',
-                ),
-            ];
+        final List<({String value, IconData icon, String label})>
+        actions = <({String value, IconData icon, String label})>[
+          (value: 'reply', icon: Icons.reply_rounded, label: 'Reply'),
+          (
+            value: 'pin',
+            icon: message.starred ? Icons.push_pin : Icons.push_pin_outlined,
+            label: message.starred ? 'Unpin' : 'Pin',
+          ),
+          (value: 'forward', icon: Icons.forward_rounded, label: 'Forward'),
+          if (isMe) (value: 'edit', icon: Icons.edit_outlined, label: 'Edit'),
+          if (isMe)
+            (value: 'delete', icon: Icons.delete_outline, label: 'Delete'),
+        ];
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: actions.map((({String value, IconData icon, String label}) action) {
+              children: actions.map((
+                ({String value, IconData icon, String label}) action,
+              ) {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(
@@ -1731,9 +2023,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to edit message.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to edit message.')));
     } finally {
       if (mounted) {
         setState(() {
@@ -1750,7 +2042,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Delete message?'),
-              content: const Text('This message will be removed from the chat.'),
+              content: const Text(
+                'This message will be removed from the chat.',
+              ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
@@ -1780,7 +2074,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _messages.value = _messages.value
           .where((MessageModel item) => item.id != message.id)
           .toList(growable: false);
-      if (_editingMessage?.id == message.id || _replyingToMessage?.id == message.id) {
+      if (_editingMessage?.id == message.id ||
+          _replyingToMessage?.id == message.id) {
         _clearComposerActionState();
       }
     } catch (_) {
@@ -1808,24 +2103,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to pin message.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unable to pin message.')));
     }
   }
 
   Future<void> _forwardMessageToThread(MessageModel message) async {
     try {
-      final List<ChatThreadModel> threads = await _chatRepository.fetchThreads();
+      final List<ChatThreadModel> threads = await _chatRepository
+          .fetchThreads();
       if (!mounted) {
         return;
       }
-      final ChatThreadModel? target = await showModalBottomSheet<ChatThreadModel>(
+      final ChatThreadModel?
+      target = await showModalBottomSheet<ChatThreadModel>(
         context: context,
         showDragHandle: true,
         builder: (BuildContext context) {
           final List<ChatThreadModel> available = threads
-              .where((ChatThreadModel item) => item.chatId != widget.initialMessage.chatId)
+              .where(
+                (ChatThreadModel item) =>
+                    item.chatId != widget.initialMessage.chatId,
+              )
               .toList(growable: false);
           if (available.isEmpty) {
             return const SafeArea(
@@ -2224,7 +2524,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         await _pickAudioAttachment();
         return;
       case 'location':
-        final String? location = await _promptForLocation();
+        final String? location = await _buildCurrentLocationMessage();
         if (location == null) {
           return;
         }
@@ -2306,10 +2606,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     _setPendingAttachment(path: file!.path!, kind: 'audio', label: file.name);
   }
 
-  Future<String?> _promptForLocation() async {
-    final String currentLocation = _currentUser?.location.trim() ?? '';
+  Future<String?> _buildCurrentLocationMessage() async {
+    final _ChatLatLng? currentPosition = await _readCurrentLatLng();
+    if (currentPosition != null) {
+      return _formatLocationMessage(currentPosition);
+    }
+    if (!mounted) {
+      return null;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Unable to read GPS. Enter latitude and longitude.'),
+      ),
+    );
+    final _ChatLatLng? manualPosition = await _promptForLatLng();
+    return manualPosition == null
+        ? null
+        : _formatLocationMessage(manualPosition);
+  }
+
+  Future<_ChatLatLng?> _promptForLatLng() async {
     final TextEditingController controller = TextEditingController(
-      text: currentLocation.isNotEmpty ? currentLocation : 'Dhaka, Bangladesh',
+      text: _extractProfileLatLng(_currentUser?.location)?.formatted ?? '',
     );
     final String? location = await showDialog<String>(
       context: context,
@@ -2319,7 +2637,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           content: TextField(
             controller: controller,
             decoration: const InputDecoration(
-              hintText: 'Enter a location',
+              hintText: '23.810331, 90.412521',
               border: OutlineInputBorder(),
             ),
             textInputAction: TextInputAction.done,
@@ -2346,7 +2664,49 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (normalized.isEmpty) {
       return null;
     }
-    return 'Shared location: $normalized';
+    final _ChatLatLng? coordinates = _extractLatLng(normalized);
+    if (coordinates != null) {
+      return coordinates;
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter latitude and longitude.')),
+      );
+    }
+    return null;
+  }
+
+  Future<_ChatLatLng?> _readCurrentLatLng() async {
+    try {
+      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return null;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+
+      final Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+      return _ChatLatLng(position.latitude, position.longitude);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _formatLocationMessage(_ChatLatLng location) {
+    return 'Shared location: ${location.formatted}\n'
+        '${_buildGoogleMapsSearchUrl(location)}';
   }
 
   Future<String?> _promptForContact() async {
@@ -2473,11 +2833,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Future<void> _handleAttachmentTap(MessageModel message) async {
     final String? path = message.mediaPath;
-    if (path == null || path.isEmpty) {
-      return;
-    }
-
     if (_isImageMessage(message)) {
+      if (path == null || path.isEmpty) {
+        return;
+      }
       await showDialog<void>(
         context: context,
         builder: (BuildContext context) {
@@ -2491,6 +2850,22 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           );
         },
       );
+      return;
+    }
+
+    final _ChatLatLng? sharedLocation = _extractMessageLatLng(message);
+    if (sharedLocation != null) {
+      await _openSharedLocation(sharedLocation);
+      return;
+    }
+
+    final String? locationUrl = _extractLocationUrl(message);
+    if (locationUrl != null) {
+      await _openExternalUrl(locationUrl);
+      return;
+    }
+
+    if (path == null || path.isEmpty) {
       return;
     }
 
@@ -2538,7 +2913,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Duration _parseVoiceDuration(String text) {
     final List<String> parts = text.split(':');
     if (parts.length != 2) {
-      return const Duration(seconds: 8);
+      return Duration.zero;
     }
     final int minutes = int.tryParse(parts[0]) ?? 0;
     final int seconds = int.tryParse(parts[1]) ?? 0;
@@ -2549,8 +2924,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     if (_playingMessageId == message.id && _playbackDuration > Duration.zero) {
       return _playbackDuration;
     }
-    if (message.kind == 'voice') {
-      return _parseVoiceDuration(message.text);
+    final Duration parsed = _parseVoiceDuration(message.text);
+    if (parsed > Duration.zero) {
+      return parsed;
     }
     return const Duration(seconds: 1);
   }
@@ -2566,29 +2942,58 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       if (!mounted) {
         return;
       }
+      setState(() {});
+      return;
+    }
+
+    if (_playingMessageId == message.id &&
+        _audioPlayer.processingState != ProcessingState.idle) {
+      if (!mounted) {
+        return;
+      }
       setState(() {
-        _playingMessageId = null;
+        _playingMessageId = message.id;
       });
+      await _audioPlayer.play();
       return;
     }
 
     await _playAudioFile(message.id, path);
   }
 
-  Future<void> _playAudioFile(String messageId, String path) async {
+  Future<void> _playAudioFile(
+    String messageId,
+    String path, {
+    Duration? startAt,
+    double? startFraction,
+  }) async {
     try {
       await _audioPlayer.stop();
-      final Duration? duration =
-          path.startsWith('http://') || path.startsWith('https://')
-          ? await _audioPlayer.setUrl(path)
-          : await _audioPlayer.setFilePath(path);
+      final String normalizedPath = path.trim();
+      final Duration? duration = _shouldUseUrlMedia(normalizedPath)
+          ? await _audioPlayer.setUrl(normalizedPath)
+          : await _audioPlayer.setFilePath(normalizedPath);
+      final Duration resolvedDuration = duration ?? Duration.zero;
+      Duration seekPosition = startAt ?? Duration.zero;
+      if (startFraction != null && resolvedDuration > Duration.zero) {
+        seekPosition = Duration(
+          milliseconds: (resolvedDuration.inMilliseconds * startFraction)
+              .round(),
+        );
+      }
+      if (resolvedDuration > Duration.zero && seekPosition > resolvedDuration) {
+        seekPosition = resolvedDuration;
+      }
+      if (seekPosition > Duration.zero) {
+        await _audioPlayer.seek(seekPosition);
+      }
       if (!mounted) {
         return;
       }
       setState(() {
         _playingMessageId = messageId;
-        _playbackProgress = Duration.zero;
-        _playbackDuration = duration ?? Duration.zero;
+        _playbackProgress = seekPosition;
+        _playbackDuration = resolvedDuration;
       });
       await _audioPlayer.play();
     } catch (_) {
@@ -2601,7 +3006,48 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  Future<void> _seekVoicePlayback(MessageModel message, double fraction) async {
+    final String? path = message.mediaPath;
+    if (path == null || path.isEmpty) {
+      return;
+    }
+
+    final double clampedFraction = fraction.clamp(0.0, 1.0).toDouble();
+    final Duration total = _voiceDurationForMessage(message);
+    final Duration target = total > Duration.zero
+        ? Duration(
+            milliseconds: (total.inMilliseconds * clampedFraction).round(),
+          )
+        : Duration.zero;
+
+    if (_playingMessageId == message.id &&
+        _audioPlayer.processingState != ProcessingState.idle) {
+      await _audioPlayer.seek(target);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _playingMessageId = message.id;
+        _playbackProgress = target;
+      });
+      if (!_audioPlayer.playing) {
+        await _audioPlayer.play();
+      }
+      return;
+    }
+
+    await _playAudioFile(
+      message.id,
+      path,
+      startAt: target,
+      startFraction: clampedFraction,
+    );
+  }
+
   String _messagePreviewText(MessageModel message) {
+    if (_isLocationMessage(message)) {
+      return _locationPreviewText(message);
+    }
     final String text = message.text.trim();
     if (text.isNotEmpty) {
       return text;
@@ -2700,6 +3146,273 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         _isImagePath(message.mediaPath);
   }
 
+  bool _isLocationMessage(MessageModel message) {
+    return message.kind == 'location' ||
+        _extractMessageLatLng(message) != null ||
+        _extractLocationUrl(message) != null;
+  }
+
+  String _locationTitle(MessageModel message) {
+    final String locationName = (message.locationName ?? '').trim();
+    if (locationName.isNotEmpty && !_looksLikeMapsUrl(locationName)) {
+      if (RegExp(
+        r'^shared location\b',
+        caseSensitive: false,
+      ).hasMatch(locationName)) {
+        return 'Shared location';
+      }
+      return locationName;
+    }
+    return 'Shared location';
+  }
+
+  String _locationPreviewText(MessageModel message) {
+    final String locationName = (message.locationName ?? '').trim();
+    if (locationName.isNotEmpty && !_looksLikeMapsUrl(locationName)) {
+      return locationName;
+    }
+    final _ChatLatLng? coordinates = _extractMessageLatLng(message);
+    if (coordinates != null) {
+      return coordinates.formatted;
+    }
+    final List<String> lines = message.text
+        .split('\n')
+        .map((String line) => line.trim())
+        .where((String line) => line.isNotEmpty)
+        .toList(growable: false);
+    for (final String line in lines) {
+      if (!_looksLikeUrl(line)) {
+        return line;
+      }
+    }
+    return 'Open location in Google Maps';
+  }
+
+  String? _locationNameFromText(String text) {
+    final List<String> lines = text
+        .split('\n')
+        .map((String line) => line.trim())
+        .where((String line) => line.isNotEmpty)
+        .toList(growable: false);
+    for (final String line in lines) {
+      if (_looksLikeMapsUrl(line)) {
+        continue;
+      }
+      if (RegExp(r'^shared location\b', caseSensitive: false).hasMatch(line)) {
+        return 'Shared location';
+      }
+      final _ChatLatLng? coordinates = _extractLatLng(line);
+      if (coordinates != null &&
+          line.replaceAll(RegExp(r'[-\d.,\s]'), '').isEmpty) {
+        return 'Shared location';
+      }
+      return line;
+    }
+    return null;
+  }
+
+  String? _extractLocationUrl(MessageModel message) {
+    final String? explicitUrl = message.locationUrl?.trim();
+    if (explicitUrl != null &&
+        explicitUrl.isNotEmpty &&
+        _looksLikeMapsUrl(explicitUrl)) {
+      return explicitUrl;
+    }
+    final String? mediaPath = message.mediaPath?.trim();
+    if (mediaPath != null &&
+        mediaPath.isNotEmpty &&
+        _looksLikeMapsUrl(mediaPath)) {
+      return mediaPath;
+    }
+
+    return _extractMapsUrlFromText(message.text);
+  }
+
+  String? _extractMapsUrlFromText(String text) {
+    final Iterable<RegExpMatch> matches = RegExp(
+      r'(geo:[^\s]+|https?:\/\/[^\s]+)',
+      caseSensitive: false,
+    ).allMatches(text);
+    for (final RegExpMatch match in matches) {
+      final String rawUrl = (match.group(0) ?? '').trim();
+      final String normalized = rawUrl.replaceAll(RegExp(r'[),.;]+$'), '');
+      if (_looksLikeMapsUrl(normalized)) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
+  _ChatLatLng? _extractProfileLatLng(String? location) {
+    return _extractLatLng(location ?? '');
+  }
+
+  _ChatLatLng? _extractMessageLatLng(MessageModel message) {
+    final double? latitude = message.latitude;
+    final double? longitude = message.longitude;
+    if (latitude != null &&
+        longitude != null &&
+        latitude >= -90 &&
+        latitude <= 90 &&
+        longitude >= -180 &&
+        longitude <= 180) {
+      return _ChatLatLng(latitude, longitude);
+    }
+    final String mediaPath = message.mediaPath?.trim() ?? '';
+    if (mediaPath.isNotEmpty) {
+      final _ChatLatLng? mediaLocation = _extractLatLng(mediaPath);
+      if (mediaLocation != null) {
+        return mediaLocation;
+      }
+    }
+    return _extractLatLng(message.text);
+  }
+
+  _ChatLatLng? _extractLatLng(String value) {
+    final RegExpMatch? match = RegExp(
+      r'(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)',
+    ).firstMatch(value);
+    if (match == null) {
+      return null;
+    }
+    final double? latitude = double.tryParse(match.group(1) ?? '');
+    final double? longitude = double.tryParse(match.group(2) ?? '');
+    if (latitude == null ||
+        longitude == null ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
+      return null;
+    }
+    return _ChatLatLng(latitude, longitude);
+  }
+
+  Future<void> _openSharedLocation(_ChatLatLng location) async {
+    if (await _tryOpenExternalUrl(_buildGoogleMapsSearchUrl(location))) {
+      return;
+    }
+
+    if (!kIsWeb && Platform.isAndroid) {
+      final Uri geoUri = Uri(
+        scheme: 'geo',
+        path: '${location.latitude},${location.longitude}',
+        queryParameters: <String, String>{'q': location.formatted},
+      );
+      if (await _tryOpenUri(geoUri)) {
+        return;
+      }
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open this location.')),
+      );
+    }
+  }
+
+  String _buildGoogleMapsSearchUrl(_ChatLatLng location) {
+    return _buildGoogleMapsUrl(location.formatted);
+  }
+
+  String _buildGoogleMapsUrl(String rawLocation) {
+    final String normalized = rawLocation.trim();
+    final RegExp latLngPattern = RegExp(
+      r'^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$',
+    );
+    final RegExpMatch? match = latLngPattern.firstMatch(normalized);
+    final String query = match == null
+        ? normalized
+        : '${match.group(1)},${match.group(2)}';
+    return Uri.https('www.google.com', '/maps/search/', <String, String>{
+      'api': '1',
+      'query': query,
+    }).toString();
+  }
+
+  bool _looksLikeMapsUrl(String value) {
+    final String normalized = value.trim();
+    if (normalized.toLowerCase().startsWith('geo:')) {
+      return true;
+    }
+    if (!_looksLikeUrl(normalized)) {
+      return false;
+    }
+    final Uri? uri = Uri.tryParse(normalized);
+    if (uri == null) {
+      return false;
+    }
+    final String host = uri.host.toLowerCase();
+    final String path = uri.path.toLowerCase();
+    return (host.contains('google.com') && path.contains('/maps')) ||
+        host == 'maps.google.com' ||
+        host == 'maps.app.goo.gl' ||
+        (host == 'goo.gl' && path.startsWith('/maps')) ||
+        host == 'maps.apple.com';
+  }
+
+  bool _looksLikeUrl(String value) {
+    final Uri? uri = Uri.tryParse(value.trim());
+    return uri != null &&
+        uri.hasScheme &&
+        (uri.scheme == 'http' || uri.scheme == 'https');
+  }
+
+  bool _shouldUseUrlMedia(String path) {
+    final Uri? uri = Uri.tryParse(path.trim());
+    if (uri == null || !uri.hasScheme) {
+      return false;
+    }
+    return uri.scheme == 'http' ||
+        uri.scheme == 'https' ||
+        uri.scheme == 'blob' ||
+        uri.scheme == 'data';
+  }
+
+  bool _canOpenMediaPath(String? path) {
+    final String normalized = (path ?? '').trim();
+    if (normalized.isEmpty) {
+      return false;
+    }
+    return _shouldUseUrlMedia(normalized) || _hasLocalFile(normalized);
+  }
+
+  bool _hasLocalFile(String path) {
+    if (kIsWeb || path.trim().isEmpty || _shouldUseUrlMedia(path)) {
+      return false;
+    }
+    try {
+      return File(path).existsSync();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _openExternalUrl(String rawUrl) async {
+    final bool launched = await _tryOpenExternalUrl(rawUrl);
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open this location.')),
+      );
+    }
+  }
+
+  Future<bool> _tryOpenExternalUrl(String rawUrl) async {
+    final Uri? uri = Uri.tryParse(rawUrl.trim());
+    if (uri == null) {
+      return false;
+    }
+    return _tryOpenUri(uri);
+  }
+
+  Future<bool> _tryOpenUri(Uri uri) async {
+    try {
+      return launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      return false;
+    }
+  }
+
   bool _isImagePath(String? path) {
     final String normalized = (path ?? '').trim().toLowerCase();
     if (normalized.isEmpty) {
@@ -2724,6 +3437,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   String _buildVoiceFilePath() {
+    if (kIsWeb) {
+      return 'voice_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    }
     final String separator = Platform.pathSeparator;
     return '${Directory.systemTemp.path}${separator}voice_${DateTime.now().microsecondsSinceEpoch}.m4a';
   }
@@ -2824,4 +3540,14 @@ class _UploadedChatAttachment {
   final String remotePath;
   final String name;
   final String? mimeType;
+}
+
+class _ChatLatLng {
+  const _ChatLatLng(this.latitude, this.longitude);
+
+  final double latitude;
+  final double longitude;
+
+  String get formatted =>
+      '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
 }

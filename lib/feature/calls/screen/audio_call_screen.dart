@@ -33,6 +33,8 @@ class AudioCallScreen extends StatefulWidget {
 class _AudioCallScreenState extends State<AudioCallScreen> {
   late final CallSessionController _controller;
   late final bool _ownsController;
+  bool _controllerTransferred = false;
+  bool _isOpeningVideo = false;
 
   @override
   void initState() {
@@ -51,11 +53,14 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     if (_ownsController) {
       unawaited(_controller.initialize());
     }
+    _controller.addListener(_handleControllerChanged);
+    _handleControllerChanged();
   }
 
   @override
   void dispose() {
-    if (_ownsController) {
+    _controller.removeListener(_handleControllerChanged);
+    if (_ownsController && !_controllerTransferred) {
       _controller.dispose();
     }
     super.dispose();
@@ -66,6 +71,41 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     if (mounted) {
       Navigator.of(context).pop();
     }
+  }
+
+  void _handleControllerChanged() {
+    if (!_controller.isVideoCall || _isOpeningVideo) {
+      return;
+    }
+    _openVideoCall(startCamera: false);
+  }
+
+  void _openVideoCall({bool startCamera = true}) {
+    if (_isOpeningVideo) {
+      return;
+    }
+    _isOpeningVideo = true;
+    if (startCamera) {
+      unawaited(_controller.enableVideoIfNeeded());
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _controllerTransferred = true;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => VideoCallScreen(
+            name: widget.name,
+            avatarUrl: widget.avatarUrl,
+            recipientId: widget.recipientId,
+            sessionId: _controller.sessionId,
+            connectedAt: _controller.connectedAt,
+            controller: _controller,
+          ),
+        ),
+      );
+    });
   }
 
   @override
@@ -93,7 +133,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                       Text(
                         _controller.sessionId == null
                             ? 'Starting secure call'
-                            : 'Call session live',
+                            : 'Audio call',
                         style: const TextStyle(
                           color: AppColors.white70,
                           fontSize: 13,
@@ -135,12 +175,18 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                   const SizedBox(height: 8),
                   Text(
                     _controller.statusLabel,
-                    style: const TextStyle(color: AppColors.white70, fontSize: 16),
+                    style: const TextStyle(
+                      color: AppColors.white70,
+                      fontSize: 16,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     _controller.durationLabel,
-                    style: const TextStyle(color: AppColors.white54, fontSize: 14),
+                    style: const TextStyle(
+                      color: AppColors.white54,
+                      fontSize: 14,
+                    ),
                   ),
                   if (_controller.isRemoteMuted) ...<Widget>[
                     const SizedBox(height: 14),
@@ -179,28 +225,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                           onTap: _controller.toggleSpeaker,
                         ),
                         _CallControl(
-                          icon: Icons.graphic_eq_rounded,
-                          label: _controller.callState == 'ringing'
-                              ? 'Ringing'
-                              : 'Live',
-                          active: _controller.callState == 'connected',
-                          onTap: null,
-                        ),
-                        _CallControl(
                           icon: Icons.videocam_outlined,
                           label: 'Video',
-                          onTap: () => Navigator.of(context).pushReplacement(
-                            MaterialPageRoute<void>(
-                              builder: (_) => VideoCallScreen(
-                                name: widget.name,
-                                avatarUrl: widget.avatarUrl,
-                                recipientId: widget.recipientId,
-                                sessionId: _controller.sessionId,
-                                connectedAt: _controller.connectedAt,
-                                controller: _controller,
-                              ),
-                            ),
-                          ),
+                          onTap: _openVideoCall,
                         ),
                       ],
                     ),

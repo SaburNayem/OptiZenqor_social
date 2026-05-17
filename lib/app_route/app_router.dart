@@ -56,6 +56,8 @@ class AppRouter {
           email: _emailFromArguments(arguments),
           otp: _otpFromArguments(arguments),
         );
+      case RouteNames.accountSuspended:
+        return AccountSuspendedScreen(user: _userFromArguments(arguments));
       case RouteNames.shell:
         return MainShellScreen(arguments: arguments);
       case RouteNames.searchDiscovery:
@@ -261,6 +263,31 @@ class AppRouter {
       final Object? otp = arguments['otp'];
       if (otp is String && otp.trim().isNotEmpty) {
         return otp.trim();
+      }
+    }
+    return null;
+  }
+
+  static UserModel? _userFromArguments(Object? arguments) {
+    if (arguments is UserModel) {
+      return arguments;
+    }
+    if (arguments is Map<String, dynamic>) {
+      final Object? user = arguments['user'];
+      if (user is UserModel) {
+        return user;
+      }
+      if (user is Map<String, dynamic>) {
+        return UserModel.fromApiJson(user);
+      }
+    }
+    if (arguments is Map) {
+      final Object? user = arguments['user'];
+      if (user is UserModel) {
+        return user;
+      }
+      if (user is Map) {
+        return UserModel.fromApiJson(Map<String, dynamic>.from(user));
       }
     }
     return null;

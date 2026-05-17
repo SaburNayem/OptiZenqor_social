@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/data/service/media_picker_service.dart';
+import '../../../core/data/service/upload_service.dart';
+import '../../../core/helpers/media_url_resolver.dart';
 import '../controller/support_help_controller.dart';
 import '../model/faq_item_model.dart';
 import '../model/support_ticket_detail_model.dart';
@@ -39,6 +44,8 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
   ];
 
   late final SupportHelpController _controller;
+  final MediaPickerService _mediaPickerService = MediaPickerService();
+  final UploadService _uploadService = UploadService();
 
   @override
   void initState() {
@@ -590,6 +597,8 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
     final TextEditingController messageController = TextEditingController();
     String selectedCategory = _ticketCategories.first;
     String selectedPriority = 'normal';
+    final List<String> selectedImages = <String>[];
+    bool isUploadingImages = false;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -705,6 +714,55 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                           ),
                         ),
                         const SizedBox(height: 14),
+                        Row(
+                          children: <Widget>[
+                            OutlinedButton.icon(
+                              onPressed: isUploadingImages
+                                  ? null
+                                  : () async {
+                                      final String? imagePath = await _pickSupportImage();
+                                      if (imagePath == null || imagePath.isEmpty) {
+                                        return;
+                                      }
+                                      setSheetState(() {
+                                        selectedImages.add(imagePath);
+                                      });
+                                    },
+                              icon: const Icon(Icons.image_outlined),
+                              label: const Text('Add image'),
+                            ),
+                            const SizedBox(width: 10),
+                            if (selectedImages.isNotEmpty)
+                              Expanded(
+                                child: Text(
+                                  '${selectedImages.length} image attached',
+                                  style: const TextStyle(color: AppColors.grey),
+                                ),
+                              ),
+                          ],
+                        ),
+                        if (selectedImages.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: selectedImages
+                                .map(
+                                  (String imagePath) => InputChip(
+                                    label: Text(_attachmentLabel(imagePath)),
+                                    onDeleted: isUploadingImages
+                                        ? null
+                                        : () {
+                                            setSheetState(() {
+                                              selectedImages.remove(imagePath);
+                                            });
+                                          },
+                                  ),
+                                )
+                                .toList(growable: false),
+                          ),
+                        ],
+                        const SizedBox(height: 14),
                         if (_controller.actionMessage != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 12),
@@ -741,12 +799,26 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                                     }
                                     final NavigatorState navigator =
                                         Navigator.of(context);
+                                    setSheetState(() {
+                                      isUploadingImages = selectedImages.isNotEmpty;
+                                    });
+                                    final List<String> attachments =
+                                        await _uploadSupportAttachments(
+                                      selectedImages,
+                                    );
+                                    if (!mounted) {
+                                      return;
+                                    }
+                                    setSheetState(() {
+                                      isUploadingImages = false;
+                                    });
                                     final bool created = await _controller
                                         .createTicket(
                                           subject: subject,
                                           category: selectedCategory,
                                           message: message,
                                           priority: selectedPriority,
+                                          attachments: attachments,
                                         );
                                     if (!mounted) {
                                       return;
@@ -762,7 +834,7 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                                       _flushActionMessage('Support');
                                     }
                                   },
-                            child: _controller.isSubmitting
+                            child: _controller.isSubmitting || isUploadingImages
                                 ? const SizedBox(
                                     height: 18,
                                     width: 18,
@@ -998,12 +1070,12 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                             Text(message.body),
                             if (message.attachments.isNotEmpty) ...<Widget>[
                               const SizedBox(height: 8),
-                              Text(
-                                'Attachments: ${message.attachments.join(', ')}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.grey,
-                                ),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: message.attachments
+                                    .map(_buildAttachmentPreview)
+                                    .toList(growable: false),
                               ),
                             ],
                             if (message.createdAt.isNotEmpty) ...<Widget>[
@@ -1082,6 +1154,79 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
         ),
       ],
     );
+  }
+
+  Future<String?> _pickSupportImage() {
+    return _mediaPickerService.pickImage(
+      imageQuality: 85,
+      maxWidth: 1600,
+      maxHeight: 1600,
+    );
+  }
+
+  Future<List<String>> _uploadSupportAttachments(List<String> imagePaths) async {
+    final List<String> uploaded = <String>[];
+    for (final String imagePath in imagePaths) {
+      if (_isRemoteAttachment(imagePath)) {
+        uploaded.add(imagePath);
+        continue;
+      }
+      UploadProgress? lastProgress;
+      await for (final UploadProgress progress in _uploadService.uploadFile(
+        taskId: 'support-${DateTime.now().microsecondsSinceEpoch}-${uploaded.length}',
+        localPath: imagePath,
+        fields: const <String, String>{
+          'folder': 'support',
+          'resourceType': 'image',
+        },
+      )) {
+        lastProgress = progress;
+        if (progress.status == UploadStatus.completed &&
+            progress.remotePath != null &&
+            progress.remotePath!.trim().isNotEmpty) {
+          uploaded.add(progress.remotePath!.trim());
+          break;
+        }
+      }
+      if (lastProgress?.status != UploadStatus.completed) {
+        throw Exception(lastProgress?.error ?? 'Support image upload failed.');
+      }
+    }
+    return uploaded;
+  }
+
+  bool _isRemoteAttachment(String value) {
+    final Uri? uri = Uri.tryParse(value.trim());
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+  }
+
+  String _attachmentLabel(String value) {
+    final String normalized = value.replaceAll('\\', '/');
+    final int index = normalized.lastIndexOf('/');
+    return index == -1 ? normalized : normalized.substring(index + 1);
+  }
+
+  bool _isImageAttachment(String value) {
+    final String lower = value.toLowerCase();
+    return lower.endsWith('.png') ||
+        lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.webp') ||
+        lower.contains('image/upload');
+  }
+
+  Widget _buildAttachmentPreview(String attachment) {
+    final String resolved = MediaUrlResolver.resolve(attachment);
+    if (_isImageAttachment(resolved)) {
+      final Widget image = _isRemoteAttachment(resolved)
+          ? Image.network(resolved, fit: BoxFit.cover)
+          : Image.file(File(resolved), fit: BoxFit.cover);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: SizedBox(width: 96, height: 96, child: image),
+      );
+    }
+    return Chip(label: Text(_attachmentLabel(attachment)));
   }
 
   Widget _buildStatusChip(String status) {

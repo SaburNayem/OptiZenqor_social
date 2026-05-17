@@ -131,6 +131,10 @@ class ProductModel {
     required this.chats,
     required this.isHiddenByModeration,
     required this.reviewStatus,
+    this.externalAppName = '',
+    this.externalAppLink = '',
+    this.playStoreUrl = '',
+    this.androidPackage = '',
   });
 
   final String id;
@@ -168,10 +172,31 @@ class ProductModel {
   final int chats;
   final bool isHiddenByModeration;
   final String reviewStatus;
+  final String externalAppName;
+  final String externalAppLink;
+  final String playStoreUrl;
+  final String androidPackage;
+
+  bool get hasExternalAppLink => externalAppLink.trim().isNotEmpty;
+
+  String get resolvedPlayStoreUrl {
+    final String explicit = playStoreUrl.trim();
+    if (explicit.isNotEmpty) {
+      return explicit;
+    }
+    final String package = androidPackage.trim();
+    if (package.isEmpty) {
+      return '';
+    }
+    return 'https://play.google.com/store/apps/details?id=$package';
+  }
 
   factory ProductModel.fromApiJson(Map<String, dynamic> json) {
     final Map<String, dynamic>? seller = ApiPayloadReader.readMap(
       json['seller'],
+    );
+    final Map<String, dynamic>? externalApp = ApiPayloadReader.readMap(
+      json['externalApp'],
     );
     final String category = ApiPayloadReader.readString(json['category']);
     final String companyName = ApiPayloadReader.readString(
@@ -226,6 +251,18 @@ class ProductModel {
       isHiddenByModeration:
           ApiPayloadReader.readBool(json['isHiddenByModeration']) ?? false,
       reviewStatus: ApiPayloadReader.readString(json['reviewStatus']),
+      externalAppName: ApiPayloadReader.readString(
+        json['externalAppName'] ?? externalApp?['name'],
+      ),
+      externalAppLink: ApiPayloadReader.readString(
+        json['externalAppLink'] ?? externalApp?['appLink'],
+      ),
+      playStoreUrl: ApiPayloadReader.readString(
+        json['playStoreUrl'] ?? externalApp?['playStoreUrl'],
+      ),
+      androidPackage: ApiPayloadReader.readString(
+        json['androidPackage'] ?? externalApp?['androidPackage'],
+      ),
     );
   }
 
@@ -271,6 +308,10 @@ class ProductModel {
       chats: chats,
       isHiddenByModeration: isHiddenByModeration ?? this.isHiddenByModeration,
       reviewStatus: reviewStatus,
+      externalAppName: externalAppName,
+      externalAppLink: externalAppLink,
+      playStoreUrl: playStoreUrl,
+      androidPackage: androidPackage,
     );
   }
 

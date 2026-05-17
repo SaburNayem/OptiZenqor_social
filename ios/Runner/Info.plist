@@ -50,8 +50,10 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>OptiZenqor Social needs photo library access to manage story media on your device.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>OptiZenqor Social needs camera access so you can take a profile photo during signup.</string>
+	<string>OptiZenqor Social needs camera access for video calls and profile photos.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>OptiZenqor Social needs microphone access so you can record voice messages.</string>
+	<string>OptiZenqor Social needs microphone access for voice calls, video calls, and voice messages.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>OptiZenqor Social needs your location so you can share map directions in chat.</string>
 </dict>
 </plist>

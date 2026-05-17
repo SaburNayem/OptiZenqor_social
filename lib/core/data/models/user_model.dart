@@ -26,6 +26,11 @@ class UserModel {
     this.supporterBadge = false,
     this.isOnline,
     this.lastSeen,
+    this.status = 'Active',
+    this.blocked = false,
+    this.adminModeration = const <String, dynamic>{},
+    this.restrictionActive = false,
+    this.restrictionScope = const <String>[],
   });
 
   factory UserModel.fromApiJson(Map<String, dynamic> json) {
@@ -40,16 +45,23 @@ class UserModel {
                 'not_requested')
             .toLowerCase()
             .replaceAll(' ', '_');
+    final Map<String, dynamic> profileSetup =
+        _readMap(json['profileSetup']) ?? const <String, dynamic>{};
+    final Map<String, dynamic> adminModeration =
+        _readMap(json['adminModeration']) ??
+        _readMap(profileSetup['adminModeration']) ??
+        const <String, dynamic>{};
 
     return UserModel(
       id: (json['id'] as Object? ?? json['_id'] as Object? ?? '').toString(),
-      name: (_readString(json['name']) ??
-              _readString(json['displayName']) ??
-              _readString(json['fullName']) ??
-              _readString(json['authorName']) ??
-              _readString(json['username']) ??
-              'Unknown user')
-          .replaceFirst('@', ''),
+      name:
+          (_readString(json['name']) ??
+                  _readString(json['displayName']) ??
+                  _readString(json['fullName']) ??
+                  _readString(json['authorName']) ??
+                  _readString(json['username']) ??
+                  'Unknown user')
+              .replaceFirst('@', ''),
       username: username,
       avatar: MediaUrlResolver.resolve(
         _readString(json['avatar']) ??
@@ -77,7 +89,8 @@ class UserModel {
       verificationStatus: verificationStatus,
       verificationReason: _readString(json['verificationReason']),
       badgeStyle: _readString(json['badgeStyle']) ?? 'standard',
-      publicProfileUrl: _readString(json['publicProfileUrl']) ??
+      publicProfileUrl:
+          _readString(json['publicProfileUrl']) ??
           (username.isEmpty ? '' : 'https://optizenqor.app/@$username'),
       profilePreview: _readString(json['profilePreview']) ?? '',
       note: _readString(json['note']),
@@ -95,6 +108,15 @@ class UserModel {
             json['lastActiveAt'] ??
             json['lastSeenAt'] ??
             json['lastOnlineAt'],
+      ),
+      status: _readString(json['status']) ?? 'Active',
+      blocked: _readBool(json['blocked']) ?? false,
+      adminModeration: adminModeration,
+      restrictionActive:
+          _readBool(json['restrictionActive'] ?? adminModeration['active']) ??
+          false,
+      restrictionScope: _readStringList(
+        json['restrictionScope'] ?? adminModeration['restrictionScope'],
       ),
     );
   }
@@ -122,6 +144,31 @@ class UserModel {
   final bool supporterBadge;
   final bool? isOnline;
   final DateTime? lastSeen;
+  final String status;
+  final bool blocked;
+  final Map<String, dynamic> adminModeration;
+  final bool restrictionActive;
+  final List<String> restrictionScope;
+
+  bool get isAccountSuspended {
+    final String action = (_readString(adminModeration['action']) ?? '')
+        .toLowerCase();
+    final bool active = _readBool(adminModeration['active']) ?? false;
+    final bool activeSuspension =
+        _readBool(adminModeration['activeSuspension']) ?? false;
+    return action == 'suspend' &&
+        (active ||
+            activeSuspension ||
+            blocked ||
+            status.toLowerCase() == 'suspended');
+  }
+
+  String? get suspensionReason =>
+      _readString(adminModeration['reason']) ??
+      _readString(adminModeration['restrictionReason']);
+
+  DateTime? get suspendedUntil =>
+      _readDateTime(adminModeration['suspendedUntil']);
 
   UserModel copyWith({
     String? id,
@@ -147,6 +194,11 @@ class UserModel {
     bool? supporterBadge,
     bool? isOnline,
     DateTime? lastSeen,
+    String? status,
+    bool? blocked,
+    Map<String, dynamic>? adminModeration,
+    bool? restrictionActive,
+    List<String>? restrictionScope,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -172,6 +224,11 @@ class UserModel {
       supporterBadge: supporterBadge ?? this.supporterBadge,
       isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
+      status: status ?? this.status,
+      blocked: blocked ?? this.blocked,
+      adminModeration: adminModeration ?? this.adminModeration,
+      restrictionActive: restrictionActive ?? this.restrictionActive,
+      restrictionScope: restrictionScope ?? this.restrictionScope,
     );
   }
 
@@ -200,6 +257,11 @@ class UserModel {
       'supporterBadge': supporterBadge,
       'isOnline': isOnline,
       'lastSeen': lastSeen?.toIso8601String(),
+      'status': status,
+      'blocked': blocked,
+      'adminModeration': adminModeration,
+      'restrictionActive': restrictionActive,
+      'restrictionScope': restrictionScope,
     };
   }
 
@@ -278,6 +340,34 @@ class UserModel {
       return DateTime.tryParse(value);
     }
     return null;
+  }
+
+  static Map<String, dynamic>? _readMap(Object? value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
+  }
+
+  static List<String> _readStringList(Object? value) {
+    if (value is List) {
+      return value
+          .map((item) => item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .toList(growable: false);
+    }
+    final String normalized = value?.toString().trim() ?? '';
+    if (normalized.isEmpty) {
+      return const <String>[];
+    }
+    return normalized
+        .split(',')
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
   }
 
   static String? _readString(Object? value) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
@@ -332,6 +333,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           label: const Text('Compare item'),
                           onPressed: () => controller.toggleCompare(product.id),
                         ),
+                        if (product.hasExternalAppLink)
+                          ActionChip(
+                            avatar: const Icon(Icons.open_in_new_rounded),
+                            label: Text(
+                              product.externalAppName.trim().isEmpty
+                                  ? 'Open app'
+                                  : 'Open ${product.externalAppName}',
+                            ),
+                            onPressed: () => _openExternalApp(context, product),
+                          ),
                         ActionChip(
                           label: const Text('Marketplace comments'),
                           onPressed: () =>
@@ -426,9 +437,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: FilledButton(
-                  onPressed: () => _buyNow(context, product),
+                  onPressed: product.hasExternalAppLink
+                      ? () => _openExternalApp(context, product)
+                      : () => _buyNow(context, product),
                   child: Text(
-                    controller.checkoutEnabled ? 'Buy now' : 'Message to buy',
+                    product.hasExternalAppLink
+                        ? 'Open app'
+                        : controller.checkoutEnabled
+                            ? 'Buy now'
+                            : 'Message to buy',
                   ),
                 ),
               ),
@@ -549,6 +566,52 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         builder: (_) =>
             _CheckoutScreen(controller: widget.controller, product: product),
       ),
+    );
+  }
+
+  Future<void> _openExternalApp(
+    BuildContext context,
+    ProductModel product,
+  ) async {
+    final Uri? appUri = Uri.tryParse(product.externalAppLink.trim());
+    if (appUri == null) {
+      AppGet.snackbar('Marketplace', 'This listing app link is invalid.');
+      return;
+    }
+
+    final bool openedApp = await launchUrl(
+      appUri,
+      mode: LaunchMode.externalApplication,
+    ).catchError((_) => false);
+    if (openedApp) {
+      return;
+    }
+
+    final String package = product.androidPackage.trim();
+    if (package.isNotEmpty) {
+      final bool openedMarket = await launchUrl(
+        Uri.parse('market://details?id=$package'),
+        mode: LaunchMode.externalApplication,
+      ).catchError((_) => false);
+      if (openedMarket) {
+        return;
+      }
+    }
+
+    final Uri? playUri = Uri.tryParse(product.resolvedPlayStoreUrl);
+    if (playUri != null) {
+      final bool openedStore = await launchUrl(
+        playUri,
+        mode: LaunchMode.externalApplication,
+      ).catchError((_) => false);
+      if (openedStore) {
+        return;
+      }
+    }
+
+    AppGet.snackbar(
+      'Marketplace',
+      'Unable to open the app or Google Play listing.',
     );
   }
 }

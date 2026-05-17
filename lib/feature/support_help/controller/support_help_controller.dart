@@ -25,6 +25,7 @@ class SupportHelpController extends ChangeNotifier {
   String? actionMessage;
   String? selectedTicketId;
   SupportTicketDetailModel? selectedTicket;
+  LoginHelpConfigModel loginHelpConfig = LoginHelpConfigModel.defaults;
 
   Future<void> load() async {
     isLoading = true;
@@ -40,10 +41,12 @@ class SupportHelpController extends ChangeNotifier {
       ticketCount = data.ticketCount;
       hasChatThread = data.hasChatThread;
       tickets = data.tickets;
+      loginHelpConfig = data.loginHelpConfig;
     } catch (error) {
       errorMessage = error.toString().replaceFirst('Exception: ', '');
       faqs = <FaqItemModel>[];
       tickets = <SupportTicketSummaryModel>[];
+      loginHelpConfig = LoginHelpConfigModel.defaults;
     } finally {
       isLoading = false;
       notifyListeners();
@@ -80,6 +83,10 @@ class SupportHelpController extends ChangeNotifier {
     required String category,
     required String message,
     String priority = 'normal',
+    List<String> attachments = const <String>[],
+    String? contactEmail,
+    String? contactName,
+    String? source,
   }) async {
     isSubmitting = true;
     actionMessage = null;
@@ -91,6 +98,10 @@ class SupportHelpController extends ChangeNotifier {
         category: category,
         message: message,
         priority: priority,
+        attachments: attachments,
+        contactEmail: contactEmail,
+        contactName: contactName,
+        source: source,
       );
       tickets = <SupportTicketSummaryModel>[created, ...tickets];
       ticketCount = tickets.length;
@@ -108,7 +119,10 @@ class SupportHelpController extends ChangeNotifier {
     }
   }
 
-  Future<bool> sendReply(String message) async {
+  Future<bool> sendReply(
+    String message, {
+    List<String> attachments = const <String>[],
+  }) async {
     final String ticketId =
         selectedTicketId ?? selectedTicket?.summary.id ?? '';
     if (ticketId.isEmpty) {
@@ -123,7 +137,11 @@ class SupportHelpController extends ChangeNotifier {
 
     try {
       final SupportTicketDetailModel detail = await _repository
-          .sendTicketMessage(ticketId: ticketId, message: message);
+          .sendTicketMessage(
+            ticketId: ticketId,
+            message: message,
+            attachments: attachments,
+          );
       _applyTicketDetail(detail);
       actionMessage = 'Reply sent successfully.';
       return true;

@@ -1,18 +1,41 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/data/models/form_state_model.dart';
+import '../../../../core/data/service/media_picker_service.dart';
+import '../../../../core/data/service/upload_service.dart';
 import '../../../../core/validators/input_validators.dart';
 import '../../../../app_route/route_names.dart';
+import '../../../support_help/model/support_help_data_model.dart';
+import '../../../support_help/repository/support_help_repository.dart';
 import '../../widget/auth_google_button.dart';
 import '../controller/login_controller.dart';
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final SupportHelpRepository _supportHelpRepository = SupportHelpRepository();
+  final MediaPickerService _mediaPickerService = MediaPickerService();
+  final UploadService _uploadService = UploadService();
+
+  LoginHelpConfigModel _loginHelpConfig = LoginHelpConfigModel.defaults;
+  bool _isSendingLoginHelp = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLoginHelpConfig();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +83,19 @@ class LoginScreen extends StatelessWidget {
                               color: AppColors.grey500,
                             ),
                           ),
+                          if (_loginHelpConfig.enabled && _loginHelpConfig.showOnLogin) ...[
+                            const SizedBox(height: 18),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton.icon(
+                                onPressed: () => _showLoginHelpSheet(
+                                  prefilledEmail: controller.email.trim(),
+                                ),
+                                icon: const Icon(Icons.help_outline),
+                                label: Text(_loginHelpConfig.headerText),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 48),
                           const Text(
                             'Email Address',
@@ -238,6 +274,250 @@ class LoginScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _loadLoginHelpConfig() async {
+    try {
+      final data = await _supportHelpRepository.load();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _loginHelpConfig = data.loginHelpConfig;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _loginHelpConfig = LoginHelpConfigModel.defaults;
+      });
+    }
+  }
+
+  Future<void> _showLoginHelpSheet({String prefilledEmail = ''}) async {
+    final TextEditingController emailController = TextEditingController(
+      text: prefilledEmail,
+    );
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController messageController = TextEditingController();
+    String? selectedImagePath;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setSheetState) {
+            final EdgeInsets insets = MediaQuery.of(context).viewInsets;
+            return Padding(
+              padding: EdgeInsets.fromLTRB(24, 20, 24, insets.bottom + 24),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Center(
+                      child: SizedBox(width: 42, child: Divider(thickness: 4)),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _loginHelpConfig.headerText,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _loginHelpConfig.bodyText,
+                      style: TextStyle(color: AppColors.grey600),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'Email for reply',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: messageController,
+                      minLines: 4,
+                      maxLines: 6,
+                      decoration: const InputDecoration(
+                        labelText: 'Tell us what happened',
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    if (_loginHelpConfig.allowImages) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: _isSendingLoginHelp
+                            ? null
+                            : () async {
+                                final String? imagePath =
+                                    await _mediaPickerService.pickImage(
+                                  imageQuality: 85,
+                                  maxWidth: 1600,
+                                  maxHeight: 1600,
+                                );
+                                if (imagePath == null || imagePath.isEmpty) {
+                                  return;
+                                }
+                                setSheetState(() {
+                                  selectedImagePath = imagePath;
+                                });
+                              },
+                        icon: const Icon(Icons.image_outlined),
+                        label: Text(
+                          selectedImagePath == null
+                              ? 'Attach image'
+                              : 'Change image',
+                        ),
+                      ),
+                      if (selectedImagePath != null) ...[
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(selectedImagePath!),
+                            width: double.infinity,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ],
+                    ],
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _isSendingLoginHelp
+                            ? null
+                            : () async {
+                                final String message =
+                                    messageController.text.trim();
+                                final String email = emailController.text.trim();
+                                if (message.isEmpty || email.isEmpty) {
+                                  AppGet.snackbar(
+                                    'Missing details',
+                                    'Add your email and message before sending.',
+                                  );
+                                  return;
+                                }
+                                setSheetState(() {
+                                  _isSendingLoginHelp = true;
+                                });
+                                setState(() {
+                                  _isSendingLoginHelp = true;
+                                });
+                                try {
+                                  final List<String> attachments =
+                                      selectedImagePath == null
+                                          ? const <String>[]
+                                          : <String>[
+                                              await _uploadLoginHelpImage(
+                                                selectedImagePath!,
+                                              ),
+                                            ];
+                                  await _supportHelpRepository.createTicket(
+                                    subject: 'Login help request',
+                                    category: 'Account',
+                                    message: message,
+                                    priority: 'high',
+                                    attachments: attachments,
+                                    contactEmail: email,
+                                    contactName: nameController.text.trim(),
+                                    source: 'login_help',
+                                  );
+                                  if (!mounted || !context.mounted) {
+                                    return;
+                                  }
+                                  Navigator.of(context).pop();
+                                  AppGet.snackbar(
+                                    'Support',
+                                    'Your message was sent to admin support.',
+                                  );
+                                } catch (error) {
+                                  AppGet.snackbar(
+                                    'Support',
+                                    error.toString().replaceFirst(
+                                      'Exception: ',
+                                      '',
+                                    ),
+                                  );
+                                } finally {
+                                  if (mounted) {
+                                    setState(() {
+                                      _isSendingLoginHelp = false;
+                                    });
+                                  }
+
+                                }
+                              },
+                        icon: _isSendingLoginHelp
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.white,
+                                ),
+                              )
+                            : const Icon(Icons.send_outlined),
+                        label: Text(
+                          _isSendingLoginHelp ? 'Sending...' : 'Send to admin',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    emailController.dispose();
+    nameController.dispose();
+    messageController.dispose();
+  }
+
+  Future<String> _uploadLoginHelpImage(String imagePath) async {
+    UploadProgress? lastProgress;
+    await for (final UploadProgress progress in _uploadService.uploadFile(
+      taskId: 'login-help-${DateTime.now().microsecondsSinceEpoch}',
+      localPath: imagePath,
+      fields: const <String, String>{
+        'folder': 'support',
+        'resourceType': 'image',
+      },
+    )) {
+      lastProgress = progress;
+      if (progress.status == UploadStatus.completed &&
+          progress.remotePath != null &&
+          progress.remotePath!.trim().isNotEmpty) {
+        return progress.remotePath!.trim();
+      }
+    }
+    throw Exception(lastProgress?.error ?? 'Unable to upload support image.');
   }
 }
 

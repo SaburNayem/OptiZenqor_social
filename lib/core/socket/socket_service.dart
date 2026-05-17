@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../config/app_config.dart';
@@ -33,9 +34,13 @@ class SocketService {
   final SocketHandler _handler;
 
   io.Socket? _socket;
+  Future<bool>? _pendingConnection;
   bool _manualDisconnect = false;
   int _reconnectAttempts = 0;
+  DateTime? _nextConnectAttemptAt;
   String _socketPath = AppConfig.socketPath;
+
+  static const Duration _connectFailureCooldown = Duration(seconds: 30);
 
   final StreamController<SocketConnectionState> _stateController =
       StreamController<SocketConnectionState>.broadcast();
@@ -69,8 +74,36 @@ class SocketService {
   );
 
   Future<bool> connect() async {
-    if (isConnected || _state == SocketConnectionState.connecting) {
-      return isConnected;
+    final io.Socket? activeSocket = _socket;
+    if (activeSocket != null &&
+        activeSocket.connected &&
+        _state == SocketConnectionState.connected) {
+      return true;
+    }
+    final DateTime? nextAttemptAt = _nextConnectAttemptAt;
+    if (nextAttemptAt != null && DateTime.now().isBefore(nextAttemptAt)) {
+      return false;
+    }
+    final Future<bool>? pendingConnection = _pendingConnection;
+    if (pendingConnection != null) {
+      return pendingConnection;
+    }
+
+    final Future<bool> connection = _connectInternal();
+    _pendingConnection = connection;
+    try {
+      return await connection;
+    } finally {
+      if (identical(_pendingConnection, connection)) {
+        _pendingConnection = null;
+      }
+    }
+  }
+
+  Future<bool> _connectInternal() async {
+    if (_state == SocketConnectionState.connecting ||
+        _state == SocketConnectionState.reconnecting) {
+      return _socket?.connected ?? false;
     }
 
     _manualDisconnect = false;
@@ -85,14 +118,28 @@ class SocketService {
     final session = await _sessionService.readSession();
     final String accessToken = session?.accessToken ?? '';
     final String currentUserId = session?.user?.id ?? '';
+    final String socketEndpoint = target.uri
+        .replace(path: _joinSocketPaths(target.uri.path, target.namespace))
+        .toString();
+
+    _log(
+      'connect.start endpoint=$socketEndpoint path=${target.path} hasToken=${accessToken.isNotEmpty} userId=$currentUserId',
+    );
 
     try {
       await _closeTransport();
 
       final io.OptionBuilder options = io.OptionBuilder()
-          .setTransports(<String>['websocket'])
+          .setTransports(
+            kIsWeb ? <String>['polling', 'websocket'] : <String>['websocket'],
+          )
           .disableAutoConnect()
+          .disableReconnection()
+          .setTimeout(AppConfig.socketConnectTimeoutMs)
           .setPath(target.path)
+          .setQuery(<String, dynamic>{
+            if (accessToken.isNotEmpty) 'token': accessToken,
+          })
           .setAuth(<String, dynamic>{
             if (accessToken.isNotEmpty) 'token': accessToken,
             if (currentUserId.isNotEmpty) 'userId': currentUserId,
@@ -101,28 +148,32 @@ class SocketService {
             if (accessToken.isNotEmpty) 'Authorization': 'Bearer $accessToken',
           });
 
-      final io.Socket socket = io.io(
-        '${target.uri.toString()}${target.namespace}',
-        options.build(),
-      );
+      final io.Socket socket = io.io(socketEndpoint, options.build());
       _socket = socket;
       _socketPath = target.path;
       socket.onConnect((_) {
+        if (!identical(_socket, socket)) {
+          return;
+        }
         _reconnectAttempts = 0;
         _setState(SocketConnectionState.connected);
+        _log('connect.success endpoint=$socketEndpoint path=$_socketPath');
         _eventsController.add(
           SocketEnvelope(
             event: SocketEvent.connected,
-            data: <String, dynamic>{
-              'uri': '${target.uri}${target.namespace}',
-              'path': _socketPath,
-            },
+            data: <String, dynamic>{'uri': socketEndpoint, 'path': _socketPath},
             receivedAt: DateTime.now(),
           ),
         );
       });
 
       socket.onDisconnect((dynamic reason) {
+        if (!identical(_socket, socket)) {
+          return;
+        }
+        _log(
+          'disconnect reason=${reason?.toString() ?? 'unknown'} manual=$_manualDisconnect',
+        );
         _eventsController.add(
           SocketEnvelope(
             event: SocketEvent.disconnect,
@@ -138,28 +189,43 @@ class SocketService {
       });
 
       socket.onConnectError((dynamic error) {
+        if (!identical(_socket, socket)) {
+          return;
+        }
+        final String message = _socketErrorMessage(error);
+        _log('connect.error endpoint=$socketEndpoint error=$message');
+        _rememberConnectFailure(message);
         _setState(SocketConnectionState.error);
         _eventsController.add(
           SocketEnvelope(
             event: SocketEvent.error,
-            data: <String, dynamic>{'message': error.toString()},
+            data: <String, dynamic>{'message': message},
             receivedAt: DateTime.now(),
           ),
         );
       });
 
       socket.onError((dynamic error) {
+        if (!identical(_socket, socket)) {
+          return;
+        }
+        final String message = _socketErrorMessage(error);
+        _log('socket.error endpoint=$socketEndpoint error=$message');
+        _rememberConnectFailure(message);
         _setState(SocketConnectionState.error);
         _eventsController.add(
           SocketEnvelope(
             event: SocketEvent.error,
-            data: <String, dynamic>{'message': error.toString()},
+            data: <String, dynamic>{'message': message},
             receivedAt: DateTime.now(),
           ),
         );
       });
 
       socket.onAny((String event, dynamic payload) {
+        if (!identical(_socket, socket)) {
+          return;
+        }
         final Map<String, dynamic> eventPayload = _toEventPayload(
           event,
           payload,
@@ -172,13 +238,19 @@ class SocketService {
 
       socket.connect();
       await _waitForConnection(socket);
+      _nextConnectAttemptAt = null;
+      _log('connect.completed connected=${socket.connected} state=$_state');
       return isConnected;
     } on Object catch (error) {
+      final String message = _socketErrorMessage(error);
+      _log('connect.failed endpoint=$socketEndpoint error=$message');
+      _rememberConnectFailure(message);
+      await _closeTransport();
       _setState(SocketConnectionState.error);
       _eventsController.add(
         SocketEnvelope(
           event: SocketEvent.error,
-          data: <String, dynamic>{'message': error.toString()},
+          data: <String, dynamic>{'message': message},
           receivedAt: DateTime.now(),
         ),
       );
@@ -189,15 +261,35 @@ class SocketService {
   Future<void> disconnect({bool manual = true}) async {
     _manualDisconnect = manual;
     _reconnectAttempts = 0;
+    _pendingConnection = null;
+    _nextConnectAttemptAt = null;
     await _closeTransport();
     _setState(SocketConnectionState.disconnected);
   }
 
   Future<void> send(String event, {Map<String, dynamic>? data}) async {
-    final io.Socket? socket = _socket;
-    if (socket == null || !isConnected) {
+    io.Socket? socket = _socket;
+    if (socket == null || !socket.connected || !isConnected) {
+      _log(
+        'send.wait event=$event connected=${socket?.connected ?? false} state=$_state',
+      );
+      final bool connected = await connect();
+      socket = _socket;
+      if (!connected || socket == null || !socket.connected || !isConnected) {
+        _log('send.failed event=$event state=$_state');
+        throw StateError('Socket is not connected.');
+      }
+    }
+    if (!identical(socket, _socket)) {
+      socket = _socket;
+    }
+    if (socket == null || !socket.connected) {
+      _log('send.failed event=$event socketMissing=true state=$_state');
       throw StateError('Socket is not connected.');
     }
+    _log(
+      'send.emit event=$event keys=${(data ?? const <String, dynamic>{}).keys.join(',')}',
+    );
     socket.emit(event, data ?? const <String, dynamic>{});
   }
 
@@ -235,9 +327,8 @@ class SocketService {
     );
   }
 
-  Future<({Uri uri, String path, String namespace})> _resolveSocketTarget() async {
-    final session = await _sessionService.readSession();
-    final String accessToken = session?.accessToken ?? '';
+  Future<({Uri uri, String path, String namespace})>
+  _resolveSocketTarget() async {
     String namespace = '/realtime';
     String path = AppConfig.socketPath;
     Uri baseUri = Uri.parse(AppConfig.currentApiBaseUrl);
@@ -276,9 +367,7 @@ class SocketService {
     final Uri uri = baseUri.replace(
       scheme: baseUri.scheme == 'https' ? 'https' : 'http',
       path: '',
-      queryParameters: <String, String>{
-        if (accessToken.isNotEmpty) 'token': accessToken,
-      },
+      queryParameters: null,
     );
     return (uri: uri, path: path, namespace: namespace);
   }
@@ -314,11 +403,58 @@ class SocketService {
     return '';
   }
 
+  String _joinSocketPaths(String basePath, String nextPath) {
+    final String normalizedBase = basePath.trim();
+    final String normalizedNext = nextPath.trim();
+    if (normalizedBase.isEmpty || normalizedBase == '/') {
+      return normalizedNext.startsWith('/')
+          ? normalizedNext
+          : '/$normalizedNext';
+    }
+    if (normalizedNext.isEmpty || normalizedNext == '/') {
+      return normalizedBase.startsWith('/')
+          ? normalizedBase
+          : '/$normalizedBase';
+    }
+    final String left = normalizedBase.endsWith('/')
+        ? normalizedBase.substring(0, normalizedBase.length - 1)
+        : normalizedBase;
+    final String right = normalizedNext.startsWith('/')
+        ? normalizedNext
+        : '/$normalizedNext';
+    return '$left$right';
+  }
+
   void _setState(SocketConnectionState next) {
     if (_state == next) {
       return;
     }
     _state = next;
+    _log('state=$next');
     _stateController.add(next);
+  }
+
+  void _log(String message) {
+    debugPrint('[SocketService] $message');
+  }
+
+  void _rememberConnectFailure(String _) {
+    _nextConnectAttemptAt = DateTime.now().add(_connectFailureCooldown);
+  }
+
+  String _socketErrorMessage(Object? error) {
+    final String raw = (error ?? '').toString();
+    final String withoutToken = raw.replaceAll(
+      RegExp(r"""token=[^&#\s'"]+"""),
+      'token=[redacted]',
+    );
+    final String withoutAuthorization = withoutToken.replaceAll(
+      RegExp(
+        r"""Authorization(?:%3A|:)\s*Bearer\s+[^,}\s'"]+""",
+        caseSensitive: false,
+      ),
+      'Authorization: Bearer [redacted]',
+    );
+    return withoutAuthorization;
   }
 }

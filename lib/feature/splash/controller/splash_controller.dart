@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/data/models/user_model.dart';
 import '../../auth/repository/auth_repository.dart';
 import '../../../app_route/route_names.dart';
 import '../model/splash_state_model.dart';
 
 class SplashController {
-  SplashController({
-    AuthRepository? authRepository,
-  }) : _authRepository = authRepository ?? AuthRepository();
+  SplashController({AuthRepository? authRepository})
+    : _authRepository = authRepository ?? AuthRepository();
 
   final AuthRepository _authRepository;
   SplashStateModel state = const SplashStateModel();
@@ -49,7 +49,13 @@ class SplashController {
     final bool hasSession = bootstrapResults[0] as bool;
 
     state = state.copyWith(status: SplashStatus.ready);
-    return hasSession ? RouteNames.shell : RouteNames.login;
+    if (!hasSession) {
+      return RouteNames.login;
+    }
+    final UserModel? user = await _authRepository.currentUser();
+    return user?.isAccountSuspended == true
+        ? RouteNames.accountSuspended
+        : RouteNames.shell;
   }
 
   Future<void> bootstrap(BuildContext context) async {
