@@ -106,6 +106,9 @@ class MainShellController extends Cubit<int> {
 
   List<MainShellDrawerSectionModel> get drawerSections {
     final UserRole role = currentUser?.role ?? UserRole.guest;
+    final bool isAppAdmin = role == UserRole.admin;
+    final bool hasProfessionalAccess =
+        role == UserRole.creator || role == UserRole.business || isAppAdmin;
     return <MainShellDrawerSectionModel>[
       const MainShellDrawerSectionModel(
         title: 'Create & Manage',
@@ -174,12 +177,12 @@ class MainShellController extends Cubit<int> {
           ),
         ],
       ),
-      if (role == UserRole.creator || role == UserRole.business)
+      if (hasProfessionalAccess)
         MainShellDrawerSectionModel(
           title: 'Professional',
           subtitle: 'Role-aware tools for growth and monetization.',
           items: <MainShellDrawerItemModel>[
-            if (role == UserRole.creator)
+            if (role == UserRole.creator || isAppAdmin)
               const MainShellDrawerItemModel(
                 title: 'Creator Dashboard',
                 icon: Icons.insights_rounded,
@@ -199,6 +202,33 @@ class MainShellController extends Cubit<int> {
               title: 'Subscriptions',
               icon: Icons.subscriptions_outlined,
               routeName: RouteNames.subscriptions,
+            ),
+          ],
+        ),
+      if (isAppAdmin)
+        const MainShellDrawerSectionModel(
+          title: 'Admin',
+          subtitle: 'Platform operations and support tools.',
+          items: <MainShellDrawerItemModel>[
+            MainShellDrawerItemModel(
+              title: 'Notifications',
+              icon: Icons.notifications_active_outlined,
+              routeName: RouteNames.notifications,
+            ),
+            MainShellDrawerItemModel(
+              title: 'Report Center',
+              icon: Icons.report_gmailerrorred_rounded,
+              routeName: RouteNames.reportCenter,
+            ),
+            MainShellDrawerItemModel(
+              title: 'Support',
+              icon: Icons.support_agent_rounded,
+              routeName: RouteNames.supportHelp,
+            ),
+            MainShellDrawerItemModel(
+              title: 'Settings',
+              icon: Icons.settings_outlined,
+              routeName: RouteNames.settings,
             ),
           ],
         ),

@@ -36,6 +36,7 @@ export 'media_viewer/screen/media_viewer_screen.dart';
 export 'notifications/screen/notifications_screen.dart';
 export 'offline_sync/screen/offline_sync_screen.dart';
 export 'pages/screen/pages_screen.dart';
+export 'payments/screen/payment_checkout_screen.dart';
 export 'personalization_onboarding/screen/personalization_onboarding_screen.dart';
 export 'polls_surveys/screen/polls_surveys_screen.dart';
 export 'post_detail/screen/post_detail_screen.dart';

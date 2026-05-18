@@ -8,6 +8,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/data/service/media_picker_service.dart';
 import '../../../core/data/service/upload_service.dart';
 import '../../../core/helpers/media_url_resolver.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../controller/support_help_controller.dart';
 import '../model/faq_item_model.dart';
 import '../model/support_ticket_detail_model.dart';
@@ -130,37 +131,17 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (_controller.errorMessage != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    const Icon(
-                      Icons.support_agent_outlined,
-                      size: 36,
-                      color: AppColors.grey,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _controller.errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: _controller.load,
-                      child: const Text('Try again'),
-                    ),
-                  ],
-                ),
-              ),
+            return ErrorStateView(
+              message: _controller.errorMessage!,
+              onRetry: _controller.load,
+              onRefresh: _controller.load,
             );
           }
 
           return RefreshIndicator(
             onRefresh: _controller.load,
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               children: <Widget>[
                 Container(
@@ -720,8 +701,10 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                               onPressed: isUploadingImages
                                   ? null
                                   : () async {
-                                      final String? imagePath = await _pickSupportImage();
-                                      if (imagePath == null || imagePath.isEmpty) {
+                                      final String? imagePath =
+                                          await _pickSupportImage();
+                                      if (imagePath == null ||
+                                          imagePath.isEmpty) {
                                         return;
                                       }
                                       setSheetState(() {
@@ -800,12 +783,13 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
                                     final NavigatorState navigator =
                                         Navigator.of(context);
                                     setSheetState(() {
-                                      isUploadingImages = selectedImages.isNotEmpty;
+                                      isUploadingImages =
+                                          selectedImages.isNotEmpty;
                                     });
                                     final List<String> attachments =
                                         await _uploadSupportAttachments(
-                                      selectedImages,
-                                    );
+                                          selectedImages,
+                                        );
                                     if (!mounted) {
                                       return;
                                     }
@@ -1164,7 +1148,9 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
     );
   }
 
-  Future<List<String>> _uploadSupportAttachments(List<String> imagePaths) async {
+  Future<List<String>> _uploadSupportAttachments(
+    List<String> imagePaths,
+  ) async {
     final List<String> uploaded = <String>[];
     for (final String imagePath in imagePaths) {
       if (_isRemoteAttachment(imagePath)) {
@@ -1173,7 +1159,8 @@ class _SupportHelpScreenState extends State<SupportHelpScreen> {
       }
       UploadProgress? lastProgress;
       await for (final UploadProgress progress in _uploadService.uploadFile(
-        taskId: 'support-${DateTime.now().microsecondsSinceEpoch}-${uploaded.length}',
+        taskId:
+            'support-${DateTime.now().microsecondsSinceEpoch}-${uploaded.length}',
         localPath: imagePath,
         fields: const <String, String>{
           'folder': 'support',

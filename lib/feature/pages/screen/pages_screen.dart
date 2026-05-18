@@ -39,7 +39,8 @@ class _PagesScreenState extends State<PagesScreen> {
       return;
     }
     setState(() {
-      _canCreatePage = user?.role == UserRole.creator;
+      _canCreatePage =
+          user?.role == UserRole.creator || user?.role == UserRole.admin;
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/error_state_view.dart';
 import '../controller/trending_controller.dart';
 import '../model/trending_item_model.dart';
 
@@ -36,29 +37,16 @@ class _TrendingScreenState extends State<TrendingScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (_controller.errorMessage != null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      _controller.errorMessage!,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      onPressed: _controller.load,
-                      child: const Text('Try again'),
-                    ),
-                  ],
-                ),
-              ),
+            return ErrorStateView(
+              message: _controller.errorMessage!,
+              onRetry: _controller.load,
+              onRefresh: _controller.load,
             );
           }
           return RefreshIndicator(
             onRefresh: _controller.load,
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               children: <Widget>[
                 _TrendingSection(title: 'Posts', items: _controller.posts),

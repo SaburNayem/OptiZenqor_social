@@ -465,6 +465,10 @@ class ApiEndPoints {
   // PremiumPlansController
   static const premiumPlans = '/premium-plans';
 
+  // PaymentController
+  static const paymentsCreate = '/payments/create';
+  static String paymentStatus(String paymentId) => '/payments/$paymentId/status';
+
   // SettingsController
   static const settings = '/settings';
   static const settingsSections = '/settings/sections';

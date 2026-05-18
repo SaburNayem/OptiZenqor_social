@@ -73,7 +73,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
         }
         if (controller.hasError && !hasVisibleContent) {
           return ErrorStateView(
-            onRetry: controller.loadInitial,
+            onRetry: () => controller.loadInitial(force: true),
+            onRefresh: controller.refreshFeed,
             message: controller.loadState.errorMessage ?? 'Unable to load feed',
           );
         }
@@ -104,6 +105,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               onRefresh: controller.refreshFeed,
               child: ListView(
                 controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
                   const SizedBox(height: 8),

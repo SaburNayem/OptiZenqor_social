@@ -20,6 +20,7 @@ class AppRoute {
   static const String notifications = RouteNames.notifications;
   static const String creatorDashboard = RouteNames.creatorDashboard;
   static const String premium = RouteNames.premium;
+  static const String paymentCheckout = RouteNames.paymentCheckout;
   static const String settings = RouteNames.settings;
 
   static const String accountSettings = RouteNames.accountSettings;

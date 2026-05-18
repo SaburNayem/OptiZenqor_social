@@ -11,40 +11,47 @@ class MyListingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        _moderationCard(context),
-        const SizedBox(height: 16),
-        for (final status in ListingStatus.values) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  status.label,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              Text('${controller.listingsByStatus(status).length}'),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ...controller
-              .listingsByStatus(status)
-              .map(
-                (listing) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _ListingCard(listing: listing, controller: controller),
-                ),
-              ),
-          if (controller.listingsByStatus(status).isEmpty)
-            _emptyBlock(
-              context,
-              'No ${status.label.toLowerCase()} listings yet',
-            ),
+    return RefreshIndicator(
+      onRefresh: controller.load,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          _moderationCard(context),
           const SizedBox(height: 16),
+          for (final status in ListingStatus.values) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    status.label,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                Text('${controller.listingsByStatus(status).length}'),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ...controller
+                .listingsByStatus(status)
+                .map(
+                  (listing) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _ListingCard(
+                      listing: listing,
+                      controller: controller,
+                    ),
+                  ),
+                ),
+            if (controller.listingsByStatus(status).isEmpty)
+              _emptyBlock(
+                context,
+                'No ${status.label.toLowerCase()} listings yet',
+              ),
+            const SizedBox(height: 16),
+          ],
         ],
-      ],
+      ),
     );
   }
 

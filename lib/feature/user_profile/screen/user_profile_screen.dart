@@ -10,6 +10,8 @@ import '../../../core/data/models/reel_model.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/widgets/app_avatar.dart';
 import '../../../core/widgets/app_shimmer.dart';
+import '../../../core/widgets/empty_state_view.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../../calls/screen/audio_call_screen.dart';
 import '../../calls/screen/video_call_screen.dart';
 import '../../chat/repository/chat_repository.dart';
@@ -69,48 +71,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         }
 
         if (_controller.state.hasError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.error_outline_rounded,
-                    size: 48,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _controller.state.errorMessage ?? 'Unable to load profile',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.black87,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  FilledButton(
-                    onPressed: () => _controller.load(userId: widget.userId),
-                    child: const Text('Try again'),
-                  ),
-                ],
-              ),
-            ),
+          return ErrorStateView(
+            message: _controller.state.errorMessage ?? 'Unable to load profile',
+            onRetry: () => _controller.load(userId: widget.userId),
+            onRefresh: () => _controller.load(userId: widget.userId),
           );
         }
 
         if (user == null) {
-          return const Center(
-            child: Text(
-              'Profile not found',
-              style: TextStyle(
-                color: AppColors.black87,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          return EmptyStateView(
+            title: 'Profile not found',
+            message: 'Pull down to refresh or try again in a moment.',
+            actionLabel: 'Retry',
+            onAction: () => _controller.load(userId: widget.userId),
+            onRefresh: () => _controller.load(userId: widget.userId),
           );
         }
 

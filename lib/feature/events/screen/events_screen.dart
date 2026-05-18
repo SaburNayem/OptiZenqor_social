@@ -4,6 +4,8 @@ import 'package:optizenqor_social/core/navigation/app_get.dart';
 import '../../../app_route/route_names.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/data/service/auth_session_service.dart';
+import '../../../core/widgets/empty_state_view.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../controller/events_controller.dart';
 import '../model/event_item_model.dart';
 
@@ -120,43 +122,25 @@ class _EventsScreenState extends State<EventsScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if ((_controller.errorMessage ?? '').isNotEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.event_busy_outlined, size: 48),
-              const SizedBox(height: 12),
-              Text(
-                _controller.errorMessage!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.black87),
-              ),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: _controller.load,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+      return ErrorStateView(
+        message: _controller.errorMessage!,
+        onRetry: _controller.load,
+        onRefresh: _controller.load,
       );
     }
     if (_controller.events.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'No events are available from the backend yet.',
-            textAlign: TextAlign.center,
-          ),
-        ),
+      return EmptyStateView(
+        title: 'No events yet',
+        message: 'No events are available from the backend yet.',
+        actionLabel: 'Refresh',
+        onAction: _controller.load,
+        onRefresh: _controller.load,
       );
     }
     return RefreshIndicator(
       onRefresh: _controller.load,
       child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         itemCount: _controller.events.length,
         separatorBuilder: (_, _) => const SizedBox(height: 16),

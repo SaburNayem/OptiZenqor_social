@@ -21,6 +21,7 @@ import 'my_listings_screen.dart';
 import 'product_details_screen.dart';
 import 'saved_items_screen.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/error_state_view.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -55,7 +56,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         final UserRole currentRole =
             context.read<MainShellController>().currentUser?.role ??
             UserRole.guest;
-        final bool canCreateMarketplace = currentRole == UserRole.business;
+        final bool canCreateMarketplace =
+            currentRole == UserRole.business || currentRole == UserRole.admin;
         if (_controller.isLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -72,24 +74,10 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               ),
               title: const Text('Marketplace'),
             ),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      _controller.errorMessage!,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      onPressed: _controller.load,
-                      child: const Text('Try again'),
-                    ),
-                  ],
-                ),
-              ),
+            body: ErrorStateView(
+              message: _controller.errorMessage!,
+              onRetry: _controller.load,
+              onRefresh: _controller.load,
             ),
           );
         }
@@ -263,7 +251,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     UserModel activeUser,
     VerificationRequestModel request,
   ) {
-    return activeUser.role == UserRole.business;
+    return activeUser.role == UserRole.business ||
+        activeUser.role == UserRole.admin;
   }
 }
 
@@ -440,217 +429,227 @@ class _BrowseTab extends StatelessWidget {
     final List<ProductModel> visibleResults = controller.filteredProducts;
     final bool showEmptyState = browseResults.isEmpty;
 
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification.metrics.extentAfter < 300) {
-          controller.loadMoreBrowse();
-        }
-        return false;
-      },
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _quickFilters(),
-                  const SizedBox(height: 12),
-                  _BrowseShortcutRow(controller: controller),
-                ],
-              ),
-            ),
-          ),
-          _SectionTitle(title: 'Browse categories'),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 54,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                scrollDirection: Axis.horizontal,
-                itemCount: controller.categories.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final category = controller.categories[index];
-                  return CategoryChip(
-                    label: category.name,
-                    selected: category.isFollowed,
-                    leading: Icon(category.icon, size: 18),
-                    onTap: () => controller.toggleFollowCategory(category.name),
-                  );
-                },
-              ),
-            ),
-          ),
-          _SectionTitle(
-            title: showEmptyState ? 'No posts found' : 'Marketplace listings',
-            action: showEmptyState
-                ? null
-                : (controller.isGridMode ? 'List view' : 'Grid view'),
-            onActionTap: showEmptyState ? null : controller.toggleGridMode,
-          ),
-          if (showEmptyState)
+    return RefreshIndicator(
+      onRefresh: controller.load,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.extentAfter < 300) {
+            controller.loadMoreBrowse();
+          }
+          return false;
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                child: _MarketplaceEmptyState(
-                  hasActiveFilters: hasActiveBrowseFilters,
-                  onBrowseCategoriesTap: () =>
-                      DefaultTabController.of(context).animateTo(1),
-                  onMyListingsTap: () =>
-                      DefaultTabController.of(context).animateTo(2),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _quickFilters(),
+                    const SizedBox(height: 12),
+                    _BrowseShortcutRow(controller: controller),
+                  ],
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              sliver: controller.isGridMode
-                  ? SliverGrid(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final item = visibleResults[index];
-                        return ProductCard(
-                          product: item,
-                          controller: controller,
-                          onTap: () => _openDetails(context, item),
-                        );
-                      }, childCount: visibleResults.length),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.72,
-                          ),
-                    )
-                  : SliverList.separated(
-                      itemCount: visibleResults.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = visibleResults[index];
-                        return ProductCard(
-                          product: item,
-                          compact: true,
-                          controller: controller,
-                          onTap: () => _openDetails(context, item),
-                        );
-                      },
-                    ),
             ),
-          if (!showEmptyState && controller.hasMoreFilteredProducts)
+            _SectionTitle(title: 'Browse categories'),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(24),
+              child: SizedBox(
+                height: 54,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: controller.categories.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final category = controller.categories[index];
+                    return CategoryChip(
+                      label: category.name,
+                      selected: category.isFollowed,
+                      leading: Icon(category.icon, size: 18),
+                      onTap: () =>
+                          controller.toggleFollowCategory(category.name),
+                    );
+                  },
+                ),
+              ),
+            ),
+            _SectionTitle(
+              title: showEmptyState ? 'No posts found' : 'Marketplace listings',
+              action: showEmptyState
+                  ? null
+                  : (controller.isGridMode ? 'List view' : 'Grid view'),
+              onActionTap: showEmptyState ? null : controller.toggleGridMode,
+            ),
+            if (showEmptyState)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: _MarketplaceEmptyState(
+                    hasActiveFilters: hasActiveBrowseFilters,
+                    onBrowseCategoriesTap: () =>
+                        DefaultTabController.of(context).animateTo(1),
+                    onMyListingsTap: () =>
+                        DefaultTabController.of(context).animateTo(2),
                   ),
-                  child: const Center(child: Text('Pulling more listings...')),
                 ),
-              ),
-            ),
-          if (!hasActiveBrowseFilters && controller.featuredItems.isNotEmpty) ...[
-            _SectionTitle(
-              title: 'Featured items',
-              action: 'View all',
-              onActionTap: () => _openFeaturedItems(context),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 280,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: controller.featuredItems.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 14),
-                  itemBuilder: (context, index) {
-                    final item = controller.featuredItems[index];
-                    return SizedBox(
-                      width: 240,
-                      child: ProductCard(
-                        product: item,
-                        controller: controller,
-                        onTap: () => _openDetails(context, item),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                sliver: controller.isGridMode
+                    ? SliverGrid(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final item = visibleResults[index];
+                          return ProductCard(
+                            product: item,
+                            controller: controller,
+                            onTap: () => _openDetails(context, item),
+                          );
+                        }, childCount: visibleResults.length),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.72,
+                            ),
+                      )
+                    : SliverList.separated(
+                        itemCount: visibleResults.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = visibleResults[index];
+                          return ProductCard(
+                            product: item,
+                            compact: true,
+                            controller: controller,
+                            onTap: () => _openDetails(context, item),
+                          );
+                        },
                       ),
-                    );
-                  },
+              ),
+            if (!showEmptyState && controller.hasMoreFilteredProducts)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Center(
+                      child: Text('Pulling more listings...'),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
-          if (!hasActiveBrowseFilters &&
-              controller.recentlyViewedItems.isNotEmpty) ...[
-            _SectionTitle(title: 'Recently viewed items'),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 160,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: controller.recentlyViewedItems.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final item = controller.recentlyViewedItems[index];
-                    return SizedBox(
-                      width: 260,
-                      child: ProductCard(
-                        product: item,
-                        compact: true,
-                        controller: controller,
-                        onTap: () => _openDetails(context, item),
-                      ),
-                    );
-                  },
-                ),
+            if (!hasActiveBrowseFilters &&
+                controller.featuredItems.isNotEmpty) ...[
+              _SectionTitle(
+                title: 'Featured items',
+                action: 'View all',
+                onActionTap: () => _openFeaturedItems(context),
               ),
-            ),
-          ],
-          if (!hasActiveBrowseFilters &&
-              controller.recommendedItems.isNotEmpty) ...[
-            _SectionTitle(
-              title: 'Recommended items',
-              action: controller.isGridMode ? 'List view' : 'Grid view',
-              onActionTap: controller.toggleGridMode,
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              sliver: controller.isGridMode
-                  ? SliverGrid(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final item = controller.recommendedItems[index];
-                        return ProductCard(
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 280,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: controller.featuredItems.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 14),
+                    itemBuilder: (context, index) {
+                      final item = controller.featuredItems[index];
+                      return SizedBox(
+                        width: 240,
+                        child: ProductCard(
                           product: item,
                           controller: controller,
                           onTap: () => _openDetails(context, item),
-                        );
-                      }, childCount: controller.recommendedItems.length),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.72,
-                          ),
-                    )
-                  : SliverList.separated(
-                      itemCount: controller.recommendedItems.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final item = controller.recommendedItems[index];
-                        return ProductCard(
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+            if (!hasActiveBrowseFilters &&
+                controller.recentlyViewedItems.isNotEmpty) ...[
+              _SectionTitle(title: 'Recently viewed items'),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 160,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: controller.recentlyViewedItems.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final item = controller.recentlyViewedItems[index];
+                      return SizedBox(
+                        width: 260,
+                        child: ProductCard(
                           product: item,
                           compact: true,
                           controller: controller,
                           onTap: () => _openDetails(context, item),
-                        );
-                      },
-                    ),
-            ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+            if (!hasActiveBrowseFilters &&
+                controller.recommendedItems.isNotEmpty) ...[
+              _SectionTitle(
+                title: 'Recommended items',
+                action: controller.isGridMode ? 'List view' : 'Grid view',
+                onActionTap: controller.toggleGridMode,
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                sliver: controller.isGridMode
+                    ? SliverGrid(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final item = controller.recommendedItems[index];
+                          return ProductCard(
+                            product: item,
+                            controller: controller,
+                            onTap: () => _openDetails(context, item),
+                          );
+                        }, childCount: controller.recommendedItems.length),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.72,
+                            ),
+                      )
+                    : SliverList.separated(
+                        itemCount: controller.recommendedItems.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = controller.recommendedItems[index];
+                          return ProductCard(
+                            product: item,
+                            compact: true,
+                            controller: controller,
+                            onTap: () => _openDetails(context, item),
+                          );
+                        },
+                      ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -1329,83 +1328,87 @@ class _CategoriesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      children: [
-        Text(
-          'Browse all categories',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          itemCount: controller.categories.length,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.15,
+    return RefreshIndicator(
+      onRefresh: controller.load,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        children: [
+          Text(
+            'Browse all categories',
+            style: Theme.of(context).textTheme.titleLarge,
           ),
-          itemBuilder: (context, index) {
-            final category = controller.categories[index];
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer,
-                    child: Icon(category.icon),
-                  ),
-                  const Spacer(),
-                  Text(
-                    category.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    category.subcategories.join(' • '),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  FilledButton.tonal(
-                    onPressed: () =>
-                        controller.toggleFollowCategory(category.name),
-                    child: Text(
-                      category.isFollowed ? 'Following' : 'Follow category',
+          const SizedBox(height: 12),
+          GridView.builder(
+            itemCount: controller.categories.length,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.15,
+            ),
+            itemBuilder: (context, index) {
+              final category = controller.categories[index];
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer,
+                      child: Icon(category.icon),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 20),
-        Text('Subcategories', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10),
-        ...controller.categories.map(
-          (category) => ExpansionTile(
-            leading: Icon(category.icon),
-            title: Text(category.name),
-            children: category.subcategories
-                .map(
-                  (sub) => ListTile(
-                    title: Text(sub),
-                    onTap: () => controller.selectCategory(category.name),
-                  ),
-                )
-                .toList(),
+                    const Spacer(),
+                    Text(
+                      category.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      category.subcategories.join(' • '),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton.tonal(
+                      onPressed: () =>
+                          controller.toggleFollowCategory(category.name),
+                      child: Text(
+                        category.isFollowed ? 'Following' : 'Follow category',
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+          Text('Subcategories', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 10),
+          ...controller.categories.map(
+            (category) => ExpansionTile(
+              leading: Icon(category.icon),
+              title: Text(category.name),
+              children: category.subcategories
+                  .map(
+                    (sub) => ListTile(
+                      title: Text(sub),
+                      onTap: () => controller.selectCategory(category.name),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

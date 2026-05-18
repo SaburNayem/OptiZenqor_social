@@ -72,6 +72,8 @@ class AppRouter {
         return const CreatorDashboardScreen();
       case RouteNames.premium:
         return PremiumMembershipScreen();
+      case RouteNames.paymentCheckout:
+        return PaymentCheckoutScreen(arguments: arguments);
       case RouteNames.settings:
         return SettingsScreen();
       case RouteNames.accountSettings:

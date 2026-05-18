@@ -1,12 +1,9 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../config/app_config.dart';
 import '../data/api/api_end_points.dart';
+import '../data/service/api_client_service.dart';
 import '../data/service/auth_session_service.dart';
 
 final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
@@ -94,23 +91,19 @@ Future<void> sendFcmTokenToBackend(String token) async {
     return;
   }
 
-  final uri = Uri.parse(
-    AppConfig.currentApiBaseUrl,
-  ).resolve(ApiEndPoints.notificationsDevices);
-  final headers = {
-    'Authorization': 'Bearer $userToken',
-    'Content-Type': 'application/json',
-  };
-  final body = jsonEncode({
-    'token': token,
-    'platform': _resolveNotificationPlatform(),
-  });
   try {
-    await Dio().postUri(
-      uri,
-      data: body,
-      options: Options(headers: headers),
+    final response = await ApiClientService().post(
+      ApiEndPoints.notificationsDevices,
+      <String, dynamic>{
+        'token': token,
+        'platform': _resolveNotificationPlatform(),
+      },
     );
+    if (!response.isSuccess || response.data['success'] == false) {
+      debugPrint(
+        '[Notifications] sendFcmTokenToBackend failed: ${response.message}',
+      );
+    }
   } catch (error) {
     debugPrint('[Notifications] sendFcmTokenToBackend failed: $error');
   }
@@ -128,15 +121,15 @@ Future<void> deleteFcmTokenFromBackend([String? currentToken]) async {
     return;
   }
 
-  final uri = Uri.parse(
-    AppConfig.currentApiBaseUrl,
-  ).resolve(ApiEndPoints.notificationDeviceByToken(Uri.encodeComponent(token)));
-  final headers = {
-    'Authorization': 'Bearer $userToken',
-    'Content-Type': 'application/json',
-  };
   try {
-    await Dio().deleteUri(uri, options: Options(headers: headers));
+    final response = await ApiClientService().delete(
+      ApiEndPoints.notificationDeviceByToken(Uri.encodeComponent(token)),
+    );
+    if (!response.isSuccess || response.data['success'] == false) {
+      debugPrint(
+        '[Notifications] deleteFcmTokenFromBackend failed: ${response.message}',
+      );
+    }
   } catch (error) {
     debugPrint('[Notifications] deleteFcmTokenFromBackend failed: $error');
   }

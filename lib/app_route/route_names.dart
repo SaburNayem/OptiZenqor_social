@@ -36,6 +36,7 @@ class RouteNames {
   static const notifications = '/notifications';
   static const creatorDashboard = '/creator-dashboard';
   static const premium = '/premium';
+  static const paymentCheckout = '/payments/checkout';
   static const settings = '/settings';
   static const accountSettings = '/settings/account';
   static const passwordSecurity = '/settings/password-security';

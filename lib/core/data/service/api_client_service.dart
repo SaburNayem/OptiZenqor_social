@@ -30,12 +30,12 @@ class ApiClientService {
   static const Duration _transportFailureCooldown = Duration(seconds: 3);
   static final Map<String, DateTime> _recentTransportFailures =
       <String, DateTime>{};
+  static Future<bool>? _sharedRefreshInFlight;
 
   final String baseUrl;
   final List<String> _baseUrlCandidates;
   final Dio _client;
   final AuthSessionService _sessionService;
-  Future<bool>? _refreshInFlight;
 
   Future<ServiceResponseModel<Map<String, dynamic>>> get(
     String endpoint, {
@@ -415,22 +415,27 @@ class ApiClientService {
   }
 
   Future<bool> _refreshAccessToken() async {
-    final Future<bool> pendingRefresh = _refreshInFlight ?? _performRefresh();
-    _refreshInFlight = pendingRefresh;
+    final Future<bool> pendingRefresh =
+        _sharedRefreshInFlight ?? _performRefresh();
+    _sharedRefreshInFlight = pendingRefresh;
     try {
       return await pendingRefresh;
     } finally {
-      if (identical(_refreshInFlight, pendingRefresh)) {
-        _refreshInFlight = null;
+      if (identical(_sharedRefreshInFlight, pendingRefresh)) {
+        _sharedRefreshInFlight = null;
       }
     }
   }
 
   Future<bool> _performRefresh() async {
     final session = await _sessionService.readSession();
+    final String accessToken = session?.accessToken ?? '';
     final String refreshToken = session?.refreshToken ?? '';
     if (refreshToken.isEmpty) {
-      await _clearExpiredSession();
+      await _clearExpiredSessionIfCurrent(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      );
       return false;
     }
 
@@ -452,8 +457,10 @@ class ApiClientService {
       );
       if ((response.statusCode ?? 0) < 200 ||
           (response.statusCode ?? 0) >= 300) {
-        await _clearExpiredSession();
-        return false;
+        return _handleRefreshFailure(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        );
       }
 
       final Map<String, dynamic> payload = _decodeResponseBody(response.data);
@@ -471,8 +478,10 @@ class ApiClientService {
               .toString()
               .trim();
       if (newAccessToken.isEmpty) {
-        await _clearExpiredSession();
-        return false;
+        return _handleRefreshFailure(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        );
       }
 
       final String newRefreshToken =
@@ -498,9 +507,61 @@ class ApiClientService {
           '[ApiClientService] refresh failed endpoint=$endpoint $error',
         );
       }
-      await _clearExpiredSession();
+      return _handleRefreshFailure(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+      );
+    }
+  }
+
+  Future<bool> _handleRefreshFailure({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    if (await _sessionWasRefreshedElsewhere(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    )) {
+      return true;
+    }
+    await _clearExpiredSessionIfCurrent(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
+    return false;
+  }
+
+  Future<bool> _sessionWasRefreshedElsewhere({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    final session = await _sessionService.readSession();
+    if (session == null || !session.isUsable) {
       return false;
     }
+    final bool accessChanged =
+        accessToken.isNotEmpty && session.accessToken != accessToken;
+    final bool refreshChanged =
+        refreshToken.isNotEmpty && session.refreshToken != refreshToken;
+    return accessChanged || refreshChanged;
+  }
+
+  Future<void> _clearExpiredSessionIfCurrent({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    final session = await _sessionService.readSession();
+    if (session == null) {
+      return;
+    }
+    final bool accessMatches =
+        accessToken.isEmpty || session.accessToken == accessToken;
+    final bool refreshMatches =
+        refreshToken.isEmpty || session.refreshToken == refreshToken;
+    if (!accessMatches || !refreshMatches) {
+      return;
+    }
+    await _clearExpiredSession();
   }
 
   Future<void> _clearExpiredSession() async {

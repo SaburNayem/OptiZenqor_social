@@ -9,16 +9,18 @@ class EmptyStateView extends StatelessWidget {
     super.key,
     this.actionLabel,
     this.onAction,
+    this.onRefresh,
   });
 
   final String title;
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    final Widget content = Center(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -44,6 +46,28 @@ class EmptyStateView extends StatelessWidget {
           ],
         ),
       ),
+    );
+    final Future<void> Function()? refresh = onRefresh;
+    if (refresh == null) {
+      return content;
+    }
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        return RefreshIndicator(
+          onRefresh: refresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: <Widget>[
+              SizedBox(
+                height: constraints.maxHeight.isFinite
+                    ? constraints.maxHeight
+                    : MediaQuery.of(context).size.height * 0.7,
+                child: content,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

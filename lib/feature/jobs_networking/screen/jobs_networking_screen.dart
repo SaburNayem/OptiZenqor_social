@@ -54,9 +54,11 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
+        final UserRole currentRole =
+            context.read<MainShellController>().currentUser?.role ??
+            UserRole.guest;
         final bool canCreateJobs =
-            context.read<MainShellController>().currentUser?.role ==
-            UserRole.business;
+            currentRole == UserRole.business || currentRole == UserRole.admin;
         if (!canCreateJobs &&
             _controller.selectedRole == JobsUserRole.provider) {
           _controller.selectRole(JobsUserRole.seeker);
@@ -77,9 +79,11 @@ class _JobsNetworkingScreenState extends State<JobsNetworkingScreen>
   }
 
   Widget _roleSelectionView() {
+    final UserRole currentRole =
+        context.read<MainShellController>().currentUser?.role ??
+        UserRole.guest;
     final bool canCreateJobs =
-        context.read<MainShellController>().currentUser?.role ==
-        UserRole.business;
+        currentRole == UserRole.business || currentRole == UserRole.admin;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),

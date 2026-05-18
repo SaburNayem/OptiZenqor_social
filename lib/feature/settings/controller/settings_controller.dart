@@ -26,8 +26,7 @@ class SettingsController {
   bool get hasProfessionalControls => switch (currentUser?.role) {
     UserRole.creator ||
     UserRole.business ||
-    UserRole.admin ||
-    UserRole.superadmin => true,
+    UserRole.admin => true,
     _ => false,
   };
 
