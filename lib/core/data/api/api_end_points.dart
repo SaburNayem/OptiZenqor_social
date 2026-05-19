@@ -453,6 +453,8 @@ class ApiEndPoints {
   static const notificationsDevices = '/notifications/devices';
   static String notificationDeviceByToken(String token) =>
       '/notifications/devices/$token';
+  static String notificationById(String notificationId) =>
+      '/notifications/$notificationId';
   static String notificationRead(String notificationId) =>
       '/notifications/$notificationId/read';
 
@@ -467,7 +469,8 @@ class ApiEndPoints {
 
   // PaymentController
   static const paymentsCreate = '/payments/create';
-  static String paymentStatus(String paymentId) => '/payments/$paymentId/status';
+  static String paymentStatus(String paymentId) =>
+      '/payments/$paymentId/status';
 
   // SettingsController
   static const settings = '/settings';

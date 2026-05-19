@@ -73,7 +73,7 @@ class SocketService {
         item.event == SocketEvent.notificationUpdated,
   );
 
-  Future<bool> connect() async {
+  Future<bool> connect({bool force = false}) async {
     final io.Socket? activeSocket = _socket;
     if (activeSocket != null &&
         activeSocket.connected &&
@@ -81,8 +81,13 @@ class SocketService {
       return true;
     }
     final DateTime? nextAttemptAt = _nextConnectAttemptAt;
-    if (nextAttemptAt != null && DateTime.now().isBefore(nextAttemptAt)) {
+    if (!force &&
+        nextAttemptAt != null &&
+        DateTime.now().isBefore(nextAttemptAt)) {
       return false;
+    }
+    if (force) {
+      _nextConnectAttemptAt = null;
     }
     final Future<bool>? pendingConnection = _pendingConnection;
     if (pendingConnection != null) {
@@ -106,6 +111,27 @@ class SocketService {
       return _socket?.connected ?? false;
     }
 
+    final session = await _sessionService.readSession();
+    final String accessToken = session?.accessToken.trim() ?? '';
+    final String currentUserId = session?.user?.id.trim() ?? '';
+    if (accessToken.isEmpty) {
+      _log('connect.skipped reason=missing_access_token');
+      await _closeTransport();
+      _setState(SocketConnectionState.disconnected);
+      return false;
+    }
+
+    final ({Uri uri, String path, String namespace, bool enabled}) target =
+        await _resolveSocketTarget();
+    if (!target.enabled) {
+      _log(
+        'connect.skipped reason=realtime_disabled endpoint=${target.uri} path=${target.path}',
+      );
+      await _closeTransport();
+      _setState(SocketConnectionState.disconnected);
+      return false;
+    }
+
     _manualDisconnect = false;
     _setState(
       _reconnectAttempts > 0
@@ -113,11 +139,6 @@ class SocketService {
           : SocketConnectionState.connecting,
     );
 
-    final ({Uri uri, String path, String namespace}) target =
-        await _resolveSocketTarget();
-    final session = await _sessionService.readSession();
-    final String accessToken = session?.accessToken ?? '';
-    final String currentUserId = session?.user?.id ?? '';
     final String socketEndpoint = target.uri
         .replace(path: _joinSocketPaths(target.uri.path, target.namespace))
         .toString();
@@ -130,9 +151,7 @@ class SocketService {
       await _closeTransport();
 
       final io.OptionBuilder options = io.OptionBuilder()
-          .setTransports(
-            kIsWeb ? <String>['polling', 'websocket'] : <String>['websocket'],
-          )
+          .setTransports(<String>['polling', 'websocket'])
           .disableAutoConnect()
           .disableReconnection()
           .setTimeout(AppConfig.socketConnectTimeoutMs)
@@ -327,11 +346,17 @@ class SocketService {
     );
   }
 
-  Future<({Uri uri, String path, String namespace})>
+  Future<({Uri uri, String path, String namespace, bool enabled})>
   _resolveSocketTarget() async {
     String namespace = '/realtime';
     String path = AppConfig.socketPath;
-    Uri baseUri = Uri.parse(AppConfig.currentApiBaseUrl);
+    bool enabled = AppConfig.canUseRealtimeSocket;
+    bool contractSpecifiedEnabled = false;
+    Uri baseUri = _socketCompatibleBaseUri(
+      AppConfig.socketBaseUrl.trim().isNotEmpty
+          ? AppConfig.socketBaseUrl.trim()
+          : AppConfig.currentApiBaseUrl,
+    );
 
     try {
       final response = await _apiClient.get(AppConfig.socketContractPath);
@@ -352,16 +377,32 @@ class SocketService {
       if (contractPath.isNotEmpty) {
         path = contractPath;
       }
+      final Object? enabledValue =
+          payload['enabled'] ??
+          payload['socketEnabled'] ??
+          payload['realtimeEnabled'];
+      if (enabledValue != null) {
+        enabled = _readBool(enabledValue, fallback: enabled);
+        contractSpecifiedEnabled = true;
+      }
       final String contractUrl = _firstString(payload, <String>[
         'url',
         'socketUrl',
         'endpoint',
       ]);
       if (contractUrl.isNotEmpty) {
-        baseUri = Uri.parse(contractUrl);
+        baseUri = _socketCompatibleBaseUri(contractUrl);
+        if (!contractSpecifiedEnabled && AppConfig.socketEnabled) {
+          enabled = true;
+        }
       }
     } catch (_) {
       // Fall back to app config defaults.
+    }
+
+    if (AppConfig.socketBaseUrl.trim().isEmpty &&
+        _isKnownServerlessSocketHost(baseUri)) {
+      enabled = false;
     }
 
     final Uri uri = baseUri.replace(
@@ -369,7 +410,18 @@ class SocketService {
       path: '',
       queryParameters: null,
     );
-    return (uri: uri, path: path, namespace: namespace);
+    return (uri: uri, path: path, namespace: namespace, enabled: enabled);
+  }
+
+  Uri _socketCompatibleBaseUri(String value) {
+    final Uri parsed = Uri.parse(value.trim());
+    final String scheme = switch (parsed.scheme.toLowerCase()) {
+      'ws' => 'http',
+      'wss' => 'https',
+      '' => 'http',
+      final String current => current,
+    };
+    return parsed.replace(scheme: scheme);
   }
 
   Map<String, dynamic> _toEventPayload(String event, dynamic payload) {
@@ -401,6 +453,28 @@ class SocketService {
       }
     }
     return '';
+  }
+
+  bool _readBool(Object value, {required bool fallback}) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    final String normalized = value.toString().trim().toLowerCase();
+    if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+      return true;
+    }
+    if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+      return false;
+    }
+    return fallback;
+  }
+
+  bool _isKnownServerlessSocketHost(Uri uri) {
+    final String host = uri.host.toLowerCase().trim();
+    return host.endsWith('.vercel.app');
   }
 
   String _joinSocketPaths(String basePath, String nextPath) {

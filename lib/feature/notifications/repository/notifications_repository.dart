@@ -52,4 +52,13 @@ class NotificationsRepository {
       );
     } catch (_) {}
   }
+
+  Future<void> deleteNotification(String notificationId) async {
+    final ServiceResponseModel<Map<String, dynamic>> response = await _service
+        .apiClient
+        .delete(ApiEndPoints.notificationById(notificationId));
+    if (!response.isSuccess || response.data['success'] == false) {
+      throw Exception(response.message ?? 'Unable to delete notification.');
+    }
+  }
 }

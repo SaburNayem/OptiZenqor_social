@@ -133,11 +133,22 @@ class NotificationsController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeNotification(String notificationId) {
+  Future<void> removeNotification(String notificationId) async {
+    final previousNotifications = notifications;
     notifications = notifications
         .where((item) => item.id != notificationId)
         .toList();
     notifyListeners();
+    try {
+      await _repository.deleteNotification(notificationId);
+    } catch (error) {
+      notifications = previousNotifications;
+      state = state.copyWith(
+        hasError: true,
+        errorMessage: 'Unable to delete notification',
+      );
+      notifyListeners();
+    }
   }
 
   Future<String?> handleTap(NotificationModel item) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
@@ -96,7 +98,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ...items.map((item) {
                   final unread = _controller.isUnread(item);
                   return Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      bottom: 12,
+                    ),
                     child: Dismissible(
                       key: ValueKey(item.id),
                       direction: DismissDirection.endToStart,
@@ -110,10 +116,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.delete_outline,
-                              color: AppColors.white,
-                            ),
+                            Icon(Icons.delete_outline, color: AppColors.white),
                             SizedBox(height: 4),
                             Text(
                               'Delete',
@@ -128,7 +131,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       confirmDismiss: (_) =>
                           _confirmNotificationDelete(context, item),
                       onDismissed: (_) {
-                        _controller.removeNotification(item.id);
+                        unawaited(_controller.removeNotification(item.id));
                         AppGet.snackbar(
                           'Notification Deleted',
                           '${item.title} was removed',
@@ -192,8 +195,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     RichText(
                                       text: TextSpan(

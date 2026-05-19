@@ -31,6 +31,10 @@ class AppConfig {
     'SOCKET_BASE_URL',
     defaultValue: '',
   );
+  static const socketEnabled = bool.fromEnvironment(
+    'SOCKET_ENABLED',
+    defaultValue: true,
+  );
   static const socketPath = String.fromEnvironment(
     'SOCKET_PATH',
     defaultValue: '/socket.io',
@@ -100,6 +104,18 @@ class AppConfig {
     final Uri apiUri = Uri.parse(currentApiBaseUrl);
     final String scheme = apiUri.scheme == 'https' ? 'wss' : 'ws';
     return apiUri.replace(scheme: scheme, path: '').toString();
+  }
+
+  static bool get canUseRealtimeSocket {
+    if (!socketEnabled) {
+      return false;
+    }
+    if (socketBaseUrl.trim().isNotEmpty) {
+      return true;
+    }
+    final Uri? apiUri = Uri.tryParse(currentApiBaseUrl);
+    final String host = apiUri?.host.toLowerCase().trim() ?? '';
+    return !host.endsWith('.vercel.app');
   }
 
   static Uri get socketContractUri =>

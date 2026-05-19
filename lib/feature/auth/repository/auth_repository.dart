@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../../core/constants/storage_keys.dart';
 import '../../../core/data/models/user_model.dart';
 import '../../../core/data/service/auth_service.dart';
@@ -5,6 +7,7 @@ import '../../../core/data/service/auth_session_service.dart';
 import '../../../core/data/service_model/service_response_model.dart';
 import '../../../core/data/shared_preference/app_shared_preferences.dart';
 import '../../../core/enums/user_role.dart';
+import '../../../core/firebase_masseging/notification_permission.dart';
 import 'package:flutter/foundation.dart';
 
 import '../model/auth_exception.dart';
@@ -54,6 +57,7 @@ class AuthRepository {
     }
     debugPrint('[AuthRepository] AuthService.login success');
     await _hydrateSessionUserIfNeeded(fallbackEmail: email, fallbackRole: role);
+    unawaited(initializePushNotifications());
     debugPrint(
       '[AuthRepository] Session persisted key=${StorageKeys.authSession}',
     );

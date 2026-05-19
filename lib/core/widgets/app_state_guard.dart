@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../app_route/route_names.dart';
 import '../data/service/app_session_event_service.dart';
 import '../data/service/network_status_service.dart';
 import '../navigation/app_navigator.dart';
+import '../socket/socket_service.dart';
 
 class AppStateGuard extends StatefulWidget {
   const AppStateGuard({required this.child, super.key});
@@ -116,6 +119,7 @@ class _AppStateGuardState extends State<AppStateGuard> {
       return;
     }
     _redirectingToLogin = true;
+    unawaited(SocketService.instance.disconnect(manual: true));
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) {
         _redirectingToLogin = false;

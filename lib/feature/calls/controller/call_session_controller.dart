@@ -112,7 +112,7 @@ class CallSessionController extends ChangeNotifier {
     try {
       await _ensureVideoRenderersInitialized();
       await _authRepository.currentUser();
-      final bool socketConnected = await _socketService.connect();
+      final bool socketConnected = await _socketService.connect(force: true);
       debugPrint(
         '[CallSessionController] socket connect result=$socketConnected state=${_socketService.state}',
       );

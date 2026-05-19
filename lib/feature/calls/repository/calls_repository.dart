@@ -114,7 +114,7 @@ class CallsRepository {
   Future<void> endCallSession(String sessionId) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient
-        .post(
+        .patch(
           _service.endpoints['end_session']!.replaceFirst(':id', sessionId),
           const <String, dynamic>{},
         );

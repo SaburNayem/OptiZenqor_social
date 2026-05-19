@@ -55,5 +55,9 @@
 	<string>OptiZenqor Social needs microphone access for voice calls, video calls, and voice messages.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>OptiZenqor Social needs your location so you can share map directions in chat.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>comgooglemaps</string>
+	</array>
 </dict>
 </plist>
