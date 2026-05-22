@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/data/models/post_model.dart';
 import '../../../core/data/models/story_model.dart';
 import '../../../core/data/models/user_model.dart';
@@ -301,7 +302,22 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
               title: const Text('Report'),
               onTap: () {
                 Navigator.of(context).pop();
-                _showFeedback(context, 'Report submitted');
+                final PostModel? post = selectedPost;
+                AppGet.toNamed(
+                  RouteNames.reportCenter,
+                  arguments: <String, dynamic>{
+                    'targetType': 'post',
+                    'targetId': post?.id ?? postId,
+                    'targetUserId': post?.authorId,
+                    'targetLabel': post?.caption.trim().isNotEmpty == true
+                        ? post!.caption.trim()
+                        : 'Post',
+                    'targetSubtitle':
+                        post?.author?.name.trim().isNotEmpty == true
+                        ? 'Post by ${post!.author!.name}'
+                        : 'Post from your feed',
+                  },
+                );
               },
             ),
           ],

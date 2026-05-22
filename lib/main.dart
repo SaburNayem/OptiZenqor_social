@@ -42,22 +42,35 @@ Future<void> main() async {
     }
   }
 
+  await _initializePreRunServices();
+
   runApp(const OptiZenqorApp(initialRoute: AppRouter.initialRoute));
-  unawaited(_initializeStartupServices());
+  unawaited(_initializePostRunServices());
   unawaited(NetworkStatusService.instance.start());
 }
 
-Future<void> _initializeStartupServices() async {
+Future<void> _initializePreRunServices() async {
   try {
     await ThemeService.instance.init();
     await ensureFirebaseInitialized();
     await FirebaseNotificationReceive.initializeLocalNotifications();
     FirebaseNotificationReceive.setupBackgroundMessageHandler();
-    await FirebaseNotificationReceive.registerInteractionHandlers();
-    await initializePushNotifications(requestPermissionOnInit: false);
   } catch (error, stackTrace) {
     if (kDebugMode) {
-      debugPrint('[StartupServices] Initialization failed: $error');
+      debugPrint('[PreRunServices] Initialization failed: $error');
+      debugPrint('$stackTrace');
+    }
+  }
+}
+
+Future<void> _initializePostRunServices() async {
+  try {
+    FirebaseNotificationReceive.listenForegroundMessages();
+    await FirebaseNotificationReceive.registerInteractionHandlers();
+    await initializePushNotifications();
+  } catch (error, stackTrace) {
+    if (kDebugMode) {
+      debugPrint('[PostRunServices] Initialization failed: $error');
       debugPrint('$stackTrace');
     }
   }

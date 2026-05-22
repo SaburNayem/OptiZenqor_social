@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
 import '../model/product_model.dart';
@@ -54,8 +55,22 @@ class _MarketplaceChatScreenState extends State<MarketplaceChatScreen> {
             ),
             actions: [
               PopupMenuButton<String>(
-                onSelected: (value) =>
-                    AppGet.snackbar('Marketplace chat', '$value selected'),
+                onSelected: (value) {
+                  if (value == 'Report user') {
+                    AppGet.toNamed(
+                      RouteNames.reportCenter,
+                      arguments: <String, dynamic>{
+                        'targetType': 'user',
+                        'targetId': widget.product.sellerId,
+                        'targetUserId': widget.product.sellerId,
+                        'targetLabel': widget.product.sellerName,
+                        'targetSubtitle': 'Seller for ${widget.product.title}',
+                      },
+                    );
+                    return;
+                  }
+                  AppGet.snackbar('Marketplace chat', '$value selected');
+                },
                 itemBuilder: (context) => const [
                   PopupMenuItem(value: 'Block user', child: Text('Block user')),
                   PopupMenuItem(

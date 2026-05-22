@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../core/data/models/message_model.dart';
 import '../core/data/models/story_model.dart';
 import '../core/data/models/user_model.dart';
 import '../feature/auth/auth_feature_screens.dart';
+import '../feature/calls/screen/audio_call_screen.dart';
+import '../feature/calls/screen/video_call_screen.dart';
+import '../feature/chat/screen/chat_detail_screen.dart';
 import '../feature/feature_screens.dart';
 import '../feature/media_viewer/model/media_viewer_item_model.dart';
 import '../feature/media_viewer/model/media_viewer_route_arguments.dart';
@@ -143,7 +147,9 @@ class AppRouter {
       case RouteNames.pushNotificationPreferences:
         return PushNotificationPreferencesScreen();
       case RouteNames.reportCenter:
-        return ReportCenterScreen();
+        return ReportCenterScreen(arguments: arguments);
+      case RouteNames.reportHistory:
+        return const ReportHistoryScreen();
       case RouteNames.activitySessions:
         return ActivitySessionsScreen();
       case RouteNames.deepLinkHandler:
@@ -167,6 +173,36 @@ class AppRouter {
       case RouteNames.groupChat:
         return GroupChatScreen();
       case RouteNames.calls:
+        final String? sessionId = _callSessionIdFromArguments(
+          arguments,
+          params,
+        );
+        if (sessionId != null) {
+          final String mode = _callModeFromArguments(arguments, params);
+          final String displayName = _callDisplayNameFromArguments(
+            arguments,
+            params,
+          );
+          final String avatarUrl = _callAvatarFromArguments(arguments, params);
+          final String? recipientId = _callRecipientIdFromArguments(
+            arguments,
+            params,
+          );
+          if (mode == 'video') {
+            return VideoCallScreen(
+              name: displayName,
+              avatarUrl: avatarUrl,
+              recipientId: recipientId,
+              sessionId: sessionId,
+            );
+          }
+          return AudioCallScreen(
+            name: displayName,
+            avatarUrl: avatarUrl,
+            recipientId: recipientId,
+            sessionId: sessionId,
+          );
+        }
         return CallsScreen();
       case RouteNames.groups:
         return GroupsScreen();
@@ -222,6 +258,11 @@ class AppRouter {
         return const EditProfileScreen();
       case RouteNames.chat:
         return ChatScreen();
+      case RouteNames.chatDetail:
+        return ChatDetailScreen(
+          user: _chatUserFromArguments(arguments, params),
+          initialMessage: _chatInitialMessageFromArguments(arguments, params),
+        );
       case RouteNames.storiesCreate:
         return AddStoryScreen(userId: _storyUserIdFromArguments(arguments));
       case RouteNames.buddy:
@@ -290,6 +331,195 @@ class AppRouter {
       }
       if (user is Map) {
         return UserModel.fromApiJson(Map<String, dynamic>.from(user));
+      }
+    }
+    return null;
+  }
+
+  static UserModel _chatUserFromArguments(
+    Object? arguments,
+    Map<String, String> params,
+  ) {
+    if (arguments is Map) {
+      final Object? user = arguments['user'];
+      if (user is UserModel) {
+        return user;
+      }
+      if (user is Map) {
+        return UserModel.fromApiJson(Map<String, dynamic>.from(user));
+      }
+    }
+
+    final String userId = _valueFromArguments(arguments, <String>[
+      'senderId',
+      'actorId',
+      'userId',
+      'profileId',
+      'recipientId',
+      'targetId',
+    ], params);
+    final String name = _valueFromArguments(arguments, <String>[
+      'actorName',
+      'senderName',
+      'displayName',
+      'name',
+      'username',
+    ], params);
+    final String username = _valueFromArguments(arguments, <String>[
+      'username',
+      'senderUsername',
+      'actorUsername',
+    ], params);
+    final String avatar = _valueFromArguments(arguments, <String>[
+      'avatar',
+      'avatarUrl',
+      'senderAvatar',
+      'actorAvatar',
+    ], params);
+
+    return UserModel.fromApiJson(<String, dynamic>{
+      'id': userId,
+      'name': name.isEmpty ? 'Conversation' : name,
+      'username': username.isEmpty ? userId : username,
+      'avatar': avatar,
+    });
+  }
+
+  static MessageModel _chatInitialMessageFromArguments(
+    Object? arguments,
+    Map<String, String> params,
+  ) {
+    final String threadId = _valueFromArguments(arguments, <String>[
+      'threadId',
+      'chatId',
+      'conversationId',
+      'targetId',
+    ], params);
+    return MessageModel(
+      id: _valueFromArguments(arguments, <String>['messageId', 'id'], params),
+      chatId: threadId,
+      senderId: _valueFromArguments(arguments, <String>[
+        'senderId',
+        'actorId',
+        'userId',
+      ], params),
+      text: _valueFromArguments(arguments, <String>[
+        'text',
+        'body',
+        'message',
+      ], params),
+      timestamp: DateTime.now(),
+      read: false,
+    );
+  }
+
+  static String? _callSessionIdFromArguments(
+    Object? arguments,
+    Map<String, String> params,
+  ) {
+    final String value = _valueFromArguments(arguments, <String>[
+      'sessionId',
+      'callSessionId',
+      'entityId',
+      'targetId',
+      'id',
+    ], params);
+    return value.isEmpty ? null : value;
+  }
+
+  static String _callModeFromArguments(
+    Object? arguments,
+    Map<String, String> params,
+  ) {
+    final String value = _valueFromArguments(arguments, <String>[
+      'mode',
+      'callMode',
+      'type',
+    ], params).toLowerCase();
+    return value.contains('video') ? 'video' : 'voice';
+  }
+
+  static String _callDisplayNameFromArguments(
+    Object? arguments,
+    Map<String, String> params,
+  ) {
+    final String value = _valueFromArguments(arguments, <String>[
+      'actorName',
+      'initiatorName',
+      'callerName',
+      'senderName',
+      'displayName',
+      'name',
+    ], params);
+    return value.isEmpty ? 'Incoming call' : value;
+  }
+
+  static String _callAvatarFromArguments(
+    Object? arguments,
+    Map<String, String> params,
+  ) {
+    return _valueFromArguments(arguments, <String>[
+      'avatar',
+      'avatarUrl',
+      'initiatorAvatar',
+      'callerAvatar',
+      'actorAvatar',
+    ], params);
+  }
+
+  static String? _callRecipientIdFromArguments(
+    Object? arguments,
+    Map<String, String> params,
+  ) {
+    final String value = _valueFromArguments(arguments, <String>[
+      'initiatorId',
+      'callerId',
+      'actorId',
+      'senderId',
+      'userId',
+    ], params);
+    return value.isEmpty ? null : value;
+  }
+
+  static String _valueFromArguments(
+    Object? arguments,
+    List<String> keys, [
+    Map<String, String> params = const <String, String>{},
+  ]) {
+    for (final String key in keys) {
+      final String? value = params[key]?.trim();
+      if (value != null && value.isNotEmpty) {
+        return value;
+      }
+    }
+    if (arguments is Map) {
+      final Object? value = _valueFromMap(arguments, keys);
+      final String text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty && text != 'null') {
+        return text;
+      }
+    }
+    return '';
+  }
+
+  static Object? _valueFromMap(Map<dynamic, dynamic> map, List<String> keys) {
+    for (final String key in keys) {
+      final Object? value = map[key];
+      if (value == null) {
+        continue;
+      }
+      if (value is String && value.trim().isEmpty) {
+        continue;
+      }
+      return value;
+    }
+    for (final String key in <String>['metadata', 'payload', 'data']) {
+      final Object? nested = map[key];
+      if (nested is Map) {
+        final Object? value = _valueFromMap(nested, keys);
+        if (value != null) {
+          return value;
+        }
       }
     }
     return null;

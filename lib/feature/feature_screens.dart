@@ -43,6 +43,7 @@ export 'post_detail/screen/post_detail_screen.dart';
 export 'premium_membership/screen/premium_membership_screen.dart';
 export 'push_notification_preferences/screen/push_notification_preferences_screen.dart';
 export 'report_center/screen/report_center_screen.dart';
+export 'report_center/screen/report_history_screen.dart';
 export 'safety_privacy/screen/safety_privacy_screen.dart';
 export 'saved_collections/screen/saved_collections_screen.dart';
 export 'search_discovery/screen/search_discovery_screen.dart';

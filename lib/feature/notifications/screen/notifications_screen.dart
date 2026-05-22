@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:optizenqor_social/core/navigation/app_get.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/data/models/notification_model.dart';
 import '../controller/notifications_controller.dart';
 import '../model/notification_payload_model.dart';
@@ -40,8 +41,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               title: const Text('Notifications'),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    _controller.markAllAsRead();
+                  onPressed: () async {
+                    await _controller.markAllAsRead();
                     AppGet.snackbar(
                       'Notifications',
                       'All notifications marked as read',
@@ -60,19 +61,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
 
           final items = _controller.visibleNotifications;
-          if (items.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: _controller.load,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const <Widget>[
-                  SizedBox(height: 240),
-                  Center(child: Text('No notifications available')),
-                ],
-              ),
-            );
-          }
-
           return RefreshIndicator(
             onRefresh: _controller.load,
             child: ListView(
@@ -95,6 +83,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ],
                   ),
                 ),
+                if (items.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 88, 16, 16),
+                    child: Center(
+                      child: Text(
+                        _controller.notifications.isEmpty
+                            ? 'No notifications available'
+                            : 'No notifications in this tab',
+                      ),
+                    ),
+                  ),
                 ...items.map((item) {
                   final unread = _controller.isUnread(item);
                   return Padding(
@@ -144,30 +143,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           await _controller.handleTap(item);
                         },
                         onLongPress: () {
-                          AppGet.bottomSheet(
-                            _NotificationActionSheet(
-                              onMute: () {
-                                AppGet.back();
-                                AppGet.snackbar(
-                                  'Notification',
-                                  'User muted from notifications',
-                                );
-                              },
-                              onTurnOff: () {
-                                AppGet.back();
-                                AppGet.snackbar(
-                                  'Notification',
-                                  'Similar notifications turned off',
-                                );
-                              },
-                            ),
-                            backgroundColor: AppColors.white,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(24),
-                              ),
-                            ),
-                          );
+                          _openNotificationActions(item, unread);
                         },
                         child: Container(
                           padding: const EdgeInsets.all(16),
@@ -246,32 +222,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 ),
                               ),
                               IconButton(
-                                onPressed: () {
-                                  AppGet.bottomSheet(
-                                    _NotificationActionSheet(
-                                      onMute: () {
-                                        AppGet.back();
-                                        AppGet.snackbar(
-                                          'Notification',
-                                          'User muted from notifications',
-                                        );
-                                      },
-                                      onTurnOff: () {
-                                        AppGet.back();
-                                        AppGet.snackbar(
-                                          'Notification',
-                                          'Similar notifications turned off',
-                                        );
-                                      },
-                                    ),
-                                    backgroundColor: AppColors.white,
-                                    shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(24),
-                                      ),
-                                    ),
-                                  );
-                                },
+                                onPressed: () =>
+                                    _openNotificationActions(item, unread),
                                 icon: const Icon(Icons.more_horiz),
                               ),
                             ],
@@ -285,6 +237,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _openNotificationActions(NotificationModel item, bool unread) {
+    AppGet.bottomSheet(
+      _NotificationActionSheet(
+        isUnread: unread,
+        onOpen: () async {
+          AppGet.back();
+          await _controller.handleTap(item);
+        },
+        onMarkRead: () async {
+          AppGet.back();
+          await _controller.markRead(item);
+          AppGet.snackbar('Notifications', 'Notification marked as read');
+        },
+        onDelete: () async {
+          AppGet.back();
+          await _controller.removeNotification(item.id);
+          AppGet.snackbar('Notifications', 'Notification deleted');
+        },
+        onSettings: () {
+          AppGet.back();
+          AppGet.toNamed(RouteNames.pushNotificationPreferences);
+        },
+      ),
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
     );
   }
@@ -385,12 +367,18 @@ class _NotificationFilterBar extends StatelessWidget {
 
 class _NotificationActionSheet extends StatelessWidget {
   const _NotificationActionSheet({
-    required this.onMute,
-    required this.onTurnOff,
+    required this.isUnread,
+    required this.onOpen,
+    required this.onMarkRead,
+    required this.onDelete,
+    required this.onSettings,
   });
 
-  final VoidCallback onMute;
-  final VoidCallback onTurnOff;
+  final bool isUnread;
+  final VoidCallback onOpen;
+  final VoidCallback onMarkRead;
+  final VoidCallback onDelete;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -401,14 +389,25 @@ class _NotificationActionSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.volume_off_outlined),
-              title: const Text('Mute this person'),
-              onTap: onMute,
+              leading: const Icon(Icons.open_in_new_rounded),
+              title: const Text('Open notification'),
+              onTap: onOpen,
+            ),
+            if (isUnread)
+              ListTile(
+                leading: const Icon(Icons.mark_email_read_outlined),
+                title: const Text('Mark as read'),
+                onTap: onMarkRead,
+              ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded),
+              title: const Text('Delete notification'),
+              onTap: onDelete,
             ),
             ListTile(
-              leading: const Icon(Icons.notifications_off_outlined),
-              title: const Text('Turn off similar notifications'),
-              onTap: onTurnOff,
+              leading: const Icon(Icons.tune_rounded),
+              title: const Text('Notification settings'),
+              onTap: onSettings,
             ),
             ListTile(
               leading: const Icon(Icons.cancel_outlined),

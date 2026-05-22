@@ -700,9 +700,17 @@ class _StoryViewScreenState extends State<StoryViewScreen> {
 
   void _reportStory(StoryModel story) {
     final String label = _displayNameForStory(story);
-    AppFeedback.showSnackbar(
-      title: 'Story',
-      message: 'Report sent for $label.',
+    AppGet.toNamed(
+      RouteNames.reportCenter,
+      arguments: <String, dynamic>{
+        'targetType': 'story',
+        'targetId': story.id,
+        'targetUserId': story.userId,
+        'targetLabel': story.text?.trim().isNotEmpty == true
+            ? story.text!.trim()
+            : 'Story from $label',
+        'targetSubtitle': 'Story by $label',
+      },
     );
   }
 

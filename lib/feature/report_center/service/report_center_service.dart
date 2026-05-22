@@ -10,6 +10,7 @@ class ReportCenterService extends FeatureServiceBase {
   @override
   Map<String, String> get endpoints => <String, String>{
     'report_center': ApiEndPoints.reportCenter,
+    'report_options': ApiEndPoints.reportCenterOptions,
     'support_tickets': ApiEndPoints.supportTickets,
   };
 }

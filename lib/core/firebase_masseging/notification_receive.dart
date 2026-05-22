@@ -42,6 +42,7 @@ class FirebaseNotificationReceive {
       );
   static bool _interactionHandlersRegistered = false;
   static bool _backgroundHandlerRegistered = false;
+  static bool _foregroundHandlerRegistered = false;
 
   static Future<void> initializeLocalNotifications() async {
     const AndroidInitializationSettings androidSettings =
@@ -68,8 +69,11 @@ class FirebaseNotificationReceive {
   }
 
   static void listenForegroundMessages() {
+    if (_foregroundHandlerRegistered) {
+      return;
+    }
+    _foregroundHandlerRegistered = true;
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      // Show Android notification in status bar
       showNotification(message);
     });
   }

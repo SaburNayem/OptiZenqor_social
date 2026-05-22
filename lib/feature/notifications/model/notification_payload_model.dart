@@ -16,24 +16,52 @@ class NotificationPayloadModel {
   final Map<String, dynamic> metadata;
 
   factory NotificationPayloadModel.fromMap(Map<String, dynamic> map) {
+    final Map<String, dynamic> metadata = <String, dynamic>{
+      ...map,
+      ...Map<String, dynamic>.from(
+        ApiPayloadReader.readMap(map['metadata']) ?? const <String, dynamic>{},
+      ),
+    };
     final rawType = ApiPayloadReader.readString(
-      map['type'],
+      map['type'] ?? metadata['notificationType'],
       fallback: 'system',
     ).toLowerCase();
     final type = NotificationType.values.firstWhere(
       (value) => value.name == rawType,
       orElse: () => NotificationType.system,
     );
-    final Map<String, dynamic> metadata = Map<String, dynamic>.from(
-      ApiPayloadReader.readMap(map['metadata']) ?? const <String, dynamic>{},
+    final String entityId = ApiPayloadReader.readString(
+      map['entityId'] ??
+          map['targetId'] ??
+          metadata['entityId'] ??
+          metadata['targetId'] ??
+          metadata['postId'] ??
+          metadata['userId'] ??
+          metadata['profileId'] ??
+          metadata['productId'] ??
+          metadata['jobId'] ??
+          metadata['eventId'] ??
+          metadata['threadId'] ??
+          metadata['messageId'] ??
+          metadata['callSessionId'] ??
+          metadata['sessionId'],
     );
     return NotificationPayloadModel(
       type: type,
       routeName: ApiPayloadReader.readString(
-        map['routeName'] ?? map['route'] ?? map['path'],
+        map['routeName'] ??
+            map['route'] ??
+            map['path'] ??
+            map['deepLink'] ??
+            map['url'] ??
+            metadata['routeName'] ??
+            metadata['route'] ??
+            metadata['path'] ??
+            metadata['deepLink'] ??
+            metadata['url'],
         fallback: '/',
       ),
-      entityId: ApiPayloadReader.readString(map['entityId'] ?? map['targetId']),
+      entityId: entityId.isEmpty ? null : entityId,
       metadata: metadata,
     );
   }

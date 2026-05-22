@@ -190,12 +190,33 @@ class _EventsScreenState extends State<EventsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  event.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        event.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Report event',
+                      onPressed: () => AppGet.toNamed(
+                        RouteNames.reportCenter,
+                        arguments: <String, dynamic>{
+                          'targetType': 'event',
+                          'targetId': event.id,
+                          'targetLabel': event.title,
+                          'targetSubtitle': event.location,
+                          if (imageUrl.isNotEmpty) 'previewImageUrl': imageUrl,
+                        },
+                      ),
+                      icon: const Icon(Icons.flag_outlined),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Row(

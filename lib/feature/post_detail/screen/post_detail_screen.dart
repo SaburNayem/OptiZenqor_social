@@ -109,6 +109,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     _focusCommentField();
   }
 
+  void _reportComment(PostCommentModel comment) {
+    AppGet.toNamed(
+      RouteNames.reportCenter,
+      arguments: <String, dynamic>{
+        'targetType': 'comment',
+        'targetId': comment.id,
+        'targetUserId': comment.authorId,
+        'targetLabel': comment.message,
+        'targetSubtitle': 'Comment by ${_displayNameForCommentAuthor(comment)}',
+      },
+    );
+  }
+
   String _displayNameForCommentAuthor(PostCommentModel comment) {
     final String name = comment.author.trim();
     if (name.isNotEmpty && name.toLowerCase() != 'unknown user') {
@@ -449,7 +462,23 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 title: const Text('Report post'),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
-                  AppGet.snackbar('Reported', 'Static report flow opened');
+                  AppGet.toNamed(
+                    RouteNames.reportCenter,
+                    arguments: <String, dynamic>{
+                      'targetType': 'post',
+                      'targetId': _controller.detail.id,
+                      'targetUserId': _controller.detail.authorId,
+                      'targetLabel':
+                          _controller.detail.caption.trim().isNotEmpty
+                          ? _controller.detail.caption.trim()
+                          : 'Post',
+                      'targetSubtitle':
+                          _controller.detail.author?.name.trim().isNotEmpty ==
+                              true
+                          ? 'Post by ${_controller.detail.author!.name}'
+                          : 'Post details',
+                    },
+                  );
                 },
               ),
             ],
@@ -558,6 +587,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 comments: controller.comments,
                 onLikeTap: controller.toggleCommentLike,
                 onReplyTap: _startReply,
+                onReportTap: _reportComment,
               ),
             ],
             onMediaTap: (index) => _openMediaViewer(

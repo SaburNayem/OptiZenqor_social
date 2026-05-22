@@ -558,6 +558,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         child: Text('Copy Username'),
       ),
     );
+    items.add(
+      const PopupMenuItem<String>(
+        value: 'report_profile',
+        child: Text('Report Profile'),
+      ),
+    );
     return items;
   }
 

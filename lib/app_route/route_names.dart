@@ -72,6 +72,7 @@ class RouteNames {
   static const accountSwitching = '/account-switching';
   static const pushNotificationPreferences = '/push-notification-preferences';
   static const reportCenter = '/report-center';
+  static const reportHistory = '/report-history';
   static const activitySessions = '/activity-sessions';
   static const deepLinkHandler = '/deep-link-handler';
   static const appUpdateFlow = '/app-update-flow';
