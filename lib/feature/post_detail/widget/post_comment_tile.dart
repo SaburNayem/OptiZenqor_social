@@ -10,12 +10,14 @@ class PostCommentTile extends StatelessWidget {
     this.depth = 0,
     this.onLikeTap,
     this.onReplyTap,
+    this.onReportTap,
   });
 
   final PostCommentModel comment;
   final int depth;
   final VoidCallback? onLikeTap;
   final VoidCallback? onReplyTap;
+  final VoidCallback? onReportTap;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +98,19 @@ class PostCommentTile extends StatelessWidget {
                         'Edited',
                         style: TextStyle(color: AppColors.grey, fontSize: 11),
                       ),
+                    InkWell(
+                      onTap: comment.isReported ? null : onReportTap,
+                      child: Text(
+                        comment.isReported ? 'Reported' : 'Report',
+                        style: TextStyle(
+                          color: comment.isReported
+                              ? AppColors.primary800
+                              : AppColors.grey,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],

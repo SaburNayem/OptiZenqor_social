@@ -161,6 +161,20 @@ extension _UserProfileActions on _UserProfileScreenState {
         await Clipboard.setData(ClipboardData(text: '@${user.username}'));
         AppGet.snackbar('Profile', 'Username copied');
         return;
+      case 'report_profile':
+        AppGet.toNamed(
+          RouteNames.reportCenter,
+          arguments: <String, dynamic>{
+            'targetType': 'user',
+            'targetId': user.id,
+            'targetUserId': user.id,
+            'targetLabel': user.name,
+            'targetSubtitle': user.username.trim().isNotEmpty
+                ? '@${user.username}'
+                : 'Profile',
+          },
+        );
+        return;
     }
   }
 

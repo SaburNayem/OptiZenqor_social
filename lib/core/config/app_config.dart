@@ -14,19 +14,6 @@ class AppConfig {
     'API_BASE_URL',
     defaultValue: '',
   );
-  static const debugSharedApiBaseUrl = String.fromEnvironment(
-    'DEBUG_SHARED_API_BASE_URL',
-    defaultValue: '',
-  );
-  static const localLanApiBaseUrl = String.fromEnvironment(
-    'LOCAL_LAN_API_BASE_URL',
-    defaultValue: '',
-  );
-  static const localAndroidDebugApiBaseUrl = String.fromEnvironment(
-    'LOCAL_ANDROID_DEBUG_API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3000',
-  );
-  static const localAdbReverseApiBaseUrl = 'http://127.0.0.1:3000';
   static const socketBaseUrl = String.fromEnvironment(
     'SOCKET_BASE_URL',
     defaultValue: '',
@@ -65,29 +52,9 @@ class AppConfig {
       return candidates;
     }
 
-    if (kIsWeb && !_isLocalWebOrigin) {
+    if (kIsWeb && Uri.base.host.endsWith('.vercel.app')) {
       addCandidate(Uri.base.resolve(defaultWebApiProxyPath).toString());
       return candidates;
-    }
-
-    if (!kReleaseMode && useRemoteOnly) {
-      addCandidate(deployedApiBaseUrl);
-      return candidates;
-    }
-
-    final String sharedDebugBaseUrl = debugSharedApiBaseUrl.trim();
-    if (!kReleaseMode && sharedDebugBaseUrl.isNotEmpty) {
-      addCandidate(sharedDebugBaseUrl);
-    }
-
-    final String localLanBaseUrl = localLanApiBaseUrl.trim();
-    if (!kReleaseMode && localLanBaseUrl.isNotEmpty) {
-      addCandidate(localLanBaseUrl);
-    }
-
-    if (!kReleaseMode && !kIsWeb) {
-      addCandidate(localAndroidDebugApiBaseUrl);
-      addCandidate(localAdbReverseApiBaseUrl);
     }
 
     addCandidate(deployedApiBaseUrl);
@@ -143,28 +110,13 @@ class AppConfig {
       return 'Debug build is using an explicit API override: $currentApiBaseUrl';
     }
     if (kIsWeb) {
-      if (_isLocalWebOrigin) {
-        if (debugSharedApiBaseUrl.trim().isNotEmpty) {
-          return 'Debug web build is using the shared debug backend: ${debugSharedApiBaseUrl.trim()}.';
-        }
-        return 'Debug web build is running on a local origin and calling the deployed backend directly. If Chrome shows `Failed to fetch`, either use `--dart-define=DEBUG_SHARED_API_BASE_URL=<public-backend-url>` for one shared route across devices, deploy the web app behind the bundled Vercel `/api` rewrite, or allow this localhost origin in the backend CORS policy.';
-      }
       if (isUsingDefaultRemoteBackend) {
         return 'Debug web build is using the deployed backend through the same-origin `/api` proxy path.';
       }
       return 'Debug web build is using an overridden backend: $currentApiBaseUrl';
     }
-    if (debugSharedApiBaseUrl.trim().isNotEmpty) {
-      return 'Debug build is using the shared debug backend: ${debugSharedApiBaseUrl.trim()}. This is the simplest single route for phone, emulator, and local web.';
-    }
-    if (localLanApiBaseUrl.trim().isNotEmpty) {
-      return 'Debug build has LAN fallback enabled at ${localLanApiBaseUrl.trim()}. The app will try configured debug fallback URLs before the deployed backend.';
-    }
     if (isUsingDefaultRemoteBackend) {
-      final String lanHint = localLanApiBaseUrl.trim().isEmpty
-          ? '<your-pc-lan-ip>:3000'
-          : localLanApiBaseUrl.trim();
-      return 'Debug build is using the deployed backend by default. For one shared local route across devices, start your backend on port 3000 and launch with `--dart-define=DEBUG_SHARED_API_BASE_URL=http://$lanHint`. Emulator-only local uses `$localAndroidDebugApiBaseUrl`, USB reverse uses `$localAdbReverseApiBaseUrl`, and real devices should use your PC LAN IP.';
+      return 'Debug build is using the deployed backend by default.';
     }
     return 'Debug build is using an overridden backend: $currentApiBaseUrl';
   }
@@ -177,19 +129,10 @@ class AppConfig {
   static int get uploadTimeoutMs => kDebugMode ? 30000 : 90000;
   static int get socketConnectTimeoutMs => kDebugMode ? 5000 : 15000;
   static const socketReconnectDelayMs = 3000;
-  static const useRemoteOnly = true;
   static const allowOfflineFallback = bool.fromEnvironment(
     'ALLOW_OFFLINE_FALLBACK',
     defaultValue: false,
   );
-
-  static bool get _isLocalWebOrigin {
-    if (!kIsWeb) {
-      return false;
-    }
-    final String host = Uri.base.host.toLowerCase().trim();
-    return host == 'localhost' || host == '127.0.0.1' || host == '0.0.0.0';
-  }
 
   static String _normalizeUrl(String value) {
     return value.trim().replaceFirst(RegExp(r'/+$'), '');

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../app_route/route_names.dart';
 import '../model/community_group_model.dart';
 import '../bloc/community_group_cubit.dart';
 import 'community_group_common_widgets.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/navigation/app_get.dart';
 
 class CommunityComposerCard extends StatelessWidget {
   const CommunityComposerCard({
@@ -158,7 +160,18 @@ class CommunityPostCard extends StatelessWidget {
                       controller.togglePinPost(post.id);
                       return;
                     }
-                    onMessage('Reported locally');
+                    if (value == 'report') {
+                      AppGet.toNamed(
+                        RouteNames.reportCenter,
+                        arguments: <String, dynamic>{
+                          'targetType': 'post',
+                          'targetId': post.id,
+                          'targetLabel': post.content,
+                          'targetSubtitle':
+                              'Community post by ${post.authorName}',
+                        },
+                      );
+                    }
                   },
                   itemBuilder: (context) => [
                     PopupMenuItem(

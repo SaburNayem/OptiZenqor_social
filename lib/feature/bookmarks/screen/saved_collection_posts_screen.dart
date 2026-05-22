@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/common_widget/empty_state_view.dart';
 import '../../../core/navigation/app_get.dart';
 import '../../post_detail/screen/post_detail_screen.dart';
@@ -89,7 +90,18 @@ class SavedCollectionPostsScreen extends StatelessWidget {
                 title: const Text('Report'),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
-                  AppGet.snackbar('Reported', 'Static report flow opened');
+                  AppGet.toNamed(
+                    RouteNames.reportCenter,
+                    arguments: <String, dynamic>{
+                      'targetType': item.type.name,
+                      'targetId': item.id,
+                      'targetUserId': item.authorId,
+                      'targetLabel': item.displayTitle,
+                      'targetSubtitle': item.authorName.trim().isNotEmpty
+                          ? 'Saved from ${item.authorName}'
+                          : 'Saved post',
+                    },
+                  );
                 },
               ),
             ],

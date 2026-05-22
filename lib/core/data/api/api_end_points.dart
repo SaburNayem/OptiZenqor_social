@@ -363,6 +363,7 @@ class ApiEndPoints {
 
   // ReportCenterController
   static const reportCenter = '/report-center';
+  static const reportCenterOptions = '/report-center/options';
 
   // ProfilesController
   static const profile = '/profile';
@@ -451,6 +452,7 @@ class ApiEndPoints {
   static const notificationsPreferences = '/notifications/preferences';
   static const notificationsCampaigns = '/notifications/campaigns';
   static const notificationsDevices = '/notifications/devices';
+  static const notificationsReadAll = '/notifications/read-all';
   static String notificationDeviceByToken(String token) =>
       '/notifications/devices/$token';
   static String notificationById(String notificationId) =>

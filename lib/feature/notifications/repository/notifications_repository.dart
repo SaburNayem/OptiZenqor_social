@@ -53,6 +53,21 @@ class NotificationsRepository {
     } catch (_) {}
   }
 
+  Future<void> markAllRead(List<String> notificationIds) async {
+    try {
+      final ServiceResponseModel<Map<String, dynamic>> response = await _service
+          .apiClient
+          .patch(ApiEndPoints.notificationsReadAll, const <String, dynamic>{});
+      if (response.isSuccess && response.data['success'] != false) {
+        return;
+      }
+    } catch (_) {}
+
+    for (final String notificationId in notificationIds) {
+      await markRead(notificationId);
+    }
+  }
+
   Future<void> deleteNotification(String notificationId) async {
     final ServiceResponseModel<Map<String, dynamic>> response = await _service
         .apiClient

@@ -216,11 +216,6 @@ class MainShellController extends Cubit<int> {
               routeName: RouteNames.notifications,
             ),
             MainShellDrawerItemModel(
-              title: 'Report Center',
-              icon: Icons.report_gmailerrorred_rounded,
-              routeName: RouteNames.reportCenter,
-            ),
-            MainShellDrawerItemModel(
               title: 'Support',
               icon: Icons.support_agent_rounded,
               routeName: RouteNames.supportHelp,

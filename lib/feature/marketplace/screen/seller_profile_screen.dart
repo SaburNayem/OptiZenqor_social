@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
 import '../model/product_model.dart';
@@ -28,7 +29,18 @@ class MarketplaceSellerProfileScreen extends StatelessWidget {
         title: const Text('Seller profile'),
         actions: [
           IconButton(
-            onPressed: () => AppGet.snackbar('Seller', 'Seller reported'),
+            onPressed: () => AppGet.toNamed(
+              RouteNames.reportCenter,
+              arguments: <String, dynamic>{
+                'targetType': 'user',
+                'targetId': seller.id,
+                'targetUserId': seller.id,
+                'targetLabel': seller.name,
+                'targetSubtitle': seller.storeName.trim().isNotEmpty
+                    ? seller.storeName
+                    : 'Marketplace seller',
+              },
+            ),
             icon: const Icon(Icons.flag_outlined),
           ),
         ],

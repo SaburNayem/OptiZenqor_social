@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../app_route/route_names.dart';
 import '../../../core/navigation/app_get.dart';
 import '../controller/marketplace_controller.dart';
 import '../model/marketplace_order_model.dart';
@@ -61,6 +62,22 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   onPressed: () =>
                       AppGet.snackbar('Share listing', 'Share sheet opened'),
                   icon: const Icon(Icons.share_outlined),
+                ),
+                IconButton(
+                  tooltip: 'Report listing',
+                  onPressed: () => AppGet.toNamed(
+                    RouteNames.reportCenter,
+                    arguments: <String, dynamic>{
+                      'targetType': 'marketplace',
+                      'targetId': product.id,
+                      'targetUserId': product.sellerId,
+                      'targetLabel': product.title,
+                      'targetSubtitle': product.sellerName,
+                      if (product.images.isNotEmpty)
+                        'previewImageUrl': product.images.first,
+                    },
+                  ),
+                  icon: const Icon(Icons.flag_outlined),
                 ),
               ],
             ),
@@ -444,8 +461,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     product.hasExternalAppLink
                         ? 'Open app'
                         : controller.checkoutEnabled
-                            ? 'Buy now'
-                            : 'Message to buy',
+                        ? 'Buy now'
+                        : 'Message to buy',
                   ),
                 ),
               ),

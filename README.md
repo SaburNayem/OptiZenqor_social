@@ -20,13 +20,5 @@ samples, guidance on mobile development, and a full API reference.
 By default, debug builds use the deployed backend at
 `https://opti-zenqor-social-backend.vercel.app`.
 
-If that deployment is behind your local backend code, point Flutter at the
-local API instead:
-
-```bash
-adb reverse tcp:3000 tcp:3000
-flutter run --dart-define=API_BASE_URL=http://127.0.0.1:3000
-```
-
-That setup is intended for a USB-connected Android device while the NestJS
-backend is running locally on port `3000`.
+Override `API_BASE_URL` only when you want to point a build at another public
+backend deployment.

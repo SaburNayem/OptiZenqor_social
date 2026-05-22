@@ -65,6 +65,11 @@ class MainShellDrawer extends StatelessWidget {
                     label: 'Help & Support',
                     routeName: RouteNames.supportHelp,
                   ),
+                  _MainShellDrawerItem(
+                    icon: Icons.fact_check_outlined,
+                    label: 'Report History',
+                    routeName: RouteNames.reportHistory,
+                  ),
                   const Divider(),
                   _MainShellDrawerItem(
                     icon: Icons.logout,

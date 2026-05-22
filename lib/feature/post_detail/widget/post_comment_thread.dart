@@ -10,11 +10,13 @@ class PostCommentThread extends StatelessWidget {
     required this.comments,
     required this.onReplyTap,
     required this.onLikeTap,
+    this.onReportTap,
   });
 
   final List<PostCommentModel> comments;
   final ValueChanged<PostCommentModel> onReplyTap;
   final ValueChanged<String> onLikeTap;
+  final ValueChanged<PostCommentModel>? onReportTap;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,7 @@ class PostCommentThread extends StatelessWidget {
           depth: depth,
           onLikeTap: () => onLikeTap(comment.id),
           onReplyTap: () => onReplyTap(comment),
+          onReportTap: onReportTap == null ? null : () => onReportTap!(comment),
         ),
       );
       tiles.addAll(_buildBranch(parentId: comment.id, depth: depth + 1));

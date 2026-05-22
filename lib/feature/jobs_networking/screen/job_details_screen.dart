@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../app_route/route_names.dart';
 import '../model/job_model.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/navigation/app_get.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   const JobDetailsScreen({
@@ -34,7 +36,15 @@ class JobDetailsScreen extends StatelessWidget {
             icon: const Icon(Icons.share_outlined),
           ),
           IconButton(
-            onPressed: () => _showSnack(context, 'Report job'),
+            onPressed: () => AppGet.toNamed(
+              RouteNames.reportCenter,
+              arguments: <String, dynamic>{
+                'targetType': 'job',
+                'targetId': job.id,
+                'targetLabel': job.title,
+                'targetSubtitle': job.company,
+              },
+            ),
             icon: const Icon(Icons.flag_outlined),
           ),
         ],

@@ -2,15 +2,21 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/data/models/user_model.dart';
+import '../../../core/permissions/startup_permission_service.dart';
 import '../../auth/repository/auth_repository.dart';
 import '../../../app_route/route_names.dart';
 import '../model/splash_state_model.dart';
 
 class SplashController {
-  SplashController({AuthRepository? authRepository})
-    : _authRepository = authRepository ?? AuthRepository();
+  SplashController({
+    AuthRepository? authRepository,
+    StartupPermissionService? permissionService,
+  }) : _authRepository = authRepository ?? AuthRepository(),
+       _permissionService =
+           permissionService ?? const StartupPermissionService();
 
   final AuthRepository _authRepository;
+  final StartupPermissionService _permissionService;
   SplashStateModel state = const SplashStateModel();
   static Future<String>? _routeResolutionFuture;
   static const Duration _debugBootstrapTimeout = Duration(seconds: 2);
@@ -59,6 +65,11 @@ class SplashController {
   }
 
   Future<void> bootstrap(BuildContext context) async {
+    final bool permissionsReady = await _ensureStartupPermissions(context);
+    if (!permissionsReady || !context.mounted) {
+      return;
+    }
+
     final Future<String> routeFuture = resolveInitialRoute().timeout(
       _bootstrapTimeout,
       onTimeout: () {
@@ -78,6 +89,58 @@ class SplashController {
       return;
     }
     Navigator.of(context).pushReplacementNamed(nextRoute);
+  }
+
+  Future<bool> _ensureStartupPermissions(BuildContext context) async {
+    StartupPermissionResult result = await _permissionService
+        .requestRequiredPermissions();
+
+    while (!result.canEnterApp) {
+      if (!context.mounted) {
+        return false;
+      }
+
+      final _PermissionDialogAction?
+      action = await showDialog<_PermissionDialogAction>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            title: const Text('Allow permissions to continue'),
+            content: Text(
+              'OptiZenqor Social needs these permissions before the app opens:\n\n'
+              '${result.deniedLabels}\n\n'
+              'Tap Try again to show permission prompts, or open settings if the phone blocks the prompt.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(
+                  dialogContext,
+                ).pop(_PermissionDialogAction.openSettings),
+                child: const Text('Open settings'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(
+                  dialogContext,
+                ).pop(_PermissionDialogAction.tryAgain),
+                child: const Text('Try again'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!context.mounted) {
+        return false;
+      }
+      if (action == _PermissionDialogAction.openSettings) {
+        await _permissionService.openSettings();
+      }
+
+      result = await _permissionService.requestRequiredPermissions();
+    }
+
+    return true;
   }
 
   Future<bool> _safeBool(
@@ -105,3 +168,5 @@ class SplashController {
     }
   }
 }
+
+enum _PermissionDialogAction { tryAgain, openSettings }
